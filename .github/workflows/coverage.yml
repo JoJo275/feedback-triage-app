@@ -102,7 +102,7 @@ jobs:
       # For private repos, set the CODECOV_TOKEN secret.
       # For public repos, the token is optional but recommended.
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # Uploads coverage reports for your repository… (v5.5.2)
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # Uploads coverage reports for your repository… (v5.5.2)
         with:
           files: coverage.xml
           fail_ci_if_error: false  # Don't fail CI if upload fails
