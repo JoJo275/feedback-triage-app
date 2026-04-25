@@ -533,23 +533,251 @@ feedback-triage-app/
 
 ## Database Model Recommendation
 
-Use one main model.
-
-### FeedbackItem
-
-Suggested fields:
-
-- id
-- title
-- description
-- source
-- pain_level
-- status
-- created_at
-- updated_at
+Use one main model: `FeedbackItem`. The full schema, indexes, constraints,
+and migration policy live in the next section.
 
 This project works best with a single strong resource. Do not split it into
 users, teams, labels, comments, and history tables yet.
+
+---
+
+## PostgreSQL Specification
+
+This is the canonical database spec. The model, the SQLModel class, and the
+first Alembic migration must all match it. Postgres 16 is the target.
+
+### Why Postgres 16
+
+- Long-term supported until November 2028.
+- Matches the default Railway Postgres template, so dev/prod parity is free.
+- Every feature used here (`generated identity`, `timestamptz`, native
+  `ENUM`, `CHECK`, `gen_random_uuid()`) is stable in 16.
+
+### Schema overview
+
+One table, two enum types, a small set of indexes, explicit constraints.
+
+```text
+schema: public
+├── type  source_enum   (email, interview, reddit, support, app_store, twitter, other)
+├── type  status_enum   (new, reviewing, planned, rejected)
+└── table feedback_item
+    ├── id             bigint   PK, identity
+    ├── title          varchar(200) NOT NULL
+    ├── description    varchar(5000) NULL
+    ├── source         source_enum NOT NULL
+    ├── pain_level     smallint NOT NULL  CHECK (1..5)
+    ├── status         status_enum NOT NULL DEFAULT 'new'
+    ├── created_at     timestamptz NOT NULL DEFAULT now()
+    └── updated_at     timestamptz NOT NULL DEFAULT now()
+```
+
+### `feedback_item` — column-by-column
+
+| Column        | Postgres type    | Nullable | Default            | Notes                                                                        |
+| ------------- | ---------------- | -------- | ------------------ | ---------------------------------------------------------------------------- |
+| `id`          | `bigint`         | no       | `GENERATED ALWAYS AS IDENTITY` | Primary key. `bigint` over `int` because growing past 2^31 is free insurance. |
+| `title`       | `varchar(200)`   | no       | —                  | Length capped at the column level, not just Pydantic.                        |
+| `description` | `varchar(5000)`  | yes      | `NULL`             | Optional free text. Length cap blocks abusive payloads.                      |
+| `source`      | `source_enum`    | no       | —                  | Native Postgres enum, not a string.                                          |
+| `pain_level`  | `smallint`       | no       | —                  | `smallint` is plenty for 1–5; saves bytes vs. `int`.                         |
+| `status`      | `status_enum`    | no       | `'new'`            | Native Postgres enum.                                                        |
+| `created_at`  | `timestamptz`    | no       | `now()`            | Always UTC. `now()` runs in the DB, not the app.                             |
+| `updated_at`  | `timestamptz`    | no       | `now()`            | Bumped by an `AFTER UPDATE` trigger (see below).                             |
+
+> **Why `bigint` identity over UUID?** Sequential IDs are smaller, sort
+> naturally, and are easier to debug in URLs and logs. UUIDs are useful when
+> IDs are generated client-side or merged across systems; neither applies
+> here. If the project ever exposes IDs to untrusted clients and needs
+> opacity, switch to UUID v7 in a single migration.
+
+### Constraints
+
+```sql
+ALTER TABLE feedback_item
+    ADD CONSTRAINT feedback_item_pain_level_range
+    CHECK (pain_level BETWEEN 1 AND 5);
+
+ALTER TABLE feedback_item
+    ADD CONSTRAINT feedback_item_title_not_blank
+    CHECK (length(btrim(title)) > 0);
+```
+
+> Enums already enforce membership for `source` and `status`. The two
+> `CHECK` constraints close the remaining gaps Pydantic alone cannot
+> guarantee against direct SQL inserts or seed scripts.
+
+### Indexes
+
+Index for **the queries you actually run**, not "just in case."
+
+| Index                                 | Columns                          | Why                                           |
+| ------------------------------------- | -------------------------------- | --------------------------------------------- |
+| `feedback_item_pkey`                  | `id`                             | Primary key (automatic).                      |
+| `ix_feedback_item_created_at_desc`    | `(created_at DESC)`              | Default list ordering. The list endpoint sorts by newest first. |
+| `ix_feedback_item_status`             | `(status)`                       | Filter by status is a top-level UI control.   |
+| `ix_feedback_item_source`             | `(source)`                       | Filter by source is a top-level UI control.   |
+
+Skip these for now:
+
+- A composite `(status, created_at DESC)` index — only worth adding if
+  `EXPLAIN ANALYZE` shows the simpler indexes are insufficient at real data
+  volumes. Premature.
+- Full-text search on `title` / `description` — defer until the optional
+  Search feature lands in Future Improvements. Use `tsvector` + GIN then.
+
+> **Why descending on `created_at`?** Postgres can scan a btree in either
+> direction, so `ASC` would technically suffice. Declaring `DESC`
+> documents the dominant query pattern and lets the planner skip a sort
+> on `ORDER BY created_at DESC`.
+
+### `updated_at` strategy
+
+Use a trigger, not application code, to bump `updated_at` on update:
+
+```sql
+CREATE OR REPLACE FUNCTION set_updated_at() RETURNS trigger AS $$
+BEGIN
+    NEW.updated_at := now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER feedback_item_set_updated_at
+    BEFORE UPDATE ON feedback_item
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+```
+
+> **Why a trigger over SQLAlchemy `onupdate`?** A trigger fires for every
+> writer, including raw SQL, seed scripts, and a future second service.
+> The ORM hook only protects writes that go through the ORM. Triggers are
+> ~5 lines and cost nothing.
+
+### Enum migration policy
+
+Postgres enums are schema objects. Adding new values is cheap; renaming or
+removing is **not**.
+
+- **Safe:** `ALTER TYPE source_enum ADD VALUE 'discord';`
+- **Painful:** removing a value (requires creating a new type, casting,
+  swapping, dropping the old type).
+
+Therefore:
+
+- Add new sources/statuses freely.
+- Treat removal as a planned migration with a backfill step.
+- Never reuse an old value for a different meaning.
+
+### SQLModel / SQLAlchemy mapping
+
+Define the model once; let Alembic's `--autogenerate` derive migrations.
+
+- Use `sqlalchemy.dialects.postgresql.ENUM` with `create_type=False` so the
+  enum type is owned by the migration, not by `metadata.create_all()`.
+- Define the Python `Enum` classes in `enums.py` and import them in both
+  the SQLModel model (`models.py`) and the request schemas (`schemas.py`)
+  so there is exactly one source of truth.
+- Set `Mapped[str]` style annotations and `mapped_column(...)` for
+  forward-compatibility with SQLAlchemy 2.x.
+
+### Database session lifecycle
+
+- One **engine** per process, created at import time in `database.py`.
+- One **session per request**, yielded via a `get_db` FastAPI dependency
+  with `try / finally: session.close()`.
+- `pool_size=5`, `max_overflow=5`, `pool_pre_ping=True`. Pre-ping costs a
+  trivial round trip and prevents "server closed the connection
+  unexpectedly" errors after Railway puts the DB to sleep.
+- Use `SQLALCHEMY_ECHO=false` in production. Echo is a debug-only setting.
+
+```python
+# sketch
+engine = create_engine(
+    settings.database_url,
+    pool_size=5,
+    max_overflow=5,
+    pool_pre_ping=True,
+    future=True,
+)
+SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, future=True)
+
+def get_db() -> Iterator[Session]:
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+```
+
+> **Why `expire_on_commit=False`?** FastAPI returns the response *after*
+> the request handler exits. With the default (`True`), every attribute
+> access on a returned ORM object after `commit()` triggers a re-fetch
+> from a now-closed session and raises. Disabling expire-on-commit makes
+> response serialization predictable.
+
+### Transaction boundaries
+
+- One transaction per request. Begin implicitly when the session is used,
+  commit at the end of a successful handler, roll back on exception.
+- Wire commit/rollback in a small dependency or middleware so handlers do
+  not call `session.commit()` themselves.
+- Never run multi-step write logic without a transaction; partial writes
+  are the kind of bug that only shows up in production.
+
+### Migrations (Alembic)
+
+- `alembic.ini` reads `DATABASE_URL` from the environment, never a
+  hardcoded URL.
+- Configure `target_metadata = SQLModel.metadata` in `alembic/env.py`.
+- Configure `compare_type=True` and `compare_server_default=True` so
+  `--autogenerate` catches type and default changes.
+- Every migration must be **reviewed by hand** after autogeneration.
+  Autogenerate misses: enum value adds, index renames, trigger creation,
+  data backfills.
+- Migrations run as part of app startup in development (`task migrate`)
+  and as a **separate one-shot job** in production. Do **not** run them
+  inside the web process on Railway — concurrent boots race each other.
+
+### Connecting from the app
+
+Connection string format (psycopg v3 driver):
+
+```env
+DATABASE_URL=postgresql+psycopg://feedback:feedback@localhost:5432/feedback
+```
+
+In production (Railway), use the platform-injected `DATABASE_URL`
+directly. Do not hand-construct the URL from individual components.
+
+### Backups and data safety (local dev)
+
+For an MVP, "backups" means: do not lose your demo data on a `docker
+compose down -v`.
+
+- `docker-compose.yml` mounts a named volume (`pgdata`) so data survives
+  container restarts.
+- `task db:dump` → `pg_dump` to `./backups/feedback-YYYYMMDD.sql.gz`.
+- `task db:restore FILE=...` → `pg_restore` (or `psql <` for SQL dumps).
+- `.gitignore` the `backups/` directory; it is local-only.
+
+Production backups on Railway are handled by the platform (point-in-time
+recovery on paid plans). Document this in the README; do not roll your
+own.
+
+### Defense-in-depth summary
+
+| Threat                          | Defense                                              |
+| ------------------------------- | ---------------------------------------------------- |
+| Bad enum value via API          | Pydantic enum + Postgres enum type                   |
+| Bad enum value via raw SQL      | Postgres enum type                                   |
+| Out-of-range `pain_level`       | Pydantic `Field(ge=1, le=5)` + DB `CHECK`            |
+| Empty/whitespace `title`        | Pydantic validator + DB `CHECK length(btrim) > 0`    |
+| Oversized payload               | Pydantic `max_length` + `varchar(200/5000)`          |
+| Missing `updated_at` bump       | DB trigger (covers ORM + raw SQL + seed scripts)     |
+| Schema drift across environments| Alembic, hand-reviewed                               |
+| Connection drop after idle      | `pool_pre_ping=True`                                 |
+| SQL injection                   | SQLAlchemy parameter binding (no string-built SQL)   |
+| Lost demo data                  | Named Docker volume + `pg_dump` task                 |
 
 ---
 
@@ -806,11 +1034,14 @@ behavior matches production. Two reasonable patterns:
 
 ### Phase 2 — Database and Schemas
 
-- define `Source` and `Status` enums
-- create `FeedbackItem` SQLModel with constraints
-- create request/response schemas
-- create database engine and `get_db` session dependency
-- initialize Alembic and create the first migration
+- define `Source` and `Status` enums in `enums.py` (single source of truth)
+- create `FeedbackItem` SQLModel matching the [Postgres spec](#postgresql-specification)
+- create request/response schemas using the same enums
+- create database engine, `SessionLocal`, and `get_db` dependency with `pool_pre_ping=True`
+- initialize Alembic; configure `compare_type` and `compare_server_default`
+- write the first migration **by hand-reviewing autogenerate output**:
+  enum types, table, `CHECK` constraints, indexes, and the `updated_at` trigger
+- run `task migrate` and verify with `\d feedback_item` in `psql`
 
 ### Phase 3 — CRUD Layer
 
