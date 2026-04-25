@@ -1,0 +1,259 @@
+# ──────────────────────────────────────────────────────────────
+# Release Workflow
+# ──────────────────────────────────────────────────────────────
+# Builds Python distribution artifacts (sdist + wheel) and
+# optionally publishes them to PyPI.
+#
+# Triggered by:
+#   - Version tags created by release-please (e.g., v1.2.3)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# Flow:
+#   release-please merges Release PR
+#   → creates git tag v1.2.3 + GitHub Release
+#   → this workflow triggers on the tag
+#   → builds artifacts, publishes to PyPI (if enabled),
+#     generates SBOMs, uploads assets to the GitHub Release
+#
+# hatch-vcs reads the git tag to set the package version
+# at build time — no manual version bumping needed.
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_RELEASE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Add a PUBLISH_TOKEN secret for PyPI publishing
+#      (Settings → Secrets and variables → Actions → Secrets).
+# ──────────────────────────────────────────────────────────────
+
+name: Release
+
+on:
+  # Trigger on version tags (e.g. v1.0.0, v2.3.1)
+  push:
+    tags:
+      - "v*.*.*"
+
+  # Allow running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Deny all permissions by default; each job declares its own.
+permissions: {}
+
+jobs:
+  # ── Job 1: Build ───────────────────────────────────────────
+  # Produces sdist (.tar.gz) and wheel (.whl) in dist/,
+  # then uploads them as a workflow artifact for the publish job.
+  build:
+    name: Build distribution
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_RELEASE = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_RELEASE == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write          # Needed for SLSA provenance attestation
+      attestations: write      # Needed for SLSA provenance attestation
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          fetch-depth: 0               # Full history needed for hatch-vcs to derive version from tag
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # Install pip + build front-end (PEP 517)
+      - name: Install build tools
+        run: python -m pip install --upgrade pip build
+
+      # Produces dist/*.tar.gz (sdist) and dist/*.whl (wheel)
+      - name: Build package
+        run: python -m build
+
+      # Persist the built artifacts so the publish job can use them
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # Upload a build artifact that can be used by… (v7.0.0)
+        with:
+          name: dist
+          path: dist/
+
+      # Generate SLSA build provenance attestation for the
+      # distribution artifacts. This cryptographically links the
+      # artifacts to this specific build, strengthening supply chain trust.
+      - name: Attest build provenance (sdist)
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # Generate provenance attestations for build… (v4.1.0)
+        with:
+          subject-path: dist/*.tar.gz
+
+      - name: Attest build provenance (wheel)
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # Generate provenance attestations for build… (v4.1.0)
+        with:
+          subject-path: dist/*.whl
+
+  # ── Job 2: Publish ─────────────────────────────────────────
+  # Downloads the artifacts produced by the build job and
+  # publishes them to PyPI — but only if PUBLISH_TOKEN is set.
+  publish:
+    name: Publish to PyPI
+    needs: build               # Wait for the build job to succeed
+    runs-on: ubuntu-latest
+    environment: release       # Uses the "release" deployment environment (optional approvals, etc.)
+    permissions:
+      id-token: write          # Needed for PyPI trusted publishing (OIDC)
+
+    # ── Secret → env mapping ─────────────────────────────────
+    # GitHub Actions does not allow secrets in `if:` expressions
+    # directly, so we copy the secret into an env var first.
+    # Steps below can then test `env.PUBLISH_TOKEN` in their
+    # own `if:` conditions.
+    env:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+
+    steps:
+      # Retrieve the dist/ artifacts uploaded by the build job
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
+        with:
+          name: dist
+          path: dist/
+
+      # Publish to PyPI only when the secret exists
+      - name: Publish to PyPI
+        if: ${{ env.PUBLISH_TOKEN != '' }}
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # Upload Python distribution packages to PyPI (v1.13.0)
+
+      # Fail with a helpful message when the secret is missing.
+      # Using exit 0 so release workflow succeeds even without PyPI publishing.
+      # Change to "exit 1" when you're ready to enforce PyPI publishing.
+      - name: Missing token instructions
+        if: ${{ env.PUBLISH_TOKEN == '' }}
+        run: |
+          echo "::notice::Skipping PyPI publish — PUBLISH_TOKEN secret is not set."
+          echo "When you're ready to publish to PyPI, add the secret in:"
+          echo "  Settings → Secrets and variables → Actions → Secrets"
+          exit 0
+
+  # ── Job 3: Generate SBOMs ──────────────────────────────────
+  # Generates SPDX (primary) and CycloneDX SBOMs for the
+  # release. These are attached as release assets (channel 3)
+  # and are authoritative for the tagged version.
+  sbom:
+    name: Generate release SBOMs
+    needs: build               # Runs after build to align with the release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      # SPDX 2.3 JSON — primary format
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        with:
+          format: spdx-json
+          output-file: sbom-spdx.json
+          upload-artifact: false
+
+      # CycloneDX 1.x JSON — secondary format
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        with:
+          format: cyclonedx-json
+          output-file: sbom-cyclonedx.json
+          upload-artifact: false
+
+      # Bundle both SBOMs into a single artifact for the
+      # github-release job to download and attach.
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # Upload a build artifact that can be used by… (v7.0.0)
+        with:
+          name: sbom
+          path: |
+            sbom-spdx.json
+            sbom-cyclonedx.json
+
+  # ── Job 4: Upload Release Assets ────────────────────────────
+  # Uploads the built distribution artifacts and SBOMs to the
+  # GitHub Release that was already created by release-please.
+  # If running via manual dispatch (no release-please), creates
+  # a new release instead.
+  upload-assets:
+    name: Upload release assets
+    needs: [build, sbom]       # Needs both dist and SBOM artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # Required to upload release assets
+
+    steps:
+      # Retrieve the dist/ artifacts uploaded by the build job
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
+        with:
+          name: dist
+          path: dist/
+
+      # Retrieve the SBOM artifacts uploaded by the sbom job
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
+        with:
+          name: sbom
+          path: sbom/
+
+      # Upload artifacts to the existing GitHub Release (created by release-please).
+      # If the release doesn't exist yet (manual dispatch), create it.
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          # Check if release already exists (created by release-please)
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "Release $TAG exists — uploading assets"
+            gh release upload "$TAG" \
+              dist/* \
+              sbom/* \
+              --repo "${{ github.repository }}" \
+              --clobber
+          else
+            echo "Release $TAG not found — creating with assets"
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              dist/* \
+              sbom/*
+          fi

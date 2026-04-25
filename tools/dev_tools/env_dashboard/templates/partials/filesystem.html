@@ -1,0 +1,65 @@
+{% from "partials/_macros.html" import kv_row %}
+
+{% if data.disk %}
+<h5>Disk Usage</h5>
+{% if data.disk.error is defined %}
+<p class="badge badge-fail">Error: {{ data.disk.error }}</p>
+{% else %}
+<table class="kv-table">
+    {{ kv_row("Path", data.disk.path, copyable=true, hint="Mount point being measured for disk space.") }}
+    {{ kv_row("Total", "%.1f GB"|format(data.disk.total_gb|default(0)), hint="Total disk capacity on this partition.") }}
+    {{ kv_row("Used", "%.1f GB"|format(data.disk.used_gb|default(0))) }}
+    {{ kv_row("Free", "%.1f GB"|format(data.disk.free_gb|default(0)), hint="Available space. Below 5 GB may cause build failures or cache issues.") }}
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Disk usage percentage. Above 90% is critical — clear caches or build artifacts.</span>
+                </details>
+                <span>Usage</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% set pct = data.disk.percent_used|default(0) %}
+            <progress value="{{ pct }}" max="100"></progress>
+            <span>{{ "%.1f"|format(pct) }}%</span>
+            {% if pct > 90 %}
+                <span class="badge badge-fail">Critical</span>
+            {% elif pct > 75 %}
+                <span class="badge badge-warn">High</span>
+            {% else %}
+                <span class="badge badge-pass">OK</span>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+{% endif %}
+{% endif %}
+
+{% if data.writable %}
+<h5>Writable Checks</h5>
+<table class="kv-table">
+    {% for dir_name, dir_info in data.writable.items() %}
+    <tr>
+        <td class="kv-label">{{ dir_name|replace("_", " ")|title }}</td>
+        <td class="kv-value">
+            {% if dir_info.writable %}
+                <span class="badge badge-pass">writable</span>
+            {% else %}
+                <span class="badge badge-fail">not writable</span>
+            {% endif %}
+            <small class="mono">{{ dir_info.path|default("") }}
+                {% if dir_info.path %}<button class="copy-btn" data-clip="{{ dir_info.path|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button>{% endif %}
+            </small>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
+{% if data.temp_dir %}
+<table class="kv-table">
+    {{ kv_row("Temp Directory", data.temp_dir, copyable=true, hint="System temporary directory. Used for pip downloads and build intermediates.") }}
+</table>
+{% endif %}

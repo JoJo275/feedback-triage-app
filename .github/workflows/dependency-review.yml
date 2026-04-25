@@ -1,0 +1,81 @@
+# ──────────────────────────────────────────────────────────────
+# Dependency Review Workflow
+# ──────────────────────────────────────────────────────────────
+# Scans pull requests for newly introduced dependencies and
+# flags any that are vulnerable, have restrictive licenses,
+# or are otherwise risky.
+#
+# Uses GitHub's dependency-review-action which compares the
+# dependency graph before and after the PR's changes.
+#
+# Triggers:
+#   - Pull requests targeting main
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_DEPENDENCY_REVIEW = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Configure license allow/deny lists and
+#      severity thresholds in the step below.
+# ──────────────────────────────────────────────────────────────
+
+name: Dependency Review
+
+on:
+  # Only runs on PRs — compares dependency changes between
+  # the PR branch and the base branch.
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Scan dependencies    # ci-gate: required
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_DEPENDENCY_REVIEW = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_DEPENDENCY_REVIEW == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      # Compares the dependency manifests (pyproject.toml,
+      # requirements*.txt, etc.) between the base and head of
+      # the PR. Flags vulnerabilities and optionally license
+      # violations.
+      #
+      # Configuration options:
+      #   fail-on-severity: low | moderate | high | critical
+      #   deny-licenses:    comma-separated SPDX IDs to reject
+      #   allow-licenses:   comma-separated SPDX IDs to permit
+      #
+      # See: https://github.com/actions/dependency-review-action
+      - name: Review dependencies
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # Prevent the introduction of dependencies with… (v4.9.0)
+        with:
+          fail-on-severity: moderate
+          # deny-licenses: GPL-3.0, AGPL-3.0
+          # allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause

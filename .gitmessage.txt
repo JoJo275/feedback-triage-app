@@ -1,0 +1,65 @@
+# ──────────────────────────────────────────────────
+# <type>(<scope>): <description>   (subject ≤ 50 chars)
+# ──────────────────────────────────────────────────
+#
+# Why:
+#
+#
+# What changed:
+#
+#
+# How tested:
+#
+#
+# Breaking change:            (omit if not applicable)
+#
+#
+# Issues/Refs:                (omit if not applicable)
+#
+#
+# ──────────────────────────────────────────────────
+# Setup (run once per clone)
+# ──────────────────────────────────────────────────
+#   git config commit.template .gitmessage.txt
+#
+# TODO (template users): If you renamed this file or moved it,
+#   update the path in the git config command above, CONTRIBUTING.md,
+#   and .repo-doctor.toml.
+#
+# ──────────────────────────────────────────────────
+# Types
+# ──────────────────────────────────────────────────
+#   feat      New feature or capability
+#   fix       Bug fix
+#   docs      Documentation only
+#   style     Whitespace, formatting (no logic changes)
+#   refactor  Code restructuring (no feature/fix)
+#   perf      Performance improvement
+#   test      Adding or fixing tests
+#   build     Build system, dependencies
+#   ci        CI/CD configuration
+#   chore     Maintenance, tooling, config
+#   revert    Reverting a previous commit
+#
+# ──────────────────────────────────────────────────
+# Rules
+# ──────────────────────────────────────────────────
+#   - Subject: imperative mood, lowercase, no period
+#   - Subject: ≤ 50 chars total (type + scope + description)
+#   - Body:    wrap at 72 chars, explain what and why
+#   - Blank line between subject and body (required by git)
+#   - Breaking: add ! after type/scope AND add footer
+#
+# ──────────────────────────────────────────────────
+# Examples
+# ──────────────────────────────────────────────────
+#   feat: add user authentication
+#   fix(cli): handle missing config file gracefully
+#   docs: update installation guide
+#   ci: add Python 3.13 to test matrix
+#   feat(api)!: change authentication to OAuth2
+#
+#   Revert example (include original commit SHA):
+#   revert: feat: add user authentication
+#     This reverts commit abc1234.
+# ──────────────────────────────────────────────────

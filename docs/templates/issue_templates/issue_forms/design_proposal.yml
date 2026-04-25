@@ -1,0 +1,379 @@
+# =============================================================================
+# Design Proposal Issue Template
+# =============================================================================
+# This template is for proposing significant design or architectural changes.
+# Sections: Introduction, Redirect Notice, Proposal Details, Impact Analysis,
+#           Alternatives, Implementation, Checklist
+# =============================================================================
+
+name: 🎨 Design Proposal
+description: >
+  Propose a significant design or architectural change.
+  For smaller enhancements, please use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template.
+title: "[DESIGN] Short description of the proposal"
+labels: ["design", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review design proposals
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it's org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful design proposal.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to propose a design change! 🎨
+
+        Design proposals help us make thoughtful architectural decisions.
+        Please provide as much context as possible to facilitate discussion.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Directs users to appropriate channels for related but different issues.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        <!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+        ⚠️ **Before submitting**
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/HEAD/SECURITY.md).
+        - **Small enhancement?** Use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template instead.
+        - **Early-stage idea?** Start in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Ideas/Proposals) first.
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) and discussions to avoid duplicates.
+
+        💡 **Discussions vs. Design Proposals:** If you want brainstorming or feedback on a rough idea, use Discussions. Use this template when you have a **concrete proposal** ready for review.
+
+  # ---------------------------------------------------------------------------
+  # Proposal Details
+  # ---------------------------------------------------------------------------
+  # Core information about the design proposal.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: >
+        Provide a brief summary of the proposed design change.
+      placeholder: |
+        Example: "Introduce a plugin architecture to allow extensibility..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: status_maturity
+    attributes:
+      label: Status / Maturity
+      description: How mature is this proposal?
+      options:
+        - Idea – Early concept, seeking initial feedback
+        - Draft – Work in progress, not fully fleshed out
+        - Ready for review – Complete proposal, seeking approval
+        - Ready to implement – Approved or seeking final sign-off
+    validations:
+      required: false
+
+  - type: dropdown
+    id: requested_outcome
+    attributes:
+      label: Requested Outcome
+      description: What do you want from maintainers?
+      options:
+        - Feedback – Looking for input and suggestions
+        - Direction – Need guidance on approach
+        - Approve – Ready for approval to proceed
+        - RFC discussion – Want broader community input
+        - Ready to implement – Seeking final go-ahead
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: >
+        Why is this design change needed? What problem does it solve?
+      placeholder: |
+        Example: "Currently, adding new functionality requires modifying core code..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: goals
+    attributes:
+      label: Goals
+      description: >
+        What are the specific goals this design aims to achieve?
+        Be explicit about what success looks like.
+      placeholder: |
+        - Goal 1: Enable third-party plugins without modifying core code
+        - Goal 2: Maintain backward compatibility with existing integrations
+        - Goal 3: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-Goals / Out of Scope (Optional)
+      description: >
+        What is explicitly out of scope for this design?
+        Define boundaries to keep the proposal focused and prevent scope creep.
+      placeholder: |
+        - Not addressing: Performance optimizations (will be handled separately)
+        - Not addressing: Supporting plugins in languages other than Python
+        - Not addressing: Plugin marketplace or discovery mechanism
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: What is the scope of this design change?
+      options:
+        - Architecture / System design
+        - API design
+        - Data model / Schema
+        - Module / Component structure
+        - Interface / Protocol
+        - Configuration / Settings
+        - Multiple areas
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope_other_unsure
+    attributes:
+      label: Scope – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the scope.
+      placeholder: Describe the scope if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Detailed Design
+  # ---------------------------------------------------------------------------
+  # The proposed solution in detail.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Detailed Design
+
+        Describe your proposed design in detail.
+
+  - type: textarea
+    id: detailed_design
+    attributes:
+      label: Proposed Design
+      description: >
+        Describe the design in detail. Include diagrams, code samples, or
+        pseudocode if helpful.
+      placeholder: |
+        Example: "The plugin system would work as follows:
+        1. Plugins implement a standard interface...
+        2. A registry discovers and loads plugins...
+        3. Hooks allow plugins to extend behavior..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: api_changes
+    attributes:
+      label: API Changes (if applicable)
+      description: >
+        Describe any public API changes this design would introduce.
+      placeholder: |
+        Example: "New methods: register_plugin(), unregister_plugin()..."
+      render: python
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Implementation Sketch
+  # ---------------------------------------------------------------------------
+  # High-level implementation plan to help reviewers understand feasibility.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Implementation Sketch
+
+        A rough implementation plan helps reviewers assess feasibility.
+
+  - type: textarea
+    id: implementation_plan
+    attributes:
+      label: High-Level Plan (Optional)
+      description: >
+        Outline the key steps or phases to implement this design.
+      placeholder: |
+        1. Define plugin interface and base class
+        2. Implement plugin discovery/loading mechanism
+        3. Add hook points in core modules
+        4. Create example plugin and documentation
+    validations:
+      required: false
+
+  - type: dropdown
+    id: estimated_effort
+    attributes:
+      label: Estimated Effort / Complexity
+      description: How much effort do you estimate this will require?
+      options:
+        - Small (S) – A few hours to a day
+        - Medium (M) – A few days to a week
+        - Large (L) – Multiple weeks or more
+        - Unsure
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Impact Analysis
+  # ---------------------------------------------------------------------------
+  # Understanding the impact helps evaluate the proposal.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Impact Analysis
+
+        Help us understand the impact of this change.
+
+  - type: dropdown
+    id: breaking_change
+    attributes:
+      label: Breaking Change?
+      description: >
+        Would this design introduce breaking changes?
+        If Yes or Partially, please fill in the Migration Path section below.
+      options:
+        - "No – Backward compatible"
+        - "Yes – Breaking changes required"
+        - "Partially – Some breaking changes"
+        - Unsure
+    validations:
+      required: true
+
+  - type: textarea
+    id: migration
+    attributes:
+      label: Migration Path (if breaking)
+      description: >
+        If this introduces breaking changes, how would users migrate?
+      placeholder: |
+        Example: "Users would need to update their configuration to..."
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Alternatives
+  # ---------------------------------------------------------------------------
+  # Other approaches considered.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: >
+        What other designs or approaches did you consider? Why were they rejected?
+      placeholder: |
+        Example: "Alternative A: ... (rejected because...)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks & Mitigations (Optional)
+      description: >
+        What could go wrong with this design? How would you mitigate those risks?
+        **Strongly recommended if this is a breaking change.**
+      placeholder: |
+        - Risk: Plugin isolation may be insufficient, allowing plugins to corrupt state
+          Mitigation: Use process-level sandboxing or strict interface contracts
+        - Risk: Performance overhead from plugin hooks
+          Mitigation: Lazy loading and optional hook registration
+    validations:
+      required: false
+
+  - type: textarea
+    id: open_questions
+    attributes:
+      label: Open Questions (Optional)
+      description: >
+        What questions remain unresolved? What areas need input from reviewers?
+      placeholder: |
+        - Should plugins be loaded eagerly or lazily?
+        - How should plugin versioning and compatibility be handled?
+        - What's the right granularity for hook points?
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Implementation
+  # ---------------------------------------------------------------------------
+  # Information about implementation plans.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to implement this?
+      description: >
+        Design proposals with implementation help are more likely to be accepted.
+      options:
+        - Yes, I'd like to implement this
+        - Yes, but I'd need guidance
+        - Maybe, depending on complexity
+        - No, I'm just proposing the idea
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Prior Art & Additional Context
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: prior_art
+    attributes:
+      label: Prior Art / References (Optional)
+      description: >
+        Links to similar designs in other projects, standards, research, or related issues.
+      placeholder: |
+        - Similar approach in Project X: https://...
+        - Relevant RFC or standard: https://...
+        - Related issue: #123
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context (Optional)
+      description: >
+        Any other information that supports this proposal.
+      placeholder: |
+        Additional notes, diagrams, prototypes, etc.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and discussions for similar proposals
+          required: true
+        - label: I have considered the impact on existing users
+          required: false
+        - label: I am willing to help refine this design based on feedback
+          required: false

@@ -1,0 +1,134 @@
+# ──────────────────────────────────────────────────────────────
+# PR Title Lint Workflow
+# ──────────────────────────────────────────────────────────────
+# Enforces conventional commit format on pull request titles.
+# Since PRs are squash-merged, the PR title becomes the commit
+# message on main — so this is the enforcement point.
+#
+# Valid prefixes: feat, fix, docs, chore, refactor, test, ci,
+# style, perf, build, revert
+#
+# Examples:
+#   ✅  feat: add user authentication
+#   ✅  fix(parser): handle empty input
+#   ❌  Add user authentication
+#   ❌  FEAT: add user authentication
+#
+# Triggers:
+#   - Pull requests targeting main (opened, edited, synchronized)
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_PR_TITLE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Adjust the allowed types or scopes below.
+# ──────────────────────────────────────────────────────────────
+
+name: PR Title
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-title:
+    name: Conventional commit check    # ci-gate: required
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_PR_TITLE = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_PR_TITLE == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Validate PR title
+        id: lint_title
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # Ensure your PR title matches the Conventional… (v6.1.1)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Allowed conventional commit types
+          types: |
+            feat
+            fix
+            docs
+            chore
+            refactor
+            test
+            ci
+            style
+            perf
+            build
+            revert
+          # Require lowercase subject (digits also allowed, e.g. version numbers)
+          subjectPattern: ^[a-z0-9].*$
+          subjectPatternError: >
+            The subject "{subject}" must start with a lowercase letter or digit.
+            Example: "feat: add user authentication"
+
+      - name: Suggest corrected PR title
+        if: always() && steps.lint_title.outcome == 'failure'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        shell: bash
+        run: |
+          # Strip common non-conventional prefixes to extract the description
+          desc="$PR_TITLE"
+          # Remove leading type-like prefix with / or : or space (e.g. "feat/...", "Feature: ...")
+          desc=$(echo "$desc" | sed -E 's/^[A-Za-z]+[\/: ]+//')
+          # Lowercase the first character of the description
+          desc="$(echo "${desc:0:1}" | tr '[:upper:]' '[:lower:]')${desc:1}"
+
+          echo "::error::PR title does not follow conventional commit format."
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "  Your PR title: $PR_TITLE"
+          echo "═══════════════════════════════════════════════════════"
+          echo ""
+          echo "Suggested titles (pick the type that best fits your change):"
+          echo ""
+          echo "  feat: $desc"
+          echo "  fix: $desc"
+          echo "  docs: $desc"
+          echo "  chore: $desc"
+          echo "  refactor: $desc"
+          echo ""
+          echo "───────────────────────────────────────────────────────"
+          echo "Available prefixes:"
+          echo ""
+          echo "  feat:     New feature or capability"
+          echo "  fix:      Bug fix"
+          echo "  docs:     Documentation only"
+          echo "  chore:    Maintenance, no production code change"
+          echo "  refactor: Code restructuring, no behavior change"
+          echo "  test:     Adding or updating tests"
+          echo "  ci:       CI/CD workflow changes"
+          echo "  style:    Formatting, no logic change"
+          echo "  perf:     Performance improvement"
+          echo "  build:    Build system or dependency changes"
+          echo "  revert:   Reverts a previous commit"
+          echo ""
+          echo "Format: <type>: <lowercase description>"
+          echo "  Scope is optional: <type>(<scope>): <description>"
+          echo "───────────────────────────────────────────────────────"
+          exit 1

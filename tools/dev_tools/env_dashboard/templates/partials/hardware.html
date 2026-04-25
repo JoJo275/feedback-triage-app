@@ -1,0 +1,204 @@
+{% from "partials/_macros.html" import kv_row, status_badge %}
+
+{# --- CPU --- #}
+{% set cpu = data.cpu or {} %}
+<h5>CPU</h5>
+<table class="kv-table">
+    {% if cpu.model %}
+    {{ kv_row("Model", cpu.model, copyable=true, hint="CPU model name. Determines compute performance for builds and tests.") }}
+    {% endif %}
+    {% if cpu.vendor %}
+    {{ kv_row("Vendor", cpu.vendor, hint="CPU manufacturer (Intel, AMD, Apple, etc.).") }}
+    {% endif %}
+    {{ kv_row("Architecture", cpu.architecture, hint="Instruction set architecture (x86_64, arm64). Must match compiled binary dependencies.") }}
+    {% if cpu.physical_cores %}
+    {{ kv_row("Physical Cores", cpu.physical_cores, hint="Number of physical CPU cores. Determines maximum true parallelism.") }}
+    {% endif %}
+    {{ kv_row("Logical Cores", cpu.logical_cores, hint="Total logical processors including hyper-threading. Used by parallel test runners.") }}
+    {% if cpu.frequency_mhz %}
+    {{ kv_row("Frequency", (cpu.frequency_mhz ~ " MHz"), hint="CPU clock speed. Higher values mean faster single-threaded performance.") }}
+    {% endif %}
+    {% if cpu.cache_size %}
+    {{ kv_row("Cache", cpu.cache_size, hint="CPU cache size. Larger caches improve performance for memory-intensive operations.") }}
+    {% endif %}
+    {% if cpu.features %}
+    {{ kv_row("Features", cpu.features|join(", "), hint="Notable CPU instruction set extensions (AVX, SSE, AES, etc.).") }}
+    {% endif %}
+</table>
+
+{# --- GPU --- #}
+{% if data.gpus %}
+<h5>GPU{% if data.gpu_count > 1 %}s ({{ data.gpu_count }}){% endif %}</h5>
+{% for gpu in data.gpus %}
+<table class="kv-table">
+    {{ kv_row("Name", gpu.name, copyable=true, hint="GPU model. Relevant for CUDA/OpenCL workloads and display rendering.") }}
+    {% if gpu.vendor %}
+    {{ kv_row("Vendor", gpu.vendor, hint="GPU manufacturer (NVIDIA, AMD, Intel).") }}
+    {% endif %}
+    {% if gpu.driver_version %}
+    {{ kv_row("Driver Version", gpu.driver_version, hint="Installed GPU driver version. Keep updated for stability and performance.") }}
+    {% endif %}
+    {% if gpu.vram_mb %}
+    {{ kv_row("VRAM", (gpu.vram_mb ~ " MB"), hint="Dedicated video memory. Needed for GPU-accelerated workloads and large displays.") }}
+    {% endif %}
+    {% if gpu.vram %}
+    {{ kv_row("VRAM", gpu.vram, hint="Dedicated video memory.") }}
+    {% endif %}
+    {% if gpu.processor %}
+    {{ kv_row("Processor", gpu.processor, hint="GPU chip/processor model name.") }}
+    {% endif %}
+    {% if gpu.resolution %}
+    {{ kv_row("Resolution", gpu.resolution, hint="Current display resolution and color depth.") }}
+    {% endif %}
+    {% if gpu.refresh_rate_hz %}
+    {{ kv_row("Refresh Rate", (gpu.refresh_rate_hz ~ " Hz"), hint="Display refresh rate.") }}
+    {% endif %}
+    {% if gpu.temperature_c %}
+    {{ kv_row("Temperature", (gpu.temperature_c ~ " °C"), hint="Current GPU temperature. High temps may indicate throttling.") }}
+    {% endif %}
+    {% if gpu.status %}
+    {{ kv_row("Status", gpu.status, hint="GPU operational status.") }}
+    {% endif %}
+</table>
+{% if not loop.last %}<hr class="gpu-separator">{% endif %}
+{% endfor %}
+{% else %}
+<h5>GPU</h5>
+<p class="muted">No GPU information detected.</p>
+{% endif %}
+
+{# --- RAM --- #}
+{% set ram = data.ram or {} %}
+<h5>Memory (RAM)</h5>
+<table class="kv-table">
+    {% if ram.total_gb %}
+    {{ kv_row("Total", (ram.total_gb ~ " GB"), hint="Total physical memory. Determines how many processes can run concurrently.") }}
+    {% endif %}
+    {% if ram.available_gb %}
+    {{ kv_row("Available", (ram.available_gb ~ " GB"), hint="Currently available memory. Low values cause swapping and slow builds.") }}
+    {% endif %}
+    {% if ram.used_percent is not none %}
+    {{ kv_row("Used", (ram.used_percent ~ "%"), hint="Memory utilization percentage. Above 85% may impact build performance.") }}
+    {% endif %}
+    {% if ram.type %}
+    {{ kv_row("Type", ram.type, hint="Memory technology (DDR4, DDR5). Newer generations have higher bandwidth.") }}
+    {% endif %}
+    {% if ram.speed_mhz %}
+    {{ kv_row("Speed", (ram.speed_mhz ~ " MHz"), hint="Memory clock speed. Higher values improve data throughput.") }}
+    {% endif %}
+    {% if ram.slots_used is not none and ram.slots_total is not none %}
+    {{ kv_row("Slots", (ram.slots_used ~ " / " ~ ram.slots_total ~ " used"), hint="DIMM slots occupied vs total. Shows upgrade headroom.") }}
+    {% elif ram.slots_used is not none %}
+    {{ kv_row("Slots Used", ram.slots_used, hint="Number of memory modules installed.") }}
+    {% endif %}
+</table>
+
+{% if ram.modules %}
+<details class="hw-module-details">
+    <summary><small>Memory Modules ({{ ram.modules|length }})</small></summary>
+    <table class="kv-table striped">
+        <thead>
+            <tr>
+                <th>Slot</th>
+                <th>Size</th>
+                <th>Type</th>
+                <th>Form</th>
+                <th>Rated Speed</th>
+                <th>Current Speed</th>
+                <th>Ranks</th>
+                <th>Width</th>
+                <th>Manufacturer</th>
+                <th>Part Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mod in ram.modules %}
+            <tr>
+                <td>{{ mod.device_locator or mod.bank|default("—") }}</td>
+                <td>{{ (mod.size_gb ~ " GB") if mod.size_gb else "—" }}</td>
+                <td>{{ mod.type|default("—") }}</td>
+                <td>{{ mod.form_factor|default("—") }}</td>
+                <td>{{ (mod.speed_mhz ~ " MHz") if mod.speed_mhz else "—" }}</td>
+                <td>{{ (mod.configured_speed_mhz ~ " MHz") if mod.configured_speed_mhz else "—" }}</td>
+                <td>{{ mod.ranks|default("N/A") }}</td>
+                <td>{{ (mod.data_width ~ "-bit") if mod.data_width else "—" }}</td>
+                <td>{{ mod.manufacturer|default("—") }}</td>
+                <td><small class="mono">{{ mod.part_number|default("—") }}</small></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}
+
+{# --- Storage Devices --- #}
+{% if data.storage_devices %}
+<h5>Storage Devices</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for dev in data.storage_devices %}
+        <tr>
+            <td>{{ dev.name|default("—") }}{% if dev.model %} <small class="muted">({{ dev.model }})</small>{% endif %}</td>
+            <td>
+                {% if dev.type == "SSD" %}
+                <span class="badge badge-pass">{{ dev.type }}</span>
+                {% elif dev.type == "HDD" %}
+                <span class="badge badge-warn">{{ dev.type }}</span>
+                {% else %}
+                <span class="badge">{{ dev.type|default("—") }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if dev.size_gb %}{{ dev.size_gb }} GB
+                {% elif dev.size %}{{ dev.size }}
+                {% else %}—{% endif %}
+            </td>
+            <td>
+                {% if dev.health %}<small>Health: {{ dev.health }}</small>{% endif %}
+                {% if dev.bus %}<small>Bus: {{ dev.bus }}</small>{% endif %}
+                {% if dev.filesystem %}<small>FS: {{ dev.filesystem }}</small>{% endif %}
+                {% if dev.free_gb is not none %}<small>Free: {{ dev.free_gb }} GB</small>{% endif %}
+                {% if dev.free %}<small>Free: {{ dev.free }}</small>{% endif %}
+                {% if dev.used_percent is not none %}<small>Used: {{ dev.used_percent }}%</small>{% endif %}
+                {% if dev.used_percent_str %}<small>Used: {{ dev.used_percent_str }}</small>{% endif %}
+                {% if dev.mount %}<small>Mount: {{ dev.mount }}</small>{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{# --- Motherboard --- #}
+{% set mb = data.motherboard or {} %}
+{% if mb.manufacturer or mb.product %}
+<h5>Motherboard / System</h5>
+<table class="kv-table">
+    {% if mb.manufacturer %}
+    {{ kv_row("Manufacturer", mb.manufacturer, hint="Board or system manufacturer.") }}
+    {% endif %}
+    {% if mb.product %}
+    {{ kv_row("Product", mb.product, hint="Board or system model name.") }}
+    {% endif %}
+    {% if mb.serial %}
+    {{ kv_row("Serial", mb.serial, hint="Board serial number.") }}
+    {% endif %}
+    {% if mb.bios_vendor %}
+    {{ kv_row("BIOS Vendor", mb.bios_vendor, hint="BIOS/UEFI firmware manufacturer.") }}
+    {% endif %}
+    {% if mb.bios_version %}
+    {{ kv_row("BIOS Version", mb.bios_version, hint="Current firmware version. Keep updated for security fixes.") }}
+    {% endif %}
+    {% if mb.bios_date %}
+    {{ kv_row("BIOS Date", mb.bios_date, hint="BIOS release date.") }}
+    {% endif %}
+</table>
+{% endif %}

@@ -1,0 +1,86 @@
+# ──────────────────────────────────────────────────────────────
+# Release Please Workflow
+# ──────────────────────────────────────────────────────────────
+# Automates the release lifecycle using conventional commits:
+#   1. Scans commits on main for feat:/fix:/etc. prefixes
+#   2. Creates (or updates) a Release PR with:
+#      - Version bump (SemVer, determined from commit types)
+#      - CHANGELOG.md update (generated from commit messages)
+#      - __init__.py version fallback update
+#   3. When the Release PR is merged:
+#      - Creates a git tag (e.g., v1.2.0)
+#      - Creates a GitHub Release with CHANGELOG as notes
+#      - Tag triggers the release.yml build+publish workflow
+#
+# With rebase+merge, every conventional commit on main is
+# individually scanned — giving fine-grained CHANGELOG entries.
+#
+# Triggers:
+#   - Every push to main (scans new commits)
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_RELEASE_PLEASE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Create a GitHub App for release automation and add its
+#      credentials as repository secrets:
+#        - RELEASE_APP_ID      — the App ID (numeric)
+#        - RELEASE_APP_PRIVATE_KEY — the PEM private key
+#      See docs/releasing.md for step-by-step setup instructions.
+#      The App token is required so that the Release PR triggers
+#      CI checks (GITHUB_TOKEN-created PRs don't trigger workflows).
+# ──────────────────────────────────────────────────────────────
+
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write          # Create tags and GitHub Releases
+  pull-requests: write     # Create and update the Release PR
+
+jobs:
+  release-please:
+    name: Create or update Release PR
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_RELEASE_PLEASE == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      upload_url: ${{ steps.release.outputs.upload_url }}
+
+    steps:
+      # ── Generate App token ──────────────────────────────────
+      # PRs created with GITHUB_TOKEN don't trigger pull_request
+      # events (GitHub's anti-recursion rule), so CI checks would
+      # never run on the Release PR and the CI gate would time out.
+      # A GitHub App installation token bypasses this limitation.
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # GitHub Action for creating a GitHub App Installation Access Token (v2.2.1)
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38  # Automated releases based on conventional commits (v4)
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

@@ -1,0 +1,89 @@
+# =============================================================================
+# EditorConfig — https://editorconfig.org/
+# =============================================================================
+# Cross-editor consistency for indentation, encoding, and line endings.
+# Most editors support EditorConfig natively or via plugin.
+# VS Code: Install the "EditorConfig for VS Code" extension
+#          (already listed in the workspace recommendations).
+#
+# This file supplements .gitattributes (which normalizes line endings in git)
+# and the VS Code workspace settings (which configure formatting behavior).
+#
+# TODO (template users): Adjust settings to match your team's conventions.
+#   The defaults here match Ruff's formatting (4-space Python indent, LF).
+# =============================================================================
+
+# Top-most EditorConfig file — stop searching parent directories
+root = true
+
+# ── Defaults for all files ────────────────────────────────────
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# ── Python ────────────────────────────────────────────────────
+[*.py]
+indent_size = 4
+
+# ── YAML ──────────────────────────────────────────────────────
+[*.{yml,yaml}]
+indent_size = 2
+
+# ── TOML ──────────────────────────────────────────────────────
+[*.toml]
+indent_size = 2
+
+# ── JSON / JSONC ──────────────────────────────────────────────
+[*.{json,jsonc}]
+indent_size = 2
+
+# ── INI / CFG ─────────────────────────────────────────────────
+[*.{ini,cfg}]
+indent_size = 4
+
+# ── Markdown ──────────────────────────────────────────────────
+# Trailing whitespace in Markdown can be intentional (line breaks)
+[*.md]
+trim_trailing_whitespace = false
+
+# ── Makefiles ─────────────────────────────────────────────────
+# Makefiles require tabs
+[Makefile]
+indent_style = tab
+
+# ── Shell scripts ─────────────────────────────────────────────
+[*.{sh,bash}]
+indent_size = 2
+
+# ── SQL ───────────────────────────────────────────────────────
+[*.sql]
+indent_size = 4
+
+# ── Taskfile ──────────────────────────────────────────────────
+[Taskfile.yml]
+indent_size = 2
+
+# ── Containerfile / Dockerfile ────────────────────────────────
+[{Containerfile,Dockerfile,*.dockerfile}]
+indent_size = 4
+
+# ── Git config files ─────────────────────────────────────────
+[{.gitattributes,.gitignore,.gitmodules}]
+indent_style = space
+indent_size = 4
+
+# ── EditorConfig itself ──────────────────────────────────────
+[.editorconfig]
+indent_style = space
+indent_size = 4
+
+# ── Windows-specific files (CRLF) ────────────────────────────
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.ps1]
+end_of_line = crlf

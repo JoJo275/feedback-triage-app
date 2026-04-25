@@ -1,0 +1,55 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    {{ kv_row("Git Available", data.available, hint="Whether git is installed and on PATH. Required for version control operations.") }}
+    {{ kv_row("Repository Detected", data.repo_detected, hint="Whether the current directory is inside a git repository.") }}
+    {% if data.version %}
+    {{ kv_row("Version", data.version, hint="Git version. Some features require git 2.28+ (e.g. init.defaultBranch).") }}
+    {% endif %}
+    {% if data.path %}
+    {{ kv_row("Git Path", data.path, copyable=true, hint="Path to the git executable in use.") }}
+    {% endif %}
+    {% if data.branch is defined %}
+    {{ kv_row("Branch", data.branch, copyable=true, hint="Current checked-out branch. Convention: main for default, feature/* for work.") }}
+    {% endif %}
+    {% if data.dirty is defined %}
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Dirty means uncommitted changes exist. Commit or stash before switching branches.</span>
+                </details>
+                <span>Working Tree</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.dirty %}
+                <span class="badge badge-warn">dirty</span>
+            {% else %}
+                <span class="badge badge-pass">clean</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endif %}
+    {% if data.stash_count is defined %}
+    {{ kv_row("Stash Count", data.stash_count, hint="Number of stashed changesets. Run 'git stash list' to see them.") }}
+    {% endif %}
+</table>
+
+{% if data.remotes %}
+<h5>Remotes</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Name</th><th>URL</th></tr>
+    </thead>
+    <tbody>
+        {% for remote in data.remotes %}
+        <tr>
+            <td>{{ remote.name }}</td>
+            <td class="mono">{{ remote.url }} <button class="copy-btn" data-clip="{{ remote.url|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

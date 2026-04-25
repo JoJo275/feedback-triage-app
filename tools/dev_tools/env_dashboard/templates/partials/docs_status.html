@@ -1,0 +1,88 @@
+{% from "partials/_macros.html" import kv_row, status_badge %}
+
+{# --- MkDocs overview --- #}
+<table class="kv-table">
+    {{ kv_row("MkDocs Installed", data.mkdocs_available|default(false), hint="Whether the mkdocs CLI is available on PATH. Install with 'pip install mkdocs-material'.") }}
+    {% if data.mkdocs.found %}
+    {{ kv_row("Config Found", data.mkdocs.found, hint="Whether mkdocs.yml was found in the repository root.") }}
+    {% if data.mkdocs.site_name %}
+    {{ kv_row("Site Name", data.mkdocs.site_name) }}
+    {% endif %}
+    {% if data.mkdocs.theme %}
+    {{ kv_row("Theme", data.mkdocs.theme) }}
+    {% endif %}
+    {{ kv_row("Nav Entries", data.mkdocs.nav_entries|default(0), hint="Number of navigation entries configured in mkdocs.yml.") }}
+    {% else %}
+    {{ kv_row("Config Found", false, hint="No mkdocs.yml found — documentation site is not configured.") }}
+    {% endif %}
+</table>
+
+{# --- Documentation inventory --- #}
+{% if data.docs.found %}
+<h5>Documentation Inventory</h5>
+<table class="kv-table">
+    {{ kv_row("Markdown Files", data.docs.markdown_files|default(0)) }}
+    {{ kv_row("Other Files", data.docs.other_files|default(0), hint="Images, diagrams, and other non-markdown assets.") }}
+    {{ kv_row("Total Size", (data.docs.total_size_kb|default(0)|string ~ " KB")) }}
+</table>
+{% else %}
+<p class="muted">No docs/ directory found in the repository.</p>
+{% endif %}
+
+{# --- ADRs --- #}
+{% if data.adrs.found %}
+<details {% if data.adrs.count > 0 %}open{% endif %}>
+    <summary>
+        <strong>Architecture Decision Records</strong>
+        <span class="badge">{{ data.adrs.count }}</span>
+    </summary>
+    {% if data.adrs.adrs %}
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>File</th><th>Title</th></tr>
+        </thead>
+        <tbody>
+            {% for adr in data.adrs.adrs %}
+            <tr>
+                <td class="mono"><small>{{ adr.file }}</small></td>
+                <td>{{ adr.title }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if data.adrs.total > data.adrs.adrs|length %}
+    <p class="muted">Showing {{ data.adrs.adrs|length }} of {{ data.adrs.total }} ADRs.</p>
+    {% endif %}
+    {% endif %}
+</details>
+{% endif %}
+
+{# --- Broken links --- #}
+{% if data.broken_links %}
+<h5>Broken Internal Links ({{ data.broken_link_count }})</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>File</th><th>Link Target</th><th>Link Text</th></tr>
+    </thead>
+    <tbody>
+        {% for link in data.broken_links %}
+        <tr class="row-warn">
+            <td class="mono"><small>{{ link.file }}</small></td>
+            <td class="mono"><small>{{ link.link }}</small></td>
+            <td>{{ link.text }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><span class="badge badge-pass">No broken internal links detected</span></p>
+{% endif %}
+
+{# --- Summary badges --- #}
+<div class="packages-summary" style="margin-top: var(--gap-md);">
+    <span class="badge">{{ data.docs.markdown_files|default(0) }} docs</span>
+    <span class="badge badge-info">{{ data.adrs.count|default(0) }} ADRs</span>
+    {% if data.broken_link_count|default(0) > 0 %}
+    <span class="badge badge-warn">{{ data.broken_link_count }} broken links</span>
+    {% endif %}
+</div>

@@ -1,0 +1,116 @@
+# ──────────────────────────────────────────────────────────────
+# Script Smoke Test Workflow
+# ──────────────────────────────────────────────────────────────
+# Runs `python scripts/<name>.py --smoke` for all smoke-capable
+# scripts.  Catches import errors, missing shared modules, and
+# broken argument parsing early — without executing real logic.
+#
+# Each script's --smoke flag verifies that all imports resolve
+# and argparse initialises correctly, then exits 0.
+#
+# Triggers:
+#   - Pull requests targeting main
+#   - Push to main
+#   - Manual dispatch
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_SMOKE_TEST = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Add or remove scripts from the matrix as you add new ones.
+# ──────────────────────────────────────────────────────────────
+
+name: Script Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/smoke-test.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/smoke-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke-test:
+    name: Smoke test scripts
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_SMOKE_TEST == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install project (editable)
+        run: pip install -e ".[dev]"
+
+      - name: Run smoke tests
+        working-directory: scripts
+        run: |
+          set -euo pipefail
+          failed=0
+          scripts=(
+            env_inspect.py
+            env_doctor.py
+            doctor.py
+            check_python_support.py
+            check_todos.py
+            check_known_issues.py
+            changelog_check.py
+            clean.py
+            bootstrap.py
+            workflow_versions.py
+            repo_sauron.py
+            git_doctor.py
+            dep_versions.py
+            repo_doctor.py
+          )
+          for script in "${scripts[@]}"; do
+            echo "::group::${script}"
+            if python "$script" --smoke; then
+              echo "✓ ${script}"
+            else
+              echo "::error::${script} --smoke failed"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $failed
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Script Smoke Test Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Ran \`--smoke\` on all smoke-capable scripts." >> "$GITHUB_STEP_SUMMARY"
+          echo "This verifies imports resolve and arg parsing works." >> "$GITHUB_STEP_SUMMARY"

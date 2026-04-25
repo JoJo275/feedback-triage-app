@@ -1,0 +1,70 @@
+{% from "partials/_macros.html" import kv_row, status_badge %}
+
+{# --- Pre-commit overview --- #}
+<table class="kv-table">
+    {{ kv_row("Pre-commit Version", data.precommit_version|default("not installed"), hint="Version of the pre-commit framework. Install with 'pip install pre-commit'.") }}
+    {{ kv_row("Config Found", data.config_found|default(false), hint="Whether .pre-commit-config.yaml exists in the repo root.") }}
+</table>
+
+{# --- Hook installation status --- #}
+{% if data.hooks_installed %}
+<h5>Hook Installation Status</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Stage</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+        {% for stage, installed in data.hooks_installed.items() %}
+        <tr>
+            <td>{{ stage }}</td>
+            <td>
+                {% if installed %}
+                <span class="badge badge-pass">Installed</span>
+                {% else %}
+                <span class="badge badge-warn">Not installed</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{# --- Hooks by stage --- #}
+{% if data.by_stage %}
+{% for stage, hooks in data.by_stage.items() %}
+<details {% if loop.first %}open{% endif %}>
+    <summary>
+        <strong>{{ stage|title }}</strong>
+        <span class="badge">{{ hooks|length }}</span>
+    </summary>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>Hook ID</th><th>Repository</th><th>Language</th></tr>
+        </thead>
+        <tbody>
+            {% for hook in hooks %}
+            <tr>
+                <td class="mono">{{ hook.id }}</td>
+                <td class="mono"><small>{{ hook.repo|default("local")|truncate(50) }}</small></td>
+                <td>{{ hook.language|default("—") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endfor %}
+{% endif %}
+
+{# --- Summary badges --- #}
+<div class="packages-summary" style="margin-top: var(--gap-md);">
+    <span class="badge">{{ data.total_hooks|default(0) }} hooks</span>
+    <span class="badge badge-info">{{ data.by_stage|default({})|length }} stages</span>
+    {% if data.repo_count is defined %}
+    <span class="badge badge-info">{{ data.repo_count }} repos</span>
+    {% endif %}
+</div>
+
+{% if not data.config_found %}
+<p class="muted">No .pre-commit-config.yaml found. Pre-commit hooks are not configured for this project.</p>
+{% endif %}

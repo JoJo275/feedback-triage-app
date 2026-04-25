@@ -1,0 +1,344 @@
+# =============================================================================
+# Bug Report Issue Template
+# =============================================================================
+# This template collects information needed to diagnose and fix bugs.
+# Sections: Introduction, Bug Details, Severity & Regression, Environment,
+#           Logs & Screenshots, Additional Information, Checklist
+# =============================================================================
+
+name: 🐛 Bug report (for confirmed defects only)
+description: >
+  Use this only for confirmed, reproducible defects.
+  If you are unsure, need help, or want to propose an idea, use Discussions instead.
+title: "[BUG] Short description of the issue"
+labels: ["bug", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review requests built from this template
+projects: [] # Optionally add issues created with this template to specific projects
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for the reporter on how to submit a helpful bug report.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! 🐛
+
+        Please provide the **smallest possible example** that **reliably** reproduces the issue.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Encourages users to use Discussions for questions or advice instead of
+  # filing bug reports for unconfirmed issues.
+  # ---------------------------------------------------------------------------
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+        ⚠️ **Before submitting**
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/HEAD/SECURITY.md) and (if enabled) report privately via [Security Advisory](https://github.com/JoJo275/simple-python-boilerplate/security/advisories/new).
+        - **"How do I…?" / advice** → Use [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Q&A category).
+        - **Docs first:** check [README](https://github.com/JoJo275/simple-python-boilerplate#readme) and project documentation.
+        - **Search first:** please search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) before filing a new one.
+        - If this is **not** a confirmed, reproducible bug, please use Discussions instead.
+
+  # ---------------------------------------------------------------------------
+  # Bug Details
+  # ---------------------------------------------------------------------------
+  # Core information about the bug: description, reproduction steps, and
+  # expected vs actual behavior.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior (include a minimal reproduction if possible).
+      placeholder: |
+        1. Go to '...'
+        2. Run '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_code
+    attributes:
+      label: Minimal Reproduction Code
+      description: >
+        Provide the smallest possible code snippet that reproduces the issue.
+        Leave blank if not applicable.
+      placeholder: |
+        from simple_python_boilerplate import something
+
+        # Minimal code that triggers the bug
+        something.do_thing()
+      render: python
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: A clear and concise description of what actually happened.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected Area
+      description: Which part of the project does this bug affect?
+      options:
+        - Core library / API
+        - CLI
+        - Configuration
+        - Documentation
+        - Testing / CI
+        - Build / Packaging
+        - Multiple areas
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_area_other_unsure
+    attributes:
+      label: Affected Area – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other or Unsure" above, please describe the affected area.
+      placeholder: Describe the affected area if "Other or Unsure" was selected.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Severity & Regression
+  # ---------------------------------------------------------------------------
+  # Helps prioritize the issue and understand if this is a new or recurring
+  # problem.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How badly does this impact usage?
+      options:
+        - Crash / Data loss
+        - Incorrect behavior
+        - Performance issue
+        - Minor / Cosmetic
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: severity_other_unsure
+    attributes:
+      label: Severity – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please explain what kind of severity this issue represents.
+      placeholder: Explain the severity if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Regression?
+      options:
+        - This worked in a previous version
+        - This has never worked
+        - Unsure
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Environment
+  # ---------------------------------------------------------------------------
+  # System and runtime details to help reproduce the issue in the same context.
+  # Includes OS, Python version, package version, install method, and how the
+  # code was executed.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+
+        Please provide details about your system and how the package was installed.
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: "Windows 11 / macOS 14 / Ubuntu 22.04"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python Version
+      placeholder: "3.11.5"
+    validations:
+      required: true
+
+  - type: input
+    id: package
+    attributes:
+      label: Package Version
+      placeholder: "0.1.0"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Install Method
+      description: How did you install this package?
+      options:
+        - pip install (from PyPI)
+        - pip install -e . (editable/development)
+        - pip install git+...
+        - uv pip install / uv sync
+        - poetry install
+        - pdm install
+        - conda / mamba
+        - Manual / from source
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: install_method_other_unsure
+    attributes:
+      label: Install Method – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe how you installed the package.
+      placeholder: Describe your install method if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: context
+    attributes:
+      label: Execution Context
+      description: How was the code run when the issue occurred?
+      options:
+        - CLI
+        - Imported as a library
+        - Running tests
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context_other_unsure
+    attributes:
+      label: Execution Context – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the execution context
+        (e.g., REPL, notebook, embedded usage, custom runner, etc.).
+      placeholder: Describe the execution context if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Logs & Screenshots
+  # ---------------------------------------------------------------------------
+  # Additional diagnostic information such as error messages, stack traces,
+  # or visual evidence of the issue.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Logs & Screenshots
+
+        Provide any error messages, stack traces, or visual evidence that may help diagnose the issue.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages / Logs
+      description: Paste relevant logs or error output.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Output (Optional)
+      description: Attach screenshots or paste terminal output if helpful.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Additional Information
+  # ---------------------------------------------------------------------------
+  # Workarounds, related issues, and any other relevant context.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround (Optional)
+      description: >
+        If you found a workaround for this issue, please share it.
+        This helps others and aids in prioritization.
+      placeholder: Describe any workaround you've found.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: >
+        Add any other context about the problem here (related issues, attempted
+        fixes, environment quirks, etc.).
+      placeholder: Any other information that might be helpful.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  # Final confirmation that the reporter has done due diligence before
+  # submitting.
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues
+          required: true
+        - label: I can reproduce this consistently
+          required: false
+        - label: I included relevant logs or errors
+          required: false

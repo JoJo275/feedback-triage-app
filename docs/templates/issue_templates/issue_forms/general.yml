@@ -1,0 +1,133 @@
+# =============================================================================
+# General Issue Template (Optional / Standalone)
+# =============================================================================
+# A flexible, all-purpose issue template for projects that prefer simplicity.
+# Use this as your ONLY template if you want a single form for all issues,
+# or delete this file if you prefer the category-specific templates instead.
+# Sections: Introduction, Issue Type, Details, Additional Context, Checklist
+# =============================================================================
+
+name: 📋 Issue
+description: Open an issue — bug reports, feature requests, questions, and more.
+title: "[ISSUE] Short description"
+labels: ["status: needs-triage"]
+assignees: [] # Optionally assign specific team members
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for opening an issue! 📋
+
+        Please fill out the form below. The more detail you provide,
+        the easier it is to understand and address your issue.
+
+  # ---------------------------------------------------------------------------
+  # Issue Type
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of issue is this?
+      options:
+        - Bug Report
+        - Feature Request
+        - Documentation
+        - Question
+        - Performance
+        - Security (non-sensitive)
+        - Discussion / Feedback
+        - Other
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Issue Details
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe your issue clearly and concisely.
+      placeholder: |
+        For bugs: What happened? What did you expect?
+        For features: What do you want and why?
+        For questions: What are you trying to understand?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_or_context
+    attributes:
+      label: Steps to Reproduce / Context
+      description: >
+        For bugs, list reproduction steps. For other issues, provide relevant background.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+
+        Or: Describe the context and background for your request.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Environment (Optional — for bugs/performance)
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (Optional)
+      description: >
+        If relevant (bugs, performance issues), describe your environment.
+      placeholder: |
+        - OS: [e.g., Windows 11, macOS 14, Ubuntu 22.04]
+        - Python version: [e.g., 3.11.4]
+        - Package version: [e.g., 1.2.3]
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Proposed Solution (Optional)
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: proposed_action
+    attributes:
+      label: Proposed Solution (Optional)
+      description: >
+        If you have a suggestion for how to address this, describe it here.
+      placeholder: |
+        What would a successful resolution look like?
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Additional Information
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Information (Optional)
+      description: >
+        Logs, screenshots, links, or anything else that might help.
+      placeholder: |
+        Drag and drop files or paste additional details here.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true

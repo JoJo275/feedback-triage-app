@@ -1,0 +1,91 @@
+# ──────────────────────────────────────────────────────────────
+# Auto-merge Dependabot PRs
+# ──────────────────────────────────────────────────────────────
+# Automatically approves and enables auto-merge for Dependabot
+# PRs that are minor or patch version bumps, once CI passes.
+#
+# How it works:
+#   1. Dependabot opens a PR (triggered by dependabot.yml config)
+#   2. This workflow detects it's a Dependabot PR
+#   3. Fetches metadata to determine update type (major/minor/patch)
+#   4. For minor/patch updates: approves the PR and enables auto-merge
+#   5. GitHub's auto-merge waits for all required checks (CI gate)
+#      to pass before actually merging
+#
+# Major version bumps are NOT auto-merged — they may contain
+# breaking changes and should be reviewed manually.
+#
+# Prerequisites:
+#   - "Allow auto-merge" must be enabled in repo settings
+#     (Settings → General → Pull Requests → Allow auto-merge)
+#   - Branch protection must require status checks (the CI gate)
+#
+# Triggers:
+#   - pull_request_target (runs on PR open/reopen/sync)
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_AUTO_MERGE_DEPENDABOT = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Enable "Allow auto-merge" in repo settings
+#   3. (Optional) Adjust the merge method below (squash/merge/rebase)
+# ──────────────────────────────────────────────────────────────
+
+name: Auto-merge Dependabot
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write       # Enable auto-merge
+  pull-requests: write  # Approve PRs
+
+jobs:
+  auto-merge:
+    name: Auto-approve & merge  # ci-gate: not required (runs on Dependabot PRs only)
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_AUTO_MERGE_DEPENDABOT = 'true'.
+    if: >-
+      ${{
+        (github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_AUTO_MERGE_DEPENDABOT == 'true')
+        && github.actor == 'dependabot[bot]'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # Extract information from about the dependency… (v2.5.0)
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Approve and auto-merge minor/patch updates
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+          || steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        env:
+          GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          PR_URL: "${{ github.event.pull_request.html_url }}"
+          UPDATE_TYPE: "${{ steps.metadata.outputs.update-type }}"
+        run: |
+          echo "::notice::Auto-merging Dependabot PR: $PR_URL ($UPDATE_TYPE)"
+          gh pr review "$PR_URL" --approve --body \
+            "Auto-approved: Dependabot $UPDATE_TYPE update."
+          gh pr merge "$PR_URL" --auto --squash
+
+      - name: Skip major updates
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: |
+          echo "::warning::Skipping auto-merge for major update — review manually: ${{ github.event.pull_request.html_url }}"

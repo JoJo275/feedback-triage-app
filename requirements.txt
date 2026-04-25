@@ -1,0 +1,21 @@
+# Runtime dependencies for simple-python-boilerplate
+#
+# This file is OPTIONAL. The source of truth for dependencies is
+# pyproject.toml, managed via Hatch (https://hatch.pypa.io/).
+# Preferred install methods:
+#   pip install -e .       (editable install from pyproject.toml)
+#   hatch shell            (enter Hatch-managed dev environment)
+#
+# This file exists for tools and workflows that require a requirements.txt
+# (e.g., pip-audit, Dependabot, Docker builds without Hatch).
+# Keep it in sync with [project].dependencies in pyproject.toml.
+#
+# TODO (template users): Add your runtime dependencies below, matching
+#   what you put in [project].dependencies in pyproject.toml. If you
+#   add version pins here, keep them aligned with pyproject.toml.
+#   If you only use Hatch and never need a plain requirements.txt,
+#   you can delete this file entirely.
+#
+# Add your runtime dependencies below:
+# requests>=2.28
+# click>=8.0

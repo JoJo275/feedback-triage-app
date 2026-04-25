@@ -1,0 +1,127 @@
+[
+  {
+    "name": "autorelease: pending",
+    "description": "Release PR is open and waiting to be merged",
+    "color": "ededed"
+  },
+  {
+    "name": "autorelease: tagged",
+    "description": "Release PR was merged and the release tag was created",
+    "color": "ededed"
+  },
+  {
+    "name": "bug",
+    "description": "Something isn't working",
+    "color": "d73a4a"
+  },
+  {
+    "name": "dependencies",
+    "description": "Pull requests that update a dependency file",
+    "color": "0366d6"
+  },
+  {
+    "name": "docker",
+    "description": "Pull requests that update Docker/container configuration",
+    "color": "2496ed"
+  },
+  {
+    "name": "documentation",
+    "description": "Improvements or additions to documentation",
+    "color": "0075ca"
+  },
+  {
+    "name": "duplicate",
+    "description": "This issue or pull request already exists",
+    "color": "cfd3d7"
+  },
+  {
+    "name": "enhancement",
+    "description": "New feature or request",
+    "color": "a2eeef"
+  },
+  {
+    "name": "github-actions",
+    "description": "Pull requests that update GitHub Actions code",
+    "color": "000000"
+  },
+  {
+    "name": "good first issue",
+    "description": "Good for newcomers",
+    "color": "7057ff"
+  },
+  {
+    "name": "help wanted",
+    "description": "Extra attention is needed",
+    "color": "008672"
+  },
+  {
+    "name": "invalid",
+    "description": "This doesn't seem right",
+    "color": "e4e669"
+  },
+  {
+    "name": "pinned",
+    "description": "Exempt from stale bot; kept open indefinitely",
+    "color": "006b75"
+  },
+  {
+    "name": "python",
+    "description": "Pull requests that update Python dependencies",
+    "color": "3572a5"
+  },
+  {
+    "name": "question",
+    "description": "Further information is requested",
+    "color": "d876e3"
+  },
+  {
+    "name": "wontfix",
+    "description": "This will not be worked on",
+    "color": "ffffff"
+  },
+  {
+    "name": "status: needs-triage",
+    "description": "New issue; not yet reviewed/confirmed",
+    "color": "fbca04"
+  },
+  {
+    "name": "status: needs-info",
+    "description": "Reporter needs to provide missing details",
+    "color": "fef2c0"
+  },
+  {
+    "name": "status: blocked",
+    "description": "Blocked by dependency/decision/external factor",
+    "color": "b60205"
+  },
+  {
+    "name": "priority: p1-high",
+    "description": "Important; should be addressed soon",
+    "color": "d93f0b"
+  },
+  {
+    "name": "priority: p2-medium",
+    "description": "Normal priority",
+    "color": "fbca04"
+  },
+  {
+    "name": "priority: p3-low",
+    "description": "Nice-to-have",
+    "color": "c2e0c6"
+  },
+  {
+    "name": "priority: backlog",
+    "description": "Accepted but not scheduled",
+    "color": "bfdadc"
+  },
+  {
+    "name": "security",
+    "description": "Security-related; exempt from stale bot",
+    "color": "ee0701"
+  },
+  {
+    "name": "stale",
+    "description": "Inactive; may be closed if no response",
+    "color": "eeeeee"
+  }
+]

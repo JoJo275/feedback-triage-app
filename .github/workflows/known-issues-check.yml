@@ -1,0 +1,89 @@
+# ──────────────────────────────────────────────────────────────
+# Known Issues Check Workflow
+# ──────────────────────────────────────────────────────────────
+# Runs scripts/check_known_issues.py on a schedule to flag stale
+# entries in docs/known-issues.md.  Stale entries are resolved
+# issues that have been sitting in the Resolved table longer than
+# the configured threshold (default: 90 days).
+#
+# Prevents resolved entries from accumulating forever by reminding
+# maintainers to clean them up after a release cycle.
+#
+# Triggers:
+#   - Weekly schedule (Wednesday 06:00 UTC; 2am ET during DST / 1am ET otherwise)
+#   - Tag push (v*) — runs after a release to catch entries ready for cleanup
+#   - Manual dispatch
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_KNOWN_ISSUES_CHECK = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Adjust --days threshold or add --json for machine-readable output.
+# ──────────────────────────────────────────────────────────────
+
+name: Known Issues Check
+
+on:
+  schedule:
+    # Cron is a Unix time-scheduling syntax and the only way to
+    # define scheduled triggers in GitHub Actions. It uses five
+    # fields (all in UTC):
+    #
+    #   ┌─── minute (0–59)
+    #   │ ┌─── hour (0–23)
+    #   │ │ ┌─── day of month (1–31)
+    #   │ │ │ ┌─── month (1–12)
+    #   │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    #   │ │ │ │ │
+    #   * * * * *
+    #
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
+    #   06:00 UTC = 01:00 EST (Nov–Mar) / 02:00 EDT (Mar–Nov)
+    - cron: "0 6 * * 3" # Wednesday 06:00 UTC
+  push:
+    tags: ["v*"] # Run after releases
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-known-issues:
+    name: Check stale resolved issues
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_KNOWN_ISSUES_CHECK = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_KNOWN_ISSUES_CHECK == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Check for stale resolved entries
+        run: python scripts/check_known_issues.py --days 90

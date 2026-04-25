@@ -1,0 +1,67 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    {{ kv_row("Repository Root", data.repo_root, copyable=true, hint="Top-level directory of the Git repository. All relative paths resolve from here.") }}
+</table>
+
+{% if data.lockfiles %}
+<h5>Lockfiles</h5>
+<ul class="list-compact">
+    {% for f in data.lockfiles %}
+    <li class="mono">{{ f }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="muted">No lockfiles detected.</p>
+{% endif %}
+
+{% if data.config_files %}
+<h5>Config Files</h5>
+<ul class="list-compact">
+    {% for f in data.config_files %}
+    <li class="mono">{{ f }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if data.build_tools %}
+<h5>Build Tools</h5>
+<table class="kv-table striped build-tools-table">
+    <thead>
+        <tr><th>Tool</th><th>Available</th><th>Version</th><th>Executable</th><th>Config File</th></tr>
+    </thead>
+    <tbody>
+        {% for tool in data.build_tools %}
+        <tr>
+            <td>{{ tool.name }}</td>
+            <td>
+                {% if tool.available %}
+                    <span class="badge badge-pass"><span class="check-icon"></span></span>
+                {% else %}
+                    <span class="badge"><span class="x-icon"></span></span>
+                {% endif %}
+            </td>
+            <td class="mono">{{ tool.version|default("—") if tool.available else "—" }}</td>
+            <td class="mono" title="{{ tool.exe|default('') }}">{{ tool.exe|default("—") if tool.available else "—" }}</td>
+            <td class="mono">{{ tool.config_file|default("—") if tool.available and tool.config_file else "—" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if data.critical_files %}
+<h5>Critical Files</h5>
+<div class="critical-files-grid">
+    {% for cf in data.critical_files %}
+    <div class="critical-file-item {{ 'found' if cf.exists else 'missing' }}">
+        {% if cf.exists %}
+        <span class="check-icon critical-file-icon" style="color:var(--color-pass)"></span>
+        {% else %}
+        <span class="x-icon critical-file-icon" style="color:var(--color-text-muted)"></span>
+        {% endif %}
+        <span>{{ cf.name }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

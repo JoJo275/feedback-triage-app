@@ -1,0 +1,80 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<div class="packages-summary">
+    <span class="badge">{{ data.total|default(0) }} packages</span>
+    {% if data.duplicate_packages %}
+    <span class="badge badge-warn">{{ data.duplicate_packages|length }} duplicates</span>
+    {% endif %}
+</div>
+
+{% if data.packages_by_location %}
+{% for location, pkgs in data.packages_by_location.items() %}
+<details {% if loop.first %}open{% endif %}>
+    <summary>{{ location }} ({{ pkgs|length }})</summary>
+    <table class="kv-table striped pkg-table">
+        <thead>
+            <tr><th>Package</th><th>Version</th><th>Summary</th></tr>
+        </thead>
+        <tbody>
+            {% for pkg in pkgs %}
+            <tr>
+                <td class="mono">{{ pkg.name }} <button class="copy-btn" data-clip="{{ pkg.name|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
+                <td>{{ pkg.version }}</td>
+                <td><small>{{ pkg.summary|default("") }}</small></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endfor %}
+{% elif data.packages %}
+<details open>
+    <summary>All Packages ({{ data.packages|length }})</summary>
+    <table class="kv-table striped pkg-table">
+        <thead>
+            <tr><th>Package</th><th>Version</th><th>Location</th></tr>
+        </thead>
+        <tbody>
+            {% for pkg in data.packages %}
+            <tr>
+                <td class="mono">{{ pkg.name }} <button class="copy-btn" data-clip="{{ pkg.name|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
+                <td>{{ pkg.version }}</td>
+                <td><small>{{ pkg.location|default("") }}</small></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}
+
+{% if data.duplicate_packages %}
+<h5>Duplicate Packages</h5>
+{% for name, versions in data.duplicate_packages.items() %}
+<div class="duplicate-group">
+    <strong>{{ name }}</strong>
+    <ul class="list-compact">
+        {% for v in versions %}
+        <li>{{ v.version }} — <span class="mono">{{ v.location|default("") }}</span></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if data.entry_points %}
+<details>
+    <summary>Entry Points ({{ data.entry_points|length }})</summary>
+    <table class="kv-table striped">
+        <thead><tr><th>Name</th><th>Value</th><th>Group</th></tr></thead>
+        <tbody>
+            {% for ep in data.entry_points %}
+            <tr>
+                <td class="mono">{{ ep.name }}</td>
+                <td class="mono"><small>{{ ep.value }}</small></td>
+                <td>{{ ep.group }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}

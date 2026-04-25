@@ -1,0 +1,93 @@
+# ──────────────────────────────────────────────────────────────
+# CodeQL Analysis Workflow
+# ──────────────────────────────────────────────────────────────
+# Runs GitHub's CodeQL static analysis to find security
+# vulnerabilities in source code (not just dependencies).
+# Results appear in Security → Code scanning alerts.
+#
+# Catches: SQL injection, path traversal, command injection,
+# XXE, SSRF, hardcoded credentials, and more.
+#
+# Triggers:
+#   - Push to main
+#   - Pull requests targeting main
+#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST (Daylight Saving Time) / 8am ET otherwise)
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_CODEQL = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. CodeQL requires the repository to have GitHub Advanced
+#      Security enabled (free for public repos).
+# ──────────────────────────────────────────────────────────────
+
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Cron is a Unix time-scheduling syntax and the only way to
+    # define scheduled triggers in GitHub Actions. It uses five
+    # fields (all in UTC):
+    #
+    #   ┌─── minute (0–59)
+    #   │ ┌─── hour (0–23)
+    #   │ │ ┌─── day of month (1–31)
+    #   │ │ │ ┌─── month (1–12)
+    #   │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    #   │ │ │ │ │
+    #   * * * * *
+    #
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
+    #   13:00 UTC = 08:00 EST (Nov–Mar) / 09:00 EDT (Mar–Nov)
+    - cron: "0 13 * * 1" # Monday 13:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: CodeQL Analysis
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_CODEQL == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 # Set up CodeQL (v4.32.6)
+        with:
+          languages: python
+          build-mode: none
+          # Override the default query suite for more thorough analysis.
+          # Use security-and-quality for even broader checks.
+          queries: security-extended
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # Finalize CodeQL database (v4.32.6)
+        with:
+          category: "/language:python"

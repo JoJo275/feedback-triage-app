@@ -1,0 +1,59 @@
+{% from "partials/_macros.html" import kv_row %}
+
+{# --- Workspace summary --- #}
+<table class="kv-table">
+    {{ kv_row("Total Files", data.total_files|default(0), hint="Total number of files in the workspace (excluding .git).") }}
+    {{ kv_row("Total Cache Size", data.total_cache_size_display|default("—"), hint="Combined size of all detected cache directories (__pycache__, .mypy_cache, .ruff_cache, etc.).") }}
+</table>
+
+{# --- Cache directories --- #}
+{% if data.caches %}
+<h5>Cache Directories</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Directory</th><th>Size</th><th>Files</th></tr>
+    </thead>
+    <tbody>
+        {% for cache in data.caches %}
+        <tr>
+            <td class="mono">{{ cache.path }}</td>
+            <td>{{ cache.size_display|default("—") }}</td>
+            <td>{{ cache.file_count|default(0) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><span class="badge badge-pass">No cache directories found</span></p>
+{% endif %}
+
+{# --- Top directories by size --- #}
+{% if data.top_directories %}
+<details open>
+    <summary>
+        <strong>Largest Directories</strong>
+        <span class="badge">{{ data.top_directories|length }}</span>
+    </summary>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>Directory</th><th>Size</th><th>Files</th></tr>
+        </thead>
+        <tbody>
+            {% for dir in data.top_directories %}
+            <tr>
+                <td class="mono">{{ dir.path }}</td>
+                <td>{{ dir.size_display|default("—") }}</td>
+                <td>{{ dir.file_count|default(0) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}
+
+{# --- Cleanup hint --- #}
+{% if data.total_cache_size|default(0) > 50_000_000 %}
+<p class="muted" style="margin-top: var(--gap-sm);">
+    Cache size is over 50 MB. Run <code>task clean</code> or <code>python scripts/clean.py</code> to reclaim space.
+</p>
+{% endif %}

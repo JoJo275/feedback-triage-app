@@ -1,0 +1,184 @@
+# =========================================
+# Python bytecode & interpreter caches
+# =========================================
+# Compiled Python files generated at runtime
+__pycache__/
+*.py[codz]
+
+# =========================================
+# Python packaging & build artifacts
+# =========================================
+# Build system markers
+.Python
+
+# Auto-generated version file (hatch-vcs)
+src/simple_python_boilerplate/_version.py
+
+# Common build output directories
+build/
+dist/
+sdist/
+wheels/
+
+# Legacy / tool-specific packaging folders
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+share/python-wheels/
+
+# Metadata generated when packaging/installing
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# =========================================
+# PyInstaller
+# =========================================
+# Spec and manifest files generated during binary builds
+*.manifest
+*.spec
+
+# =========================================
+# pip / installer logs
+# =========================================
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =========================================
+# Testing, coverage, and fuzzing output
+# =========================================
+# HTML coverage reports
+htmlcov/
+
+# Virtualized test environments
+.tox/
+.nox/
+
+# Coverage data files
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py.cover
+
+# Hypothesis fuzz-testing state
+.hypothesis/
+
+# pytest cache
+.pytest_cache/
+
+# General cache directory
+.cache
+cover/
+
+# =========================================
+# PEP 582 local packages (__pypackages__)
+# =========================================
+# Used by some tools instead of virtualenvs
+__pypackages__/
+
+# =========================================
+# Virtual environments
+# =========================================
+# Virtualenv / venv folders (machine-specific)
+.env
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Backup files created by scripts (e.g., archive_todos.py)
+*.bak
+
+# =========================================
+# Static type checking (mypy)
+# =========================================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# =========================================
+# Linting (ruff)
+# =========================================
+.ruff_cache/
+
+# =========================================
+# VS Code
+# =========================================
+# .vscode/settings.json is tracked (not git-ignored) because it
+# contains project-functional settings (formatters, linters, test
+# config) that ensure a consistent experience for all contributors.
+# TODO (template users): If you prefer personal .vscode/settings.json
+#   overrides to stay private, add this line back:
+#   .vscode/settings.json
+.vscode/*.log
+.vscode/.ropeproject
+
+# VS Code workspace files (personal layout/state)
+*.code-workspace
+# But track the project's shared workspace config
+!simple-python-boilerplate.code-workspace
+
+# =========================================
+# PyPI credentials
+# =========================================
+# Contains authentication tokens
+.pypirc
+
+# =========================================
+# Operating system junk
+# =========================================
+# macOS Finder metadata
+.DS_Store
+
+# Windows Explorer metadata
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =========================================
+# Project-specific directories
+# =========================================
+# Local data and state directories (keep READMEs and examples)
+/var/*
+!/var/README.md
+!/var/*.example.sqlite3
+/.data/
+/.local/
+
+# Dashboard server PID file (runtime artifact)
+.dashboard.pid
+
+# =========================================
+# Database files
+# =========================================
+# SQLite databases and journals
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sqlite-journal
+*-wal
+*-shm
+
+# Keep example database for template visibility
+!/var/*.example.sqlite3
+
+# Local scratch SQL (use scratch.example.sql as template)
+scripts/sql/scratch.sql
+
+# =========================================
+# Documentation build output (MkDocs)
+# =========================================
+# Generated static site — rebuilt from source with `mkdocs build`
+site/

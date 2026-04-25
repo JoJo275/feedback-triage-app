@@ -1,0 +1,97 @@
+# ──────────────────────────────────────────────────────────────
+# .containerignore
+# ──────────────────────────────────────────────────────────────
+# Files and directories excluded from the container build
+# context. Keeps images small and avoids leaking secrets.
+# Works with both Podman (.containerignore) and Docker
+# (.dockerignore) — keep both files in sync.
+# ──────────────────────────────────────────────────────────────
+
+# Version control
+.git/
+.gitignore
+.gitmessage.txt
+
+# CI / GitHub
+.github/
+
+# Dev container (development only, not for production images)
+.devcontainer/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Python artifacts
+__pycache__/
+*.py[codz]
+*.egg-info/
+build/
+dist/
+sdist/
+wheels/
+
+# Testing & coverage
+# Note: tests/ is intentionally NOT excluded. The Containerfile doesn't COPY
+# tests, so they never end up in the image. Keeping them in the build context
+# allows future multi-stage patterns (e.g., a "test" stage that runs pytest
+# inside the build). If your build context is enormous, uncomment the line below.
+# tests/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Documentation & notes
+docs/
+site/
+mkdocs.yml
+mkdocs-hooks/
+*.md
+!README.md
+
+# Database & runtime data
+db/
+var/
+
+# Experiments, labels (not needed in image)
+experiments/
+labels/
+
+# Container / orchestration files (not needed inside the image)
+Containerfile
+docker-compose.yml
+.containerignore
+.dockerignore
+
+# Config files not needed at runtime
+Taskfile.yml
+.pre-commit-config.yaml
+release-please-config.json
+codecov.yml
+_typos.toml
+.markdownlint-cli2.jsonc
+.editorconfig
+requirements-dev.txt
+.repo-doctor.toml
+.readthedocs.yaml
+.prettierignore
+.lycheeignore
+.gitattributes
+.gitmessage.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets / environment (never ship these)
+.env
+.env.*
+!.env.example

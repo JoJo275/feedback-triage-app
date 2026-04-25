@@ -1,0 +1,57 @@
+{# Reusable macros for section partials #}
+
+{# Key-value row with optional copy button and expandable hint arrow #}
+{% macro kv_row(label, value, copyable=false, hint="") %}
+<tr>
+    <td class="kv-label">
+        <span class="kv-label-row">
+            {% if hint %}
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">{{ hint }}</span>
+            </details>
+            {% endif %}
+            <span>{{ label|replace("_", " ")|title }}</span>
+        </span>
+    </td>
+    <td class="kv-value">
+        {% if value is none or value == "" %}
+            <span class="muted">—</span>
+        {% elif value is sameas true %}
+            <span class="badge badge-pass">Yes</span>
+        {% elif value is sameas false %}
+            <span class="badge">No</span>
+        {% elif value is string and value.startswith("[REDACTED]") %}
+            <span class="redacted">{{ value }}</span>
+        {% else %}
+            <span>{{ value }}</span>
+            {% if copyable %}
+            <button class="copy-btn" data-clip="{{ value|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button>
+            {% endif %}
+        {% endif %}
+    </td>
+</tr>
+{% endmacro %}
+
+{# Status badge #}
+{% macro status_badge(value, pass_text="pass", warn_text="warn", fail_text="fail") %}
+{% if value == "pass" or value is sameas true %}
+    <span class="badge badge-pass">{{ pass_text }}</span>
+{% elif value == "warn" %}
+    <span class="badge badge-warn">{{ warn_text }}</span>
+{% elif value == "fail" or value is sameas false %}
+    <span class="badge badge-fail">{{ fail_text }}</span>
+{% else %}
+    <span class="badge badge-info">{{ value }}</span>
+{% endif %}
+{% endmacro %}
+
+{# Section header with optional count #}
+{% macro section_header(title, count=none) %}
+<div class="partial-header">
+    <strong>{{ title }}</strong>
+    {% if count is not none %}
+    <span class="badge">{{ count }}</span>
+    {% endif %}
+</div>
+{% endmacro %}

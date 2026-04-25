@@ -1,0 +1,168 @@
+# ──────────────────────────────────────────────────────────────
+# PR Labeler Configuration
+# ──────────────────────────────────────────────────────────────
+# Maps file-change patterns to labels applied automatically by
+# the labeler workflow (.github/workflows/labeler.yml).
+#
+# Syntax reference: https://github.com/actions/labeler
+#
+# TODO (template users): Adjust these patterns to match your
+# project structure. Remove labels/sections you don't use.
+# ──────────────────────────────────────────────────────────────
+
+# ── Area labels ───────────────────────────────────────────────
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "mkdocs.yml"
+          - "**/*.md"
+
+github-actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+          - ".github/labeler.yml"
+          - ".github/dependabot.yml"
+          - "Taskfile.yml"
+          - ".pre-commit-config.yaml"
+          - ".github/ci-gate.yml"
+
+"area: tests":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "mkdocs.yml"
+
+"area: packaging":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "requirements*.txt"
+          - "Containerfile"
+          - "release-please-config.json"
+          - ".release-please-manifest.json"
+          - "docker-compose.yml"
+
+"area: cli":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/simple_python_boilerplate/cli.py"
+          - "src/simple_python_boilerplate/main.py"
+
+"area: api":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/simple_python_boilerplate/api.py"
+
+"area: config":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "_typos.toml"
+          - "codecov.yml"
+          - "mkdocs.yml"
+          - ".pre-commit-config.yaml"
+          - "release-please-config.json"
+          - "Taskfile.yml"
+          - ".editorconfig"
+          - ".gitattributes"
+          - ".github/CODEOWNERS"
+          - ".github/FUNDING.yml"
+          - ".github/dependabot.yml"
+          - ".markdownlint-cli2.jsonc"
+
+# ── Type labels ───────────────────────────────────────────────
+
+"type: build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "Containerfile"
+          - "requirements*.txt"
+          - "docker-compose.yml"
+
+"type: test":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+      - all-globs-to-all-files:
+          - "!src/**"
+          - "!docs/**"
+
+"type: security":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "SECURITY.md"
+          - ".github/workflows/nightly-security.yml"
+          - ".github/workflows/security-audit.yml"
+          - ".github/workflows/security-codeql.yml"
+          - ".github/workflows/container-scan.yml"
+          - ".github/workflows/scorecard.yml"
+          - ".github/workflows/dependency-review.yml"
+
+"type: refactor":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/**"
+      - all-globs-to-all-files:
+          - "!tests/**"
+          - "!docs/**"
+          - "!*.md"
+
+"type: chore":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/**"
+          - "labels/**"
+          - "repo_doctor.d/**"
+          - "_typos.toml"
+
+# ── Dependency label ──────────────────────────────────────────
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "requirements*.txt"
+          - ".github/dependabot.yml"
+
+# ── Database label ────────────────────────────────────────────
+
+"area: database":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "db/**"
+          - "src/simple_python_boilerplate/sql/**"
+          - "scripts/sql/**"
+          - "var/**"
+
+# ── Scripts / tooling label ───────────────────────────────────
+
+"area: scripts":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/**"
+
+# ── Container label ───────────────────────────────────────────
+
+"area: container":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Containerfile"
+          - "docker-compose.yml"
+          - ".github/workflows/container-build.yml"
+          - ".github/workflows/container-scan.yml"

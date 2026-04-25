@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Environment Dashboard{% endblock %}</title>
+    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/pico.min.css">
+    <link rel="stylesheet" href="/static/css/style.css?v={{ cache_bust|default('0') }}">
+    {% block head %}{% endblock %}
+</head>
+<body hx-headers='{"Accept": "text/html"}' x-data="dashboard()" x-init="init()">
+
+    {# --- Top nav bar --- #}
+    <nav class="dashboard-topbar">
+        <div class="topbar-left">
+            <strong class="topbar-title">Env Dashboard</strong>
+        </div>
+        <div class="topbar-center">
+            <input type="search" placeholder="Search sections..."
+                   x-model="searchQuery"
+                   @input.debounce.200ms="filterSections()"
+                   aria-label="Search sections">
+        </div>
+        <div class="topbar-right">
+            <button class="terminal-bookmark-btn" :class="terminalOpen ? 'active' : ''"
+                    @click="toggleTerminal()" title="Toggle Terminal" aria-label="Toggle Terminal">
+                &#9638;
+            </button>
+            <div class="topbar-separator"></div>
+            <details class="dropdown">
+                <summary role="button" class="outline secondary btn-sm">Redact:&nbsp;<span x-text="redactLevel"></span></summary>
+                <ul>
+                    <li><a href="#" @click.prevent="setRedact('none')">None</a></li>
+                    <li><a href="#" @click.prevent="setRedact('secrets')">Secrets</a></li>
+                    <li><a href="#" @click.prevent="setRedact('pii')">PII</a></li>
+                    <li><a href="#" @click.prevent="setRedact('paranoid')">Paranoid</a></li>
+                </ul>
+            </details>
+            <div class="topbar-separator"></div>
+            <label class="hide-empty-toggle">
+                <input type="checkbox" role="switch" x-model="hideEmpty" @change="filterSections()">
+                Hide empty
+            </label>
+            <div class="topbar-separator"></div>
+            <button class="outline secondary btn-sm" @click="refreshScan()" :aria-busy="scanning">
+                Refresh
+            </button>
+            <div class="topbar-separator"></div>
+            <details class="dropdown">
+                <summary role="button" class="outline btn-sm">Export</summary>
+                <ul>
+                    <li><a :href="'/api/export.json?redact=' + redactLevel">JSON</a></li>
+                    <li><a :href="'/export.html?redact=' + redactLevel">HTML</a></li>
+                </ul>
+            </details>
+            <div class="topbar-separator"></div>
+            <details class="dropdown">
+                <summary role="button" class="outline btn-sm" aria-label="Theme">
+                    <span x-text="activeThemeLabel"></span>
+                </summary>
+                <ul>
+                    <template x-for="t in themes" :key="t.id">
+                        <li>
+                            <a href="#" @click.prevent="setTheme(t.id)">
+                                <span class="theme-swatch" :style="'background:' + t.swatch"></span>
+                                <span x-text="t.label"></span>
+                            </a>
+                        </li>
+                    </template>
+                </ul>
+            </details>
+            <button class="outline contrast theme-toggle btn-sm" @click="toggleLightDark()" aria-label="Toggle light/dark">
+                <span x-show="mode === 'light'" x-cloak>Dark</span>
+                <span x-show="mode === 'dark'" x-cloak>Light</span>
+            </button>
+        </div>
+    </nav>
+
+    {# --- Layout: sidebar + main content --- #}
+    <div class="dashboard-layout">
+        {# --- Left sidebar navigation --- #}
+        <aside class="dashboard-sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-heading">Overview</div>
+                    <a href="#summary-bar" class="sidebar-link active" @click="scrollToSection($event, 'summary-bar')">
+                        <span class="sidebar-icon"></span> Summary
+                    </a>
+                    {% if warnings %}
+                    <a href="#warnings-panel" class="sidebar-link" @click="scrollToSection($event, 'warnings-panel')">
+                        <span class="sidebar-icon"></span> Warnings
+                        <span class="sidebar-badge">{{ warnings|length }}</span>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-heading">Sections</div>
+                    {% for name, data in sections.items() %}
+                    {% if name != "insights" %}
+                    <a href="#section-{{ name }}" class="sidebar-link" @click="scrollToSection($event, 'section-{{ name }}')"
+                       x-show="isSectionVisible('{{ name }}')">
+                        <span class="sidebar-icon"></span>
+                        {{ name|replace("_", " ")|title }}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="sidebar-section sidebar-bottom">
+                    <a href="#quick-actions" class="sidebar-link" @click="scrollToSection($event, 'quick-actions')">
+                        <span class="sidebar-icon"></span> Quick Actions
+                    </a>
+                    <a href="#raw-json" class="sidebar-link" @click="scrollToSection($event, 'raw-json')">
+                        <span class="sidebar-icon"></span> Raw JSON
+                    </a>
+                    <button class="terminal-toggle-btn" :class="terminalOpen ? 'active' : ''" @click="toggleTerminal()">
+                        <span class="terminal-toggle-icon">&#9638;</span>
+                        <span x-text="terminalOpen ? 'Hide Terminal' : 'Show Terminal'"></span>
+                    </button>
+                    <button class="shutdown-btn" @click="shutdownServer()">
+                        Shutdown Server
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        {# --- Main content area --- #}
+        <main class="dashboard-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {# --- Footer --- #}
+    <footer class="dashboard-footer">
+        <small>
+            Environment Dashboard &middot; Local-only dev tool &middot;
+            Schema v{{ meta.schema_version|default("1.0") }}
+            {% if meta.timestamp %} &middot; Last scan: {{ meta.timestamp }}{% endif %}
+        </small>
+    </footer>
+
+    {# --- Shutdown confirmation modal --- #}
+    <dialog id="shutdown-dialog" class="shutdown-dialog">
+        <article>
+            <header>
+                <h3>Shutdown Server?</h3>
+            </header>
+            <p>The dashboard will stop. Restart with
+               <code>hatch run dashboard:serve</code> or
+               <code>python -m tools.dev_tools.env_dashboard.app</code></p>
+            <footer>
+                <button class="outline secondary" onclick="document.body.classList.remove('dialog-open');document.getElementById('shutdown-dialog').close()">Cancel</button>
+                <button class="shutdown-confirm-btn" @click="confirmShutdown()">Shutdown</button>
+            </footer>
+        </article>
+    </dialog>
+
+    {# --- Terminal output panel (persistent right side) --- #}
+    <div class="terminal-panel" :class="terminalOpen ? 'visible' : ''" id="terminal-panel">
+        <div class="terminal-header">
+            <span class="terminal-title" x-text="terminalTitle || 'Server Log'"></span>
+            <div class="terminal-actions">
+                <button class="terminal-clear-btn" @click="clearTerminal()" title="Clear terminal">&#x239A;</button>
+                <button class="terminal-close-btn" @click="closeTerminal()" title="Close terminal">&#x2715;</button>
+            </div>
+        </div>
+        <div class="terminal-output" id="terminal-output"></div>
+        <div class="terminal-status" :class="terminalStatusClass" x-text="terminalStatus || 'Connected'"></div>
+    </div>
+
+    {# --- Scripts --- #}
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/alpine.min.js" defer></script>
+    <script>
+    function dashboard() {
+        return {
+            searchQuery: '',
+            redactLevel: '{{ redact_level|default("secrets") }}',
+            hideEmpty: false,
+            scanning: false,
+            mode: 'light',
+            activeTheme: 'purple',
+
+            // Terminal panel state
+            terminalOpen: false,
+            terminalTitle: '',
+            terminalStatus: '',
+            terminalStatusClass: '',
+            _terminalEventSource: null,
+            _serverLogInterval: null,
+
+            themes: [
+                { id: 'purple',    label: 'Purple',    swatch: '#a855f7' },
+                { id: 'lime',      label: 'Lime',      swatch: '#84cc16' },
+                { id: 'blue',      label: 'Blue',      swatch: '#3b82f6' },
+                { id: 'orange',    label: 'Orange',    swatch: '#f97316' },
+                { id: 'teal',      label: 'Teal',      swatch: '#14b8a6' },
+                { id: 'rose',      label: 'Rose',      swatch: '#f43f5e' },
+                { id: 'slate',     label: 'Slate',     swatch: '#64748b' },
+            ],
+
+            get activeThemeLabel() {
+                const t = this.themes.find(t => t.id === this.activeTheme);
+                return t ? t.label : 'Theme';
+            },
+
+            init() {
+                const savedMode = localStorage.getItem('dashboard-mode');
+                if (savedMode) {
+                    this.mode = savedMode;
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    this.mode = 'dark';
+                }
+                document.documentElement.setAttribute('data-theme', this.mode);
+
+                const savedTheme = localStorage.getItem('dashboard-accent');
+                if (savedTheme) {
+                    this.activeTheme = savedTheme;
+                }
+                document.documentElement.setAttribute('data-accent', this.activeTheme);
+
+                // Restore terminal visibility
+                const savedTerminal = localStorage.getItem('dashboard-terminal');
+                if (savedTerminal === 'open') {
+                    this.terminalOpen = true;
+                    document.querySelector('.dashboard-main')?.classList.add('terminal-open');
+                }
+                this.startServerLog();
+
+                this.observeSections();
+                this.bindSectionClicks();
+
+                // Close help tooltips when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.section-help-container')) {
+                        document.querySelectorAll('.section-help-container.help-open').forEach(el => {
+                            el.classList.remove('help-open');
+                        });
+                    }
+                });
+            },
+
+            toggleLightDark() {
+                this.mode = this.mode === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', this.mode);
+                localStorage.setItem('dashboard-mode', this.mode);
+            },
+
+            setTheme(id) {
+                this.activeTheme = id;
+                document.documentElement.setAttribute('data-accent', id);
+                localStorage.setItem('dashboard-accent', id);
+            },
+
+            setRedact(level) {
+                this.redactLevel = level;
+                window.location.search = '?redact=' + level;
+            },
+
+            filterSections() {
+                const query = this.searchQuery.toLowerCase();
+                document.querySelectorAll('.section-card').forEach(card => {
+                    const name = (card.dataset.sectionName || '').toLowerCase();
+                    const text = (card.textContent || '').toLowerCase();
+                    const matchesSearch = !query || name.includes(query) || text.includes(query);
+                    const isEmpty = card.dataset.empty === 'true';
+                    const matchesEmpty = !this.hideEmpty || !isEmpty;
+                    card.style.display = (matchesSearch && matchesEmpty) ? '' : 'none';
+                });
+            },
+
+            isSectionVisible(name) {
+                const query = this.searchQuery.toLowerCase();
+                if (!query) return true;
+                return name.toLowerCase().includes(query);
+            },
+
+            scrollToSection(event, id) {
+                event.preventDefault();
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+                const el = document.getElementById(id);
+                if (!el) return;
+                const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
+                const targetY = window.scrollY + el.getBoundingClientRect().top - topbarH - 12;
+                this._fastScroll(Math.max(0, targetY), 300);
+                el.classList.add('section-focus');
+                setTimeout(() => el.classList.remove('section-focus'), 1200);
+            },
+
+            /* Fast animated scroll — duration in ms (default 300) */
+            _fastScroll(targetY, duration) {
+                const startY = window.scrollY;
+                const diff = targetY - startY;
+                if (Math.abs(diff) < 1) return;
+                const startTime = performance.now();
+                const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                const step = (now) => {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    window.scrollTo(0, startY + diff * ease(progress));
+                    if (progress < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            },
+
+            bindSectionClicks() {
+                document.addEventListener('click', (e) => {
+                    const card = e.target.closest('.section-card, .summary-bar, .warnings-panel');
+                    if (!card || e.target.closest('a, button, input, details, .copy-btn')) return;
+                    const id = card.id;
+                    if (!id) return;
+                    const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
+                    const targetY = window.scrollY + card.getBoundingClientRect().top - topbarH - 12;
+                    this._fastScroll(Math.max(0, targetY), 300);
+                    card.classList.add('section-focus');
+                    setTimeout(() => card.classList.remove('section-focus'), 1200);
+                });
+            },
+
+            observeSections() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const id = entry.target.id;
+                            document.querySelectorAll('.sidebar-link').forEach(l => {
+                                l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+                            });
+                        }
+                    });
+                }, { rootMargin: '-20% 0px -60% 0px' });
+
+                document.querySelectorAll('.section-card, #summary-bar, #warnings-panel').forEach(el => {
+                    observer.observe(el);
+                });
+            },
+
+            async refreshScan() {
+                this.scanning = true;
+                const ts = new Date().toLocaleTimeString();
+                this._addTerminalLine(`[${ts}] Refreshing scan...`, 'term-info');
+                try {
+                    // Invalidate cache and kick off a fresh background scan
+                    await fetch('/api/scan?redact=' + this.redactLevel, {method: 'POST'});
+                    // Wait for the scan to actually complete by fetching the full report
+                    await fetch('/api/report?redact=' + this.redactLevel);
+                    this._addTerminalLine(`[${new Date().toLocaleTimeString()}] Scan complete — reloading`, 'term-success');
+                    window.location.reload();
+                } finally {
+                    this.scanning = false;
+                }
+            },
+
+            shutdownServer() {
+                document.body.classList.add('dialog-open');
+                const dlg = document.getElementById('shutdown-dialog');
+                dlg.showModal();
+                dlg.addEventListener('close', () => {
+                    document.body.classList.remove('dialog-open');
+                }, { once: true });
+            },
+
+            async confirmShutdown() {
+                document.body.classList.remove('dialog-open');
+                document.getElementById('shutdown-dialog').close();
+                try {
+                    await fetch('/api/shutdown', { method: 'POST' });
+                } catch (e) {
+                    // Expected — server dies before responding
+                }
+                this._showShutdownPage();
+            },
+
+            _showShutdownPage() {
+                // Preserve theme/accent on <html> so CSS variables still work
+                document.body.innerHTML = '<div class="shutdown-message">' +
+                    '<div class="shutdown-content">' +
+                    '<h2>&#x23fb; Server Stopped</h2>' +
+                    '<p>The dashboard server has been shut down.</p>' +
+                    '<button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button>' +
+                    '<p class="restart-status" id="restart-status"></p>' +
+                    '<p class="restart-note">Start the server in a terminal, then click Reconnect<br>or wait for auto-detection.</p>' +
+                    '<div class="restart-commands">' +
+                    '<div class="restart-cmd-block">' +
+                    '<span class="restart-cmd-label">Direct</span>' +
+                    '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
+                    '</div>' +
+                    '<div class="restart-cmd-block">' +
+                    '<span class="restart-cmd-label">Hatch</span>' +
+                    '<code class="restart-cmd">hatch run dashboard:serve</code>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                document.documentElement.style.overflow = 'hidden';
+                // Store shutdown state so refresh shows this page
+                sessionStorage.setItem('dashboard-shutdown', 'true');
+                // Start auto-polling for server availability
+                window._reconnectPoll = setInterval(() => {
+                    fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); sessionStorage.removeItem('dashboard-shutdown'); var s = document.getElementById('restart-status'); if (s) { s.textContent = 'Server found! Reloading...'; s.className = 'restart-status restart-status-found'; } window.location.reload(); } })
+                        .catch(() => {});
+                }, 3000);
+            },
+
+            copyValue(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Brief visual feedback handled by CSS
+                });
+            },
+
+            copyClip(event, text) {
+                const btn = event.currentTarget;
+                navigator.clipboard.writeText(text).then(() => {
+                    btn.classList.add('copied');
+                    setTimeout(() => btn.classList.remove('copied'), 1200);
+                });
+            },
+
+            /* --- Terminal panel for pip operations --- */
+
+            pipAction(action, packageName, pythonExe, targetExe) {
+                if (action === 'uninstall' && !confirm(`Uninstall ${packageName}?`)) {
+                    return;
+                }
+                if (action === 'move' && !confirm(`Move ${packageName} to the selected environment? This will install it there and uninstall from the current one.`)) {
+                    return;
+                }
+
+                // Open terminal if not already open
+                if (!this.terminalOpen) {
+                    this.terminalOpen = true;
+                    localStorage.setItem('dashboard-terminal', 'open');
+                    document.querySelector('.dashboard-main')?.classList.add('terminal-open');
+                }
+
+                // Move = install in target then uninstall from source
+                if (action === 'move') {
+                    this.terminalTitle = `pip move: ${packageName}`;
+                    this.terminalStatus = 'Running...';
+                    this.terminalStatusClass = 'running';
+                    this._addTerminalLine('', '');
+                    this._addTerminalLine(`$ Moving ${packageName} → target environment`, 'term-info');
+
+                    // Step 1: install in target
+                    const installParams = new URLSearchParams({ package: packageName, python_exe: targetExe || '' });
+                    fetch(`/api/pip/install?${installParams.toString()}`, { method: 'POST' }).then(() => {
+                        this._addTerminalLine(`Installed ${packageName} in target. Uninstalling from source...`, 'term-info');
+                        // Step 2: uninstall from source
+                        const uninstallParams = new URLSearchParams({ package: packageName, python_exe: pythonExe || '' });
+                        return fetch(`/api/pip/uninstall?${uninstallParams.toString()}`, { method: 'POST' });
+                    }).then(() => {
+                        this._addTerminalLine(`Moved ${packageName} successfully.`, 'term-info');
+                        this.terminalStatus = 'Done';
+                        this.terminalStatusClass = 'success';
+                        this.refreshScan();
+                    }).catch(err => {
+                        this._addTerminalLine(`Error: ${err.message}`, 'term-error');
+                        this.terminalStatus = 'Error';
+                        this.terminalStatusClass = 'failed';
+                    });
+                    return;
+                }
+
+                this.terminalTitle = `pip ${action}: ${packageName}`;
+                this.terminalStatus = 'Running...';
+                this.terminalStatusClass = 'running';
+
+                const outputEl = document.getElementById('terminal-output');
+
+                this._addTerminalLine('', '');
+                this._addTerminalLine(`$ pip ${action === 'update' ? 'install --upgrade' : action} ${packageName}`, 'term-info');
+
+                // Close any existing SSE connection
+                if (this._terminalEventSource) {
+                    this._terminalEventSource.close();
+                }
+
+                const params = new URLSearchParams({
+                    package: packageName,
+                    python_exe: pythonExe || '',
+                });
+
+                const url = `/api/pip/${action}?${params.toString()}`;
+
+                fetch(url, { method: 'POST' }).then(response => {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+
+                    const read = () => {
+                        reader.read().then(({ done, value }) => {
+                            if (done) {
+                                this.terminalStatus = 'Stream ended';
+                                this.terminalStatusClass = 'success';
+                                return;
+                            }
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split('\n');
+                            buffer = lines.pop() || '';
+
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.slice(6));
+                                        if (data.error) {
+                                            this._addTerminalLine(`Error: ${data.error}`, 'term-error');
+                                            this.terminalStatus = 'Error';
+                                            this.terminalStatusClass = 'failed';
+                                        } else if (data.done) {
+                                            this._addTerminalLine('', '');
+                                            if (data.returncode === 0) {
+                                                this._addTerminalLine(`✓ ${action} completed successfully (exit code 0)`, 'term-success');
+                                                this.terminalStatus = 'Completed successfully';
+                                                this.terminalStatusClass = 'success';
+                                            } else {
+                                                this._addTerminalLine(`✗ ${action} failed (exit code ${data.returncode})`, 'term-error');
+                                                this.terminalStatus = `Failed (exit code ${data.returncode})`;
+                                                this.terminalStatusClass = 'failed';
+                                            }
+                                        } else if (data.line) {
+                                            this._addTerminalLine(data.line.replace(/\n$/, ''));
+                                        }
+                                    } catch (e) {
+                                        // Skip malformed SSE lines
+                                    }
+                                }
+                            }
+                            read();
+                        });
+                    };
+                    read();
+                }).catch(err => {
+                    this._addTerminalLine(`Connection error: ${err.message}`, 'term-error');
+                    this.terminalStatus = 'Connection error';
+                    this.terminalStatusClass = 'failed';
+                });
+            },
+
+            async pathRemove(pathEntry) {
+                if (!confirm(`Remove from User PATH?\n\n${pathEntry}\n\nThis modifies your persistent User PATH (Windows registry). Restart terminals to apply.`)) {
+                    return;
+                }
+                const params = new URLSearchParams({ path_entry: pathEntry });
+                try {
+                    const resp = await fetch(`/api/path/remove?${params.toString()}`, { method: 'POST' });
+                    const data = await resp.json();
+                    if (data.error) {
+                        alert(`Failed: ${data.error}`);
+                    } else {
+                        this.refreshScan();
+                    }
+                } catch (err) {
+                    alert(`Error: ${err.message}`);
+                }
+            },
+
+            async updateAllOutdated(btnEl, pythonExe) {
+                // Find all outdated packages in this environment's <details>
+                const envDetails = btnEl.closest('details.env-details');
+                if (!envDetails) return;
+                const rows = envDetails.querySelectorAll('tr[data-outdated="true"]');
+                const packages = Array.from(rows).map(r => r.dataset.pkgName).filter(Boolean);
+                if (packages.length === 0) return;
+
+                if (!confirm(`Update ${packages.length} outdated package(s)?`)) return;
+
+                btnEl.disabled = true;
+                btnEl.setAttribute('aria-busy', 'true');
+
+                for (const pkg of packages) {
+                    this.pipAction('update', pkg, pythonExe);
+                    // Small delay between operations for readability
+                    await new Promise(r => setTimeout(r, 300));
+                }
+
+                btnEl.disabled = false;
+                btnEl.removeAttribute('aria-busy');
+            },
+
+            closeTerminal() {
+                this.terminalOpen = false;
+                localStorage.setItem('dashboard-terminal', 'closed');
+                document.querySelector('.dashboard-main')?.classList.remove('terminal-open');
+                if (this._terminalEventSource) {
+                    this._terminalEventSource.close();
+                    this._terminalEventSource = null;
+                }
+            },
+
+            toggleTerminal() {
+                if (this.terminalOpen) {
+                    this.closeTerminal();
+                } else {
+                    this.terminalOpen = true;
+                    localStorage.setItem('dashboard-terminal', 'open');
+                    document.querySelector('.dashboard-main')?.classList.add('terminal-open');
+                }
+            },
+
+            clearTerminal() {
+                const outputEl = document.getElementById('terminal-output');
+                if (outputEl) outputEl.innerHTML = '';
+                this._addTerminalLine('Terminal cleared', 'term-info');
+            },
+
+            _addTerminalLine(text, cls) {
+                const outputEl = document.getElementById('terminal-output');
+                if (!outputEl) return;
+                const line = document.createElement('div');
+                line.className = 'term-line' + (cls ? ' ' + cls : '');
+                line.textContent = text;
+                outputEl.appendChild(line);
+                // Keep max 500 lines
+                while (outputEl.children.length > 500) {
+                    outputEl.removeChild(outputEl.firstChild);
+                }
+                outputEl.scrollTop = outputEl.scrollHeight;
+            },
+
+            startServerLog() {
+                const now = new Date().toLocaleTimeString();
+                this._addTerminalLine(`[${now}] Dashboard server connected`, 'term-info');
+
+                // Log htmx events (requests/responses) as server activity
+                document.body.addEventListener('htmx:beforeRequest', (e) => {
+                    const path = e.detail.pathInfo?.requestPath || e.detail.elt?.getAttribute('hx-get') || '?';
+                    const ts = new Date().toLocaleTimeString();
+                    this._addTerminalLine(`[${ts}] GET ${path}`, 'term-info');
+                });
+                document.body.addEventListener('htmx:afterRequest', (e) => {
+                    const path = e.detail.pathInfo?.requestPath || '?';
+                    const status = e.detail.xhr?.status || '?';
+                    const ts = new Date().toLocaleTimeString();
+                    const cls = status >= 400 ? 'term-error' : 'term-success';
+                    this._addTerminalLine(`[${ts}] ${status} ${path}`, cls);
+                });
+                document.body.addEventListener('htmx:responseError', (e) => {
+                    const path = e.detail.pathInfo?.requestPath || '?';
+                    const ts = new Date().toLocaleTimeString();
+                    this._addTerminalLine(`[${ts}] ERROR ${path}: ${e.detail.error || 'request failed'}`, 'term-error');
+                });
+            }
+        };
+    }
+    </script>
+    {% block scripts %}{% endblock %}
+    <script>
+    /* Freshness indicator — ticks every second, shows data age */
+    function freshness(timestamp) {
+        return {
+            scanTime: timestamp ? new Date(timestamp) : new Date(),
+            ageSeconds: 0,
+            ageLabel: 'just now',
+            freshnessClass: 'fresh',
+            _interval: null,
+
+            startTick() {
+                this.tick();
+                this._interval = setInterval(() => this.tick(), 1000);
+            },
+
+            tick() {
+                this.ageSeconds = Math.floor((Date.now() - this.scanTime.getTime()) / 1000);
+                if (this.ageSeconds < 5) {
+                    this.ageLabel = 'just now';
+                    this.freshnessClass = 'fresh';
+                } else if (this.ageSeconds < 60) {
+                    this.ageLabel = this.ageSeconds + 's ago';
+                    this.freshnessClass = this.ageSeconds < 30 ? 'fresh' : 'aging';
+                } else if (this.ageSeconds < 3600) {
+                    this.ageLabel = Math.floor(this.ageSeconds / 60) + 'm ago';
+                    this.freshnessClass = 'stale';
+                } else {
+                    this.ageLabel = Math.floor(this.ageSeconds / 3600) + 'h ago';
+                    this.freshnessClass = 'stale';
+                }
+            }
+        };
+    }
+
+    /* Smooth close animation for <details> elements (raw JSON) */
+    function _fastScrollGlobal(targetY, duration) {
+        const startY = window.scrollY;
+        const diff = targetY - startY;
+        if (Math.abs(diff) < 1) return;
+        const startTime = performance.now();
+        const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const step = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            window.scrollTo(0, startY + diff * ease(progress));
+            if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.json-viewer-details').forEach(details => {
+            const summary = details.querySelector('summary');
+            const content = details.querySelector('.json-viewer');
+
+            summary.addEventListener('click', (e) => {
+                if (details.open) {
+                    // Closing: animate then remove open attribute
+                    e.preventDefault();
+                    details.classList.add('closing');
+
+                    // Fast scroll back up to the summary
+                    const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
+                    const targetY = window.scrollY + details.getBoundingClientRect().top - topbarH - 12;
+                    _fastScrollGlobal(Math.max(0, targetY), 300);
+
+                    content.addEventListener('transitionend', function handler() {
+                        content.removeEventListener('transitionend', handler);
+                        details.classList.remove('closing');
+                        details.removeAttribute('open');
+                    }, { once: true });
+
+                    // Fallback in case transitionend doesn't fire
+                    setTimeout(() => {
+                        details.classList.remove('closing');
+                        if (details.open) details.removeAttribute('open');
+                    }, 500);
+                } else {
+                    // Opening: let browser open, then scroll into view quickly
+                    setTimeout(() => {
+                        const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
+                        const targetY = window.scrollY + details.getBoundingClientRect().top - topbarH - 12;
+                        _fastScrollGlobal(Math.max(0, targetY), 300);
+                    }, 50);
+                }
+            });
+        });
+    });
+
+    /* Register service worker for offline fallback */
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    /* Section-guide <details> — no custom animation, native toggle only. */
+
+    /* Universal smooth close animation for all <details> dropdowns */
+    document.addEventListener('click', (e) => {
+        const summary = e.target.closest('details > summary');
+        if (!summary) return;
+        const details = summary.parentElement;
+        if (!details || !details.open) return;
+        // Skip elements with their own close handlers
+        if (details.classList.contains('json-viewer-details')) return;
+        if (details.classList.contains('section-guide')) return;
+        if (details.classList.contains('dropdown')) return;
+        if (details.classList.contains('kv-hint')) return;
+        if (details.classList.contains('hw-module-details')) return;
+        // Skip if already closing
+        if (details.classList.contains('closing')) return;
+        if (details.classList.contains('details-closing')) return;
+
+        // Section-card-body details use ::details-content transition (.closing class)
+        if (details.parentElement && details.parentElement.classList.contains('section-card-body') &&
+            !details.classList.contains('container-not-found')) {
+            e.preventDefault();
+            details.classList.add('closing');
+            setTimeout(function() {
+                details.open = false;
+                details.classList.remove('closing');
+            }, 400);
+            return;
+        }
+
+        // All other details use keyframe animation (details-closing class)
+        e.preventDefault();
+        details.classList.add('details-closing');
+
+        // Find the animated content element
+        const content = details.querySelector(':scope > :not(summary)');
+        if (content) {
+            content.addEventListener('animationend', function handler() {
+                content.removeEventListener('animationend', handler);
+                details.classList.remove('details-closing');
+                details.removeAttribute('open');
+            }, { once: true });
+        }
+        // Fallback if animationend doesn't fire
+        setTimeout(() => {
+            details.classList.remove('details-closing');
+            if (details.open) details.removeAttribute('open');
+        }, 450);
+    });
+
+    /* Close other kv-hint tooltips when one opens (prevent overlap) */
+    document.addEventListener('toggle', (e) => {
+        const hint = e.target;
+        if (!hint.classList || !hint.classList.contains('kv-hint') || !hint.open) return;
+        document.querySelectorAll('details.kv-hint[open]').forEach((other) => {
+            if (other !== hint) other.removeAttribute('open');
+        });
+    }, true);
+
+    /* Offline / server-down detection — show restart page instead of browser error */
+    (function() {
+        const SHUTDOWN_KEY = 'dashboard-shutdown';
+
+        // On page load, if server previously shut down, show restart page
+        if (sessionStorage.getItem(SHUTDOWN_KEY) === 'true') {
+            // Try to reach the server — if it's back, clear the flag and reload
+            fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+                .then(r => {
+                    if (r.ok) {
+                        sessionStorage.removeItem(SHUTDOWN_KEY);
+                        window.location.reload();
+                    } else {
+                        showOfflinePage();
+                    }
+                })
+                .catch(() => {
+                    showOfflinePage();
+                });
+        }
+
+        // Register a global fetch error handler for navigation
+        window.addEventListener('load', () => {
+            if (sessionStorage.getItem(SHUTDOWN_KEY) === 'true') {
+                showOfflinePage();
+            }
+        });
+
+        // Intercept htmx requests that fail due to server being down
+        document.addEventListener('htmx:sendError', function() {
+            if (!sessionStorage.getItem(SHUTDOWN_KEY)) {
+                sessionStorage.setItem(SHUTDOWN_KEY, 'true');
+                showOfflinePage();
+            }
+        });
+
+        function showOfflinePage() {
+            document.body.innerHTML = '<div class="shutdown-message">' +
+                '<div class="shutdown-content">' +
+                '<h2>&#x23fb; Server Stopped</h2>' +
+                '<p>The dashboard server is not running.</p>' +
+                '<button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button>' +
+                '<p class="restart-status" id="restart-status"></p>' +
+                '<p class="restart-note">Start the server in a terminal, then click Reconnect<br>or wait for auto-detection.</p>' +
+                '<div class="restart-commands">' +
+                '<div class="restart-cmd-block">' +
+                '<span class="restart-cmd-label">Direct</span>' +
+                '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
+                '</div>' +
+                '<div class="restart-cmd-block">' +
+                '<span class="restart-cmd-label">Hatch</span>' +
+                '<code class="restart-cmd">hatch run dashboard:serve</code>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            document.documentElement.style.overflow = 'hidden';
+            // Start auto-polling for server availability
+            if (!window._reconnectPoll) {
+                window._reconnectPoll = setInterval(() => {
+                    fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); window._reconnectPoll = null; sessionStorage.removeItem(SHUTDOWN_KEY); var s = document.getElementById('restart-status'); if (s) { s.textContent = 'Server found! Reloading...'; s.className = 'restart-status restart-status-found'; } window.location.reload(); } })
+                        .catch(() => {});
+                }, 3000);
+            }
+        }
+
+        window.attemptReconnect = function() {
+            const btn = document.getElementById('reconnect-btn');
+            const statusEl = document.getElementById('restart-status');
+            if (btn) btn.setAttribute('aria-busy', 'true');
+            if (statusEl) statusEl.textContent = 'Checking for server...';
+            fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+                .then(r => {
+                    if (r.ok) {
+                        clearInterval(window._reconnectPoll);
+                        window._reconnectPoll = null;
+                        sessionStorage.removeItem(SHUTDOWN_KEY);
+                        if (statusEl) statusEl.textContent = 'Server found! Reloading...';
+                        window.location.reload();
+                    } else {
+                        if (btn) btn.setAttribute('aria-busy', 'false');
+                        if (statusEl) { statusEl.textContent = 'Server not available yet. Retrying automatically...'; statusEl.className = 'restart-status restart-status-waiting'; }
+                    }
+                })
+                .catch(() => {
+                    if (btn) btn.setAttribute('aria-busy', 'false');
+                    if (statusEl) { statusEl.textContent = 'Server not available yet. Retrying automatically...'; statusEl.className = 'restart-status restart-status-waiting'; }
+                });
+        };
+    })();
+    </script>
+    <script>
+    /* Immediate close animation for memory-modules details */
+    document.addEventListener('click', function(e) {
+        var summary = e.target.closest('.hw-module-details > summary');
+        if (!summary) return;
+        var details = summary.parentElement;
+        if (!details.open) return;
+        e.preventDefault();
+        details.classList.add('closing');
+        setTimeout(function() {
+            details.open = false;
+            details.classList.remove('closing');
+        }, 400);
+    });
+    </script>
+    <script>
+    /* Edge particles — document-coordinate dots inside .dashboard-layout.
+       Canvas is 0×0 absolute so it never inflates scroll height.
+       Particles render via transform which has no layout side-effects.
+       Init waits for htmx:afterSettle so the full page height is known. */
+    (function() {
+        var COUNT = 700;
+        var SPEED_MIN = 3;
+        var SPEED_MAX = 8;
+        var DRIFT_MAX = 5;
+        var DRIFT_CHANGE = 3.5;
+        var WANDER_RANGE = 90;
+        var PULL_STRENGTH = 0.03;
+        var SIZE_MIN = 0.6;
+        var SIZE_MAX = 1.5;
+        var TOPBAR_PX = 44;
+
+        var canvas, layoutEl, mainEl, particles = [], rafId;
+        var started = false;
+        var lastScatterHeight = 0;
+        var redistributeTimer = null;
+
+        /* Height of the layout container (= scrollable content area) */
+        function layoutHeight() {
+            return layoutEl ? layoutEl.scrollHeight : window.innerHeight;
+        }
+
+        function start() {
+            if (started) return;
+            layoutEl = document.querySelector('.dashboard-layout');
+            mainEl = document.querySelector('.dashboard-main');
+            if (!layoutEl || !mainEl) return;
+            started = true;
+
+            canvas = document.createElement('div');
+            canvas.className = 'particle-canvas';
+            layoutEl.appendChild(canvas);
+
+            lastScatterHeight = layoutHeight();
+            for (var i = 0; i < COUNT; i++) {
+                createParticle(true);
+            }
+            rafId = requestAnimationFrame(tick);
+        }
+
+        /* Scatter all particles uniformly across the full layout height. */
+        function doRedistribute() {
+            var newH = layoutHeight();
+            if (newH <= lastScatterHeight + 50) return;
+            lastScatterHeight = newH;
+            var edges = getEdges();
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                p.y = Math.random() * newH;
+                p.onLeft = Math.random() < 0.5;
+                p.edgeX = p.onLeft ? edges.left : edges.right;
+                p.x = p.edgeX + (Math.random() - 0.5) * WANDER_RANGE;
+                p.opacity = 0.85;
+                p.fadingOut = false;
+            }
+        }
+
+        /* Debounced redistribute — waits 300ms after the last htmx settle
+           so all sections finish loading before we scatter particles.
+           This ensures particles spread across the full page height. */
+        function scheduleRedistribute() {
+            if (!started) return;
+            if (redistributeTimer) clearTimeout(redistributeTimer);
+            redistributeTimer = setTimeout(function() {
+                redistributeTimer = null;
+                doRedistribute();
+            }, 300);
+        }
+
+        function rDrift() {
+            return (Math.random() - 0.5) * 2 * DRIFT_MAX;
+        }
+
+        /* Section-edge X relative to .dashboard-layout */
+        function getEdges() {
+            var lr = layoutEl.getBoundingClientRect();
+            var mr = mainEl.getBoundingClientRect();
+            return { left: mr.left - lr.left, right: mr.right - lr.left };
+        }
+
+        function makeGlow(size) {
+            var g1 = Math.max(0.3, size * 0.3).toFixed(1);
+            var g2 = (size * 0.7).toFixed(1);
+            var g3 = (size * 1.4).toFixed(1);
+            return '0 0 ' + g1 + 'px 0.2px rgba(255,255,255,1),' +
+                   '0 0 ' + g2 + 'px 0.4px rgba(255,255,255,0.6),' +
+                   '0 0 ' + g3 + 'px 0.8px rgba(255,255,255,0.15)';
+        }
+
+        function createParticle(scatter) {
+            var el = document.createElement('span');
+            el.className = 'edge-particle';
+            canvas.appendChild(el);
+
+            var size = SIZE_MIN + Math.random() * (SIZE_MAX - SIZE_MIN);
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.boxShadow = makeGlow(size);
+
+            var h = layoutHeight();
+            var edges = getEdges();
+            var onLeft = Math.random() < 0.5;
+            var edgeX = onLeft ? edges.left : edges.right;
+            var startX = edgeX + (Math.random() - 0.5) * WANDER_RANGE;
+
+            var p = {
+                el: el,
+                size: size,
+                speed: SPEED_MIN + Math.random() * (SPEED_MAX - SPEED_MIN),
+                x: startX,
+                y: scatter ? (Math.random() * h) : (h + Math.random() * 150),
+                vx: rDrift(),
+                driftTimer: Math.random() * DRIFT_CHANGE,
+                edgeX: edgeX,
+                onLeft: onLeft,
+                opacity: scatter ? 0.85 : 0,
+                fadingOut: false,
+                fadeStart: 0
+            };
+            particles.push(p);
+            return p;
+        }
+
+        function resetParticle(p) {
+            var h = layoutHeight();
+            var edges = getEdges();
+            p.onLeft = Math.random() < 0.5;
+            p.edgeX = p.onLeft ? edges.left : edges.right;
+            p.x = p.edgeX + (Math.random() - 0.5) * WANDER_RANGE;
+            p.y = h + Math.random() * 150;
+            p.speed = SPEED_MIN + Math.random() * (SPEED_MAX - SPEED_MIN);
+            p.vx = rDrift();
+            p.driftTimer = Math.random() * DRIFT_CHANGE;
+            p.opacity = 0;
+            p.fadingOut = false;
+            p.fadeStart = 0;
+            var size = SIZE_MIN + Math.random() * (SIZE_MAX - SIZE_MIN);
+            p.size = size;
+            p.el.style.width = size + 'px';
+            p.el.style.height = size + 'px';
+            p.el.style.boxShadow = makeGlow(size);
+        }
+
+        var lastTime = 0;
+        function tick(now) {
+            if (!lastTime) lastTime = now;
+            var dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+
+            var edges = getEdges();
+
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+
+                p.y -= p.speed * dt;
+
+                p.driftTimer -= dt;
+                if (p.driftTimer <= 0) {
+                    p.vx = p.vx * 0.3 + rDrift() * 0.7;
+                    p.driftTimer = DRIFT_CHANGE * (0.6 + Math.random() * 0.8);
+                }
+                p.x += p.vx * dt;
+
+                p.edgeX = p.onLeft ? edges.left : edges.right;
+                p.x += (p.edgeX - p.x) * PULL_STRENGTH * dt;
+
+                if (!p.fadingOut && p.opacity < 0.85) {
+                    p.opacity = Math.min(p.opacity + dt * 2.5, 0.85);
+                }
+
+                /* Fade as particle reaches the top of the layout */
+                if (p.y < 10 && !p.fadingOut) {
+                    p.fadingOut = true;
+                    p.fadeStart = now;
+                }
+                if (p.fadingOut) {
+                    var t = (now - p.fadeStart) / 500;
+                    p.opacity = 0.85 * (1 - Math.min(t, 1));
+                }
+
+                if (p.y < -30 || (p.fadingOut && p.opacity <= 0.01)) {
+                    resetParticle(p);
+                    continue;
+                }
+
+                p.el.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)';
+                p.el.style.opacity = Math.max(0, p.opacity).toFixed(2);
+            }
+
+            rafId = requestAnimationFrame(tick);
+        }
+
+        /* Primary: start after htmx sections load */
+        document.body.addEventListener('htmx:afterSettle', function() {
+            if (!started) {
+                start();
+            } else {
+                scheduleRedistribute();
+            }
+        });
+        /* Fallback: if htmx never fires (e.g. cached page), start after 3s */
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(start, 3000);
+        });
+    })();
+    </script>
+</body>
+</html>

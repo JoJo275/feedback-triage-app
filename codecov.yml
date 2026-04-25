@@ -1,0 +1,39 @@
+# =============================================================================
+# Codecov Configuration
+# =============================================================================
+# Customizes coverage thresholds, PR comments, and status checks.
+# See: https://docs.codecov.com/docs/codecov-yaml
+#
+# Validate: curl -X POST --data-binary @codecov.yml https://codecov.io/validate
+#
+# TODO (template users): Adjust target thresholds to match your project goals.
+#   These thresholds were raised for the 1.0 release (project: 90%, patch: 80%).
+#   Lower them if your test suite doesn't meet these targets yet.
+#   Remove patch.default if you don't want per-PR coverage enforcement.
+# =============================================================================
+
+coverage:
+  status:
+    # Project-level coverage (overall repo coverage)
+    project:
+      default:
+        target: 90%         # Must maintain 90% overall coverage (raised for 1.0)
+        threshold: 1%       # Allow 1% drop before failing
+    # Patch-level coverage (coverage of changed lines in PR)
+    patch:
+      default:
+        target: 80%         # New code should be at least 80% covered (raised for 1.0)
+
+# Paths excluded from coverage stats (not application code)
+ignore:
+  - "tests/**"
+  - "scripts/**"
+  - "experiments/**"
+  - "docs/**"
+  - "mkdocs-hooks/**"
+
+# PR comment configuration
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default         # Post new comment on each push
+  require_changes: true     # Only comment if coverage changed

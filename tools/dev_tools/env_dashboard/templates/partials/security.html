@@ -1,0 +1,61 @@
+{% from "partials/_macros.html" import kv_row %}
+
+{# Secret env vars #}
+{% if data.secret_env_vars %}
+<h5>Suspicious Environment Variables ({{ data.secret_env_vars|length }})</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Variable</th><th>Pattern Match</th></tr>
+    </thead>
+    <tbody>
+        {% for item in data.secret_env_vars %}
+        <tr class="row-warn">
+            <td class="mono">{{ item.name }} <button class="copy-btn" data-clip="{{ item.name|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
+            <td><span class="badge badge-warn">{{ item.pattern }}</span></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><span class="badge badge-pass">No suspicious env vars detected</span></p>
+{% endif %}
+
+{# Insecure PATH entries #}
+{% if data.insecure_path_entries %}
+<h5>Insecure PATH Entries ({{ data.insecure_path_entries|length }})</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Path</th><th>Issue</th></tr>
+    </thead>
+    <tbody>
+        {% for item in data.insecure_path_entries %}
+        <tr class="row-fail">
+            <td class="mono">{{ item.path }} <button class="copy-btn" data-clip="{{ item.path|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
+            <td><span class="badge badge-fail">{{ item.issue }}</span></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><span class="badge badge-pass">No insecure PATH entries</span></p>
+{% endif %}
+
+{# SSH keys #}
+{% if data.ssh_keys_exposed %}
+<h5>Exposed SSH Keys ({{ data.ssh_keys_exposed|length }})</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Key</th><th>Type</th></tr>
+    </thead>
+    <tbody>
+        {% for item in data.ssh_keys_exposed %}
+        <tr class="row-warn">
+            <td class="mono">{{ item.name }}</td>
+            <td>{{ item.type }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><span class="badge badge-pass">No exposed SSH keys</span></p>
+{% endif %}

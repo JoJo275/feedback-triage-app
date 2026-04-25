@@ -1,0 +1,24 @@
+# =============================================================================
+# Sponsor / Funding Configuration
+# =============================================================================
+# Displays a "Sponsor" button on the GitHub repository page.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+#
+# TODO (template users): Uncomment and configure ONE OR MORE platforms below,
+#   then commit this file. Delete this entire comment block once configured.
+#   If you don't want a sponsor button, delete this file entirely and remove
+#   the FUNDING.yml reference from .dockerignore and .containerignore.
+# =============================================================================
+
+# github: username          # GitHub Sponsors (or [user1, user2] for multiple)
+# patreon: username         # Patreon
+# open_collective: project  # Open Collective
+# ko_fi: username           # Ko-fi
+# tidelift: pip/package     # Tidelift (e.g., pip/simple-python-boilerplate)
+# community_bridge: project # Community Bridge
+# liberapay: username       # Liberapay
+# issuehunt: username       # IssueHunt
+# polar: username           # Polar
+# buy_me_a_coffee: username # Buy Me a Coffee
+# thanks_dev: username      # thanks.dev
+# custom: ['https://example.com/donate']  # Custom URL(s)

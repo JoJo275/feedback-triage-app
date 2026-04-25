@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Server Offline</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #a855f7;
+    --accent-dim: rgba(168, 85, 247, 0.12);
+    --accent-glow: rgba(168, 85, 247, 0.35);
+    --accent-bright: #c084fc;
+    --bg: #0c0e14;
+    --bg-card: #14161e;
+    --border: #1e2030;
+    --text-muted: #6b6e80;
+  }
+  [data-theme="light"] {
+    --bg: #f8f9fc;
+    --bg-card: #ffffff;
+    --border: #e2e8f0;
+    --text-muted: #64748b;
+  }
+  /* Accent palettes */
+  [data-accent="purple"]  { --accent:#a855f7; --accent-dim:rgba(168,85,247,0.12); --accent-glow:rgba(168,85,247,0.35); --accent-bright:#c084fc; }
+  [data-accent="lime"]    { --accent:#84cc16; --accent-dim:rgba(132,204,22,0.12); --accent-glow:rgba(132,204,22,0.35); --accent-bright:#a3e635; }
+  [data-accent="blue"]    { --accent:#3b82f6; --accent-dim:rgba(59,130,246,0.12); --accent-glow:rgba(59,130,246,0.35); --accent-bright:#60a5fa; }
+  [data-accent="orange"]  { --accent:#f97316; --accent-dim:rgba(249,115,22,0.12); --accent-glow:rgba(249,115,22,0.35); --accent-bright:#fb923c; }
+  [data-accent="teal"]    { --accent:#14b8a6; --accent-dim:rgba(20,184,166,0.12); --accent-glow:rgba(20,184,166,0.35); --accent-bright:#2dd4bf; }
+  [data-accent="rose"]    { --accent:#f43f5e; --accent-dim:rgba(244,63,94,0.12); --accent-glow:rgba(244,63,94,0.35); --accent-bright:#fb7185; }
+  [data-accent="slate"]   { --accent:#64748b; --accent-dim:rgba(100,116,139,0.12); --accent-glow:rgba(100,116,139,0.35); --accent-bright:#94a3b8; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text-muted);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .offline-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    position: fixed;
+    inset: 0;
+    padding: 3px;
+  }
+
+  /* Border gradient line around the screen */
+  .offline-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      var(--accent-glow) 0%,
+      var(--accent) 25%,
+      var(--accent-bright) 50%,
+      var(--accent) 75%,
+      var(--accent-glow) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+  .offline-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: var(--bg);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .offline-wrap > * { position: relative; z-index: 1; }
+
+  h2 {
+    color: var(--accent);
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(168, 85, 247, 0.25);
+    margin-bottom: 0.6rem;
+  }
+  p {
+    font-size: 1rem;
+    line-height: 1.7;
+    text-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+  }
+
+  .restart-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 2rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s, box-shadow 0.2s;
+  }
+  .restart-btn:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 18px var(--accent-glow);
+  }
+
+  .restart-status {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    min-height: 1.4em;
+    text-shadow: 0 0 15px rgba(168, 85, 247, 0.12);
+  }
+
+  .restart-note {
+    margin-top: 1.4rem;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    opacity: 0.8;
+    max-width: 440px;
+    text-shadow: 0 0 15px rgba(168, 85, 247, 0.12);
+  }
+
+  .restart-commands {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .restart-cmd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .restart-cmd-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+  .restart-cmd {
+    display: block;
+    padding: 0.5rem 1rem;
+    font-size: 0.92rem;
+    font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--accent-bright);
+    user-select: all;
+  }
+</style>
+</head>
+<body>
+<div class="offline-wrap">
+  <h2>&#x23fb; Server Offline</h2>
+  <p>The dashboard server is not running.</p>
+  <button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button>
+  <p class="restart-status" id="restart-status"></p>
+  <p class="restart-note">The server must be running for reconnect to work.<br>Start it in a terminal, then click Reconnect or wait for auto-detection.</p>
+  <div class="restart-commands">
+    <div class="restart-cmd-block">
+      <span class="restart-cmd-label">Direct</span>
+      <code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>
+    </div>
+    <div class="restart-cmd-block">
+      <span class="restart-cmd-label">Hatch</span>
+      <code class="restart-cmd">hatch run dashboard:serve</code>
+    </div>
+  </div>
+</div>
+<script>
+  // Restore user's theme/accent preferences
+  (function() {
+    var mode = localStorage.getItem('dashboard-mode') || 'dark';
+    var accent = localStorage.getItem('dashboard-accent') || 'purple';
+    document.documentElement.setAttribute('data-theme', mode);
+    document.documentElement.setAttribute('data-accent', accent);
+  })();
+
+  // Auto-poll for server availability
+  var poll = setInterval(function() {
+    fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+      .then(function(r) {
+        if (r.ok) {
+          clearInterval(poll);
+          sessionStorage.removeItem('dashboard-shutdown');
+          window.location.replace('/');
+        }
+      })
+      .catch(function() {});
+  }, 3000);
+
+  function attemptReconnect() {
+    var btn = document.getElementById('reconnect-btn');
+    var statusEl = document.getElementById('restart-status');
+    if (btn) btn.setAttribute('aria-busy', 'true');
+    if (statusEl) statusEl.textContent = 'Checking for server...';
+    fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+      .then(function(r) {
+        if (r.ok) {
+          clearInterval(poll);
+          sessionStorage.removeItem('dashboard-shutdown');
+          if (statusEl) statusEl.textContent = 'Server found! Reloading...';
+          window.location.replace('/');
+        } else {
+          if (btn) btn.setAttribute('aria-busy', 'false');
+          if (statusEl) statusEl.textContent = 'Server not available yet. Retrying automatically...';
+        }
+      })
+      .catch(function() {
+        if (btn) btn.setAttribute('aria-busy', 'false');
+        if (statusEl) statusEl.textContent = 'Server not available yet. Retrying automatically...';
+      });
+  }
+</script>
+</body>
+</html>

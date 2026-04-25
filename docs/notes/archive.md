@@ -1,0 +1,350 @@
+# Archive
+
+Completed items from [todo.md](todo.md), preserved for reference.
+
+---
+
+## January 2026
+
+### Completed
+
+- [x] Add pre-commit hooks configuration file _(ruff, mypy, etc)_
+- [x] Write development guide _(setup, workflow, etc)_
+- [x] Create ADRs _(document architectural decisions)_
+- [x] Set up GitHub Actions CI workflow _(testing, linting, etc)_
+- [x] Set up Dependabot for automated dependency updates _(learned about rebase-strategy)_
+- [x] Create initial changelog file _(Keep a Changelog format)_
+- [x] Add GitHub issue templates _(bug report, feature request, etc)_
+- [x] Create PR template _(helps standardize contributions)_
+- [x] Write initial development documentation _(setup, workflow, etc)_
+- [x] Set up Dependabot _(learned about rebase-strategy)_
+- [x] Add ADRs _(good for documenting "why")_
+
+## February 2026
+
+### Completed
+
+- [x] Add code coverage reporting to CI
+- [x] Set up documentation with MkDocs
+- [x] Understand `py.typed` marker for PEP 561
+- [x] Learn about `pip-tools` for dependency pinning
+- [x] Investigate semantic versioning automation
+- [x] Study trusted publishing to PyPI
+- [x] Add Docker support for containerized development
+- [x] Create VS Code devcontainer configuration
+- [x] Add Makefile or taskfile for common commands
+- [x] Explore Nox/Tox for multi-environment testing
+- [x] Implement Sphinx/MkDocs documentation generation (learn what this even is).
+- [x] Explore additional static analysis tools (e.g., Bandit for security)
+- [x] Add detailed README.md with badges, usage, etc. _Although I do have a README.md already, it could be more detailed regarding usage instructions, examples, and badges for build status, coverage, etc._
+- [x] Implement a changelog generation tool (e.g., `towncrier`)
+- [x] Add more comprehensive test coverage and edge cases
+- [x] Explore using `pip-tools` for managing dependencies with `requirements.txt`
+- [x] Learn about semantic versioning and automate version bumps
+- [x] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
+- [x] Research best practices for managing `requirements.txt` vs just using `pyproject.toml` dependencies. _From what I've read, `pyproject.toml` is becoming the standard for specifying project metadata and dependencies in Python projects. However, some developers still prefer to use `requirements.txt` for managing dependencies, especially for virtual environments. I should research the pros and cons of each approach and decide which one makes the most sense for this project based on factors like ease of use, compatibility with tools, and team preferences._
+- [x] Learn and build any more scripts and programs within this template repo that may help.
+- [x] Add a script that changes the project name, package name, author name, and other relevant info in all necessary files to make it easier to set up a new project from this template. _This could be a Python script that uses regex or string replacement to update the relevant fields in `README.md`, `pyproject.toml`, `LICENSE`, and `SECURITY.md` based on user input. It would save time and reduce the chance of missing any necessary changes when setting up a new project from this template._
+- [x] Add automated releases
+- [x] Clarify what workflows this repo has after implementing them in the description of repo and README.md: Core python development workflow with many optional workflows for things like documentation, releases, etc. that are disabled by default to avoid confusion and allow users to enable and adapt them as needed for their own projects. _This would involve updating the README.md and possibly the repository description to clearly outline what workflows are included in the template, which ones are enabled by default, and how users can enable or customize additional workflows based on their needs. This would help users understand the capabilities of the template and how to best utilize it for their projects._
+- [x] create a scripts enable all workflows and another to disable all optional workflows (otherwise explain how to enable each one-by-one). _This could be done with a simple shell script that renames workflow files to enable or disable them. For example, a script to enable all workflows could remove the underscore prefix from all workflow files in the `.github/workflows/` directory, while a script to disable all optional workflows could add an underscore prefix to those files. This would provide a convenient way for users to quickly enable or disable all optional workflows without having to manually rename each file._
+- [x] template auto-fill information for users: integrate cookiecutter + cruft for easier project setup and maintenance. _This would involve creating a `cookiecutter` template based on this repository, which users can use to quickly set up new projects with the same structure and configurations. Additionally, integrating `cruft` would allow users to easily keep their projects up to date with changes made to the template over time. This would streamline the process of starting new projects and maintaining them as the template evolves._
+- [x] Choosing a license for template users: use cookiecutter with license/ directory to allow users to choose a license when setting up a new project. _This would involve creating a `cookiecutter` template that includes a `license/` directory with various license options (e.g., MIT, Apache 2.0, GPL). When users run the `cookiecutter` command to set up a new project, they could be prompted to choose a license from the available options, and the chosen license file would be included in their new project. This would make it easier for users to select and include an appropriate license for their projects._
+- [x] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
+- [x] Add more detailed documentation for how to use static analysis tools, including how to set up and customize linters, formatters, and security scanners in CI and locally.
+- [x] Add more detailed documentation for how to set up and use documentation generation tools like Sphinx or MkDocs, including how to write docstrings and how to generate and host documentation for the project.
+- [x] Add more detailed documentation for how to use GitHub Actions workflows, including how to enable/disable optional workflows, how to customize them for different project needs, and how to troubleshoot common issues with workflows.
+- [x] Anymore scripts?
+- [x] docs stack: (1) presentation = (Theme: Material for MKDocs), (2) API reference (API reference: mkdocstrings + Python handler), (3) publishing (Markdown power-ups: pymdown-extensions), and optionally (4) versioning (Publishing: GitHub Pages via mkdocs gh-deploy or Read the Docs (RTD)).
+- [x] add in docstring style enforcement with a tool like `pydocstyle` to ensure consistent and comprehensive documentation with ruff in pyproject.toml. _This would involve adding `pydocstyle` to the list of dependencies in `pyproject.toml` and configuring it to enforce a specific docstring style (e.g., Google, NumPy, or reStructuredText). This would help ensure that all functions, classes, and modules in the project have consistent and comprehensive docstrings, improving code readability and maintainability._
+- [x] Add in bandit for security linting and checks. _This would involve adding `bandit` to the list of dependencies in `pyproject.toml` and configuring it to run as part of the CI workflow. Bandit would analyze the code for common security issues and vulnerabilities, helping to improve the security posture of projects that use this template._
+- [x] Refactor repo scripts with custom CLI commands
+- [x] Add Docker support for containerized development and testing
+- [x] Create a VS Code devcontainer configuration for consistent development environments
+- [x] Add a Makefile or taskfile for common commands to simplify development workflow
+- [x] Explore using Nox or Tox for testing across multiple Python environments
+- [x] Read through other popular Python boilerplate repositories to see if there are any common features or best practices I may have missed. _This could include looking at repositories like `cookiecutter`, `python-project-template`, and others to see how they structure their projects, what files they include, and how they handle things like testing, documentation, and CI/CD. It could provide valuable insights and ideas for improving this template._
+- [x] Add in installable CLI command for running tests, linting, or other common tasks. _This could be done using `entry_points` in `pyproject.toml` to create a command-line interface for the project. For example, I could add a command like `myproject test` that runs the test suite, or `myproject lint` that runs the linter. This would make it easier for users to run common tasks without having to remember specific commands or scripts._
+- [x] Task runner: install nox and set up sessions for testing, linting, and other tasks across multiple Python versions. (installed "task" task runner instead) _This would involve adding a `noxfile.py` to the project that defines sessions for running tests, linting, and other common tasks. Each session could be configured to run across multiple Python versions to ensure compatibility. This would provide a convenient way for users to test their code in different environments and maintain code quality with linting._
+- [x] use pre-commit hooks for code formatting, linting, and other checks to maintain code quality. _This would involve setting up a `.pre-commit-config.yaml` file that defines various pre-commit hooks for tasks like code formatting with `black`, linting with `flake8`, and checking for security issues with `bandit`. Users would then need to install the pre-commit hooks in their local environment, which would ensure that these checks are automatically run before each commit, helping to maintain code quality and consistency across the project._
+- [x] add task runner "task"
+- [x] When to use `requirements.txt` vs just `pyproject.toml` dependencies?
+- [x] Explore `hatch` as alternative to setuptools
+- [x] Explore using `hatch` for project management and packaging
+- [x] Explore using `hatch` for project management and packaging as an alternative to setuptools
+- [x] Where do database files go? (e.g., SQLite files) Should they be in a `data/` directory or something else?
+- [x] What is sponsorships and should I allow them for this project? _From what I've read, GitHub Sponsors is a way for open source maintainers to receive financial support from the community. It can be a good way to fund ongoing maintenance and development of the project, but it also requires some effort to set up and manage. I should research how to set it up and decide if it's appropriate for this project based on my goals and expected user base. Also could enable it for example purposes and to learn about the process, even if I don't expect to receive sponsorships right away._
+- [x] Integrate hatch
+- [x] use containerfile for consistent development environments and to simplify setup for new contributors. _This would involve creating a `Containerfile` (or `Dockerfile`) that defines a consistent development environment with all necessary dependencies and tools installed. This would allow new contributors to quickly get up and running without having to manually set up their environment, and it would also ensure that everyone is using the same versions of tools and libraries, reducing the chances of environment-related issues._
+- [x] investigate spb clean --todo not working — resolved: the correct command is `spb-clean --todo` (hyphenated entry point), not `spb clean --todo`
+- [x] Set up PR workflow
+- [x] Verify different PR workflows
+- [x] Refactor BUG_BOUNTY.md, SECURITY_no_bounty.md, and SECURITY_with_bounty.md to remove duplication and improve clarity.
+
+## March 2026
+
+### Completed
+
+- [X] Add a `task doctor:all` that runs `doctor.py`, `env_doctor.py`, `git_doctor.py`, and `repo_doctor.py` in sequence
+- [x] Final file check: pyproject.toml
+- [x] Final file check: Taskfile.yml
+- [x] Final file check: README.md (root)
+- [x] Final file check: CONTRIBUTING.md
+- [x] Final file check: CODE_OF_CONDUCT.md
+- [x] Final file check: SECURITY.md
+- [x] Final file check: LICENSE
+- [x] Final file check: Containerfile
+- [x] Final file check: docker-compose.yml
+- [x] Final file check: requirements.txt
+- [x] Final file check: requirements-dev.txt
+- [x] Final file check: release-please-config.json
+- [x] Final file check: codecov.yml
+- [x] Final file check: mkdocs.yml
+- [x] Final file check: \_typos.toml
+- [x] Final file check: CHANGELOG.md
+- [x] Final file check: simple-python-boilerplate.code-workspace
+- [x] Final file check: .gitignore
+- [x] Final file check: .dockerignore
+- [x] Final file check: .readthdocs.yaml
+- [x] Final file check: .prettierignore
+- [x] Final file check: .markdownlint-cli2.jsonc
+- [x] Final file check: .lycheeignore
+- [x] Final file check: .editorconfig
+- [x] Final file check: .gitattributes
+- [x] Final file check: .gitmessage.txt
+- [x] Final file check: .pre-commit-config.yaml
+- [x] Final file check: .release-please-manifest.json
+- [x] Final file check: .repo-doctor.toml
+- [x] Final file check: .devcontainer/devcontainer.json
+- [x] Final file check: .devcontainer/README.md
+- [x] Final file check: .github/CODEOWNERS
+- [x] Final file check: .github/FUNDING.yml
+- [x] Final file check: .github/PULL_REQUEST_TEMPLATE.md
+- [x] Final file check: .github/SKILL.md
+- [x] Final file check: .github/copilot-instructions.md
+- [x] Final file check: .github/dependabot.yml
+- [x] Final file check: .github/labeler.yml
+- [x] Final file check: .github/ISSUE_TEMPLATE/bug_report.yml
+- [x] Final file check: .github/ISSUE_TEMPLATE/config.yml
+- [x] Final file check: .github/ISSUE_TEMPLATE/documentation.yml
+- [x] Final file check: .github/ISSUE_TEMPLATE/feature_request.yml
+- [x] Final file check: .github/workflows/.instructions.md
+- [x] Final file check: .github/workflows/README.md
+- [x] Final file check: .github/workflows/auto-merge-dependabot.yml
+- [x] Final file check: .github/workflows/bandit.yml
+- [x] Final file check: .github/workflows/cache-cleanup.yml
+- [x] Final file check: .github/workflows/ci-gate.yml
+- [x] Final file check: .github/workflows/commit-lint.yml
+- [x] Final file check: .github/workflows/container-build.yml
+- [x] Final file check: .github/workflows/container-scan.yml
+- [x] Final file check: .github/workflows/coverage.yml
+- [x] Final file check: .github/workflows/dependency-review.yml
+- [x] Final file check: .github/workflows/docs-build.yml
+- [x] Final file check: .github/workflows/docs-deploy.yml
+- [x] Final file check: .github/workflows/known-issues-check.yml
+- [x] Final file check: .github/workflows/labeler.yml
+- [x] Final file check: .github/workflows/license-check.yml
+- [x] Final file check: .github/workflows/link-checker.yml
+- [x] Final file check: .github/workflows/lint-format.yml
+- [x] Final file check: .github/workflows/nightly-security.yml
+- [x] Final file check: .github/workflows/pre-commit-update.yml
+- [x] Final file check: .github/workflows/pr-title.yml
+- [x] Final file check: .github/workflows/regenerate-files.yml
+- [x] Final file check: .github/workflows/release-please.yml
+- [x] Final file check: .github/workflows/release.yml
+- [x] Final file check: .github/workflows/repo-doctor.yml
+- [x] Final file check: .github/workflows/sbom.yml
+- [x] Final file check: .github/workflows/scorecard.yml
+- [x] Final file check: .github/workflows/security-audit.yml
+- [x] Final file check: .github/workflows/security-codeql.yml
+- [x] Final file check: .github/workflows/spellcheck-autofix.yml
+- [x] Final file check: .github/workflows/spellcheck.yml
+- [x] Final file check: .github/workflows/stale.yml
+- [x] Final file check: .github/workflows/test.yml
+- [x] Final file check: .github/workflows/todo-check.yml
+- [x] Final file check: .github/workflows/type-check.yml
+- [x] Final file check: .github/workflows/welcome.yml
+- [x] Final file check: .github/workflows-optional/README.md
+- [x] Final file check: .github/workflows-optional/changelog.yml
+- [x] Final file check: db/README.md
+- [x] Final file check: db/schema.sql
+- [x] Final file check: db/migrations/README.md
+- [x] Final file check: db/migrations/001_example_migration.sql
+- [x] Final file check: db/queries/README.md
+- [x] Final file check: db/queries/example_queries.sql
+- [x] Final file check: db/seeds/README.md
+- [x] Final file check: db/seeds/001_example_seed.sql
+- [x] Final file check: docs/index.md
+- [x] Final file check: docs/labels.md
+- [x] Final file check: docs/release-policy.md
+- [x] Final file check: docs/releasing.md
+- [x] Final file check: docs/repo-layout.md
+- [x] Final file check: docs/sbom.md
+- [x] Final file check: docs/tooling.md
+- [x] Final file check: docs/USING_THIS_TEMPLATE.md
+- [x] Final file check: docs/workflows.md
+- [x] Final file check: docs/.instructions.md
+- [x] Final file check: docs/README.md
+- [x] Final file check: docs/known-issues.md
+- [x] Final file check: docs/adr/.instructions.md
+- [x] Final file check: docs/adr/README.md
+- [x] Final file check: docs/adr/template.md
+- [x] Final file check: docs/adr/001-src-layout.md
+- [x] Final file check: docs/adr/002-pyproject-toml.md
+- [x] Final file check: docs/adr/003-separate-workflow-files.md
+- [x] Final file check: docs/adr/004-pin-action-shas.md
+- [x] Final file check: docs/adr/005-ruff-for-linting-formatting.md
+- [x] Final file check: docs/adr/006-pytest-for-testing.md
+- [x] Final file check: docs/adr/007-mypy-for-type-checking.md
+- [x] Final file check: docs/adr/008-pre-commit-hooks.md
+- [x] Final file check: docs/adr/009-conventional-commits.md
+- [x] Final file check: docs/adr/010-dependabot-for-dependency-updates.md
+- [x] Final file check: docs/adr/011-repository-guard-pattern.md
+- [x] Final file check: docs/adr/012-multi-layer-security-scanning.md
+- [x] Final file check: docs/adr/013-sbom-bill-of-materials.md
+- [x] Final file check: docs/adr/014-no-template-engine.md
+- [x] Final file check: docs/adr/015-no-github-directory-readme.md
+- [x] Final file check: docs/adr/016-hatchling-and-hatch.md
+- [x] Final file check: docs/adr/017-task-runner.md
+- [x] Final file check: docs/adr/018-bandit-for-security-linting.md
+- [x] Final file check: docs/adr/019-containerfile.md
+- [x] Final file check: docs/adr/020-mkdocs-documentation-stack.md
+- [x] Final file check: docs/adr/021-automated-release-pipeline.md
+- [x] Final file check: docs/adr/022-rebase-merge-strategy.md
+- [x] Final file check: docs/adr/023-branch-protection-rules.md
+- [x] Final file check: docs/adr/024-ci-gate-pattern.md
+- [x] Final file check: docs/adr/025-container-strategy.md
+- [x] Final file check: docs/adr/026-no-pip-tools.md
+- [x] Final file check: docs/adr/027-database-strategy.md
+- [x] Final file check: docs/adr/028-git-branching-strategy.md
+- [x] Final file check: docs/adr/029-testing-strategy.md
+- [x] Final file check: docs/adr/030-label-management-as-code.md
+- [x] Final file check: docs/adr/031-script-conventions.md
+- [x] Final file check: docs/adr/032-dependency-grouping-strategy.md
+- [x] Final file check: docs/adr/033-prettier-for-markdown-formatting.md
+- [x] Final file check: docs/adr/034-documentation-organization-strategy.md
+- [x] Final file check: docs/adr/035-copilot-instructions-as-context.md
+- [x] Final file check: docs/adr/archive/README.md
+- [x] Final file check: docs/design/architecture.md
+- [x] Final file check: docs/design/ci-cd-design.md
+- [x] Final file check: docs/design/database.md
+- [x] Final file check: docs/design/tool-decisions.md
+- [x] Final file check: docs/design/README.md
+- [x] Final file check: docs/development/command-workflows.md
+- [x] Final file check: docs/development/dev-setup.md
+- [x] Final file check: docs/development/developer-commands.md
+- [x] Final file check: docs/development/development.md
+- [x] Final file check: docs/development/pull-requests.md
+- [x] Final file check: docs/development/README.md
+- [x] Final file check: docs/guide/getting-started.md
+- [x] Final file check: docs/guide/troubleshooting.md
+- [x] Final file check: docs/guide/README.md
+- [x] Final file check: docs/notes/resources_links.md
+- [x] Final file check: docs/notes/resources_written.md
+- [x] Final file check: docs/notes/learning.md
+- [x] Final file check: docs/notes/tool-comparison.md
+- [x] Final file check: docs/notes/README.md
+- [x] Final file check: docs/notes/archive.md
+- [x] Final file check: docs/notes/todo.md
+- [x] Final file check: docs/reference/api.md
+- [x] Final file check: docs/reference/index.md
+- [x] Final file check: docs/reference/README.md
+- [x] Final file check: docs/reference/commands.md
+- [x] Final file check: docs/reference/template-inventory.md
+- [x] Final file check: docs/templates/BUG_BOUNTY.md
+- [x] Final file check: docs/templates/SECURITY_no_bounty.md
+- [x] Final file check: docs/templates/SECURITY_with_bounty.md
+- [x] Final file check: docs/templates/README.md
+- [x] Final file check: docs/templates/pull-request-draft.md
+- [x] Final file check: docs/templates/issue_templates/README.md
+- [x] Final file check: docs/templates/issue_templates/issue_forms/ (all .yml files)
+- [x] Final file check: docs/templates/issue_templates/legacy_markdown/ (all .md files)
+- [x] Final file check: experiments/README.md
+- [x] Final file check: experiments/example_api_test.py
+- [x] Final file check: experiments/example_data_exploration.py
+- [x] Final file check: labels/baseline.json
+- [x] Final file check: labels/extended.json
+- [x] Final file check: mkdocs-hooks/README.md
+- [x] Final file check: mkdocs-hooks/generate_commands.py
+- [x] Final file check: mkdocs-hooks/include_templates.py
+- [x] Final file check: mkdocs-hooks/repo_links.py
+- [x] Final file check: repo_doctor.d/README.md
+- [x] Final file check: repo_doctor.d/ci.toml
+- [x] Final file check: repo_doctor.d/container.toml
+- [x] Final file check: repo_doctor.d/db.toml
+- [x] Final file check: repo_doctor.d/docs.toml
+- [x] Final file check: repo_doctor.d/python.toml
+- [x] Final file check: repo_doctor.d/security.toml
+- [x] Final file check: scripts/.instructions.md
+- [x] Final file check: scripts/README.md
+- [x] Final file check: scripts/\_imports.py
+- [x] Final file check: scripts/\_progress.py
+- [x] Final file check: scripts/apply_labels.py
+- [x] Final file check: scripts/apply-labels.sh
+- [x] Final file check: scripts/archive_todos.py
+- [x] Final file check: scripts/bootstrap.py
+- [x] Final file check: scripts/changelog_check.py
+- [x] Final file check: scripts/check_known_issues.py
+- [x] Final file check: scripts/check_todos.py
+- [x] Final file check: scripts/clean.py
+- [x] Final file check: scripts/customize.py
+- [x] Final file check: scripts/dep_versions.py
+- [x] Final file check: scripts/doctor.py
+- [x] Final file check: scripts/env_doctor.py
+- [x] Final file check: scripts/generate_command_reference.py
+- [x] Final file check: scripts/repo_doctor.py
+- [x] Final file check: scripts/workflow_versions.py
+- [x] Final file check: scripts/precommit/README.md
+- [x] Final file check: scripts/precommit/check_nul_bytes.py
+- [x] Final file check: scripts/sql/README.md
+- [x] Final file check: scripts/sql/reset.sql
+- [x] Final file check: scripts/sql/scratch.example.sql
+- [x] Final file check: src/README.md
+- [x] Final file check: src/simple_python_boilerplate/**init**.py
+- [x] Final file check: src/simple_python_boilerplate/\_version.py
+- [x] Final file check: src/simple_python_boilerplate/api.py
+- [x] Final file check: src/simple_python_boilerplate/cli.py
+- [x] Final file check: src/simple_python_boilerplate/engine.py
+- [x] Final file check: src/simple_python_boilerplate/main.py
+- [x] Final file check: src/simple_python_boilerplate/py.typed
+- [x] Final file check: src/simple_python_boilerplate/dev_tools/**init**.py
+- [x] Final file check: src/simple_python_boilerplate/sql/README.md
+- [x] Final file check: src/simple_python_boilerplate/sql/**init**.py
+- [x] Final file check: src/simple_python_boilerplate/sql/example_query.sql
+- [X] Final file check: tests/.instructions.md
+- [X] Final file check: tests/README.md
+- [X] Final file check: tests/conftest.py
+- [X] Final file check: tests/unit/**init**.py
+- [X] Final file check: tests/unit/conftest.py
+- [X] Final file check: tests/unit/test_api.py
+- [X] Final file check: tests/unit/test_archive_todos.py
+- [X] Final file check: tests/unit/test_check_known_issues.py
+- [X] Final file check: tests/unit/test_clean.py
+- [X] Final file check: tests/unit/test_dep_versions.py
+- [X] Final file check: tests/unit/test_doctor.py
+- [X] Final file check: tests/unit/test_env_doctor.py
+- [X] Final file check: tests/unit/test_example.py
+- [X] Final file check: tests/unit/test_generate_command_reference.py
+- [X] Final file check: tests/unit/test_generate_commands.py
+- [X] Final file check: tests/unit/test_include_templates.py
+- [X] Final file check: tests/unit/test_progress.py
+- [X] Final file check: tests/unit/test_repo_doctor.py
+- [X] Final file check: tests/unit/test_repo_links.py
+- [X] Final file check: tests/unit/test_version.py
+- [X] Final file check: tests/unit/test_workflow_versions.py
+- [X] Final file check: tests/integration/**init**.py
+- [X] Final file check: tests/integration/conftest.py
+- [X] Final file check: tests/integration/test_cli_smoke.py
+- [X] Final file check: tests/integration/test_db_example.py
+- [X] Final file check: tests/integration/sql/README.md
+- [X] Final file check: tests/integration/sql/setup_test_db.sql
+- [X] Final file check: tests/integration/sql/teardown_test_db.sql
+- [X] Final file check: var/README.md
+- [X] Final file check: var/app.example.sqlite3
+- [x] Add in TODOs where warranted
+- [x] Configure VS Code workspace settings and recommended extensions
+- [x] Review and consolidate docs/
+- [x] Add unit tests for mkdocs-hooks/repo_links.py (86 tests in tests/unit/test_repo_links.py)
+- [x] Migrate remaining 11 scripts from brittle `ROOT = Path(__file__).resolve().parent.parent` to `find_repo_root()` from `_imports.py`
+- [x] Configure setuptools-scm to generate `_version.py` with modern type annotations (avoids ruff UP006/UP007 on every build) — fixed via ruff per-file-ignores for auto-generated file
+- [x] Verify devtools URL (python-devtools.helpmanual.io) — verified 2026-03-02, URL is valid

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:;">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Environment Report — {{ timestamp }}</title>
+    <style>
+        /* Inline styles for self-contained export (no external resources) */
+        :root { --pass: #22c55e; --warn: #f59e0b; --fail: #ef4444; --info: #3b82f6; }
+        body { font-family: system-ui, sans-serif; max-width: 960px; margin: 0 auto; padding: 1rem; color: #1f2937; background: #fff; }
+        h1 { font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+        h2 { font-size: 1.2rem; margin-top: 2rem; color: #374151; }
+        h3 { font-size: 1rem; color: #6b7280; }
+        .meta { color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem; }
+        .warning-banner { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 0.5rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+        .warning-banner strong { color: #92400e; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin: 1rem 0; }
+        .summary-cell { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.5rem 0.75rem; }
+        .summary-cell .label { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; }
+        .summary-cell .value { font-weight: 600; }
+        .badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-pass { background: #dcfce7; color: #166534; }
+        .badge-warn { background: #fef3c7; color: #92400e; }
+        .badge-fail { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .warning-item { padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
+        .section { margin: 1.5rem 0; page-break-inside: avoid; }
+        .section-header { background: #f3f4f6; padding: 0.5rem 0.75rem; border-radius: 0.375rem 0.375rem 0 0; font-weight: 600; }
+        .kv-table { width: 100%; border-collapse: collapse; }
+        .kv-table td { padding: 0.375rem 0.75rem; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+        .kv-table td:first-child { font-weight: 500; width: 35%; color: #374151; white-space: nowrap; }
+        .kv-table td:last-child { font-family: ui-monospace, monospace; font-size: 0.875rem; word-break: break-all; }
+        .redacted { color: #9ca3af; font-style: italic; }
+        .list-items { list-style: none; padding: 0; }
+        .list-items li { padding: 0.25rem 0; border-bottom: 1px solid #f9fafb; font-family: ui-monospace, monospace; font-size: 0.875rem; }
+        @media print { body { font-size: 11pt; } .warning-banner { border-color: #000; } }
+        @media (prefers-color-scheme: dark) {
+            body { background: #111827; color: #e5e7eb; }
+            .section-header { background: #1f2937; }
+            .summary-cell { background: #1f2937; border-color: #374151; }
+            .kv-table td { border-color: #374151; }
+            .kv-table td:first-child { color: #d1d5db; }
+        }
+    </style>
+</head>
+<body>
+
+{% if show_warning_banner %}
+<div class="warning-banner">
+    <strong>&#x26a0; Privacy Notice:</strong> This export uses <em>{{ redact_level }}</em> redaction.
+    Sensitive information may be visible. Review before sharing.
+</div>
+{% endif %}
+
+<h1>Environment Report</h1>
+<div class="meta">
+    Generated: {{ timestamp }} &middot;
+    Tier: {{ meta.tier|default("standard") }} &middot;
+    Redaction: {{ redact_level }} &middot;
+    Schema: v{{ meta.schema_version|default("1.0") }}
+</div>
+
+{# --- Summary --- #}
+<h2>Summary</h2>
+<div class="summary-grid">
+    {% for key, value in summary.items() %}
+    <div class="summary-cell">
+        <div class="label">{{ key|replace("_", " ") }}</div>
+        <div class="value">
+            {% if value is sameas true %}
+                <span class="badge badge-pass">Yes</span>
+            {% elif value is sameas false %}
+                <span class="badge">No</span>
+            {% elif value is number %}
+                {% if key == "warnings_count" and value > 0 %}
+                    <span class="badge badge-warn">{{ value }}</span>
+                {% else %}
+                    {{ value }}
+                {% endif %}
+            {% else %}
+                {{ value }}
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{# --- Warnings --- #}
+{% if warnings %}
+<h2>Warnings ({{ warnings|length }})</h2>
+{% for w in warnings %}
+<div class="warning-item">
+    {% if w.severity == "fail" %}&#x274c;{% elif w.severity == "info" %}&#x2139;&#xfe0f;{% else %}&#x26a0;&#xfe0f;{% endif %}
+    {{ w.message }}
+    {% if w.section %}<small>({{ w.section }})</small>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{# --- Sections --- #}
+{% for name, data in sections.items() %}
+{% if name != "insights" %}
+<div class="section">
+    <div class="section-header">{{ name|replace("_", " ")|title }}</div>
+    {% if data is mapping %}
+    <table class="kv-table">
+        {% for key, value in data.items() %}
+        <tr>
+            <td>{{ key|replace("_", " ") }}</td>
+            <td>
+                {% if value is string and value.startswith("***") %}
+                    <span class="redacted">{{ value }}</span>
+                {% elif value is mapping %}
+                    <details><summary>{ ... }</summary><pre>{{ value|tojson(indent=2) }}</pre></details>
+                {% elif value is iterable and value is not string %}
+                    {% if value|length == 0 %}
+                        <span class="redacted">—</span>
+                    {% elif value|length <= 5 %}
+                        <ul class="list-items">{% for item in value %}<li>{{ item }}</li>{% endfor %}</ul>
+                    {% else %}
+                        <details><summary>{{ value|length }} items</summary>
+                        <ul class="list-items">{% for item in value %}<li>{{ item }}</li>{% endfor %}</ul>
+                        </details>
+                    {% endif %}
+                {% else %}
+                    {{ value }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% elif data is iterable and data is not string %}
+    <ul class="list-items">{% for item in data %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% else %}
+    <pre>{{ data }}</pre>
+    {% endif %}
+</div>
+{% endif %}
+{% endfor %}
+
+</body>
+</html>

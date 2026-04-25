@@ -1,0 +1,183 @@
+# =============================================================================
+# repo_doctor.d/python.toml — Deeper Python ecosystem checks
+# =============================================================================
+# Activate: --profile python   or   profiles = ["python"] in [doctor]
+#
+# These rules go beyond the core packaging checks in .repo-doctor.toml and
+# verify that the Python tooling (type-checking, linting, testing, coverage)
+# is fully wired up.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# Packaging extras
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "project.requires-python"
+level = "warn"
+category = "packaging"
+impact = "Without requires-python, pip won't enforce a minimum Python version; users may install on unsupported runtimes."
+hint = "Add requires-python = '>=3.11' (or your floor) under [project]."
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "project.version|project.dynamic"
+level = "info"
+category = "packaging"
+impact = "No static version in [project]; if using dynamic versioning make sure the backend supports it."
+hint = "Add version = '0.1.0' to [project] or list 'version' in [project.dynamic]."
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "project.name"
+level = "warn"
+category = "packaging"
+impact = "No project name — pip install, PyPI upload, and import discovery may fail."
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "project.description"
+level = "info"
+category = "packaging"
+impact = "No project description — PyPI listing will show a blank summary."
+
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.ruff.lint.select"
+level = "info"
+category = "linting"
+impact = "Ruff has no explicit lint.select — it uses defaults which may miss rules you care about."
+hint = "Add [tool.ruff.lint] select = ['E', 'F', 'W', 'I', ...] to be explicit."
+link = "docs/adr/005-ruff-for-linting-formatting.md"
+only_if.path = "pyproject.toml"
+only_if.regex = "\\[tool\\.ruff\\]"
+
+
+# ---------------------------------------------------------------------------
+# Mypy
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.mypy"
+level = "warn"
+category = "typing"
+impact = "No [tool.mypy] section — mypy will run with defaults; strict mode and per-module overrides won't apply."
+hint = "Add [tool.mypy] with strict = true (or your preferred flags)."
+link = "docs/adr/007-mypy-for-type-checking.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)\\bmypy\\b"
+
+[[rule]]
+type = "exists"
+path = "src/simple_python_boilerplate/py.typed"
+kind = "file"
+level = "info"
+category = "typing"
+impact = "No py.typed marker — downstream consumers won't get type info from this package (PEP 561)."
+hint = "Create an empty src/simple_python_boilerplate/py.typed file."
+fix = "touch src/simple_python_boilerplate/py.typed"
+only_if.path = "pyproject.toml"
+only_if.regex = "\\[tool\\.mypy\\]"
+
+
+# ---------------------------------------------------------------------------
+# Testing — deeper checks
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "tests/__init__.py"
+kind = "file"
+level = "info"
+category = "testing"
+impact = "tests/ has no __init__.py — some pytest plugins or import-mode settings may not discover tests."
+hint = "Add an empty tests/__init__.py if you use import-mode=importlib (or remove if intentional)."
+only_if.path = "tests"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.coverage.run.source"
+level = "info"
+category = "testing"
+impact = "No [tool.coverage.run] source — coverage reports may include unintended files or miss your package."
+hint = "Add [tool.coverage.run] source = ['simple_python_boilerplate']."
+only_if.path = "pyproject.toml"
+only_if.regex = "\\[tool\\.pytest"
+
+
+# ---------------------------------------------------------------------------
+# Bandit
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.bandit"
+level = "warn"
+category = "security"
+impact = "Bandit is in use but pyproject.toml has no [tool.bandit]; scans may fail or rely on defaults."
+hint = "Add [tool.bandit] with skips/targets."
+link = "docs/adr/018-bandit-for-security-linting.md"
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?m)^\\s*-\\s*id:\\s*bandit\\b"
+
+
+# ---------------------------------------------------------------------------
+# Virtual environment
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "requirements.txt"
+kind = "file"
+level = "info"
+category = "packaging"
+impact = "No requirements.txt — contributors without hatch must manually read pyproject.toml for dependencies."
+hint = "Generate with: pip-compile pyproject.toml -o requirements.txt (or keep it manually)."
+
+[[rule]]
+type = "exists"
+path = "requirements-dev.txt"
+kind = "file"
+level = "info"
+category = "packaging"
+impact = "No dev requirements file — contributors may miss dev-only dependencies."
+
+
+# ---------------------------------------------------------------------------
+# Editor / formatting consistency
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = ".editorconfig"
+kind = "file"
+level = "info"
+category = "formatting"
+impact = "No .editorconfig — editors without project-specific settings may use inconsistent indentation/encoding."
+hint = "Add .editorconfig with charset, indent_style, indent_size, and end_of_line settings."
+
+[[rule]]
+type = "exists"
+path = ".gitattributes"
+kind = "file"
+level = "info"
+category = "formatting"
+impact = "No .gitattributes — line endings, diff drivers, and language stats aren't configured."
+hint = "Add .gitattributes with text=auto, diff drivers for *.py, and linguist overrides."

@@ -1,0 +1,39 @@
+# =============================================================================
+# config.yml can be used to generate buttons on the issue template selection on GitHub.
+# This can reduce developer workload by directing users to relevant resources
+# before they create an issue.
+#
+# Basically giving users the correct tools instead of creating an unwarranted issue
+# if the information is already available elsewhere.
+# ==============================================================================
+
+blank_issues_enabled: false
+
+contact_links:
+  - name: 📖 Documentation (Usage)
+    url: ../../../#readme
+    about: Start here — setup, installation, and usage instructions.
+
+  - name: 💬 Discussions (Q&A)
+    url: ../../../discussions
+    about: Have a question or need help? Ask here instead of opening an issue.
+
+  - name: 💡 Ideas & Proposals
+    url: ../../../discussions/categories/ideas
+    about: Want a new feature? Propose and discuss ideas before submitting an issue.
+
+  - name: 🔒 Security Policy
+    url: ../../../security/policy
+    about: Found a security vulnerability? Report it privately — do not open a public issue.
+
+  - name: 🛠️ Development Guide (Contributing)
+    url: ../../../blob/main/docs/development.md
+    about: Local development setup for contributors.
+
+  - name: 🤝 Contributing Guidelines
+    url: ../../../blob/main/CONTRIBUTING.md
+    about: How to submit issues, pull requests, and follow project conventions.
+
+  - name: 📜 Code of Conduct
+    url: ../../../blob/main/CODE_OF_CONDUCT.md
+    about: Community standards and expectations for respectful participation.

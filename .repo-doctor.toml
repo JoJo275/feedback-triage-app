@@ -1,0 +1,596 @@
+# =============================================================================
+# .repo-doctor.toml
+# =============================================================================
+# Warn-only "doctor" checks. Never blocks; exits 0.
+#
+# TODO (template users): Update checks to match your project structure.
+#   Remove checks for files you don't use (e.g., database rules if no DB).
+#   Add new checks for project-specific files your team depends on.
+#
+# Fields:
+#   type      — Check type: "exists", "toml_has_path", "regex_present"
+#   path      — File or directory to check
+#   kind      — "file" or "dir" (for "exists" checks)
+#   level     — "warn" (default) or "info" (cosmetic/nice-to-have)
+#   category  — Grouping tag for filtering (e.g., --category security)
+#   impact    — What breaks if the check fails
+#   hint      — Actionable fix or guidance
+#   link      — ADR or doc page explaining why this matters
+#   fix       — Command to auto-fix the issue (optional)
+#   only_if   — Conditional: only run this check if another file/pattern exists
+# =============================================================================
+
+
+# =============================================================================
+# [doctor] — Repo doctor settings (noise reduction, profiles)
+# =============================================================================
+
+[doctor]
+# Paths to suppress when intentionally removed.  The doctor prints nothing for
+# these, so "acknowledged deletions" produce zero noise.
+# ignore_missing = [
+#     "CHANGELOG.md",
+#     "CODE_OF_CONDUCT.md",
+# ]
+
+# Default profiles to load from repo_doctor.d/*.toml.
+# Override on the CLI with: --profile <name>  (repeatable; 'all' loads every file).
+# profiles = ["python"]
+
+
+# =============================================================================
+# CATEGORY: packaging — Build system, imports, package structure
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = "pyproject.toml"
+kind = "file"
+level = "warn"
+category = "packaging"
+impact = "Python packaging/build and most Python tool configuration will no longer work as expected."
+link = "docs/adr/002-pyproject-toml.md"
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "build-system"
+level = "warn"
+category = "packaging"
+impact = "Without [build-system], pip doesn't know which backend to use; 'pip install .' will fail."
+hint = "Add [build-system] with requires and build-backend (e.g., hatchling)."
+link = "docs/adr/016-hatchling-and-hatch.md"
+
+[[rule]]
+type = "exists"
+path = "src"
+kind = "dir"
+level = "warn"
+category = "packaging"
+impact = "The src/ layout is the project's package structure. Without it, imports and builds will fail."
+link = "docs/adr/001-src-layout.md"
+fix = "mkdir -p src/simple_python_boilerplate"
+
+[[rule]]
+type = "exists"
+path = "src/simple_python_boilerplate/__init__.py"
+kind = "file"
+level = "warn"
+category = "packaging"
+impact = "Package won't be importable without __init__.py; pip install and all imports will break."
+link = "docs/adr/001-src-layout.md"
+fix = "mkdir -p src/simple_python_boilerplate && touch src/simple_python_boilerplate/__init__.py"
+
+[[rule]]
+type = "exists"
+path = "LICENSE"
+kind = "file"
+level = "warn"
+category = "packaging"
+impact = "No license file — the project is legally 'all rights reserved' by default. Can't distribute or reuse."
+
+[[rule]]
+type = "exists"
+path = "README.md"
+kind = "file"
+level = "warn"
+category = "packaging"
+impact = "No README — first thing visitors see on GitHub. pyproject.toml references it as readme; build may warn."
+
+[[rule]]
+type = "exists"
+path = "requirements.txt"
+kind = "file"
+level = "info"
+category = "packaging"
+impact = "No requirements.txt — pip-audit pre-push hook and some CI workflows reference it. pip users won't have a pinned dependency list."
+hint = "Generate with: hatch run pip freeze > requirements.txt (or remove pip-audit -r references)."
+
+[[rule]]
+type = "exists"
+path = "requirements-dev.txt"
+kind = "file"
+level = "info"
+category = "packaging"
+impact = "No requirements-dev.txt — pip-audit pre-push hook references it; the hook will fail."
+hint = "Generate with: hatch run pip freeze > requirements-dev.txt (or update pip-audit args in .pre-commit-config.yaml)."
+
+
+# =============================================================================
+# CATEGORY: ci — GitHub Actions, branch protection, workflows
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = ".github/workflows"
+kind = "dir"
+level = "warn"
+category = "ci"
+impact = "GitHub Actions checks won't run. Branch protection may block merges if required checks are missing."
+link = "docs/adr/003-separate-workflow-files.md"
+fix = "mkdir -p .github/workflows"
+
+# CI gate — the single required check for branch protection
+[[rule]]
+type = "exists"
+path = ".github/workflows/ci-gate.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "CI gate workflow missing — branch protection required check 'CI Gate' will fail; PRs can't merge."
+hint = "Restore ci-gate.yml or update branch protection rules to remove the 'CI Gate' required check."
+link = "docs/adr/024-ci-gate-pattern.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+# Core workflows that branch protection likely requires
+[[rule]]
+type = "exists"
+path = ".github/workflows/test.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "Test workflow missing — branch protection 'test' required check will fail; PRs can't merge."
+link = "docs/adr/003-separate-workflow-files.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = ".github/workflows/lint-format.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "Lint/format workflow missing — branch protection 'lint' required check will fail; PRs can't merge."
+link = "docs/adr/003-separate-workflow-files.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = ".github/workflows/type-check.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "Type-check workflow missing — branch protection 'type-check' required check will fail; PRs can't merge."
+link = "docs/adr/003-separate-workflow-files.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = ".github/dependabot.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "Dependabot won't create automatic dependency update PRs. Dependencies may fall behind or accumulate vulnerabilities."
+link = "docs/adr/010-dependabot-for-dependency-updates.md"
+
+[[rule]]
+type = "exists"
+path = "Taskfile.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "Taskfile.yml missing — 'task' commands won't work. Contributors will need to run hatch commands directly."
+hint = "Restore Taskfile.yml or update docs/CONTRIBUTING.md to remove task references."
+link = "docs/adr/017-task-runner.md"
+
+[[rule]]
+type = "exists"
+path = ".github/CODEOWNERS"
+kind = "file"
+level = "info"
+category = "ci"
+impact = "No CODEOWNERS — PR review assignments won't be automatic. Less critical for solo projects."
+hint = "Create .github/CODEOWNERS with '* @your-github-username' to assign yourself as default reviewer."
+fix = "mkdir -p .github && echo '* @your-github-username' > .github/CODEOWNERS"
+
+
+# =============================================================================
+# CATEGORY: hooks — Pre-commit, git hooks, local quality gates
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = ".pre-commit-config.yaml"
+kind = "file"
+level = "warn"
+category = "hooks"
+impact = "Local pre-commit hooks won't run; contributors will rely on CI (or nothing) for formatting/linting."
+link = "docs/adr/008-pre-commit-hooks.md"
+fix = "pre-commit sample-config > .pre-commit-config.yaml && pre-commit install"
+
+# Cross-check: ruff in pre-commit → [tool.ruff] in pyproject.toml
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.ruff"
+level = "warn"
+category = "hooks"
+impact = "Ruff is referenced by the repo (hooks/CI), but pyproject.toml does not define [tool.ruff]; ruff may behave unexpectedly or CI may fail."
+hint = "Add a [tool.ruff] section or remove the ruff hook/CI steps."
+link = "docs/adr/005-ruff-for-linting-formatting.md"
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?m)^\\s*-\\s*id:\\s*ruff\\b"
+
+# Cross-check: mypy in CI → [tool.mypy] in pyproject.toml
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.mypy"
+level = "warn"
+category = "hooks"
+impact = "CI appears to reference mypy, but pyproject.toml lacks [tool.mypy]; CI may rely on CLI flags or may fail."
+hint = "Add [tool.mypy] or ensure CI calls mypy with explicit flags."
+link = "docs/adr/007-mypy-for-type-checking.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)\\bmypy\\b"
+
+# Cross-check: bandit hook passes -c pyproject.toml → [tool.bandit] must exist
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.bandit"
+level = "warn"
+category = "hooks"
+impact = "Bandit hook passes '-c pyproject.toml' but [tool.bandit] is missing; bandit will fail or use defaults."
+hint = "Add [tool.bandit] section with skips/targets, or remove the -c flag from the hook."
+link = "docs/adr/018-bandit-for-security-linting.md"
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?m)^\\s*-\\s*id:\\s*bandit\\b"
+
+# Cross-check: codespell hook exists → [tool.codespell] for ignore-words-list
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.codespell"
+level = "info"
+category = "hooks"
+impact = "codespell hook is configured but pyproject.toml has no [tool.codespell]; ignore-words-list and other settings must be passed as CLI args."
+hint = "Add [tool.codespell] with ignore-words-list to reduce false positives and centralise config."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?m)^\\s*-\\s*id:\\s*codespell\\b"
+
+# Cross-check: pre-commit ruff hook has matching CI workflow
+[[rule]]
+type = "exists"
+path = ".github/workflows/lint-format.yml"
+kind = "file"
+level = "warn"
+category = "hooks"
+impact = "Ruff is in pre-commit but no lint CI workflow exists — the CI safety net is missing."
+hint = "Add a lint-format workflow or ensure ruff runs in another CI job."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?m)^\\s*-\\s*id:\\s*ruff\\b"
+
+[[rule]]
+type = "exists"
+path = ".gitmessage.txt"
+kind = "file"
+level = "info"
+category = "hooks"
+impact = "Commit message template missing — contributors won't see the conventional commits format prompt."
+hint = "Restore .gitmessage.txt or run: git config commit.template .gitmessage.txt"
+fix = "git config commit.template .gitmessage.txt"
+link = "docs/adr/009-conventional-commits.md"
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?i)conventional"
+
+
+# =============================================================================
+# CATEGORY: testing — Test framework, coverage, test discovery
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = "tests"
+kind = "dir"
+level = "warn"
+category = "testing"
+impact = "No tests directory — pytest won't discover any tests; CI test jobs will pass vacuously."
+link = "docs/adr/006-pytest-for-testing.md"
+fix = "mkdir -p tests && touch tests/__init__.py"
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.pytest.ini_options"
+level = "warn"
+category = "testing"
+impact = "pytest config missing — test discovery may not find tests in the expected directories."
+hint = "Add [tool.pytest.ini_options] with testpaths and other settings."
+link = "docs/adr/006-pytest-for-testing.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)\\bpytest\\b"
+
+
+# =============================================================================
+# CATEGORY: security — Scanning, auditing, secrets
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = "SECURITY.md"
+kind = "file"
+level = "info"
+category = "security"
+impact = "No security policy — users won't know how to report vulnerabilities responsibly."
+
+
+# =============================================================================
+# CATEGORY: docs — Documentation, MkDocs, contributing guides
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = "mkdocs.yml"
+kind = "file"
+level = "warn"
+category = "docs"
+impact = "MkDocs config missing — docs build steps will fail and docs site links will be stale."
+hint = "Restore mkdocs.yml or remove MkDocs-related CI steps/docs references."
+link = "docs/adr/020-mkdocs-documentation-stack.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)\\bmkdocs\\b"
+
+[[rule]]
+type = "exists"
+path = "CONTRIBUTING.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No contributing guide — new contributors won't know the workflow, branch naming, or PR process."
+
+[[rule]]
+type = "exists"
+path = "CHANGELOG.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No changelog — users can't see what changed between releases."
+
+[[rule]]
+type = "exists"
+path = "CODE_OF_CONDUCT.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No code of conduct — open-source best practice for community repos."
+
+[[rule]]
+type = "exists"
+path = "docs/adr/README.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "ADR index missing — contributors can't find the list of architecture decisions."
+hint = "Create docs/adr/README.md with an index table of all ADRs."
+only_if.path = "docs/adr"
+only_if.regex = "(?s)."
+
+
+# =============================================================================
+# CATEGORY: git — Version control hygiene
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = ".gitignore"
+kind = "file"
+level = "warn"
+category = "git"
+impact = "No .gitignore — build artifacts, caches, venvs, and IDE files will be committed."
+hint = "Download the GitHub Python .gitignore template or create one manually."
+fix = "curl -sL https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore -o .gitignore"
+
+[[rule]]
+type = "exists"
+path = ".gitattributes"
+kind = "file"
+level = "warn"
+category = "git"
+impact = "No .gitattributes — line endings won't be normalised; cross-platform contributors may see spurious diffs."
+hint = "Add '* text=auto' as a baseline for line ending normalisation."
+fix = "echo '* text=auto' > .gitattributes"
+
+[[rule]]
+type = "exists"
+path = ".editorconfig"
+kind = "file"
+level = "info"
+category = "git"
+impact = "No .editorconfig — editors without project-specific settings may use inconsistent indentation/encoding."
+hint = "Add .editorconfig with charset, indent_style, indent_size, and end_of_line settings."
+
+
+# =============================================================================
+# CATEGORY: container — Containerfile, ignore files, image builds
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = ".containerignore"
+kind = "file"
+level = "warn"
+category = "container"
+impact = "No .containerignore — build context will include .git, .venv, docs, tests, etc. Larger image, potential secret leaks."
+hint = "Add .containerignore to exclude non-essential files from the build context."
+link = "docs/adr/019-containerfile.md"
+fix = "printf '.git\n.venv\n__pycache__\n*.egg-info\ndist\nbuild\ntests\ndocs\n' > .containerignore"
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = ".dockerignore"
+kind = "file"
+level = "info"
+category = "container"
+impact = "No .dockerignore — Docker ignores .containerignore. Docker users get an unfiltered build context."
+hint = "Add .dockerignore (mirror of .containerignore) for Docker compatibility."
+link = "docs/adr/019-containerfile.md"
+fix = "cp .containerignore .dockerignore"
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+
+# =============================================================================
+# CATEGORY: database — DB bootstrap, migrations, seeds
+# =============================================================================
+
+[[rule]]
+type = "exists"
+path = "db"
+kind = "dir"
+level = "info"
+category = "database"
+impact = "DB bootstrap/migrations/seeds assets may be missing; scripts/docs referencing db/ may break."
+fix = "mkdir -p db/migrations db/queries db/seeds"
+
+[[rule]]
+type = "regex_present"
+path = "scripts"
+regex = "(?i)sqlite|db|schema\\.sql"
+level = "info"
+category = "database"
+impact = "No obvious DB bootstrap reference found in scripts/. If you intended SQLite bootstrap, scripts/docs may be incomplete."
+hint = "Ignore if you intentionally removed DB bootstrap; otherwise add/init scripts and update docs."
+only_if.path = "db"
+only_if.regex = "\\.sql\\b"
+
+
+# =============================================================================
+# CATEGORY: config — Cross-file config consistency and hygiene
+# =============================================================================
+
+# .containerignore and .dockerignore should stay in sync
+[[rule]]
+type = "regex_present"
+path = ".dockerignore"
+regex = "(?s)."
+level = "info"
+category = "config"
+impact = ".dockerignore exists but may be out of sync with .containerignore. Docker and Podman users get different build contexts."
+hint = "Run: diff .containerignore .dockerignore — or copy: cp .containerignore .dockerignore (then restore header)."
+only_if.path = ".containerignore"
+only_if.regex = "(?s)."
+
+# .readthedocs.yaml Python version should match project
+[[rule]]
+type = "regex_present"
+path = ".readthedocs.yaml"
+regex = "python:\\s*[\"']3\\.1[1-9]"
+level = "info"
+category = "config"
+impact = ".readthedocs.yaml may specify an outdated Python version that doesn't match pyproject.toml requires-python."
+hint = "Update the python version in .readthedocs.yaml to match your latest supported Python."
+only_if.path = ".readthedocs.yaml"
+only_if.regex = "(?s)."
+
+# .lycheeignore should exist if link-checker workflow exists
+[[rule]]
+type = "exists"
+path = ".lycheeignore"
+kind = "file"
+level = "info"
+category = "config"
+impact = "No .lycheeignore — the link-checker workflow may fail on template placeholder URLs or flaky external sites."
+hint = "Add .lycheeignore with patterns for placeholder URLs and intermittently-unavailable sites."
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)lychee|link.?check"
+
+# .markdownlint-cli2.jsonc should exist if markdownlint hook is configured
+[[rule]]
+type = "exists"
+path = ".markdownlint-cli2.jsonc"
+kind = "file"
+level = "info"
+category = "config"
+impact = "No .markdownlint-cli2.jsonc — markdownlint uses default rules which may conflict with project formatting."
+hint = "Add .markdownlint-cli2.jsonc to customise rules (e.g., MD024 siblings_only, MD033 allowed elements)."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?i)markdownlint"
+
+# .prettierignore should exist if prettier hook is configured
+[[rule]]
+type = "exists"
+path = ".prettierignore"
+kind = "file"
+level = "info"
+category = "config"
+impact = "No .prettierignore — Prettier may reformat mkdocstrings ::: directives in docs/, breaking the MkDocs build."
+hint = "Add .prettierignore excluding docs/reference/api.md and other files with mkdocstrings directives."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?i)\\bprettier\\b"
+
+
+# =============================================================================
+# CATEGORY: ci-hygiene — CI concurrency, caching, and performance
+# =============================================================================
+
+# Workflows should use concurrency to cancel stale runs
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/test.yml"
+regex = "(?m)^concurrency:"
+level = "info"
+category = "ci-hygiene"
+impact = "test.yml lacks concurrency group — duplicate test matrix runs may pile up on rapid pushes, wasting CI minutes."
+hint = "Add concurrency: { group: '${{ github.workflow }}-${{ github.ref }}', cancel-in-progress: true } at the top level."
+only_if.path = ".github/workflows/test.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/lint-format.yml"
+regex = "(?m)^concurrency:"
+level = "info"
+category = "ci-hygiene"
+impact = "lint-format.yml lacks concurrency group — duplicate lint runs may pile up on rapid pushes."
+hint = "Add concurrency: { group: '${{ github.workflow }}-${{ github.ref }}', cancel-in-progress: true }."
+only_if.path = ".github/workflows/lint-format.yml"
+only_if.regex = "(?s)."
+
+# Workflows using setup-python should enable pip caching
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/test.yml"
+regex = "cache:\\s*[\"']?pip"
+level = "info"
+category = "ci-hygiene"
+impact = "test.yml uses setup-python without pip caching — every run re-downloads all dependencies."
+hint = "Add cache: 'pip' to the setup-python step."
+only_if.path = ".github/workflows/test.yml"
+only_if.regex = "setup-python"
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/coverage.yml"
+regex = "cache:\\s*[\"']?pip"
+level = "info"
+category = "ci-hygiene"
+impact = "coverage.yml uses setup-python without pip caching — every run re-downloads all dependencies."
+hint = "Add cache: 'pip' to the setup-python step."
+only_if.path = ".github/workflows/coverage.yml"
+only_if.regex = "setup-python"

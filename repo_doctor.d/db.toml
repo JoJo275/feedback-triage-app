@@ -1,0 +1,187 @@
+# =============================================================================
+# repo_doctor.d/db.toml — Database bootstrap, migrations & seed checks
+# =============================================================================
+# Activate: --profile db   or   profiles = ["db"] in [doctor]
+#
+# Verifies that the optional SQLite/SQL database layer is consistent:
+# schema, migrations, seeds, and helper scripts.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# Core db/ structure
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "db"
+kind = "dir"
+level = "info"
+category = "database"
+impact = "db/ directory missing — SQL assets, migrations, and seeds have no home."
+fix = "mkdir -p db/migrations db/queries db/seeds"
+
+[[rule]]
+type = "exists"
+path = "db/schema.sql"
+kind = "file"
+level = "warn"
+category = "database"
+impact = "No schema.sql — there's no single source of truth for the database schema."
+hint = "Add db/schema.sql defining all tables, indexes, and constraints."
+only_if.path = "db"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = "db/README.md"
+kind = "file"
+level = "info"
+category = "database"
+impact = "db/ has no README — developers won't know the database conventions, naming, or migration workflow."
+only_if.path = "db"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Migrations
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "db/migrations"
+kind = "dir"
+level = "warn"
+category = "database"
+impact = "No migrations directory — schema changes can't be tracked or applied incrementally."
+fix = "mkdir -p db/migrations"
+only_if.path = "db"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = "db/migrations/README.md"
+kind = "file"
+level = "info"
+category = "database"
+impact = "Migrations directory has no README — developers won't know the naming convention or how to add a new migration."
+only_if.path = "db/migrations"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "db/migrations"
+regex = "\\d{3}_.*\\.sql"
+level = "info"
+category = "database"
+impact = "No numbered migration files found — the migration directory may be empty or using an unexpected naming scheme."
+hint = "Name migrations as 001_description.sql, 002_description.sql, etc."
+only_if.path = "db/migrations"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Queries
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "db/queries"
+kind = "dir"
+level = "info"
+category = "database"
+impact = "No queries directory — reusable SQL queries have no dedicated home."
+fix = "mkdir -p db/queries"
+only_if.path = "db"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = "db/queries/README.md"
+kind = "file"
+level = "info"
+category = "database"
+impact = "Queries directory has no README — developers won't know how queries are organised or used."
+only_if.path = "db/queries"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Seeds
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "db/seeds"
+kind = "dir"
+level = "info"
+category = "database"
+impact = "No seeds directory — dev/test data can't be loaded automatically."
+fix = "mkdir -p db/seeds"
+only_if.path = "db"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = "db/seeds/README.md"
+kind = "file"
+level = "info"
+category = "database"
+impact = "Seeds directory has no README — developers won't know how to add or apply seed data."
+only_if.path = "db/seeds"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Bootstrap script cross-check
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = "scripts"
+regex = "(?i)sqlite|db|schema\\.sql"
+level = "info"
+category = "database"
+impact = "No DB bootstrap reference found in scripts/. If you use SQLite, a bootstrap/reset script is useful."
+hint = "Ignore if DB is managed externally; otherwise add a scripts/init_db.py or similar."
+only_if.path = "db"
+only_if.regex = "\\.sql\\b"
+
+[[rule]]
+type = "exists"
+path = "var"
+kind = "dir"
+level = "info"
+category = "database"
+impact = "No var/ directory — runtime data (SQLite files, logs) has no standard location."
+hint = "Create var/ and add var/*.sqlite3 to .gitignore."
+fix = "mkdir -p var"
+only_if.path = "db"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Schema / migration consistency hints
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = "db/schema.sql"
+regex = "(?i)CREATE\\s+TABLE"
+level = "info"
+category = "database"
+impact = "schema.sql has no CREATE TABLE statements — the schema may still be placeholder/template content."
+hint = "Add your actual table definitions to db/schema.sql (uncomment the examples or write your own)."
+only_if.path = "db/schema.sql"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "db/schema.sql"
+regex = "(?i)PRAGMA\\s+foreign_keys\\s*=\\s*ON"
+level = "info"
+category = "database"
+impact = "schema.sql doesn't enable foreign_keys pragma — SQLite won't enforce FK constraints by default."
+hint = "Add 'PRAGMA foreign_keys = ON;' near the top of schema.sql."
+only_if.path = "db/schema.sql"
+only_if.regex = "(?i)CREATE\\s+TABLE"

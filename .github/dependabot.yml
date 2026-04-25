@@ -1,0 +1,103 @@
+# =============================================================================
+# Dependabot Configuration
+# =============================================================================
+# Automated dependency update PRs for GitHub Actions, Python, and Docker.
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Key design decisions:
+#   - rebase-strategy: disabled — we squash-merge PRs, so rebasing wastes CI
+#   - Groups: minor/patch grouped together, majors kept separate (breaking)
+#   - Security updates are always created regardless of open-pull-requests-limit
+#
+# TODO (template users): Adjust timezone, reviewers, and limits to match
+#   your team's workflow. See inline TODOs below.
+# =============================================================================
+
+version: 2
+updates:
+  # ── GitHub Actions ──────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 5
+    rebase-strategy: "disabled"
+    # TODO (template users): Uncomment and set your GitHub username or team
+    # reviewers:
+    #   - "your-github-username"
+    # assignees:
+    #   - "your-github-username"
+    groups:
+      # Group minor/patch updates together, keep majors separate (breaking changes)
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ── Python Dependencies ─────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    open-pull-requests-limit: 10
+    rebase-strategy: "disabled"
+    # TODO (template users): Uncomment and set your GitHub username or team
+    # reviewers:
+    #   - "your-github-username"
+    # assignees:
+    #   - "your-github-username"
+    groups:
+      # Group all minor/patch updates together
+      pip-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+      # Major updates stay as individual PRs (breaking changes)
+    # TODO (template users): Uncomment to ignore specific packages
+    # ignore:
+    #   - dependency-name: "some-package"
+    #     update-types: ["version-update:semver-major"]
+
+  # ── Pre-commit Hooks ────────────────────────────────────────
+  # NOTE: Dependabot does not support .pre-commit-config.yaml natively.
+  # Use the pre-commit-update workflow or `pre-commit autoupdate` instead.
+
+  # ── Container Base Images (Containerfile) ───────────────────
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+    open-pull-requests-limit: 5
+    rebase-strategy: "disabled"
+    groups:
+      docker-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"

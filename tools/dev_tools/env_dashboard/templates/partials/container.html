@@ -1,0 +1,140 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Whether the process is running inside a container (Docker, Podman, etc.).</span>
+                </details>
+                <span>Container Detected</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.detected %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Whether the Docker daemon is available. Needed for container builds and tests.</span>
+                </details>
+                <span>Docker</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.docker %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Detected CI provider (GitHub Actions, GitLab CI, etc.). Affects available env vars and caching.</span>
+                </details>
+                <span>CI System</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.ci %}
+                <span class="badge badge-info">{{ data.ci }}</span>
+            {% else %}
+                <span class="muted">not detected</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Windows Subsystem for Linux. File system performance may differ from native Linux.</span>
+                </details>
+                <span>WSL</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.wsl %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">VS Code Dev Container or GitHub Codespace. Pre-configured development environment.</span>
+                </details>
+                <span>Dev Container</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.devcontainer %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Detected cloud platform (AWS, Azure, GCP). Affects network and credential handling.</span>
+                </details>
+                <span>Cloud Provider</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.cloud %}
+                <span class="badge badge-info">{{ data.cloud }}</span>
+            {% else %}
+                <span class="muted">not detected</span>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+{% if data.container_files %}
+<h5>Container Files</h5>
+<div class="container-files-list">
+    {% for cf in data.container_files %}
+    {% if cf.exists %}
+    <span class="container-file-badge">
+        <span class="check-icon" style="width:12px;height:12px;color:var(--color-pass)"></span>
+        {{ cf.name }}
+    </span>
+    {% endif %}
+    {% endfor %}
+</div>
+{% set missing_files = data.container_files|selectattr("exists", "equalto", false)|list %}
+{% if missing_files %}
+<details class="container-not-found" style="margin-top:0.5rem">
+    <summary><small class="muted">Not found ({{ missing_files|length }})</small></summary>
+    <div class="container-files-list" style="margin-top:0.3rem">
+        {% for cf in missing_files %}
+        <span class="container-file-badge" style="opacity:0.5">
+            <span class="x-icon" style="width:12px;height:12px;color:var(--color-text-muted)"></span>
+            {{ cf.name }}
+        </span>
+        {% endfor %}
+    </div>
+</details>
+{% endif %}
+{% endif %}

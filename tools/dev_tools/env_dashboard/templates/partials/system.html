@@ -1,0 +1,33 @@
+{% from "partials/_macros.html" import kv_row, status_badge %}
+
+<table class="kv-table">
+    {{ kv_row("OS", data.os, copyable=true, hint="Operating system name. Affects package availability and shell behavior.") }}
+    {% if data.distro %}
+    {{ kv_row("Distribution", data.distro, hint="Linux distribution and version (e.g. Ubuntu 22.04, Fedora 39).") }}
+    {% endif %}
+    {% if data.distro_family %}
+    {{ kv_row("Distro Family", data.distro_family, hint="Parent distribution family (e.g. debian, rhel). Determines package manager (apt vs dnf).") }}
+    {% endif %}
+    {{ kv_row("OS Version", data.os_version, hint="Specific OS build number. Useful for diagnosing platform-specific bugs.") }}
+    {{ kv_row("OS Release", data.os_release, hint="Major OS release identifier (e.g. 10 for Windows 10, 6.5.0 for Linux kernel).") }}
+    {{ kv_row("Kernel", data.kernel, hint="Kernel version string. Relevant for system calls and container compatibility.") }}
+    {% if data.kernel_release %}
+    {{ kv_row("Kernel Release", data.kernel_release, hint="Specific kernel release string (e.g. 6.5.0-44-generic).") }}
+    {% endif %}
+    {% if data.kernel_version %}
+    {{ kv_row("Kernel Version", data.kernel_version, hint="Kernel build version with build date and compiler info.") }}
+    {% endif %}
+    {{ kv_row("Architecture", data.architecture, hint="CPU architecture (x86_64, arm64). Must match compiled binary dependencies.") }}
+    {{ kv_row("Hostname", data.hostname, hint="Machine network name. Used in CI logs and remote debugging.") }}
+    {{ kv_row("Username", data.username, hint="Current user running the process. Check permissions if builds fail.") }}
+    {{ kv_row("Shell", data.shell, copyable=true, hint="Default shell. Scripts may behave differently across shells.") }}
+    {{ kv_row("Working Directory", data.cwd, copyable=true, hint="Current directory. Should be the project root for most commands.") }}
+    {{ kv_row("Privilege", data.privilege, hint="Admin/root status. Some installs need elevated privileges.") }}
+    {{ kv_row("Locale", data.locale, hint="System locale setting. Mismatches can cause encoding errors in I/O.") }}
+    {{ kv_row("CPU Count", data.cpu_count, hint="Available CPU cores. Affects parallel test execution and build speed.") }}
+    {{ kv_row("Encoding", data.encoding, hint="Default text encoding. Should be UTF-8 for modern Python projects.") }}
+    {{ kv_row("FS Encoding", data.filesystem_encoding, hint="File system encoding. Affects file path handling on non-UTF-8 systems.") }}
+    {% if data.uptime %}
+    {{ kv_row("Uptime", data.uptime, hint="System uptime since last boot.") }}
+    {% endif %}
+</table>

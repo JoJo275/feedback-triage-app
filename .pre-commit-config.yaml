@@ -1,0 +1,452 @@
+# =============================================================================
+# Pre-commit Configuration
+# =============================================================================
+# Runs automated checks at different stages of the Git workflow.
+#
+# Setup:
+#   pip install pre-commit
+#   pre-commit install                              # pre-commit stage
+#   pre-commit install --hook-type commit-msg        # commit-msg stage
+#   pre-commit install --hook-type pre-push          # pre-push stage
+#
+# Manual run:
+#   pre-commit run --all-files
+#
+# Update hooks:
+#   pre-commit autoupdate
+#
+# Temporarily disable a hook (without removing it):
+#   Set  stages: [manual]  on any hook — it will only run when called
+#   explicitly with:  pre-commit run <hook-id> --hook-stage manual
+# =============================================================================
+
+# Require pre-commit ≥ 3.6.0 to avoid edge-case behaviour differences
+# across forks and CI runners.
+minimum_pre_commit_version: "3.6.0"
+
+# TODO (template users): If your project drops Python 3.11 support or adds
+#   3.14, update this to match your minimum supported version.
+default_language_version:
+  python: python3
+
+default_stages: [pre-commit]
+
+# ---------------------------------------------------------------------------
+# Top-level exclude — skip generated / cached directories globally so that
+# accidentally-tracked build artifacts never trigger hooks.
+# ---------------------------------------------------------------------------
+exclude: |
+  (?x)^(
+    \.venv/|
+    dist/|
+    build/|
+    site/|
+    \.mypy_cache/|
+    \.ruff_cache/|
+    \.pytest_cache/|
+    __pycache__/
+  )
+
+repos:
+  # ===========================================================================
+  # STAGE: pre-commit  (runs on every `git commit`)
+  # Install: pre-commit install
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # General file checks
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace        # Remove trailing whitespace
+        # Comment out and uncomment stages: [manual] to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
+        # stages: [manual]             # Uncomment to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
+      - id: end-of-file-fixer          # Ensure files end with newline
+      - id: check-yaml                 # Validate YAML syntax
+      - id: check-toml                 # Validate TOML syntax
+      - id: check-json                 # Validate JSON syntax
+        exclude: ^(\.devcontainer/|\.vscode/settings\.json$|\.markdownlint-cli2\.jsonc$)  # JSONC files (JSON with comments) — VS Code understands them, check-json doesn't
+      - id: check-ast                  # Validate Python syntax (catches SyntaxError)
+      - id: check-added-large-files    # Prevent giant files from being committed
+        args: ['--maxkb=500']
+      - id: check-merge-conflict       # Check for merge conflict markers
+      - id: check-case-conflict        # Check for files that would conflict on case-insensitive fs
+      - id: debug-statements           # Check for debugger imports and py37+ breakpoint()
+      - id: detect-private-key         # Detect private keys
+      - id: fix-byte-order-marker      # Remove UTF-8 BOM (causes subtle bugs on Linux/CI)
+      - id: name-tests-test            # Enforce test_*.py naming in tests/
+        args: ['--pytest-test-first']
+        files: ^tests/
+        types: [python]
+      - id: check-executables-have-shebangs  # Executables must have shebangs
+      - id: check-shebang-scripts-are-executable  # Shebang scripts must be +x
+      - id: check-symlinks                # Check for broken symlinks
+      - id: destroyed-symlinks            # Detect symlinks replaced by regular files (e.g. after merge)
+      - id: check-vcs-permalinks          # Catch GitHub URLs pointing to branches instead of commit SHAs
+      - id: forbid-submodules           # Block git submodules
+        stages: [manual]               # Disabled — enable if your project forbids submodules
+      - id: check-docstring-first       # Catches code before the module docstring
+      - id: no-commit-to-branch            # Prevent direct commits to main/master
+        args: ['--branch', 'main', '--branch', 'master']
+      - id: mixed-line-ending          # Normalize line endings (LF)
+        # LF is enforced repo-wide — paired with .gitattributes (eol=lf).
+        # Windows users get native CRLF on checkout; the repo always stores LF.
+        args: ['--fix=lf']
+
+  # ---------------------------------------------------------------------------
+  # Ruff - Fast Python linter and formatter
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.10
+    hooks:
+      # Linter
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      # Formatter (replaces black)
+      - id: ruff-format
+
+  # ---------------------------------------------------------------------------
+  # Type checking with mypy (strict mode — matches type-check.yml CI workflow)
+  # NOTE: If package code grows and commit times slow down, remove mypy from
+  #       the pre-commit stage. You can move it to pre-push (stages: [pre-push])
+  #       or rely on the type-check GitHub Actions workflow instead.
+  #
+  # This hook intentionally uses the same strict config as the CI workflow
+  # (type-check.yml) so that a commit passing locally will also pass CI.
+  # If you change mypy settings here, update pyproject.toml [tool.mypy] and
+  # the CI workflow to match.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.20.1
+    hooks:
+      - id: mypy
+        # Only check src/ to avoid issues with untyped test files
+        files: ^src/
+        # TODO (template users): When you add typed dependencies (e.g.,
+        #   requests, click), add their type stubs here so mypy can resolve
+        #   them in the isolated pre-commit venv:
+        # additional_dependencies:
+        #   - types-requests
+        #   - types-pyyaml
+
+  # ---------------------------------------------------------------------------
+  # Security checks
+  # NOTE: If package code grows and commit times slow down, remove bandit from
+  #       the pre-commit stage. You can move it to pre-push (stages: [pre-push])
+  #       or rely on the bandit GitHub Actions workflow instead.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.4
+    hooks:
+      - id: bandit
+        args: ["-c", "pyproject.toml"]
+        additional_dependencies: ["bandit[toml]"]
+        # Skip test files
+        exclude: ^tests/
+
+  # ---------------------------------------------------------------------------
+  # Validate pyproject.toml against PEP 621 / packaging schemas
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.25
+    hooks:
+      - id: validate-pyproject
+
+  # ---------------------------------------------------------------------------
+  # Spellcheck — typos (Rust-based, broader detection than codespell)
+  # Catches common and obscure typos with auto-fix support.
+  # codespell remains as a CI safety net (spellcheck.yml) with its
+  # independently curated wordlist — the two tools overlap ~80% but
+  # each catches things the other misses.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/crate-ci/typos
+    rev: v1
+    hooks:
+      - id: typos
+        args: [--config, _typos.toml]
+        exclude: ^(CHANGELOG\.md|.*\.min\.js)$
+
+  # ---------------------------------------------------------------------------
+  # Lint GitHub Actions workflows
+  # Catches subtle workflow mistakes (bad expressions, unknown runner labels,
+  # missing action inputs, etc.) before they hit CI.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
+  # ---------------------------------------------------------------------------
+  # Validate config files against schemas
+  # Uses SchemaStore schemas for GitHub workflows, Dependabot, etc.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.37.1
+    hooks:
+      - id: check-github-workflows
+      - id: check-github-actions
+      - id: check-dependabot          # Validate .github/dependabot.yml schema
+
+  # ---------------------------------------------------------------------------
+  # Local hooks (pre-commit stage)
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: no-do-not-commit-marker
+        name: Block @@DO_NOT_COMMIT@@ marker
+        entry: '@@DO_NOT_COMMIT@@'
+        language: pygrep
+        types: [text]
+        exclude: \.pre-commit-config\.yaml$
+
+      - id: no-secrets-patterns
+        name: Block secrets / credentials patterns
+        # Two-part regex joined with |:
+        #   Part 1 — labelled secrets:  API_KEY = "value"  style patterns
+        #   Part 2 — known service token prefixes (high-confidence, low false-positive)
+        entry: >-
+          (?x)
+          (?i:api[_-]?key|api[_-]?secret|secret[_-]?key|access[_-]?token|
+          auth[_-]?token|private[_-]?key|client[_-]?secret|password|passwd)
+          \s*[:=]\s*["'][^\s"']{8,}
+          |
+          ghp_[A-Za-z0-9]{36}
+          |github_pat_[A-Za-z0-9]{22}_[A-Za-z0-9]{59}
+          |AKIA[0-9A-Z]{16}
+          |xox[bprs]-[0-9]{10,13}-
+          |sk-[A-Za-z0-9]{20,}
+          |npm_[A-Za-z0-9]{36}
+          |pypi-[A-Za-z0-9]{60,}
+          |glpat-[A-Za-z0-9\-]{20,}
+          |sq0[a-z]{3}-[A-Za-z0-9\-_]{22,}
+        language: pygrep
+        # Scope to files most likely to contain real credentials;
+        # reduces false positives from docs/examples.
+        # Includes shell scripts & container files — common secret leak vectors.
+        files: \.(py|pyi|toml|ya?ml|json|env|ini|cfg|txt|md|sh|ps1)$|Containerfile$|Dockerfile$
+        exclude: >-
+          (?x)
+          \.pre-commit-config\.yaml$|
+          \.env\.example$|
+          ^docs/|
+          SECURITY\.md$
+
+      - id: no-nul-bytes
+        name: Block NUL bytes in text-like files
+        entry: python scripts/precommit/check_nul_bytes.py
+        # Use language: python so pre-commit manages its own venv.
+        # language: system would break when `python` is not on PATH
+        # or when the user's venv is not activated.
+        language: python
+        types: [text]
+        files: \.(py|pyi|toml|yaml|yml|md|rst|txt|json|ini|cfg|csv|ts|js|html|css|sh|ps1)$
+
+      # -----------------------------------------------------------------------
+      # deptry — Dependency hygiene (unused, missing, transitive deps)
+      # -----------------------------------------------------------------------
+      # Runs as a local/system hook so it uses the project's venv
+      # (where your packages are actually installed).  A remote-repo
+      # hook would create an isolated venv without your deps, causing
+      # "Executable not found" or false positives.
+      - id: deptry
+        name: deptry (dependency hygiene)
+        entry: hatch run deptry .
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: pyproject\.toml$
+
+      # -----------------------------------------------------------------------
+      # check-python-support — Python version consistency
+      # -----------------------------------------------------------------------
+      # Verifies that requires-python, Hatch test matrix, classifier
+      # list, and CI matrix all agree on supported Python versions.
+      # Runs only when pyproject.toml or workflow files change.
+      - id: check-python-support
+        name: check-python-support (version consistency)
+        entry: python scripts/check_python_support.py --quiet
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: (pyproject\.toml|\.github/workflows/.*\.yml)$
+
+      # -----------------------------------------------------------------------
+      # auto-chmod-scripts — Auto-fix executable bit on shebang scripts
+      # -----------------------------------------------------------------------
+      # When a new script with a shebang is staged but not marked
+      # executable, this hook auto-runs `git add --chmod=+x`.
+      # Eliminates the common mistake of forgetting the executable bit.
+      - id: auto-chmod-scripts
+        name: auto-chmod-scripts (auto +x for shebangs)
+        entry: python scripts/precommit/auto_chmod_scripts.py
+        language: python
+        types: [text]
+        files: \.(py|sh|bash|zsh|rb|pl)$
+
+      # -----------------------------------------------------------------------
+      # check-local-imports — Local module comment enforcement
+      # -----------------------------------------------------------------------
+      # Ensures scripts that import underscore-prefixed siblings
+      # include the standard section comment for readability.
+      - id: check-local-imports
+        name: check-local-imports (module comment)
+        entry: python scripts/precommit/check_local_imports.py
+        language: python
+        files: ^scripts/[^/]+\.py$
+        exclude: ^scripts/_
+
+
+  # ===========================================================================
+  # STAGE: commit-msg  (validates the commit message)
+  # Install: pre-commit install --hook-type commit-msg
+  # ===========================================================================
+
+  # Commitizen validates commit messages against Conventional Commits format.
+  # Also provides `cz commit` for interactive commit creation.
+  # With rebase+merge, every commit message matters — this ensures
+  # well-formed messages that feed into release-please's CHANGELOG.
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.13.10
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # ===========================================================================
+  # STAGE: pre-push  (runs on `git push` — good for slower checks)
+  # Install: pre-commit install --hook-type pre-push
+  # ===========================================================================
+
+  # Runs the full test suite before pushing. Catches test failures
+  # before opening a PR, since CI only runs on PRs targeting main.
+  # NOTE: On large pushes (many commits / big diffs), pytest may time out
+  #       or be interrupted. If this happens, push with --no-verify:
+  #         git push --no-verify origin <branch>
+  #       Then run tests manually: hatch run test
+  - repo: local
+    hooks:
+      - id: tests
+        name: Run test suite
+        entry: hatch run test
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+  # ---------------------------------------------------------------------------
+  # pip-audit — Vulnerability check against OSV / PyPI advisory DB
+  # Complements the security-audit.yml CI workflow with shift-left
+  # detection before code leaves your machine.
+  # NOTE: pip-audit runs in an isolated venv, so we must explicitly
+  #       pass requirements files for it to have something to audit.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.10.0
+    hooks:
+      - id: pip-audit
+        args: ["-r", "requirements-dev.txt"]
+        stages: [pre-push]
+
+  # ---------------------------------------------------------------------------
+  # gitleaks — Secret detection (Go binary)
+  # 150+ curated rules with entropy detection. Complements the fast
+  # no-secrets-patterns regex hook on pre-commit — this runs the
+  # thorough scan before code leaves your machine.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+        stages: [pre-push]
+
+  # ---------------------------------------------------------------------------
+  # repo-doctor — Repository structure health checks (local script)
+  # Validates file presence, TOML config, content patterns, and more.
+  #
+  # Modes:
+  #   Warn-only (default):  shows warnings but never blocks the push.
+  #   Strict / blocking:    add --strict to args — exit non-zero on warnings.
+  #
+  # To switch to strict mode, change args to:
+  #   args: ["--missing", "--profile", "all", "--include-info", "--strict"]
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: repo-doctor
+        name: Repo structure health checks
+        entry: python scripts/repo_doctor.py
+        args: ["--missing", "--profile", "all", "--include-info"]
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+        verbose: true
+
+  # ===========================================================================
+  # STAGE: manual — "strict mode" opt-in hooks
+  # ===========================================================================
+  # These hooks are disabled by default.  Run them on demand:
+  #   pre-commit run <hook-id> --hook-stage manual --all-files
+  # Or change  stages: [manual]  →  stages: [pre-commit]  to enable.
+  #
+  # ┌──────────────────────┬──────────────────────────────────────────────┐
+  # │ Hook                 │ Why it's opt-in                              │
+  # ├──────────────────────┼──────────────────────────────────────────────┤
+  # │ markdownlint-cli2    │ Node-based; heavier dependency footprint.    │
+  # │ hadolint             │ Requires Docker; also covered in CI by       │
+  # │                      │ Trivy misconfig scanning.                    │
+  # └──────────────────────┴──────────────────────────────────────────────┘
+  #
+  # Promoted to active stages:
+  #   typos      → pre-commit  (replaced codespell; codespell remains in CI)
+  #   gitleaks   → pre-push    (complements no-secrets-patterns regex hook)
+  # ---------------------------------------------------------------------------
+
+  # ---------------------------------------------------------------------------
+  # markdownlint-cli2 — Markdown linting (Node-based)
+  # Enforces consistent Markdown style; useful if you write lots of docs.
+  # Scoped to *.md to limit the Node dependency surface.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.22.0
+    hooks:
+      - id: markdownlint-cli2
+        stages: [manual]
+
+  # ---------------------------------------------------------------------------
+  # hadolint — Dockerfile linter (Haskell binary via Docker)
+  # Checks Dockerfiles / Containerfiles for best-practice violations
+  # (e.g. running as root, unpinned base images, missing HEALTHCHECK).
+  # Requires Docker to be installed. Also covered in CI by Trivy misconfig.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.14.0
+    hooks:
+      - id: hadolint-docker
+        stages: [manual]
+
+  # ---------------------------------------------------------------------------
+  # prettier — opinionated code formatter (Node-based)
+  # Normalises Markdown table alignment, YAML formatting, and more.
+  # Scoped to *.md only to minimise the Node dependency surface.
+  #   pre-commit run prettier --hook-stage manual --all-files
+  # Or change  stages: [manual]  →  stages: [pre-commit]  to enable.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.8.2
+    hooks:
+      - id: prettier
+        types_or: [markdown]
+        stages: [manual]
+
+# =============================================================================
+# CI Configuration (optional) — pre-commit.ci service
+# =============================================================================
+# TODO (template users): If you use pre-commit.ci (https://pre-commit.ci),
+#   uncomment the block below and customise it. If you use GitHub Actions
+#   for pre-commit (the default for this template), you can delete this
+#   section entirely.
+# ci:
+#   autofix_commit_msg: "style: auto-fix by pre-commit hooks"
+#   autoupdate_commit_msg: "chore: update pre-commit hooks"
+#   skip: [mypy, deptry, tests]  # Skip hooks that need project deps or are slow

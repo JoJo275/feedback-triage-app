@@ -1,0 +1,113 @@
+# Runs `pre-commit autoupdate` weekly and opens a PR with bumped hook versions.
+# This keeps .pre-commit-config.yaml up to date automatically.
+#
+# Uses a GitHub App token (same as release-please.yml) so the PR triggers
+# pull_request events and CI checks run automatically. PRs created with
+# GITHUB_TOKEN do NOT trigger other workflows (GitHub's anti-recursion
+# safeguard).
+#
+# Required secrets:
+#   - RELEASE_APP_ID      — the App ID (numeric)
+#   - RELEASE_APP_PRIVATE_KEY — the PEM private key
+#
+# See: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
+
+name: Update pre-commit hooks
+
+on:
+  schedule:
+    # Cron is a Unix time-scheduling syntax and the only way to
+    # define scheduled triggers in GitHub Actions. It uses five
+    # fields (all in UTC):
+    #
+    #   ┌─── minute (0–59)
+    #   │ ┌─── hour (0–23)
+    #   │ │ ┌─── day of month (1–31)
+    #   │ │ │ ┌─── month (1–12)
+    #   │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    #   │ │ │ │ │
+    #   * * * * *
+    #
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
+    #   09:00 UTC = 04:00 EST (Nov–Mar) / 05:00 EDT (Mar–Nov)
+    - cron: "0 9 * * 1"  # Every Monday at 09:00 UTC
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Auto-update hooks
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_PRE_COMMIT_UPDATE = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_PRE_COMMIT_UPDATE == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install pre-commit
+        run: python -m pip install --upgrade pip pre-commit
+
+      - name: Run pre-commit autoupdate
+        run: pre-commit autoupdate
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --exit-code .pre-commit-config.yaml && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # ── Generate App token ──────────────────────────────────
+      # PRs created with GITHUB_TOKEN don't trigger pull_request
+      # events (GitHub's anti-recursion rule), so CI checks would
+      # never run on the PR and the CI gate would stay pending.
+      # A GitHub App installation token bypasses this limitation.
+      # Uses the same App as release-please.yml.
+      - name: Generate GitHub App token
+        if: steps.diff.outputs.changed == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # GitHub Action for creating a GitHub App Installation Access Token (v2.2.1)
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Create pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # Creates a pull request for changes to your… (v8.1.0)
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: chore/pre-commit-autoupdate
+          commit-message: "chore: update pre-commit hooks"
+          title: "chore: update pre-commit hooks"
+          body: |
+            Automated update of pre-commit hook versions via `pre-commit autoupdate`.
+
+            Review the diff to confirm the version bumps look correct, then merge.
+          labels: dependencies
+          delete-branch: true

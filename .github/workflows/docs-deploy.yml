@@ -1,0 +1,115 @@
+# ──────────────────────────────────────────────────────────────
+# Docs Deploy Workflow
+# ──────────────────────────────────────────────────────────────
+# Builds the MkDocs documentation site and deploys it to
+# GitHub Pages.  Only runs on push to main (path-filtered)
+# or manual dispatch — never on PRs.
+#
+# PR-time build validation is handled by docs-build.yml, which
+# runs on every PR and is part of the CI gate.
+#
+# Triggers:
+#   - Push to main (path-filtered: docs, mkdocs.yml, src, etc.)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# Prerequisites:
+#   In Settings → Pages → "Build and deployment":
+#     Source = "GitHub Actions" (NOT "Deploy from a branch")
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_DOCS_DEPLOY = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. In repo Settings → Pages, set Source to "GitHub Actions".
+#   3. Uncomment site_url in mkdocs.yml and set it to your
+#      GitHub Pages URL (e.g. https://myorg.github.io/myproject/).
+# ──────────────────────────────────────────────────────────────
+
+name: Docs Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**/*.py"
+      - "pyproject.toml"
+      - ".github/workflows/docs-deploy.yml"
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Job 1: Build ───────────────────────────────────────────
+  build:
+    name: Build docs for deploy
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_DOCS_DEPLOY = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_DOCS_DEPLOY == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          fetch-depth: 0               # Full history for mkdocstrings source links
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip ".[docs]"
+
+      - name: Build docs (strict)
+        run: mkdocs build --strict
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # Enable Pages, extract various metadata about a… (v5.0.0)
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # A composite action that prepares your static… (v4.0.0)
+        with:
+          path: site/
+
+  # ── Job 2: Deploy ──────────────────────────────────────────
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # Deploy an artifact as a GitHub Pages site (v4.0.5)

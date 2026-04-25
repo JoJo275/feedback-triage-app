@@ -1,0 +1,523 @@
+# https://taskfile.dev
+# Install: https://taskfile.dev/installation/
+#
+# Usage:
+#   task              # list all tasks
+#   task test         # run tests
+#   task check        # run all quality checks
+#   task --list-all   # show all tasks including internal ones
+#
+# TODO (template users): Review all tasks below and remove or adapt any that
+#   don't apply to your project (e.g., db:*, labels:*, container tasks).
+#   Add tasks for your own scripts and workflows as needed.
+
+version: "3"
+
+silent: true
+
+vars:
+  SRC_DIR: src/
+  TEST_DIR: tests/
+
+tasks:
+  # ── Default ──────────────────────────────────────────────────
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  # ── Environment ─────────────────────────────────────────────
+  shell:
+    desc: Enter the Hatch dev shell
+    cmds:
+      - hatch shell
+
+  env:show:
+    desc: Show all Hatch environments and scripts
+    cmds:
+      - hatch env show
+
+  env:reset:
+    desc: Remove and recreate the default Hatch environment
+    cmds:
+      - hatch env remove default
+      - cmd: echo "Default environment removed. It will be recreated on next hatch command."
+
+  env:prune:
+    desc: Remove ALL Hatch environments
+    prompt: This will remove ALL Hatch environments. Continue?
+    cmds:
+      - hatch env prune
+
+  # ── Testing ─────────────────────────────────────────────────
+  test:
+    desc: Run tests
+    cmds:
+      - hatch run test {{.CLI_ARGS}}
+
+  test:v:
+    desc: Run tests with verbose output
+    cmds:
+      - hatch run test -v {{.CLI_ARGS}}
+
+  test:cov:
+    desc: Run tests with coverage
+    cmds:
+      - hatch run test-cov {{.CLI_ARGS}}
+
+  test:matrix:
+    desc: Run tests across all Python versions (3.11–3.13)
+    cmds:
+      - hatch run test:run {{.CLI_ARGS}}
+
+  test:matrix:cov:
+    desc: Run tests with coverage across all Python versions
+    cmds:
+      - hatch run test:cov {{.CLI_ARGS}}
+
+  # ── Linting & Formatting ───────────────────────────────────
+  lint:
+    desc: Check for linting issues
+    cmds:
+      - hatch run lint {{.CLI_ARGS}}
+
+  lint:fix:
+    desc: Auto-fix linting issues
+    cmds:
+      - hatch run lint-fix {{.CLI_ARGS}}
+
+  fmt:
+    desc: Apply formatting
+    cmds:
+      - hatch run fmt {{.CLI_ARGS}}
+
+  fmt:check:
+    desc: Check formatting without applying
+    cmds:
+      - hatch run fmt-check {{.CLI_ARGS}}
+
+  # ── Type Checking ──────────────────────────────────────────
+  typecheck:
+    desc: Run mypy type checker
+    cmds:
+      - hatch run typecheck {{.CLI_ARGS}}
+  # ── Security ───────────────────────────────────────────
+  security:
+    desc: Run bandit security linter
+    cmds:
+      - hatch run bandit -r src/ {{.CLI_ARGS}}
+
+  deptry:
+    desc: Check for unused, missing, or transitive dependencies
+    cmds:
+      - hatch run deptry src/ {{.CLI_ARGS}}
+
+  # ── Documentation ──────────────────────────────────────────
+  docs:serve:
+    desc: Serve documentation with live-reload
+    cmds:
+      - hatch run docs:serve {{.CLI_ARGS}}
+
+  docs:build:
+    desc: Build documentation (strict mode)
+    cmds:
+      - hatch run docs:build {{.CLI_ARGS}}
+
+  # ── Dashboard ──────────────────────────────────────────────
+  dashboard:serve:
+    desc: Start the environment inspection dashboard (http://127.0.0.1:8000)
+    cmds:
+      - hatch run dashboard:serve {{.CLI_ARGS}}
+
+  # ── Quality Gates ──────────────────────────────────────────
+  check:
+    desc: Run all quality checks (lint, format, typecheck, test)
+    cmds:
+      - hatch run check
+
+  # ── Building ───────────────────────────────────────────────
+  build:
+    desc: Build source and wheel distributions
+    cmds:
+      - hatch build
+
+  clean:build:
+    desc: Clean build artifacts (hatch only)
+    cmds:
+      - hatch clean
+
+  # ── Pre-commit ─────────────────────────────────────────────
+  pre-commit:install:
+    desc: Install all pre-commit hooks (pre-commit, commit-msg, pre-push)
+    cmds:
+      - hatch run pre-commit install
+      - hatch run pre-commit install --hook-type commit-msg
+      - hatch run pre-commit install --hook-type pre-push
+
+  pre-commit:run:
+    desc: Run pre-commit on all files
+    cmds:
+      - hatch run pre-commit run --all-files
+
+  pre-commit:update:
+    desc: Update pre-commit hooks to latest versions
+    cmds:
+      - hatch run pre-commit autoupdate
+
+  pre-commit:hook:
+    desc: "Run a single hook on all files (usage: task pre-commit:hook -- ruff)"
+    cmds:
+      - hatch run pre-commit run {{.CLI_ARGS}} --all-files
+
+  # ── Markdown Formatting ────────────────────────────────────
+  fmt:markdown:
+    desc: Format Markdown files (table alignment via prettier)
+    cmds:
+      - hatch run pre-commit run prettier --hook-stage manual --all-files {{.CLI_ARGS}}
+
+  # ── Utility ────────────────────────────────────────────────
+  clean:todo:
+    desc: Archive completed TODO items
+    cmds:
+      - python scripts/archive_todos.py
+
+  doctor:
+    desc: Print diagnostics bundle for bug reports
+    cmds:
+      - python scripts/doctor.py {{.CLI_ARGS}}
+
+  doctor:env:
+    desc: Run environment health check
+    cmds:
+      - python scripts/env_doctor.py {{.CLI_ARGS}}
+
+  doctor:repo:
+    desc: Run repository health checks
+    cmds:
+      - python scripts/repo_doctor.py {{.CLI_ARGS}}
+
+  doctor:git:
+    desc: Git-focused health check and info dashboard
+    cmds:
+      - python scripts/git_doctor.py {{.CLI_ARGS}}
+
+  doctor:git:watch:
+    desc: Re-run git dashboard every N seconds (default 10)
+    cmds:
+      - python scripts/git_doctor.py --watch {{.CLI_ARGS}}
+
+  doctor:git:refresh:
+    desc: "Fetch remotes, prune stale refs, sync tags"
+    cmds:
+      - python scripts/git_doctor.py --refresh {{.CLI_ARGS}}
+
+  doctor:git:cleanup:
+    desc: "Delete stale local branches and run git gc"
+    cmds:
+      - python scripts/git_doctor.py --cleanup {{.CLI_ARGS}}
+
+  doctor:git:commits:
+    desc: Detailed commit report for current branch
+    cmds:
+      - python scripts/git_doctor.py --view-commits {{.CLI_ARGS}}
+
+  doctor:git:commits:md:
+    desc: Write commit report to commit-report.md
+    cmds:
+      - python scripts/git_doctor.py --view-commits --markdown
+
+  doctor:git:config:export:
+    desc: Export git config reference to Markdown
+    cmds:
+      - python scripts/git_doctor.py --export-config
+
+  doctor:git:config:apply:
+    desc: "Apply recommended git config (usage: task doctor:git:config:apply, or with --dry-run)"
+    cmds:
+      - python scripts/git_doctor.py --apply-recommended {{.CLI_ARGS}}
+
+  doctor:git:config:minimal:
+    desc: Apply core subset of recommended git configs (12 keys)
+    cmds:
+      - python scripts/git_doctor.py --apply-recommended-minimal {{.CLI_ARGS}}
+
+  doctor:all:
+    desc: Run ALL health checks (env, repo, git, extended, TODOs, known issues) -- unified error report
+    cmds:
+      - cmd: echo "---- Environment Health ----"
+        silent: true
+      - cmd: python scripts/env_doctor.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "---- Repository Health ----"
+        silent: true
+      - cmd: python scripts/repo_doctor.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "---- Git Health ----"
+        silent: true
+      - cmd: python scripts/git_doctor.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "---- Template TODOs ----"
+        silent: true
+      - cmd: python scripts/check_todos.py --count
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "---- Stale Known Issues ----"
+        silent: true
+      - cmd: python scripts/check_known_issues.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "---- Diagnostics Bundle ----"
+        silent: true
+      - cmd: python scripts/doctor.py --quiet
+
+  stats:
+    desc: Repository statistics dashboard (file counts, git history, sizes)
+    cmds:
+      - python scripts/repo_sauron.py {{.CLI_ARGS}}
+
+  env:inspect:
+    desc: Environment and dependency inspector (packages, versions, PATH)
+    cmds:
+      - python scripts/env_inspect.py {{.CLI_ARGS}}
+
+  customize:
+    desc: Interactive project customization
+    cmds:
+      - python scripts/customize.py {{.CLI_ARGS}}
+
+  todo:check:
+    desc: Find and report TODO items across the codebase
+    cmds:
+      - python scripts/check_todos.py {{.CLI_ARGS}}
+
+  changelog:check:
+    desc: Validate changelog format and consistency
+    cmds:
+      - python scripts/changelog_check.py {{.CLI_ARGS}}
+
+  bootstrap:
+    desc: One-command setup for fresh clones
+    cmds:
+      - python scripts/bootstrap.py {{.CLI_ARGS}}
+
+  scripts:chmod:
+    desc: "Mark scripts executable for Unix (usage: task scripts:chmod -- scripts/my_new_script.py)"
+    cmds:
+      - git add --chmod=+x {{.CLI_ARGS}}
+    preconditions:
+      - sh: test -n "{{.CLI_ARGS}}"
+        msg: "Provide file path(s), e.g.: task scripts:chmod -- scripts/my_script.py"
+
+  version:
+    desc: Show project version
+    cmds:
+      - hatch version
+
+  info:
+    desc: Show project metadata
+    cmds:
+      - hatch project metadata
+
+  # ── Run ────────────────────────────────────────────────────
+  # TODO (template users): Update the entry point below. 'spb' is the CLI
+  #   name defined in [project.scripts] in pyproject.toml. Replace it with
+  #   your own entry point name.
+  run:
+    desc: Run the application
+    cmds:
+      - hatch run spb {{.CLI_ARGS}}
+
+  # ── Commit & Release ───────────────────────────────────────
+  branch:create:
+    desc: Interactive branch creation off origin/main
+    cmds:
+      - python scripts/git_doctor.py --new-branch {{.CLI_ARGS}}
+
+  commit:
+    desc: Interactive conventional commit (commitizen)
+    cmds:
+      - hatch run cz commit {{.CLI_ARGS}}
+
+  commit:check:
+    desc: Validate commit messages in a range (default HEAD)
+    cmds:
+      - hatch run cz check --rev-range {{.CLI_ARGS | default "HEAD~1..HEAD"}}
+
+  # ── Targeted Testing ───────────────────────────────────────
+  test:unit:
+    desc: Run unit tests only
+    cmds:
+      - hatch run test tests/unit {{.CLI_ARGS}}
+
+  test:integration:
+    desc: Run integration tests only
+    cmds:
+      - hatch run test tests/integration {{.CLI_ARGS}}
+
+  test:lf:
+    desc: Rerun only last-failed tests
+    cmds:
+      - hatch run test --lf {{.CLI_ARGS}}
+
+  test:x:
+    desc: Stop on first test failure
+    cmds:
+      - hatch run test -x {{.CLI_ARGS}}
+
+  # ── Container Testing ──────────────────────────────────────
+  # Requires Docker (or Podman) to be installed and running.
+  container:test:
+    desc: Run all container tests (Containerfile + docker compose)
+    cmds:
+      - task: container:test:containerfile
+      - task: container:test:compose
+
+  container:test:containerfile:
+    desc: Test the Containerfile (build, validate, clean up)
+    cmds:
+      - python scripts/test_containerfile.py {{.CLI_ARGS}}
+
+  container:test:compose:
+    desc: Test the docker compose stack (build, validate, clean up)
+    cmds:
+      - python scripts/test_docker_compose.py {{.CLI_ARGS}}
+
+  container:test:dry-run:
+    desc: Preview all container tests without running
+    cmds:
+      - python scripts/test_containerfile.py --dry-run
+      - python scripts/test_docker_compose.py --dry-run
+
+  test:k:
+    desc: "Run tests matching keyword (usage: task test:k -- my_test)"
+    cmds:
+      - hatch run test -k {{.CLI_ARGS}}
+
+  # ── Dependency Info ────────────────────────────────────────
+  deps:outdated:
+    desc: Check for outdated dependencies
+    cmds:
+      - hatch run pip list --outdated
+
+  deps:versions:
+    desc: Show installed and latest versions of all project dependencies
+    cmds:
+      - hatch run python scripts/dep_versions.py show {{.CLI_ARGS}}
+
+  deps:update-comments:
+    desc: Update version comments in pyproject.toml to match installed versions
+    cmds:
+      - hatch run python scripts/dep_versions.py update-comments
+
+  deps:upgrade:
+    desc: "Upgrade dependencies (usage: task deps:upgrade, or: task deps:upgrade -- ruff 0.9.0)"
+    cmds:
+      - hatch run python scripts/dep_versions.py upgrade {{.CLI_ARGS}}
+
+  # ── Workflow Actions ───────────────────────────────────────
+  actions:versions:
+    desc: Show SHA-pinned GitHub Actions with their version tags
+    cmds:
+      - hatch run python scripts/workflow_versions.py show {{.CLI_ARGS}}
+
+  actions:update-comments:
+    desc: Update version comments on SHA-pinned actions in workflow files
+    cmds:
+      - hatch run python scripts/workflow_versions.py update-comments
+
+  actions:upgrade:
+    desc: "Upgrade SHA-pinned actions (usage: task actions:upgrade, or: task actions:upgrade -- actions/checkout v6.1.0)"
+    cmds:
+      - hatch run python scripts/workflow_versions.py upgrade {{.CLI_ARGS}}
+
+  actions:upgrade:dry-run:
+    desc: Preview action upgrades without modifying files
+    cmds:
+      - hatch run python scripts/workflow_versions.py upgrade --dry-run {{.CLI_ARGS}}
+
+  actions:check:
+    desc: "CI gate: exit non-zero if any actions are stale or upgradable"
+    cmds:
+      - hatch run python scripts/workflow_versions.py --quiet show {{.CLI_ARGS}}
+
+  # ── Database ───────────────────────────────────────────────
+  # TODO (template users): Remove this section if your project doesn't use a
+  #   database. If it does, update the path and SQL script to match your setup.
+  db:reset:
+    desc: Reset the local development database
+    prompt: This will DELETE all data in the dev database. Continue?
+    cmds:
+      - sqlite3 var/app.sqlite3 < scripts/sql/reset.sql
+      - cmd: echo "Database reset complete."
+
+  # ── Labels ────────────────────────────────────────────────
+  # TODO (template users): These tasks apply GitHub issue/PR labels. Run
+  #   'task labels:dry-run' first to preview. Remove if you manage labels
+  #   through the GitHub UI instead.
+  labels:apply:
+    desc: "Apply GitHub labels (usage: task labels:apply -- --set baseline [--repo OWNER/REPO] [--dry-run])"
+    cmds:
+      - hatch run python scripts/apply_labels.py {{.CLI_ARGS}}
+
+  labels:dry-run:
+    desc: Preview baseline labels without applying
+    cmds:
+      - hatch run python scripts/apply_labels.py --set baseline --dry-run
+
+  labels:baseline:
+    desc: Apply baseline labels to the current repo
+    cmds:
+      - hatch run python scripts/apply_labels.py --set baseline
+
+  labels:full:
+    desc: Apply extended labels to the current repo
+    cmds:
+      - hatch run python scripts/apply_labels.py --set extended
+
+  # ── Deep Clean ─────────────────────────────────────────────
+  clean:all:
+    desc: Remove all build artifacts and caches
+    cmds:
+      - python scripts/clean.py {{.CLI_ARGS}}
+
+  # ── Reference Generation ───────────────────────────────────
+  # The command reference (docs/reference/commands.md) is auto-regenerated
+  # by the mkdocs-hooks/generate_commands.py hook during mkdocs build/serve.
+  # These tasks are for manual use outside mkdocs (e.g. CI staleness checks,
+  # previewing output, or regenerating without a full docs build).
+  # TODO (template users): Consider adding docs:commands:check to your CI
+  #   pipeline or pre-push hooks to catch stale command references.
+  docs:commands:
+    desc: Regenerate the command reference page (docs/reference/commands.md)
+    cmds:
+      - hatch run python scripts/generate_command_reference.py {{.CLI_ARGS}}
+
+  # CI staleness check: exits non-zero if the committed commands.md differs
+  # from what generate_command_reference.py would produce. Useful in CI
+  # or pre-push hooks to catch forgotten regenerations.
+  docs:commands:check:
+    desc: Check if the command reference page is stale (exit 1 if outdated)
+    cmds:
+      - hatch run python scripts/generate_command_reference.py --check
+
+  # ── Known Issues ───────────────────────────────────────────
+  # Check for stale resolved entries in docs/known-issues.md.
+  # Entries that have been in the Resolved table longer than --days
+  # are flagged so they can be cleaned up after a release cycle.
+  issues:check:
+    desc: Flag stale Resolved entries in docs/known-issues.md
+    cmds:
+      - hatch run python scripts/check_known_issues.py {{.CLI_ARGS}}
+
+  python:check:
+    desc: Verify Python version support config is consistent
+    cmds:
+      - python scripts/check_python_support.py {{.CLI_ARGS}}

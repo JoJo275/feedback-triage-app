@@ -1,0 +1,50 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Tests if domain names can be resolved. Failure blocks pip installs and git fetches.</span>
+                </details>
+                <span>DNS Resolution</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.dns_resolves %}
+                <span class="badge badge-pass">OK</span>
+            {% else %}
+                <span class="badge badge-fail">Failed</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Tests connectivity to PyPI/GitHub over HTTPS. Required for package installs and pushes.</span>
+                </details>
+                <span>Outbound HTTPS</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.outbound_https %}
+                <span class="badge badge-pass">OK</span>
+            {% else %}
+                <span class="badge badge-fail">Failed</span>
+            {% endif %}
+        </td>
+    </tr>
+    {{ kv_row("Hostname", data.hostname, copyable=true, hint="Network hostname of this machine.") }}
+</table>
+
+{% if data.proxy %}
+<h5>Proxy Settings</h5>
+<table class="kv-table">
+    {{ kv_row("HTTP Proxy", data.proxy.http_proxy or "not set", hint="HTTP_PROXY env var. Configure if behind a corporate proxy.") }}
+    {{ kv_row("HTTPS Proxy", data.proxy.https_proxy or "not set", hint="HTTPS_PROXY env var. Needed for pip and git over HTTPS behind a proxy.") }}
+    {{ kv_row("No Proxy", data.proxy.no_proxy or "not set", hint="NO_PROXY env var. Comma-separated hosts that bypass the proxy.") }}
+</table>
+{% endif %}

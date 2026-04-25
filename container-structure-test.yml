@@ -1,0 +1,84 @@
+# =============================================================================
+# Container Structure Tests
+# =============================================================================
+# Validates the built container image meets expected properties.
+#
+# Install: https://github.com/GoogleContainerTools/container-structure-test
+#   go install github.com/GoogleContainerTools/container-structure-test/cmd/container-structure-test@latest
+#
+# Usage:
+#   docker build -t simple-python-boilerplate:test -f Containerfile .
+#   container-structure-test test --image simple-python-boilerplate:test --config container-structure-test.yml
+#
+# TODO (template users): Update the package name, entrypoint, and user/group
+#   to match your project after running customize.py.
+# =============================================================================
+
+schemaVersion: "2.0.0"
+
+# -- Metadata checks ---------------------------------------------------------
+metadataTest:
+  entrypoint: ["spb"]
+  user: "app"
+  workdir: "/app"
+  env:
+    - key: PYTHONDONTWRITEBYTECODE
+      value: "1"
+    - key: PYTHONUNBUFFERED
+      value: "1"
+
+# -- Command tests (verify tools & packages are installed) -------------------
+commandTests:
+  - name: "Python is installed"
+    command: "python"
+    args: ["--version"]
+    expectedOutput: ["Python 3\\.12"]
+
+  - name: "Package is installed"
+    command: "python"
+    args: ["-c", "import simple_python_boilerplate; print('ok')"]
+    expectedOutput: ["ok"]
+
+  - name: "pip is available"
+    command: "python"
+    args: ["-m", "pip", "--version"]
+    expectedOutput: ["pip"]
+
+  - name: "No build tools in runtime image"
+    command: "sh"
+    args: ["-c", "! command -v gcc && echo 'no gcc'"]
+    expectedOutput: ["no gcc"]
+
+  - name: "Non-root user"
+    command: "whoami"
+    expectedOutput: ["app"]
+
+  - name: "UID is 1000"
+    command: "id"
+    args: ["-u"]
+    expectedOutput: ["1000"]
+
+  - name: "GID is 1000"
+    command: "id"
+    args: ["-g"]
+    expectedOutput: ["1000"]
+
+# -- File existence tests ----------------------------------------------------
+fileExistenceTests:
+  - name: "No .pyc files in image"
+    path: "/app"
+    shouldExist: true
+
+  - name: "Home directory exists"
+    path: "/home/app"
+    shouldExist: true
+
+# -- File content tests ------------------------------------------------------
+fileContentTests:
+  - name: "passwd contains app user"
+    path: "/etc/passwd"
+    expectedContents: ["app:x:1000:1000"]
+
+  - name: "group contains app group"
+    path: "/etc/group"
+    expectedContents: ["app:x:1000"]

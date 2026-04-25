@@ -1,0 +1,66 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<div class="path-summary">
+    <span class="badge">{{ data.total|default(0) }} entries</span>
+    {% if data.duplicates|default(0) > 0 %}
+    <span class="badge badge-warn">{{ data.duplicates }} duplicates</span>
+    {% endif %}
+    {% if data.dead_entries|default(0) > 0 %}
+    <span class="badge badge-fail">{{ data.dead_entries }} dead</span>
+    {% endif %}
+</div>
+
+{% if data.entries %}
+<table class="kv-table striped path-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Path</th>
+            <th>Exists</th>
+            <th>Executables</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Remove</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in data.entries %}
+        <tr class="{% if not entry.exists %}row-fail{% elif entry.duplicate %}row-warn{% endif %}">
+            <td>{{ loop.index }}</td>
+            <td class="mono path-cell">{{ entry.path }} <button class="copy-btn" data-clip="{{ entry.path|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
+            <td>
+                {% if entry.exists %}
+                    <span class="badge badge-pass"><span class="check-icon"></span></span>
+                {% else %}
+                    <span class="badge badge-fail"><span class="x-icon"></span></span>
+                {% endif %}
+            </td>
+            <td>{{ entry.executable_count|default(0) }}</td>
+            <td>
+                {% if loop.index <= 3 %}
+                    <span class="badge badge-info">high</span>
+                {% elif loop.index <= 10 %}
+                    <span class="badge">mid</span>
+                {% else %}
+                    <span class="badge" style="opacity:0.5">low</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if not entry.exists %}
+                    <span class="badge badge-fail">dead</span>
+                {% elif entry.duplicate %}
+                    <span class="badge badge-warn">dup</span>
+                {% else %}
+                    <span class="badge badge-pass">ok</span>
+                {% endif %}
+            </td>
+            <td>
+                <button class="path-remove-btn" data-clip="{{ entry.path|e }}" @click="pathRemove($el.dataset.clip)" title="Remove from User PATH">&times;</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="muted">No PATH entries found.</p>
+{% endif %}

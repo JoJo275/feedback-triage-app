@@ -1,0 +1,39 @@
+# Read the Docs configuration file (v2)
+# Docs: https://docs.readthedocs.io/en/stable/config-file/v2.html
+#
+# This project primarily uses GitHub Pages for documentation hosting
+# (via docs-deploy.yml workflow). This file exists as an alternative
+# if you prefer Read the Docs.
+#
+# TODO (template users): If using Read the Docs, configure your project
+#   at https://readthedocs.org/. If using GitHub Pages instead (the
+#   default for this template), you can delete this file.
+
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    # TODO (template users): Keep this in sync with your pyproject.toml
+    #   requires-python and CI test matrix. Use the latest stable Python
+    #   version your project supports.
+    python: "3.13"
+  jobs:
+    # TODO (template users): If your docs build has slow or resource-heavy
+    #   steps, consider adding build commands here to pre-install system
+    #   packages or run custom build steps.
+    # pre_build:
+    #   - echo "Pre-build step"
+    post_install:
+      - python -m pip install --upgrade pip
+
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+
+mkdocs:
+  configuration: mkdocs.yml
+  fail_on_warning: true

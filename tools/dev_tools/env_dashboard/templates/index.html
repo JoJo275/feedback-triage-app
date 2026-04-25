@@ -1,0 +1,1010 @@
+{% extends "base.html" %}
+
+{% block content %}
+{# --- Summary bar --- #}
+<section class="summary-bar" id="summary-bar">
+    <div class="section-help-container">
+        <button class="section-help-btn" aria-label="What is this?" onclick="this.parentElement.classList.toggle('help-open')" title="What is this section?">?</button>
+        <div class="section-help-tooltip">At-a-glance environment snapshot: OS, Python, git, container status, and data freshness. Red badges need attention. Click Refresh or wait for auto-update to get fresh data.</div>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">OS</span>
+        <span class="summary-value">{{ summary.os|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Host</span>
+        <span class="summary-value">{{ summary.hostname|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Python</span>
+        <span class="summary-value">{{ summary.python_version|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Shell</span>
+        <span class="summary-value">{{ summary.shell|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Git</span>
+        <span class="summary-value">
+            {% if summary.git_repo_detected %}
+                <span class="badge badge-pass">detected</span>
+            {% else %}
+                <span class="badge badge-warn">not found</span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Container</span>
+        <span class="summary-value">
+            {% if summary.container_detected %}
+                <span class="badge badge-info">yes</span>
+            {% else %}
+                <span class="badge">no</span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Warnings</span>
+        <span class="summary-value">
+            {% if summary.warnings_count|default(0) > 0 %}
+                <span class="badge badge-warn">{{ summary.warnings_count }}</span>
+            {% else %}
+                <span class="badge badge-pass">0</span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Sections</span>
+        <span class="summary-value">
+            <span class="badge">{{ sections|length }}</span>
+        </span>
+    </div>
+    <div class="summary-item freshness-indicator" x-data="freshness('{{ meta.timestamp|default('') }}')" x-init="startTick()">
+        <span class="summary-label">Data Age</span>
+        <span class="summary-value">
+            <span class="freshness-dot" :class="freshnessClass"></span>
+            <span x-text="ageLabel"></span>
+            <button class="freshness-refresh-btn" @click="refreshScan()" title="Refresh data">↻</button>
+        </span>
+        <div class="stale-banner" x-show="freshnessClass === 'stale'" x-cloak x-transition>
+            <span class="stale-banner-icon">⚠</span>
+            Data may not reflect current state
+            <button class="stale-banner-action" @click="refreshScan()">Refresh now</button>
+        </div>
+    </div>
+</section>
+
+{# --- Warnings panel --- #}
+{% if warnings %}
+<section class="warnings-panel" id="warnings-panel">
+    <h3>
+        Warnings ({{ warnings|length }})
+        <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
+            <button class="section-help-btn" aria-label="What is this?" onclick="this.parentElement.classList.toggle('help-open')" title="What are warnings?">?</button>
+            <span class="section-help-tooltip">Issues detected in your development environment. Click any warning to expand details and recommended fixes. Red = critical (fix now), amber = should fix, blue = informational.</span>
+        </span>
+    </h3>
+    <details class="section-guide" onclick="event.stopPropagation()">
+        <summary><span class="section-guide-icon"></span> Guide</summary>
+        <div class="section-guide-body">
+            <p class="section-guide-what">Automated checks that scan your development environment for problems. Warnings surface before they become hard-to-debug build or runtime failures.</p>
+            <div class="section-guide-block section-guide-concepts">
+                <strong>Severity levels</strong>
+                <dl class="section-guide-dl">
+                    <dt>Critical (red ×)</dt>
+                    <dd>Must fix — will cause builds, installs, or tests to fail. Examples: disk full, insecure PATH, unwritable temp directory.</dd>
+                    <dt>Warning (amber !)</dt>
+                    <dd>Should fix — won't break things immediately but indicates problems. Examples: no virtualenv, dirty git tree, dead PATH entries.</dd>
+                    <dt>Info (blue i)</dt>
+                    <dd>Awareness only — nothing to fix, but worth knowing. Examples: CI environment detected, WSL detected, PATH duplicates.</dd>
+                </dl>
+            </div>
+            <div class="section-guide-block">
+                <strong>All checks performed</strong>
+                <ul>
+                    <li><b>Virtualenv active</b> — verifies you're running inside a venv (not system Python).</li>
+                    <li><b>Git clean state</b> — flags uncommitted changes that make builds non-reproducible.</li>
+                    <li><b>PATH dead entries</b> — directories listed in PATH that no longer exist on disk.</li>
+                    <li><b>PATH duplicates</b> — same directory appearing more than once (after normalizing case/slashes).</li>
+                    <li><b>Secret env vars</b> — environment variables matching patterns like API_KEY, TOKEN, SECRET.</li>
+                    <li><b>Insecure PATH dirs</b> — world-writable directories in PATH (malicious executable injection risk).</li>
+                    <li><b>SSH keys in env</b> — private key paths stored in environment variables.</li>
+                    <li><b>Disk space &gt;80%</b> — warns at 80%, critical at 90% (pip/builds will fail).</li>
+                    <li><b>Temp dir writable</b> — verifies the system temp directory is writable.</li>
+                    <li><b>DNS resolution</b> — checks if pypi.org resolves (needed for pip install).</li>
+                    <li><b>HTTPS outbound</b> — verifies outbound HTTPS isn't blocked by proxy/firewall.</li>
+                    <li><b>CI detection</b> — identifies CI environments (GitHub Actions, GitLab CI, etc.).</li>
+                    <li><b>WSL detection</b> — flags when running under Windows Subsystem for Linux.</li>
+                    <li><b>Python version match</b> — checks if Python version satisfies the project's requires-python.</li>
+                    <li><b>Outdated pip</b> — flags when pip itself is significantly out of date.</li>
+                    <li><b>Missing critical tools</b> — checks for git, hatch, and pre-commit availability.</li>
+                </ul>
+            </div>
+            <div class="section-guide-block">
+                <strong>When checks are performed</strong>
+                <ul>
+                    <li><b>On page load</b> — all checks run automatically when the dashboard starts.</li>
+                    <li><b>On refresh</b> — clicking the Refresh button or triggering a scan re-runs all checks with fresh data.</li>
+                    <li><b>Cache window</b> — results are cached for 30 seconds to avoid redundant work. After 30s the next request collects fresh data.</li>
+                    <li><b>Cross-section analysis</b> — the insights engine runs after all other collectors finish, analysing their combined output to derive warnings.</li>
+                </ul>
+            </div>
+        </div>
+    </details>
+    <div class="warning-list">
+        {% for w in warnings %}
+        <details class="warning-item warning-{{ w.severity|default('warn') }}">
+            <summary class="warning-summary">
+                <span class="warning-icon">
+                    {% if w.severity == "fail" %}&times;{% elif w.severity == "info" %}i{% else %}!{% endif %}
+                </span>
+                <span class="warning-text">{{ w.message }}</span>
+                {% if w.section %}
+                <a href="#section-{{ w.section }}" class="warning-link" onclick="event.stopPropagation()">{{ w.section }}</a>
+                {% endif %}
+                <span class="warning-chevron" aria-hidden="true"></span>
+            </summary>
+            {% if w.hint or w.action %}
+            <div class="warning-details">
+                {% if w.hint %}
+                <div class="warning-hint">
+                    <span class="warning-detail-label">Why this matters:</span> {{ w.hint }}
+                </div>
+                {% endif %}
+                {% if w.action %}
+                <div class="warning-action">
+                    <span class="warning-detail-label">Action:</span> {{ w.action }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </details>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{# --- Section cards --- #}
+{# Section help descriptions — concise explanations shown on hover/click #}
+{% set section_help = {
+    "system": "Machine fundamentals: OS, CPU, architecture, shell, and encoding. Check here first if builds fail on a new machine or CI runner.",
+    "hardware": "Detailed physical hardware specs: CPU model and cores, GPU (VRAM, driver, cores), RAM modules and speed, storage devices, and motherboard/BIOS. Shows upgrade headroom and thermal status.",
+    "runtimes": "Active Python interpreter and any other detected runtimes. Verify the version matches your project's requires-python constraint.",
+    "path": "Ordered list of directories in your PATH. Flags duplicates and dead entries that can cause wrong binaries to be picked up.",
+    "git": "Repository status: current branch, clean/dirty state, remotes, and stash count. A dirty tree blocks some CI gates.",
+    "venv": "Virtual environment detection: venv, Conda, and Hatch. Development should always happen inside an active venv.",
+    "packages": "Python packages installed in the current environment with versions and install locations.",
+    "project": "Project structure scan: repo root, lockfiles, config files, build tools, and critical files. Missing files are flagged.",
+    "project_commands": "Available CLI commands from Taskfile, pyproject.toml scripts, and other task runners. Click a command to copy it.",
+    "pip_environments": "All detected Python installations and their packages. Shows outdated packages with one-click update.",
+    "network": "DNS and HTTPS connectivity checks. Failures here block pip installs, git pushes, and CI communication.",
+    "filesystem": "Disk space, temp directory, and write permission checks. Low disk or non-writable dirs cause silent build failures.",
+    "container": "Container runtime detection, CI system, WSL, dev containers, and cloud provider. Affects available resources and networking.",
+    "security": "Security scan for leaked secrets in env vars, insecure PATH entries, and exposed SSH keys. Address red items immediately.",
+    "precommit_hooks": "Pre-commit hook inventory: installed stages, hook IDs, repos, and languages. Ensures code quality gates are active before commits reach CI.",
+    "ci_cd_status": "GitHub Actions workflows, triggers, SHA-pinning status, and CI configuration files. Shows your CI/CD pipeline health at a glance.",
+    "dependency_health": "Outdated and vulnerable packages, pip-audit results, and dependency group breakdown. Prioritises security-critical updates.",
+    "disk_workspace": "Workspace size breakdown: cache directories, largest folders, and total file count. Helps reclaim space when builds slow down.",
+    "docs_status": "MkDocs configuration, documentation file inventory, ADR catalog, and broken internal link detection. Keeps docs in sync with code."
+} %}
+
+{# Section guides — detailed explanations, what to look for, and recommended actions #}
+{% set section_guide = {
+    "system": {
+        "what": "Shows the machine's operating system, CPU architecture, default shell, and locale/encoding settings. This is the foundation every other tool depends on.",
+        "key_concepts": {
+            "Architecture (AMD64/ARM64)": "The CPU instruction set. AMD64 is standard x86 64-bit (Intel and AMD). ARM64 is Apple Silicon and some cloud instances. Native dependencies must match.",
+            "Locale / Encoding": "Controls how text is interpreted. UTF-8 is the universal standard. Other encodings (cp1252, latin-1) cause mojibake or crashes when reading source files.",
+            "Shell": "The command interpreter (bash, zsh, PowerShell, cmd.exe). Scripts and task runners depend on specific shell features."
+        },
+        "look_for": [
+            "OS and architecture must match your deployment target — cross-platform bugs often start here.",
+            "Shell should be bash/zsh (macOS/Linux) or PowerShell (Windows). If it shows cmd.exe, some scripts may behave differently.",
+            "Encoding should be UTF-8. Non-UTF-8 locales cause crashes in tools that read source files with Unicode characters.",
+            "CPU count affects parallelism in tests (pytest-xdist) and builds.",
+            "Hostname and username help confirm you're on the right machine (especially in SSH or CI contexts)."
+        ],
+        "actions": [
+            "If encoding is not UTF-8, set PYTHONUTF8=1 or fix your locale.",
+            "If this is a CI runner, compare these values against your local machine to diagnose 'works on my machine' issues."
+        ],
+        "common_issues": [
+            "Windows cmd.exe as default shell — Taskfile and many scripts expect PowerShell or bash. Switch with 'chsh' or update VS Code's terminal profile.",
+            "Locale mismatch between dev and CI — causes encoding errors when reading files with accented characters or emoji."
+        ],
+        "related": ["runtimes", "container"]
+    },
+    "runtimes": {
+        "what": "Displays the active Python interpreter version, implementation (CPython/PyPy), architecture, executable path, and whether it's running inside a virtualenv. Also lists all Python installations found on the system.",
+        "key_concepts": {
+            "requires-python": "The Python version constraint in pyproject.toml (e.g. >=3.11). If your active Python doesn't satisfy this, builds and installs will fail.",
+            "Implementation (CPython/PyPy)": "CPython is the standard Python. PyPy is a faster alternative but some C extension packages won't install on it.",
+            "Editable install": "Running 'pip install -e .' links your source directly into site-packages. Changes to source files take effect immediately without reinstalling.",
+            "Prefix vs Base Prefix": "In a virtualenv, prefix points to the venv directory while base_prefix points to the system Python. If they're the same, you're not in a venv."
+        },
+        "look_for": [
+            "Version must satisfy your project's requires-python constraint (check pyproject.toml).",
+            "Architecture (64-bit vs 32-bit) must match compiled native dependencies like numpy or cryptography.",
+            "'In Virtualenv' should be Yes during development — bare system Python risks dependency conflicts.",
+            "If multiple installations are listed, ensure the active one is the one you intend.",
+            "Compiler info tells you which C toolchain built Python — relevant for building C extensions."
+        ],
+        "actions": [
+            "If the version is wrong, activate the correct venv: hatch shell or source .venv/bin/activate.",
+            "If 'In Virtualenv' is No, run hatch shell before installing packages.",
+            "If you see unexpected installations, check your PATH order (see Path section) for shadowing."
+        ],
+        "common_issues": [
+            "Python 3.x from Homebrew vs system Python on macOS — PATH order determines which 'python3' runs.",
+            "Windows Store Python appearing unexpectedly — shows up in PATH even when you installed from python.org.",
+            "Prefix differs from base_prefix but 'In Virtualenv' shows No — this can indicate a broken venv that needs recreation."
+        ],
+        "related": ["venv", "path", "packages"]
+    },
+    "path": {
+        "what": "Shows every directory in your system PATH, in order. The first match wins when running commands like python, git, or node — order matters.",
+        "key_concepts": {
+            "Dead entry": "A directory listed in PATH that no longer exists on disk. The system wastes time checking it on every command, and it usually means a program was uninstalled or moved without cleaning up PATH.",
+            "Duplicate entry": "The same directory appearing more than once in PATH (after normalizing case and slashes). Only the first occurrence matters — duplicates are wasted lookups and clutter.",
+            "Shadowing": "When two PATH directories both contain an executable with the same name (e.g. python). The one in the earlier directory 'shadows' the later one — you get a different binary than expected.",
+            "Priority (High/Mid/Low)": "Entries near the top of PATH (positions 1-3) have highest priority and are checked first. These should be your venv and critical tool directories.",
+            "Executables": "The number of runnable programs (.exe, .cmd, .bat, .com on Windows; files with execute permission on Unix) found in that directory. A high count means the directory contains many tools — useful for verifying the right programs are reachable."
+        },
+        "look_for": [
+            "Duplicate entries waste lookup time and can mask shadowing issues.",
+            "Dead/missing directories (marked with a warning) slow down command resolution and indicate stale config.",
+            "Virtualenv bin/Scripts directory should appear early so venv Python takes priority over system Python.",
+            "Windows users: check for both backslash and forward-slash variants of the same path.",
+            "World-writable directories in PATH are a security risk (see Security section)."
+        ],
+        "actions": [
+            "Remove dead entries from your shell profile (.bashrc, .zshrc, or System Environment Variables on Windows).",
+            "If the wrong Python is picked up, reorder PATH so your venv comes first.",
+            "Use 'which python' (Unix) or 'Get-Command python' (PowerShell) to verify resolution.",
+            "If a 'dup' badge appears, the duplicate is usually in your User PATH (System PATH loads first, User appends). Remove the User copy — the System entry already covers it."
+        ],
+        "common_issues": [
+            "Conda base environment injected at the front of PATH — overrides your project's venv. Run 'conda deactivate' first.",
+            "pyenv shims directory missing — pyenv won't intercept python commands without 'pyenv init' in your shell profile.",
+            "User vs System PATH: Windows merges both into one PATH variable. This table shows the merged result. System entries appear first and take priority. If both contain the same directory, the System entry wins — the User duplicate can be safely removed via System Environment Variables."
+        ],
+        "related": ["runtimes", "venv", "security"]
+    },
+    "git": {
+        "what": "Shows git availability, version, current branch, working tree status (clean/dirty), remote configuration, and stash count.",
+        "key_concepts": {
+            "Dirty working tree": "Files have been modified, added, or deleted since the last commit. Some CI gates and tools (like release-please) refuse to run on a dirty tree.",
+            "Detached HEAD": "You're not on any branch — typically after checking out a specific commit or tag. Commits made here can be lost unless you create a branch.",
+            "Stash": "Temporarily shelved changes. Useful for context-switching, but forgotten stashes accumulate and may contain important work."
+        },
+        "look_for": [
+            "Branch name — are you on the correct feature branch, or accidentally on main?",
+            "Dirty working tree means uncommitted changes exist. Some CI gates and release tools require a clean tree.",
+            "Stash count — forgotten stashes may contain important work-in-progress.",
+            "Git version — features like init.defaultBranch require git 2.28+.",
+            "Remote URL format — HTTPS requires credentials helper; SSH requires key setup."
+        ],
+        "actions": [
+            "If the tree is dirty and you're about to push, commit or stash your changes first.",
+            "If stash count is high, run 'git stash list' to review and drop old stashes.",
+            "If git version is old, update it — some pre-commit hooks and CI features need recent git."
+        ],
+        "common_issues": [
+            "Detached HEAD state — you're not on a branch. Run 'git checkout main' or create a branch from the current commit.",
+            "Diverged from remote — 'git pull --rebase' is safer than merge for linear history in this project."
+        ],
+        "related": ["project", "security"]
+    },
+    "venv": {
+        "what": "Detects whether you're inside a virtual environment and which type: standard venv, Conda, Hatch, or Poetry. Shows the venv path and related environment variables.",
+        "key_concepts": {
+            "Virtual environment": "An isolated Python installation with its own site-packages. Prevents dependency conflicts between projects. Every project should use one.",
+            "VIRTUAL_ENV": "Environment variable set by the activation script pointing to the venv root. Tools use this to detect and locate the active venv.",
+            "Hatch environment": "Hatch manages venvs automatically based on pyproject.toml. 'hatch shell' creates and activates the default env. 'hatch env remove' deletes it for a clean restart."
+        },
+        "look_for": [
+            "A venv MUST be active during development. Installing packages globally causes version conflicts across projects.",
+            "Venv type should match your project's tooling — this project uses Hatch.",
+            "VIRTUAL_ENV path should point inside your project directory, not some other project.",
+            "If both Conda and venv are detected, there may be environment nesting issues."
+        ],
+        "actions": [
+            "If no venv is active, run 'hatch shell' to enter the project's dev environment.",
+            "If VIRTUAL_ENV points to the wrong location, deactivate and re-enter: 'deactivate' then 'hatch shell'.",
+            "Never run pip install outside a venv — use 'hatch run pip install' or activate first."
+        ],
+        "common_issues": [
+            "Stale venv after dependency changes — 'hatch env remove default' then 'hatch shell' to rebuild from scratch.",
+            "Nested virtualenvs (Conda + venv) — causes confusing import resolution. Deactivate one before activating the other."
+        ],
+        "related": ["runtimes", "packages", "path"]
+    },
+    "packages": {
+        "what": "Lists all Python packages installed in the current environment with their versions and install locations (site-packages path).",
+        "key_concepts": {
+            "site-packages": "The directory where pip installs packages. Each venv has its own site-packages, isolated from the system and other venvs.",
+            "Editable install (-e)": "A symlink-style install where changes to source code take effect immediately. Your project should appear as editable in the package list.",
+            "Dependency resolution": "pip resolves compatible versions across all dependencies. Version conflicts cause 'ResolutionImpossible' errors — recreating the venv usually fixes this."
+        },
+        "look_for": [
+            "Missing packages that your project depends on — check against pyproject.toml [project.dependencies].",
+            "Version mismatches between what's installed and what's declared in requirements or pyproject.toml.",
+            "Packages installed in editable mode (shows as a local path) — your project should be one of these.",
+            "Unexpected packages from a different project — may indicate wrong venv."
+        ],
+        "actions": [
+            "If a dependency is missing, run 'hatch run pip install -e .' to reinstall in editable mode.",
+            "If versions are wrong after a pyproject.toml change, run 'hatch env remove default' then 'hatch shell' to recreate.",
+            "Use the Pip Environments section to check for outdated packages across all Python installations."
+        ],
+        "related": ["venv", "pip_environments", "project"]
+    },
+    "project": {
+        "what": "Scans your project structure for expected files: pyproject.toml, README, license, CI config, lockfiles, and other standard project artifacts.",
+        "key_concepts": {
+            "pyproject.toml": "The central configuration file for modern Python projects. Defines metadata, dependencies, build system, and tool settings. If missing, pip and hatch can't find your project.",
+            "src/ layout": "Source code lives under src/package_name/ rather than at the repo root. Prevents accidental imports from the working directory instead of the installed package.",
+            "Editable install": "Required for src/ layout development. Without 'pip install -e .', Python can't find your package's modules."
+        },
+        "look_for": [
+            "Missing critical files — a missing pyproject.toml means the build system can't find your project.",
+            "Missing README.md or LICENSE — required for open-source compliance and PyPI publishing.",
+            "Build tool detection — confirms Hatch/Hatchling is properly configured.",
+            "Repository root should match your expectations — wrong root causes import path issues."
+        ],
+        "actions": [
+            "If any critical config file is missing, check if it was accidentally deleted or gitignored.",
+            "If the repo root looks wrong, you may have opened a subdirectory. Reopen from the project root."
+        ],
+        "related": ["git", "project_commands"]
+    },
+    "project_commands": {
+        "what": "Lists all available development commands gathered from Taskfile.yml, pyproject.toml scripts, and other task runners. Click any command to copy it.",
+        "key_concepts": {
+            "Taskfile.yml": "A YAML-based task runner (similar to Make). Defines shortcuts like 'task test', 'task lint', 'task check'. Install with 'go-task' or the standalone binary.",
+            "Quality gates": "The set of checks that must pass before code is accepted: linting (ruff), formatting (ruff format), type checking (mypy), and tests (pytest). 'task check' runs all of them."
+        },
+        "look_for": [
+            "Familiarize yourself with the available commands — they're shortcuts for common tasks.",
+            "Missing commands may indicate Taskfile.yml is not found or a task runner isn't installed."
+        ],
+        "actions": [
+            "Click a command to copy it, then paste into your terminal.",
+            "Core workflow: 'task check' runs all quality gates (lint + format + typecheck + test).",
+            "Before committing: 'task lint' and 'task fmt' to auto-fix style issues.",
+            "Run 'task test' before pushing to catch failures early."
+        ],
+        "related": ["project"]
+    },
+    "pip_environments": {
+        "what": "Discovers all Python installations on your system and shows their installed packages. Highlights outdated packages with available updates.",
+        "key_concepts": {
+            "Outdated package": "A package where a newer version is available on PyPI. Security-critical packages (pip, setuptools, certifi) should always be kept current.",
+            "System vs venv packages": "System Python has its own packages separate from virtualenv packages. Updating system packages doesn't affect your venv, and vice versa.",
+            "pip audit": "A tool that checks installed packages against known security vulnerabilities. Run via pre-push hook or manually with 'pip-audit'."
+        },
+        "look_for": [
+            "Outdated packages with available updates — especially security-related ones (pip, setuptools, certifi).",
+            "Multiple Python installations with conflicting package versions.",
+            "Whether your active environment has all required dependencies at correct versions."
+        ],
+        "actions": [
+            "Click 'Update' on individual packages, or 'Update All' for bulk upgrades.",
+            "Focus on security packages first: pip, setuptools, certifi, urllib3.",
+            "After updating, re-run tests to confirm nothing broke: 'task test'."
+        ],
+        "common_issues": [
+            "Updating packages in the wrong environment — ensure you're in the active Hatch env before bulk updates.",
+            "pip itself outdated — 'pip install --upgrade pip' first, as old pip may fail to install newer packages."
+        ],
+        "related": ["packages", "venv", "runtimes"]
+    },
+    "network": {
+        "what": "Tests DNS resolution and HTTPS connectivity to key services: PyPI (pip install), GitHub (git push/pull), and general internet access.",
+        "key_concepts": {
+            "DNS resolution": "Translating hostnames (pypi.org) to IP addresses. If DNS fails, no network tool works — not pip, not git, not browsers.",
+            "HTTPS / TLS": "Encrypted connection to remote servers. Failures usually mean a certificate issue (corporate proxy injecting its own CA) or a firewall blocking traffic.",
+            "Proxy (HTTP_PROXY / HTTPS_PROXY)": "An intermediary server that forwards your requests. Corporate networks often require proxy configuration. NO_PROXY lists hosts that bypass the proxy."
+        },
+        "look_for": [
+            "DNS failures mean pip installs and git operations won't work.",
+            "HTTPS failures may indicate a corporate proxy, firewall, or certificate issue.",
+            "Proxy settings — if you're behind a proxy, HTTP_PROXY and HTTPS_PROXY must be set.",
+            "Latency — very slow responses may indicate network problems affecting CI performance."
+        ],
+        "actions": [
+            "If behind a corporate proxy: set HTTP_PROXY, HTTPS_PROXY, and NO_PROXY environment variables.",
+            "If HTTPS fails but DNS works: check your CA certificate bundle (pip config set global.cert /path/to/cert.pem).",
+            "For intermittent failures: check VPN status or switch networks."
+        ],
+        "common_issues": [
+            "Corporate proxy not configured — pip hangs on install with no error message. Set HTTPS_PROXY.",
+            "VPN split-tunneling — some VPNs block PyPI or GitHub unless you route through the tunnel.",
+            "SSL certificate verification failures — often means the corporate CA cert isn't in Python's cert bundle."
+        ],
+        "related": ["container"]
+    },
+    "filesystem": {
+        "what": "Checks disk space on your project's partition, temp directory write permissions, working directory permissions, and home directory access.",
+        "key_concepts": {
+            "Disk usage threshold": "Above 90% is critical. pip needs temp space for downloads, pytest creates temp dirs for test isolation, and Docker layers consume space during builds.",
+            "Writable temp directory": "Python's tempfile module and pip both write to the system temp dir. If it's full or non-writable, installs and tests fail with misleading errors.",
+            "Build artifacts": "Files generated during build/test cycles: __pycache__, .mypy_cache, .ruff_cache, dist/, *.egg-info. 'task clean' removes them all."
+        },
+        "look_for": [
+            "Disk usage above 90% is critical — builds, pip downloads, and docker layers need free space.",
+            "Non-writable temp dir causes pip, pytest, and build failures with cryptic error messages.",
+            "Non-writable working directory means git and file operations will fail.",
+            "Temp dir path — on some systems, /tmp is a small tmpfs that fills up during large builds."
+        ],
+        "actions": [
+            "If disk is > 90%: run 'task clean' to remove build artifacts, or clear Docker images with 'docker system prune'.",
+            "If temp dir is not writable: check permissions or set TMPDIR to a writable location.",
+            "Monitor free space during CI — runners often have limited disk."
+        ],
+        "common_issues": [
+            "Docker images filling disk — 'docker system prune -a' reclaims space from unused images and layers.",
+            ".mypy_cache and .ruff_cache growing large — 'task clean' removes these along with other build artifacts."
+        ],
+        "related": ["container"]
+    },
+    "container": {
+        "what": "Detects container runtimes (Docker, Podman), whether you're inside a container, CI system detection, WSL status, and dev container environment.",
+        "key_concepts": {
+            "Container runtime": "Docker or Podman — the engine that builds and runs containers. Required for container-based tests and deployments.",
+            "WSL (Windows Subsystem for Linux)": "A Linux kernel running inside Windows. Great for development but file operations across the Windows/Linux boundary (/mnt/c/) are 5-10x slower than native.",
+            "Dev container": "A VS Code feature that runs your development environment inside a Docker container. Ensures all team members have identical tooling.",
+            "CI environment": "Automated build runners (GitHub Actions, GitLab CI). Behaves differently from local dev: no interactive terminal, limited disk, different network rules."
+        },
+        "look_for": [
+            "Docker/Podman availability — needed for container builds and integration tests.",
+            "'Inside Container' being unexpected — affects file system behavior and network access.",
+            "CI detection — if running in GitHub Actions, some env vars and caching behave differently.",
+            "WSL detection — file system performance across the Windows/Linux boundary is slow.",
+            "Dev container detection — confirms VS Code is running in a dev container with the right tooling."
+        ],
+        "actions": [
+            "If Docker is not available and you need it: install Docker Desktop or Podman.",
+            "In WSL: keep your project files on the Linux filesystem (~/projects/), not /mnt/c/.",
+            "In CI: check that container tests are conditional on runtime availability."
+        ],
+        "common_issues": [
+            "Docker Desktop not running — service must be started before docker commands work.",
+            "WSL file system cross-boundary access — accessing /mnt/c/ from WSL is 5-10x slower than native Linux paths."
+        ],
+        "related": ["system", "network", "filesystem"]
+    },
+    "security": {
+        "what": "Scans environment variables for potential leaked secrets, checks for insecure PATH entries (world-writable directories), and looks for exposed SSH keys.",
+        "key_concepts": {
+            "Leaked secret": "A password, token, or API key stored in an environment variable where it might be logged, printed, or committed. Rotate immediately if found.",
+            "World-writable PATH directory": "A directory in PATH where any user can write files. An attacker could place a malicious binary (e.g. a fake 'python') that gets executed instead of the real one.",
+            "SSH key permissions": "Private keys must be readable only by the owner (chmod 600). Overly permissive keys (chmod 644) are rejected by SSH and represent a security risk.",
+            "Secret rotation": "Replacing a compromised credential with a new one and revoking the old one. Must be done immediately after any leak — even if the exposure was brief."
+        },
+        "look_for": [
+            "Leaked secrets in environment variables — tokens, passwords, API keys that shouldn't be in env vars.",
+            "Insecure PATH entries — world-writable directories in PATH allow malicious binary injection.",
+            "Exposed SSH keys — private keys with overly permissive file permissions."
+        ],
+        "actions": [
+            "Red items need immediate attention: rotate any leaked credentials and remove them from your environment.",
+            "For insecure PATH: remove world-writable directories or fix their permissions.",
+            "For SSH keys: run 'chmod 600 ~/.ssh/id_*' to restrict access (Unix) or fix ACLs on Windows.",
+            "Never commit .env files with real secrets — use .env.example with placeholder values instead."
+        ],
+        "common_issues": [
+            "GitHub token in shell history — clear with 'history -c' or remove the specific line.",
+            "World-writable /tmp in PATH — usually safe on Linux but flagged as a potential binary injection vector."
+        ],
+        "related": ["path"]
+    },
+    "precommit_hooks": {
+        "what": "Displays pre-commit hook configuration: installed stages (pre-commit, commit-msg, pre-push), hook IDs, source repos, and languages. Pre-commit hooks enforce code quality before changes leave your machine.",
+        "key_concepts": {
+            "Stages": "Hooks run at different git lifecycle points: pre-commit (before commit), commit-msg (validate message format), pre-push (before push). Each stage has its own set of hooks.",
+            "SHA-pinned repos": "Hook repositories should be pinned to a specific rev/tag for reproducibility. Unpinned repos can change unexpectedly.",
+            "Local hooks": "Hooks defined in-repo (not from external repos). Useful for project-specific checks like custom linters or validators."
+        },
+        "look_for": [
+            "Pre-commit, commit-msg, and pre-push hooks should all be installed. Missing stages mean gaps in your quality gates.",
+            "Total hook count — this project has ~47 hooks across all stages. Fewer may indicate missing configuration.",
+            "Hook installation status — if a stage shows 'Not installed', run the install command.",
+            "Language distribution — hooks in 'system' language depend on external tools being on PATH."
+        ],
+        "actions": [
+            "Install all hooks: 'pre-commit install && pre-commit install --hook-type commit-msg && pre-commit install --hook-type pre-push'.",
+            "Run all hooks manually: 'pre-commit run --all-files'.",
+            "If a hook fails on every commit, check its config in .pre-commit-config.yaml.",
+            "Update hooks to latest versions: 'pre-commit autoupdate'."
+        ],
+        "common_issues": [
+            "Hooks not installed after clone — run the install command above, or use 'task bootstrap'.",
+            "'Failed to find executable' — the hook's language runtime (node, go, ruby) isn't on PATH."
+        ],
+        "related": ["project", "security"]
+    },
+    "ci_cd_status": {
+        "what": "Lists GitHub Actions workflow files, their triggers (push, PR, schedule), SHA-pinning status, and related CI configuration files (Codecov, Dependabot, release-please).",
+        "key_concepts": {
+            "SHA-pinning": "Using a commit SHA instead of a tag for third-party actions (e.g. actions/checkout@abc123 vs actions/checkout@v4). Prevents supply-chain attacks where a tag is moved to malicious code.",
+            "Workflow triggers": "Events that start a workflow: push, pull_request, schedule, workflow_dispatch (manual), release. Understanding triggers helps debug why a workflow did or didn't run.",
+            "CI gate": "A required check that must pass before merging. Typically includes lint, format, typecheck, and test."
+        },
+        "look_for": [
+            "SHA-pinned percentage — 100% is the target. Non-pinned actions are a supply-chain risk.",
+            "Workflow count — this project has ~37 workflows. Fewer may indicate deleted or missing files.",
+            "Missing CI config files — Codecov, Dependabot, and release-please should all be configured.",
+            "Trigger types — ensure push and pull_request triggers cover your main branch."
+        ],
+        "actions": [
+            "If SHA-pinned percentage is below 100%, update workflows to pin third-party actions to commit SHAs.",
+            "Check failing workflows in the GitHub Actions tab of your repository.",
+            "Run 'actionlint' locally to validate workflow YAML syntax before pushing."
+        ],
+        "common_issues": [
+            "Workflow not triggered — check branch filter patterns in the 'on:' block.",
+            "Action version mismatch — SHA pins must be updated when upgrading to a new major version."
+        ],
+        "related": ["project", "security", "precommit_hooks"]
+    },
+    "dependency_health": {
+        "what": "Shows outdated and vulnerable packages in the current environment. Highlights security-critical packages (pip, setuptools, certifi) separately. Includes pip-audit results if available.",
+        "key_concepts": {
+            "Critical packages": "Security-sensitive packages (pip, setuptools, certifi, urllib3) that should always be current. Outdated versions may have known vulnerabilities.",
+            "pip-audit": "A tool that checks installed packages against the OSV vulnerability database. More reliable than manual version checking.",
+            "Dependency groups": "Optional dependency sets defined in pyproject.toml (dev, test, docs). Each group adds packages for a specific purpose."
+        },
+        "look_for": [
+            "Critical outdated packages — update pip, setuptools, and certifi immediately.",
+            "Vulnerability count — any non-zero value needs investigation.",
+            "Total outdated count — a high number suggests the environment hasn't been updated recently.",
+            "Dependency group coverage — ensure dev, test, and docs groups have the packages you need."
+        ],
+        "actions": [
+            "Update critical packages first: 'pip install --upgrade pip setuptools certifi'.",
+            "Run pip-audit manually: 'pip-audit' to check for known vulnerabilities.",
+            "For bulk updates in Hatch: 'hatch env remove default' then 'hatch shell' to rebuild with latest versions.",
+            "Check pyproject.toml dependency pins if a specific version is required."
+        ],
+        "common_issues": [
+            "pip-audit not installed — 'pip install pip-audit' to enable vulnerability scanning.",
+            "Version conflicts after update — recreate the Hatch env: 'hatch env remove default'."
+        ],
+        "related": ["packages", "pip_environments", "security"]
+    },
+    "disk_workspace": {
+        "what": "Breaks down workspace disk usage by directory. Shows cache sizes (__pycache__, .mypy_cache, .ruff_cache, node_modules), largest directories, and total file count.",
+        "key_concepts": {
+            "Cache directories": "Build artifacts and tool caches that accumulate over time: __pycache__ (compiled bytecode), .mypy_cache (type checker), .ruff_cache (linter), .pytest_cache (test results).",
+            "Clean command": "'task clean' or 'python scripts/clean.py' removes all cache directories and build artifacts. Safe to run — they'll be regenerated on next use.",
+            "Workspace size": "Total size of all tracked and untracked files. Large workspaces slow down IDE indexing, git operations, and backup systems."
+        },
+        "look_for": [
+            "Large cache directories — over 50 MB total suggests it's time to run 'task clean'.",
+            "Unexpected large directories — may contain build artifacts, downloaded data, or forgotten files.",
+            "Total file count — very high counts slow down file watchers and IDE indexing.",
+            ".git directory size — large repos with many commits or binary files have slow clones."
+        ],
+        "actions": [
+            "Run 'task clean' to remove all cache directories and build artifacts.",
+            "If .git is large, consider 'git gc --aggressive' to compact the repository.",
+            "Check for large files that shouldn't be committed: 'git ls-files | xargs du -h | sort -rh | head -20'.",
+            "Add large generated directories to .gitignore if they're being tracked accidentally."
+        ],
+        "common_issues": [
+            "node_modules appearing unexpectedly — check if a package.json was created for a tool like prettier or markdownlint.",
+            "Docker build context too large — add large directories to .dockerignore."
+        ],
+        "related": ["filesystem", "project"]
+    },
+    "docs_status": {
+        "what": "Checks MkDocs configuration, documentation file inventory, Architecture Decision Records (ADRs), and broken internal links within docs/.",
+        "key_concepts": {
+            "MkDocs Material": "The documentation framework used by this project. Config is in mkdocs.yml. Serve locally with 'hatch run docs:serve'.",
+            "ADR (Architecture Decision Record)": "A short document recording a significant architecture decision: context, decision, and consequences. Stored in docs/adr/.",
+            "Broken internal links": "Markdown links pointing to files that don't exist. Causes 404 errors in the built documentation site."
+        },
+        "look_for": [
+            "MkDocs installed and config found — both are needed to build the documentation site.",
+            "Broken link count — any broken links should be fixed before deploying docs.",
+            "ADR count — this project has ~44 ADRs. Fewer may mean some were accidentally deleted.",
+            "Documentation file count — compare against the nav entries in mkdocs.yml to find orphaned pages."
+        ],
+        "actions": [
+            "Serve docs locally: 'hatch run docs:serve' — opens at http://127.0.0.1:8000.",
+            "Build and check for errors: 'hatch run docs:build' (strict mode catches warnings).",
+            "Fix broken links by updating the target path or removing stale references.",
+            "When adding a new doc, update mkdocs.yml nav section to include it."
+        ],
+        "common_issues": [
+            "MkDocs not installed in current env — run 'hatch run docs:serve' (uses the docs Hatch env automatically).",
+            "Broken links from renamed files — use grep to find all references: 'grep -r \"old-filename\" docs/'."
+        ],
+        "related": ["project", "disk_workspace"]
+    }
+} %}
+<div class="sections-list" id="sections-list">
+    {% for name, data in sections.items() %}
+    {% if name != "insights" %}
+    <article class="section-card"
+             id="section-{{ name }}"
+             data-section-name="{{ name }}"
+             data-empty="{{ 'true' if not data else 'false' }}">
+        <header>
+            <h4>
+                {{ name|replace("_", " ")|title }}
+                {% if name in section_help %}
+                <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
+                    <button class="section-help-btn" aria-label="What is this?" onclick="event.stopPropagation();this.parentElement.classList.toggle('help-open')" title="What is {{ name|replace('_', ' ') }}?">?</button>
+                    <span class="section-help-tooltip">{{ section_help[name] }}</span>
+                </span>
+                {% endif %}
+            </h4>
+            <span id="spinner-{{ name }}" class="htmx-indicator spinner" aria-busy="true"></span>
+            <button class="outline secondary section-refresh"
+                    hx-get="/section/{{ name }}?redact={{ redact_level }}"
+                    hx-target="#section-body-{{ name }}"
+                    hx-swap="innerHTML"
+                    aria-label="Refresh {{ name }}">
+                Refresh
+            </button>
+        </header>
+        {% if name in section_guide %}
+        <details class="section-guide" onclick="event.stopPropagation()">
+            <summary><span class="section-guide-icon"></span> Guide</summary>
+            <div class="section-guide-body">
+                <p class="section-guide-what">{{ section_guide[name].what }}</p>
+                {% if section_guide[name].key_concepts %}
+                <div class="section-guide-block section-guide-concepts">
+                    <strong>Key concepts</strong>
+                    <dl class="section-guide-dl">
+                    {% for term, defn in section_guide[name].key_concepts.items() %}
+                        <dt>{{ term }}</dt>
+                        <dd>{{ defn }}</dd>
+                    {% endfor %}
+                    </dl>
+                </div>
+                {% endif %}
+                {% if section_guide[name].look_for %}
+                <div class="section-guide-block">
+                    <strong>What to look for</strong>
+                    <ul>
+                    {% for item in section_guide[name].look_for %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if section_guide[name].actions %}
+                <div class="section-guide-block">
+                    <strong>Recommended actions</strong>
+                    <ul>
+                    {% for item in section_guide[name].actions %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if section_guide[name].common_issues %}
+                <div class="section-guide-block">
+                    <strong>Common issues</strong>
+                    <ul>
+                    {% for item in section_guide[name].common_issues %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if section_guide[name].related %}
+                <div class="section-guide-related">
+                    <strong>Related:</strong>
+                    {% for rel in section_guide[name].related %}
+                    <a href="#section-{{ rel }}" class="section-guide-link">{{ rel|replace("_", " ")|title }}</a>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </details>
+        {% endif %}
+        <div class="section-card-body" id="section-body-{{ name }}"
+             hx-get="/section/{{ name }}?redact={{ redact_level }}"
+             hx-trigger="load, scan-complete from:body"
+             hx-swap="innerHTML"
+             hx-indicator="#spinner-{{ name }}">
+            <div class="section-loading">
+                <span aria-busy="true">Loading...</span>
+            </div>
+        </div>
+    </article>
+    {% endif %}
+    {% endfor %}
+</div>
+
+{# --- Quick Actions panel --- #}
+<article class="section-card" id="quick-actions" data-section-name="quick_actions" data-empty="false">
+    <header>
+        <h4>
+            Quick Actions
+            <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
+                <button class="section-help-btn" aria-label="What is this?" onclick="event.stopPropagation();this.parentElement.classList.toggle('help-open')" title="What are quick actions?">?</button>
+                <span class="section-help-tooltip">Development commands and repository scripts. Click any command to copy it, then paste into a terminal. Scripts prefixed with 'python scripts/' are specific to this boilerplate repository.</span>
+            </span>
+        </h4>
+    </header>
+
+    {# --- Guide for Quick Actions --- #}
+    <details class="section-guide" onclick="event.stopPropagation()">
+        <summary><span class="section-guide-icon"></span> Guide</summary>
+        <div class="section-guide-body">
+            <p class="section-guide-what">One-click copy for every development command in this repository. Organised by category: quality gates you run daily, diagnostic scripts for troubleshooting, and maintenance utilities for keeping the repo healthy.</p>
+            <div class="section-guide-block section-guide-concepts">
+                <strong>Key concepts</strong>
+                <dl class="section-guide-dl">
+                    <dt>Hatch commands</dt>
+                    <dd>Commands prefixed with <code>hatch run</code> execute inside the Hatch-managed virtual environment. They work in any repo that uses Hatch.</dd>
+                    <dt>Repository scripts</dt>
+                    <dd>Commands prefixed with <code>python scripts/</code> are custom to this boilerplate project. They will not exist in repos that forked and removed the scripts/ directory.</dd>
+                    <dt>Quality gates</dt>
+                    <dd>The set of checks (lint, format, typecheck, test) that must all pass before code is accepted. <code>hatch run check</code> runs them all in one go.</dd>
+                </dl>
+            </div>
+            <div class="section-guide-block">
+                <strong>What to look for</strong>
+                <ul>
+                    <li>Start with the Quality Gates section — these are the commands you'll use most often.</li>
+                    <li>Use Diagnostics scripts when something isn't working and you need to troubleshoot.</li>
+                    <li>Run Maintenance scripts periodically to keep deps updated and artifacts cleaned.</li>
+                </ul>
+            </div>
+            <div class="section-guide-block">
+                <strong>Common issues</strong>
+                <ul>
+                    <li>Script not found — if you forked this template and removed scripts/, the <code>python scripts/</code> commands won't work.</li>
+                    <li>Hatch not installed — install with <code>pipx install hatch</code> or <code>pip install hatch</code>.</li>
+                    <li>Wrong env — run <code>hatch shell</code> first to activate the dev environment.</li>
+                </ul>
+            </div>
+        </div>
+    </details>
+
+    <div class="section-card-body">
+        {# --- Boilerplate scripts warning --- #}
+        <div class="quick-actions-warning">
+            <strong>Note:</strong> Commands under Diagnostics, Maintenance, and CI/Container use custom scripts from this boilerplate's <code>scripts/</code> directory.
+            If this dashboard is running against a different repository, those scripts may not exist.
+        </div>
+
+        {# --- Quality Gates --- #}
+        <h5 style="margin-top: 0;">Quality Gates</h5>
+        <div class="quick-actions-grid" style="margin-bottom: var(--gap-lg);">
+            <div class="quick-action-card">
+                <span class="quick-action-title">Run All Checks</span>
+                <span class="quick-action-desc">Lint + format + typecheck + test — the full gate</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run check')">hatch run check</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Run Tests</span>
+                <span class="quick-action-desc">Execute the test suite with pytest</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run test')">hatch run test</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Tests + Coverage</span>
+                <span class="quick-action-desc">Run tests and generate a coverage report</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run test-cov')">hatch run test-cov</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Lint</span>
+                <span class="quick-action-desc">Check code quality with Ruff linter</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run lint')">hatch run lint</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Lint &amp; Auto-fix</span>
+                <span class="quick-action-desc">Fix linting issues automatically</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run lint-fix')">hatch run lint-fix</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Format</span>
+                <span class="quick-action-desc">Apply Ruff code formatting</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run fmt')">hatch run fmt</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Format Check</span>
+                <span class="quick-action-desc">Check formatting without applying changes</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run fmt-check')">hatch run fmt-check</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Type Check</span>
+                <span class="quick-action-desc">Run mypy strict type checking</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run typecheck')">hatch run typecheck</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Security Scan</span>
+                <span class="quick-action-desc">Run Bandit security linter on source</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run bandit -r src/')">hatch run bandit -r src/</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Pre-commit All</span>
+                <span class="quick-action-desc">Run all pre-commit hooks on all files</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run pre-commit run --all-files')">hatch run pre-commit run --all-files</code>
+            </div>
+        </div>
+
+        {# --- Diagnostics --- #}
+        <details open>
+            <summary><strong>Diagnostics</strong> <span class="badge">7</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Doctor (All)</span>
+                    <span class="quick-action-desc">Unified health check — runs all doctor scripts</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/doctor.py')">python scripts/doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Env Doctor</span>
+                    <span class="quick-action-desc">Development environment health diagnostics</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/env_doctor.py')">python scripts/env_doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Git Doctor</span>
+                    <span class="quick-action-desc">Git-focused health check and info dashboard</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/git_doctor.py')">python scripts/git_doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Repo Doctor</span>
+                    <span class="quick-action-desc">Repo structure health checker (rule-driven)</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/repo_doctor.py')">python scripts/repo_doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Env Inspector</span>
+                    <span class="quick-action-desc">Environment, packages, and PATH inspection</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/env_inspect.py')">python scripts/env_inspect.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Repo Stats</span>
+                    <span class="quick-action-desc">Repository statistics — file counts, git history, sizes</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/repo_sauron.py')">python scripts/repo_sauron.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Check Python Support</span>
+                    <span class="quick-action-desc">Validate Python version consistency across configs</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/check_python_support.py')">python scripts/check_python_support.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- Documentation --- #}
+        <details>
+            <summary><strong>Documentation</strong> <span class="badge">3</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Serve Docs</span>
+                    <span class="quick-action-desc">Live-reload MkDocs development server</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch run docs:serve')">hatch run docs:serve</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Build Docs</span>
+                    <span class="quick-action-desc">Build documentation site (strict mode)</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch run docs:build')">hatch run docs:build</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Generate Command Ref</span>
+                    <span class="quick-action-desc">Regenerate docs/reference/commands.md</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/generate_command_reference.py')">python scripts/generate_command_reference.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- Maintenance --- #}
+        <details>
+            <summary><strong>Maintenance</strong> <span class="badge">8</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Bootstrap</span>
+                    <span class="quick-action-desc">One-command setup for fresh clones</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/bootstrap.py')">python scripts/bootstrap.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Clean</span>
+                    <span class="quick-action-desc">Remove build artifacts and caches</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/clean.py')">python scripts/clean.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Dep Versions</span>
+                    <span class="quick-action-desc">Show dependency versions and update status</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/dep_versions.py show')">python scripts/dep_versions.py show</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Workflow Versions</span>
+                    <span class="quick-action-desc">Show SHA-pinned GitHub Actions and versions</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/workflow_versions.py')">python scripts/workflow_versions.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Customize Template</span>
+                    <span class="quick-action-desc">Interactive project customization wizard</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/customize.py')">python scripts/customize.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Apply Labels</span>
+                    <span class="quick-action-desc">Apply GitHub labels from JSON definitions</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/apply_labels.py')">python scripts/apply_labels.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Archive TODOs</span>
+                    <span class="quick-action-desc">Archive completed TODO items from todo.md</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/archive_todos.py')">python scripts/archive_todos.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Check TODOs</span>
+                    <span class="quick-action-desc">Scan for TODO (template users) comments</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/check_todos.py')">python scripts/check_todos.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- CI & Container --- #}
+        <details>
+            <summary><strong>CI &amp; Container</strong> <span class="badge">4</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Test Containerfile</span>
+                    <span class="quick-action-desc">Build and validate the container image</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/test_containerfile.py')">python scripts/test_containerfile.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Test Docker Compose</span>
+                    <span class="quick-action-desc">Build and validate the compose stack</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/test_docker_compose.py')">python scripts/test_docker_compose.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Changelog Check</span>
+                    <span class="quick-action-desc">Validate CHANGELOG.md has a current-PR entry</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/changelog_check.py')">python scripts/changelog_check.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Check Known Issues</span>
+                    <span class="quick-action-desc">Flag stale Resolved entries in known-issues.md</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/check_known_issues.py')">python scripts/check_known_issues.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- Hatch Environment --- #}
+        <details>
+            <summary><strong>Hatch Environment</strong> <span class="badge">4</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Enter Shell</span>
+                    <span class="quick-action-desc">Activate the Hatch dev environment</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch shell')">hatch shell</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Show Envs</span>
+                    <span class="quick-action-desc">List all Hatch environments</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch env show')">hatch env show</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Show Version</span>
+                    <span class="quick-action-desc">Display the current project version</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch version')">hatch version</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Build Package</span>
+                    <span class="quick-action-desc">Build source and wheel distributions</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch build')">hatch build</code>
+                </div>
+            </div>
+        </details>
+    </div>
+</article>
+
+{# --- Raw JSON viewer (collapsed) --- #}
+<details class="json-viewer-details" id="raw-json">
+    <summary>Raw JSON</summary>
+    <div class="json-viewer">
+        <button class="copy-btn copy-btn-labeled" @click="copyClip($event, JSON.stringify({{ report|tojson }}, null, 2))">
+            Copy JSON
+        </button>
+        <pre><code>{{ report|tojson(indent=2) }}</code></pre>
+    </div>
+</details>
+{% endblock %}

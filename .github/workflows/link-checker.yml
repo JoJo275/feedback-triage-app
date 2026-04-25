@@ -1,0 +1,124 @@
+# ──────────────────────────────────────────────────────────────
+# Link Checker Workflow
+# ──────────────────────────────────────────────────────────────
+# Checks all Markdown and HTML files for broken links (internal
+# and external). Uses lychee, a fast async link checker written
+# in Rust.
+#
+# Triggers:
+#   - Push to main (when docs or markdown change)
+#   - Pull requests targeting main (when docs or markdown change)
+#   - Weekly schedule (catch external link rot)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_LINK_CHECKER = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Create a .lycheeignore file to exclude known
+#      false positives (e.g. localhost URLs, placeholder links).
+# ──────────────────────────────────────────────────────────────
+
+name: Link Checker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "**/*.html"
+      - "docs/**"
+      - ".lycheeignore"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "**/*.html"
+      - "docs/**"
+      - ".lycheeignore"
+  schedule:
+    # Cron is a Unix time-scheduling syntax and the only way to
+    # define scheduled triggers in GitHub Actions. It uses five
+    # fields (all in UTC):
+    #
+    #   ┌─── minute (0–59)
+    #   │ ┌─── hour (0–23)
+    #   │ │ ┌─── day of month (1–31)
+    #   │ │ │ ┌─── month (1–12)
+    #   │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    #   │ │ │ │ │
+    #   * * * * *
+    #
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
+    #   09:00 UTC = 04:00 EST (Nov–Mar) / 05:00 EDT (Mar–Nov)
+    - cron: "0 9 * * 1"  # Every Monday at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  link-check:
+    name: Check links
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_LINK_CHECKER = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_LINK_CHECKER == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Check links with lychee
+        # NOTE: Link checks on release-please branches will likely report
+        # false positives. Release-please updates CHANGELOG.md with compare
+        # URLs (e.g. v0.4.0...v0.5.0) before the tag exists, so those URLs
+        # 404 until the release PR is merged. The .lycheeignore file
+        # excludes the compare URL pattern, but other release-related links
+        # (like a release page URL) may also fail transiently.
+        # This is expected — review failures on release-please branches
+        # carefully before treating them as real issues.
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # Quickly check links in Markdown, HTML, and… (v2.8.0)
+        with:
+          # Check all markdown and HTML files
+          args: >-
+            --verbose
+            --no-progress
+            --accept 200,204,301,302,429,503
+            --max-retries 3
+            --retry-wait-time 5
+            --exclude-loopback
+            --exclude '^https://github\.com/.*/edit/'
+            --exclude '^https://github\.com/.*/new/'
+            --exclude-path 'tools/dev_tools/env_dashboard/templates'
+            '**/*.md'
+            '**/*.html'
+          # Fail on PRs (catch regressions) but not on schedule
+          # (external link rot is advisory, not a blocker).
+          # Also don't fail on release-please branches — they contain
+          # CHANGELOG links to tags that don't exist yet.
+          fail: >-
+            ${{
+              github.event_name != 'schedule'
+              && !startsWith(github.head_ref || '', 'release-please')
+            }}

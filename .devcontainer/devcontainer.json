@@ -1,0 +1,177 @@
+// =============================================================================
+// Dev Container Configuration
+// =============================================================================
+// Provides a consistent, pre-configured development environment for VS Code.
+//
+// Usage:
+//   1. Install the "Dev Containers" extension in VS Code
+//   2. Open the command palette (Ctrl+Shift+P / Cmd+Shift+P)
+//   3. Run "Dev Containers: Reopen in Container"
+//
+// To exit the container and return to local development:
+//   • Command palette → "Dev Containers: Reopen Folder Locally"
+//   • Or simply close the VS Code window (the container stops automatically)
+//
+// Or use GitHub Codespaces — this config works automatically there.
+//
+// This is for DEVELOPMENT. The Containerfile at the repo root is for
+// PRODUCTION — it builds a minimal runtime image without dev tools.
+//
+// ── How settings work inside the container ──────────────────────────────
+//
+// .vscode/settings.json is loaded automatically inside the container
+// (it's part of the mounted workspace). That file is the single source
+// of truth for all functional settings (formatters, linters, test config,
+// etc.). The "settings" block below should contain ONLY container-specific
+// overrides that differ from the local environment — e.g. the Linux
+// terminal profile, which doesn't apply on Windows.
+//
+// TODO (template users): Update "name" to match your project. Review
+//   extensions and postCreateCommand for your stack.
+//
+// See: https://containers.dev/implementors/json_reference/
+// =============================================================================
+{
+  "name": "simple-python-boilerplate",
+
+  // Use the official Python dev container image (includes pip, venv, git, etc.)
+  //
+  // Python 3.12 is chosen because:
+  //   • It's the stable middle version in our support range (3.11–3.13)
+  //   • 3.11 is approaching end-of-life, 3.13 is newest (less battle-tested)
+  //   • The Containerfile also uses 3.12 for consistency
+  //
+  // TODO (template users): Update the Python version to match your project's
+  //   minimum or primary version (see pyproject.toml [project.requires-python]).
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+
+  // Additional tools installed via dev container features
+  // See: https://containers.dev/features
+  "features": {
+    // Node.js — required for some pre-commit hooks (e.g., markdownlint, prettier)
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    // Task runner — for running Taskfile.yml commands
+    "ghcr.io/devcontainers-extra/features/go-task:1": {}
+  },
+
+  // Container environment variables
+  "containerEnv": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1"
+  },
+
+  // Run after container creation (first time only)
+  // Upgrades pip first (the base image ships an older pip), then installs
+  // Hatch and sets up the dev environment per project conventions.
+  "postCreateCommand": "pip install --upgrade pip && pip install hatch && hatch env create default && hatch run pre-commit install --install-hooks && hatch run pre-commit install --hook-type commit-msg && hatch run pre-commit install --hook-type pre-push",
+
+  // VS Code customizations
+  "customizations": {
+    "vscode": {
+      // Extensions to install in the container.
+      //
+      // This list mirrors .vscode/extensions.json (and the .code-workspace
+      // recommendations) so the container has the same extensions as local
+      // development. Dev Containers install extensions from this list, NOT
+      // from .vscode/extensions.json — so they must be listed here explicitly.
+      "extensions": [
+        // ── Python ──────────────────────────────────────────
+        // IntelliSense, debugging, interpreter management
+        "ms-python.python",
+        // Fast type-aware IntelliSense via Pyright
+        "ms-python.vscode-pylance",
+        // Real-time mypy strict-mode feedback
+        "ms-python.mypy-type-checker",
+        // Linting + format-on-save (mirrors CI ruff checks)
+        "charliermarsh.ruff",
+
+        // ── Markdown ────────────────────────────────────────
+        // Inline Markdown lint errors from .markdownlint-cli2.jsonc
+        "DavidAnson.vscode-markdownlint",
+        // Formatter for Markdown, YAML, and JSON
+        "esbenp.prettier-vscode",
+        // Renders ```mermaid blocks in Markdown preview
+        "bierner.markdown-mermaid",
+
+        // ── TOML / YAML ────────────────────────────────────
+        // Syntax highlighting + validation for pyproject.toml, etc.
+        "tamasfe.even-better-toml",
+        // YAML validation + schema support for workflows, mkdocs, etc.
+        "redhat.vscode-yaml",
+
+        // ── Git ─────────────────────────────────────────────
+        // Blame annotations, file history, and visual diffs
+        "eamodio.gitlens",
+
+        // ── CI / GitHub Actions ─────────────────────────────
+        // Workflow syntax validation and run status
+        "GitHub.vscode-github-actions",
+
+        // ── Task runner ─────────────────────────────────────
+        // Sidebar integration for Taskfile.yml
+        "task.vscode-task",
+
+        // ── General ─────────────────────────────────────────
+        // Applies .editorconfig rules (indent, charset, whitespace)
+        "EditorConfig.EditorConfig",
+        // Real-time typo detection in code and comments
+        "streetsidesoftware.code-spell-checker",
+
+        // ── Quality of Life ─────────────────────────────────
+        // Colourises TODO, FIXME, HACK comments
+        "aaron-bond.better-comments",
+        // Shows errors/warnings inline at end of line
+        "usernamehw.errorlens",
+        // AI assistant with project-specific instructions
+        "github.copilot-chat",
+        // Coloured backgrounds per indentation level
+        "oderwat.indent-rainbow",
+        // Bold guide line at the active indent depth
+        "sirtori.indenticator",
+        // Visual interpreter/env switcher sidebar
+        "ms-python.vscode-python-envs",
+        // SQL formatter for db/ files
+        "inferrinizzard.prettier-sql-vscode",
+        // Column-colourised CSV/TSV viewer with query support
+        "mechatroner.rainbow-csv",
+        // Dockerfile syntax, build/run commands, image explorer
+        "ms-azuretools.vscode-docker",
+        // Advanced Markdown preview with diagrams and export
+        "shd101wyy.markdown-preview-enhanced",
+        // Visualises CSS/web colour codes inline
+        "kamikillerto.vscode-colorize",
+        // Markdown shortcuts, TOC generation, auto-preview
+        "yzhang.markdown-all-in-one",
+        // Click to toggle Markdown checkboxes with coloured highlights
+        "kyuukab.markclick-md",
+        // Live-reload dev server for HTML/CSS/JS preview
+        "yandeu.five-server",
+        // Microsoft Live Preview — embedded browser preview for HTML files
+        "ms-vscode.live-server"
+      ],
+
+      // Container-specific setting overrides.
+      //
+      // .vscode/settings.json handles all functional settings (formatters,
+      // linters, test config, editor rules, etc.) — it loads automatically
+      // inside the container. Only settings that MUST differ in the
+      // container environment belong here.
+      "settings": {
+        // The container runs Linux — set the default terminal to bash.
+        // (.vscode/settings.json doesn't set a Linux terminal profile
+        // because local development is on Windows.)
+        "terminal.integrated.defaultProfile.linux": "bash",
+        // Use integrated browser for Live Preview so requests fire properly.
+        "livePreview.defaultPreviewType": "internalBrowser"
+      }
+    }
+  },
+
+  // Forward ports (uncomment if your app runs a server)
+  // "forwardPorts": [8000],
+
+  // Run as non-root user (matches the vscode user in the base image)
+  "remoteUser": "vscode"
+}

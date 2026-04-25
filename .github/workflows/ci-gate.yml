@@ -1,0 +1,210 @@
+# ──────────────────────────────────────────────────────────────
+# CI Gate — single "all-green" status check
+# ──────────────────────────────────────────────────────────────
+# This is a lightweight fan-in workflow.  It does NOT replace or
+# absorb your individual workflow files — every workflow keeps its
+# own triggers, permissions, and independent logic.
+#
+# What it does:
+#   After your PR check workflows finish, this job inspects the
+#   GitHub Checks API to verify that every required check passed.
+#   It reports a single "CI / gate" status.
+#
+# Why:
+#   In branch protection you set ONE required check ("gate")
+#   instead of listing every workflow individually.  Adding or
+#   removing a workflow then only requires editing the list below
+#   — no branch-protection settings changes needed.
+#
+# Setup:
+#   1. Edit REQUIRED_CHECKS below to match your job names.
+#   2. In Settings → Branches → main → "Require status checks":
+#        • Add:   "gate"  (from this workflow)
+#        • Remove the individual workflow check names
+#
+# Adding / removing a required check:
+#   To REQUIRE a new workflow: add its job name string to
+#   ALWAYS_REQUIRED (runs on both push + PR) or PR_ONLY_REQUIRED
+#   (runs only on pull_request) in the script below.
+#   To STOP requiring a workflow: delete (or comment out) its
+#   entry from the relevant array. That's it — no branch-protection
+#   changes needed. The workflow itself keeps running; it just
+#   won't block the gate anymore.
+#
+# Why two lists?
+#   Some workflows (dependency-review, pr-title, commit-lint) only
+#   trigger on pull_request events — they never run on push to main.
+#   If the gate required them on push, it would poll forever and
+#   time out, making the CI badge show "failing" even though all
+#   real checks passed.
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_CI_GATE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+# ──────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  # Also run on push to main so the status is always present
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read          # Read check-run results for the commit
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: gate
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_CI_GATE == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Wait for required checks
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # Run simple scripts using the GitHub API (v7.0.1)
+        with:
+          # -----------------------------------------------------------------
+          # REQUIRED_CHECKS: list the job *names* that must pass.
+          # These are the `jobs.<key>.name:` values (or the key itself when
+          # name: is absent) from your other workflow files.
+          #
+          # Each required workflow's name: line is tagged with
+          # `# ci-gate: required` — grep for that marker to audit
+          # which workflows are coupled to this gate.
+          #
+          # Path-filtered workflows (bandit, link-checker) are intentionally
+          # excluded — they may not run on every PR so requiring them would
+          # block unrelated changes.
+          #
+          # Conversely, the required workflows listed below must NOT use
+          # paths-ignore or paths filters. GitHub treats path-filtered
+          # (skipped) checks as "pending" — not "success" — so the gate
+          # would poll forever and time out on docs-only or config-only PRs.
+          # -----------------------------------------------------------------
+          script: |
+            // Checks required on EVERY trigger (push + PR)
+            const ALWAYS_REQUIRED = [
+              // Core quality
+              'Ruff (lint & format)',      // lint-format.yml → lint
+              'mypy (strict)',             // type-check.yml → type-check
+              'Spell check (codespell)',   // spellcheck.yml → spellcheck
+              'Test + upload coverage',    // coverage.yml → coverage
+
+              // Tests — one entry per matrix leg
+              'Test (Python 3.11)',        // test.yml → test
+              'Test (Python 3.12)',
+              'Test (Python 3.13)',
+
+              // Security
+              'pip-audit',                 // security-audit.yml → audit
+
+              // Container (build only — scans are non-blocking by design)
+              'Build container image',     // container-build.yml → build
+
+              // Documentation
+              'Build docs',                // docs-build.yml → build
+            ];
+
+            // Checks required only on pull_request events.
+            // These workflows don't trigger on push to main, so
+            // requiring them on push would cause a permanent timeout.
+            const PR_ONLY_REQUIRED = [
+              'Scan dependencies',         // dependency-review.yml → dependency-review
+              'Conventional commit check', // pr-title.yml → lint-title
+              'Validate commit messages',  // commit-lint.yml → lint-commits
+            ];
+
+            const isPR = !!context.payload.pull_request;
+            const REQUIRED_CHECKS = isPR
+              ? [...ALWAYS_REQUIRED, ...PR_ONLY_REQUIRED]
+              : ALWAYS_REQUIRED;
+
+            if (!isPR) {
+              core.info('Push event detected — skipping PR-only checks: ' +
+                PR_ONLY_REQUIRED.join(', '));
+            }
+
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const sha   = context.payload.pull_request?.head?.sha
+                       || context.sha;
+
+            core.info(`Waiting for checks on ${sha}`);
+
+            // Poll until all required checks have a conclusion or timeout
+            const MAX_ATTEMPTS = 120;   // 120 × 15s = 30 min ceiling
+            const POLL_SECONDS = 15;    // Lower = faster feedback, more API calls
+
+            for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+              const { data: { check_runs } } =
+                await github.rest.checks.listForRef({
+                  owner, repo, ref: sha, per_page: 100,
+                });
+
+              const results = new Map();
+              for (const run of check_runs) {
+                // Use the latest result if a check was re-run
+                if (!results.has(run.name) ||
+                    new Date(run.completed_at) >
+                    new Date(results.get(run.name).completed_at)) {
+                  results.set(run.name, run);
+                }
+              }
+
+              let allDone   = true;
+              let allPassed = true;
+              const summary = [];
+
+              for (const name of REQUIRED_CHECKS) {
+                const run = results.get(name);
+                if (!run || run.status !== 'completed') {
+                  allDone = false;
+                  summary.push(`⏳ ${name}: pending`);
+                } else if (run.conclusion === 'success' ||
+                           run.conclusion === 'skipped') {
+                  summary.push(`✅ ${name}: ${run.conclusion}`);
+                } else {
+                  allPassed = false;
+                  summary.push(`❌ ${name}: ${run.conclusion}`);
+                }
+              }
+
+              core.info(`── Attempt ${attempt}/${MAX_ATTEMPTS} ──`);
+              for (const line of summary) core.info(line);
+
+              if (allDone) {
+                if (allPassed) {
+                  core.info('\nAll required checks passed.');
+                  return;
+                }
+                core.setFailed(
+                  'One or more required checks failed — see summary above.'
+                );
+                return;
+              }
+
+              core.info(`\nSome checks still running, retrying in ${POLL_SECONDS}s…`);
+              await new Promise(r => setTimeout(r, POLL_SECONDS * 1000));
+            }
+
+            core.setFailed('Timed out waiting for required checks.');

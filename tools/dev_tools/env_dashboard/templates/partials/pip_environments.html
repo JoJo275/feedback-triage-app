@@ -1,0 +1,208 @@
+{% from "partials/_macros.html" import kv_row, status_badge %}
+
+{# --- Summary badges --- #}
+{% set summ = data.summary or {} %}
+<div class="packages-summary">
+    <span class="badge">{{ summ.total_environments|default(0) }} environments</span>
+    <span class="badge">{{ summ.total_packages|default(0) }} packages</span>
+    {% if summ.total_outdated|default(0) > 0 %}
+    <span class="badge badge-warn">{{ summ.total_outdated }} outdated</span>
+    {% else %}
+    <span class="badge badge-pass">all up to date</span>
+    {% endif %}
+    {% if summ.languages_detected %}
+    <span class="badge badge-info">{{ summ.languages_detected|length }} other languages</span>
+    {% endif %}
+</div>
+
+{# --- Python Installations --- #}
+{% if data.python_installs %}
+<h5>Python Installations</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Version</th><th>Path</th><th>Source</th><th>Active</th></tr>
+    </thead>
+    <tbody>
+        {% for inst in data.python_installs %}
+        <tr>
+            <td>{{ inst.version|default("—") }}</td>
+            <td class="mono"><small>{{ inst.path }}</small>
+                <button class="copy-btn" data-clip="{{ inst.path|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy path"></button>
+            </td>
+            <td>{{ inst.source|default("") }}</td>
+            <td>
+                {% if inst.is_current %}
+                <span class="badge badge-pass">current</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{# --- Environments with packages --- #}
+{% for env in data.environments|default([]) %}
+<details {% if loop.first %}open{% endif %} class="env-details">
+    <summary class="env-summary">
+        <strong>{{ env.name }}</strong>
+        <span class="badge">{{ env.type }}</span>
+        {% if env.python_version %}
+        <span class="badge badge-info">Python {{ env.python_version }}</span>
+        {% endif %}
+        <span class="badge">{{ env.package_count|default(0) }} pkgs</span>
+        {% if env.outdated_count|default(0) > 0 %}
+        <span class="badge badge-warn">{{ env.outdated_count }} outdated</span>
+        <button class="update-all-btn"
+                @click.stop="updateAllOutdated($el, '{{ env.python_exe|default('')|e }}')"
+                title="Update all outdated packages">
+            &#x21bb; Update All
+        </button>
+        {% endif %}
+    </summary>
+
+    <div class="env-meta">
+        {% if env.python_exe %}
+        <small class="mono">Python: {{ env.python_exe }}</small>
+        {% endif %}
+        {% if env.path %}
+        <small class="mono">Path: {{ env.path }}</small>
+        {% endif %}
+    </div>
+
+    {# --- Package search filter --- #}
+    <div class="pkg-filter">
+        <input type="search"
+               placeholder="Filter packages..."
+               @input="$el.closest('details').querySelectorAll('tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes($el.value.toLowerCase()) ? '' : 'none')"
+               aria-label="Filter packages in {{ env.name }}">
+        <label class="outdated-only-toggle">
+            <input type="checkbox"
+                   @change="$el.closest('details').querySelectorAll('tbody tr').forEach(r => { if($el.checked) { r.style.display = r.dataset.outdated === 'true' ? '' : 'none'; } else { r.style.display = ''; } })">
+            Outdated only
+        </label>
+    </div>
+
+    {% if env.packages %}
+    <table class="kv-table striped pkg-table">
+        <thead>
+            <tr>
+                <th>Package</th>
+                <th>Version</th>
+                <th>Latest</th>
+                <th>Update</th>
+                <th>Uninstall</th>
+                <th>Move</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pkg in env.packages %}
+            <tr data-outdated="{{ 'true' if pkg.update_available else 'false' }}"
+                data-pkg-name="{{ pkg.name|e }}"
+                class="{% if pkg.update_available %}pkg-outdated{% endif %}">
+                <td class="mono">
+                    {{ pkg.name }}
+                    <button class="copy-btn" data-clip="{{ pkg.name|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy name"></button>
+                </td>
+                <td>{{ pkg.version }}</td>
+                <td>
+                    {% if pkg.update_available and pkg.latest_version %}
+                    <span class="badge badge-warn">{{ pkg.latest_version }}</span>
+                    {% elif pkg.update_available %}
+                    <span class="badge badge-warn">update available</span>
+                    {% else %}
+                    <span class="muted">up to date</span>
+                    {% endif %}
+                </td>
+                <td class="pkg-action-cell">
+                    {% if pkg.update_available %}
+                    <button class="outline secondary btn-xs pip-action-btn"
+                            @click="pipAction('update', '{{ pkg.name|e }}', '{{ env.python_exe|default('')|e }}')"
+                            title="Update {{ pkg.name }}">
+                        Update
+                    </button>
+                    {% else %}
+                    <span class="muted">—</span>
+                    {% endif %}
+                </td>
+                <td class="pkg-action-cell">
+                    <button class="outline btn-xs pip-action-btn pip-uninstall"
+                            @click="pipAction('uninstall', '{{ pkg.name|e }}', '{{ env.python_exe|default('')|e }}')"
+                            title="Uninstall {{ pkg.name }}">
+                        Uninstall
+                    </button>
+                </td>
+                <td class="pkg-action-cell">
+                    <select class="pkg-move-select"
+                            @change="if($el.value) { pipAction('move', '{{ pkg.name|e }}', '{{ env.python_exe|default('')|e }}', $el.value); $el.value=''; }"
+                            title="Move {{ pkg.name }} to another environment">
+                        <option value="">Move to…</option>
+                        {% for other_env in data.environments|default([]) %}
+                        {% if other_env.name != env.name and other_env.python_exe %}
+                        <option value="{{ other_env.python_exe|e }}">{{ other_env.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No packages found.</p>
+    {% endif %}
+</details>
+{% endfor %}
+
+{# --- pipx packages --- #}
+{% if data.pipx_packages %}
+<h5>pipx Packages</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Package</th><th>Version</th><th>Python</th><th>Apps</th></tr>
+    </thead>
+    <tbody>
+        {% for pkg in data.pipx_packages %}
+        <tr>
+            <td class="mono">{{ pkg.name }}</td>
+            <td>{{ pkg.version }}</td>
+            <td>{{ pkg.python_version|default("—") }}</td>
+            <td>
+                {% if pkg.apps %}
+                <small>{{ pkg.apps|join(", ") }}</small>
+                {% else %}
+                <span class="muted">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{# --- Other Language Ecosystems --- #}
+{% if data.language_ecosystems %}
+<h5>Other Language Ecosystems</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Language</th><th>Version</th><th>Path</th><th>Package Managers</th></tr>
+    </thead>
+    <tbody>
+        {% for eco in data.language_ecosystems %}
+        <tr>
+            <td><strong>{{ eco.language }}</strong></td>
+            <td>{{ eco.version|default("—") }}</td>
+            <td class="mono"><small>{{ eco.executable }}</small></td>
+            <td>
+                {% for inst in eco.installers|default([]) %}
+                <span class="badge">{{ inst.name }}{% if inst.version %} {{ inst.version }}{% endif %}</span>
+                {% endfor %}
+                {% if not eco.installers %}
+                <span class="muted">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

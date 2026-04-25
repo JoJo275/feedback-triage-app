@@ -1,0 +1,147 @@
+# ──────────────────────────────────────────────────────────────
+# Welcome Workflow
+# ──────────────────────────────────────────────────────────────
+# Posts a friendly welcome comment on first-time contributors'
+# first issue or pull request. Uses github-script (already
+# SHA-pinned in this project) to detect first interactions via
+# the GitHub Search API and post customizable messages.
+#
+# Triggers:
+#   - Issues (opened)
+#   - Pull requests (opened) via pull_request_target
+#
+# Not in CI gate — community engagement, not a quality check.
+# No workflow_dispatch — requires issue/PR context to function.
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_WELCOME = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Customize the ISSUE_MESSAGE and PR_MESSAGE strings below
+#      to match your project's tone and contribution guidelines.
+# ──────────────────────────────────────────────────────────────
+
+name: Welcome
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+# No concurrency group — each welcome is unique to an issue/PR
+# and these events don't overlap meaningfully.
+
+jobs:
+  welcome:
+    name: Welcome first-time contributors
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_WELCOME = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_WELCOME == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Welcome first-time contributor
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # Run simple scripts using the GitHub API (v7.0.1)
+        with:
+          script: |
+            // ── Customisable messages ─────────────────────────────
+            // TODO (template users): Edit these messages to match
+            // your project's tone, contribution guide URL, and
+            // community norms.
+
+            const ISSUE_MESSAGE = [
+              "👋 Thanks for opening your first issue — welcome!",
+              "",
+              "A maintainer will review it soon. In the meantime, please make sure you've:",
+              "",
+              "- [ ] Searched [existing issues](../issues) to avoid duplicates",
+              "- [ ] Included steps to reproduce (if reporting a bug)",
+              "- [ ] Specified your environment (OS, Python version, etc.)",
+              "",
+              "If you're interested in contributing a fix, PRs are welcome! 🎉",
+            ].join("\n");
+
+            const PR_MESSAGE = [
+              "👋 Thanks for your first pull request — welcome!",
+              "",
+              "A maintainer will review it as soon as possible.",
+              "While you wait, please double-check:",
+              "",
+              "- [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/) format",
+              "- [ ] Tests pass locally (`task test`)",
+              "- [ ] New code includes type hints and docstrings where appropriate",
+              "",
+              "We appreciate your contribution! 🙌",
+            ].join("\n");
+
+            // ── Detection logic ──────────────────────────────────
+            const creator = context.payload.sender.login;
+
+            // Skip bots (Dependabot, renovate, github-actions, etc.)
+            if (
+              creator.endsWith("[bot]")
+              || creator === "dependabot[bot]"
+              || context.payload.sender.type === "Bot"
+            ) {
+              core.info(`Skipping bot account: ${creator}`);
+              return;
+            }
+
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+
+            if (context.payload.issue) {
+              // ── Issue opened ────────────────────────────────────
+              const { data: result } = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${repo} is:issue author:${creator}`,
+                per_page: 1,
+              });
+
+              if (result.total_count === 1) {
+                core.info(`First issue by ${creator} (#${context.payload.issue.number}) — posting welcome`);
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: context.payload.issue.number,
+                  body: ISSUE_MESSAGE,
+                });
+              } else {
+                core.info(`${creator} has ${result.total_count} issues — not first-time, skipping`);
+              }
+            }
+
+            if (context.payload.pull_request) {
+              // ── PR opened ──────────────────────────────────────
+              const { data: result } = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${repo} is:pr author:${creator}`,
+                per_page: 1,
+              });
+
+              if (result.total_count === 1) {
+                core.info(`First PR by ${creator} (#${context.payload.pull_request.number}) — posting welcome`);
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: PR_MESSAGE,
+                });
+              } else {
+                core.info(`${creator} has ${result.total_count} PRs — not first-time, skipping`);
+              }
+            }

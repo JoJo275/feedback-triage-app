@@ -1,0 +1,110 @@
+{% from "partials/_macros.html" import kv_row %}
+
+{# --- Project Info --- #}
+{% if data.project %}
+{% set proj = data.project %}
+<h5>Project Info</h5>
+<table class="kv-table">
+    {% if proj.name %}
+    {{ kv_row("Name", proj.name, copyable=true) }}
+    {% endif %}
+    {% if proj.version %}
+    {{ kv_row("Version", proj.version) }}
+    {% endif %}
+    {% if proj.description %}
+    {{ kv_row("Description", proj.description) }}
+    {% endif %}
+    {% if proj.requires_python %}
+    {{ kv_row("Requires Python", proj.requires_python) }}
+    {% endif %}
+</table>
+
+{% if proj.dependencies %}
+<details>
+    <summary>Dependencies ({{ proj.dependencies|length }})</summary>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>Package</th></tr>
+        </thead>
+        <tbody>
+            {% for dep in proj.dependencies %}
+            <tr><td class="mono">{{ dep }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}
+
+{% if proj.optional_dep_groups %}
+<details>
+    <summary>Optional Dependency Groups ({{ proj.optional_dep_groups|length }})</summary>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>Group</th></tr>
+        </thead>
+        <tbody>
+            {% for group in proj.optional_dep_groups %}
+            <tr><td class="mono">{{ group }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}
+{% endif %}
+
+{# --- Summary --- #}
+<div class="packages-summary" style="margin-top: var(--gap-md);">
+    <span class="badge">{{ data.total_commands|default(0) }} commands</span>
+    <span class="badge badge-info">{{ data.runner_names|default([])|length }} runners</span>
+</div>
+
+{# --- Runner-to-source-file mapping --- #}
+{% set runner_source = {
+    "Taskfile": "Taskfile.yml",
+    "Makefile": "Makefile",
+    "npm": "package.json",
+    "VS Code Task": ".vscode/tasks.json",
+} %}
+
+{# --- Commands by Runner --- #}
+{% for runner_name, commands in (data.by_runner|default({})).items() %}
+{% set source_file = runner_source.get(runner_name, "") %}
+{% if not source_file %}
+    {# Hatch envs and entry points derive from pyproject.toml #}
+    {% if "Hatch" in runner_name or "Entry Point" in runner_name or "Script" in runner_name %}
+        {% set source_file = "pyproject.toml" %}
+    {% endif %}
+{% endif %}
+<details {% if loop.first %}open{% endif %}>
+    <summary>
+        <strong>{{ runner_name }}</strong>
+        <span class="badge">{{ commands|length }}</span>
+        {% if source_file %}
+        <span class="runner-source-file mono">{{ source_file }}</span>
+        {% endif %}
+    </summary>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>Command</th><th>Description</th><th>Run</th></tr>
+        </thead>
+        <tbody>
+            {% for cmd in commands %}
+            <tr>
+                <td class="mono">
+                    {{ cmd.name }}
+                    <button class="copy-btn" data-clip="{{ cmd.command|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy command"></button>
+                </td>
+                <td><small>{{ cmd.description|default("") }}</small></td>
+                <td>
+                    <code class="cmd-code">{{ cmd.command }}</code>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endfor %}
+
+{% if not data.commands %}
+<p class="muted">No commands detected. Check that Taskfile.yml, Makefile, or pyproject.toml scripts are configured.</p>
+{% endif %}

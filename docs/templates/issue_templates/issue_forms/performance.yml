@@ -1,0 +1,402 @@
+# =============================================================================
+# Performance Issue Template
+# =============================================================================
+# This template is for reporting performance regressions or performance-related
+# issues. Sections: Introduction, Redirect Notice, Performance Details,
+# Environment & Reproduction, Measurements, Additional Context, Contribution
+# Interest, Checklist
+# =============================================================================
+
+name: ⚡ Performance Issue
+description: >
+  Report a performance regression or performance-related problem.
+  For feature requests to improve performance, please use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template.
+title: "[PERF] Short description of the performance issue"
+labels: ["bug", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review performance issues
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful performance report.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a performance issue! ⚡
+
+        Performance issues help us keep the project fast and efficient.
+        Please provide as much detail as possible, including measurements
+        and reproduction steps.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Directs users to appropriate templates for related but different issues.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        <!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+        ⚠️ **Before submitting**
+        - For general bugs (not performance-related), use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+        - **Performance feature request?** Use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template (not this one).
+        - **Include evidence:** benchmarks, profiling output, and "before vs after" numbers help most.
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) to avoid duplicates.
+
+  # ---------------------------------------------------------------------------
+  # Performance Details
+  # ---------------------------------------------------------------------------
+  # Core information about the performance problem.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of performance issue is this?
+      options:
+        - Performance regression (was faster before)
+        - Slow operation / High latency
+        - High memory usage
+        - High CPU usage
+        - Memory leak
+        - Slow startup time
+        - Inefficient resource usage
+        - Scaling issue (performance degrades with size)
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected Area
+      description: Which part of the project is experiencing the performance issue?
+      options:
+        - Core library / API
+        - CLI
+        - Startup / Initialization
+        - Data processing
+        - I/O operations
+        - Network / HTTP operations
+        - Memory management
+        - Multiple areas
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Describe the performance issue. What operation is slow? When did you
+        first notice it?
+      placeholder: |
+        Example: "Processing large files takes significantly longer than expected."
+        Example: "Memory usage grows continuously when running in a loop."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How badly does this performance issue impact usage?
+      options:
+        - Critical – Makes the project unusable
+        - High – Significantly impacts workflow
+        - Medium – Noticeable slowdown but usable
+        - Low – Minor performance concern
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      description: How consistently can you reproduce this performance issue?
+      options:
+        - Always reproducible
+        - Intermittent / Flaky
+        - Only under specific conditions
+        - First run only (cold start)
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Is this a regression?
+      description: Did this perform better in a previous version?
+      options:
+        - "Yes – This was faster in a previous version"
+        - "No – This has always been slow"
+        - Unsure
+    validations:
+      required: true
+
+  - type: input
+    id: regression_version
+    attributes:
+      label: Last Known Good Version (if regression)
+      description: >
+        If this is a regression, what was the last version where performance was acceptable?
+        Leave blank if not a regression or unsure.
+      placeholder: "e.g., 0.9.0, or commit hash (leave blank if not a regression)"
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Environment & Reproduction
+  # ---------------------------------------------------------------------------
+  # System details and steps to reproduce the performance issue.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment & Reproduction
+
+        Provide details about your system and how to reproduce the issue.
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: "Windows 11 / macOS 14 / Ubuntu 22.04"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python Version
+      placeholder: "3.11.5"
+    validations:
+      required: true
+
+  - type: input
+    id: package
+    attributes:
+      label: Package Version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware (Optional)
+      description: >
+        Relevant hardware details (CPU, RAM, disk type) if applicable.
+      placeholder: "e.g., 8-core CPU, 16GB RAM, SSD"
+    validations:
+      required: false
+
+  - type: textarea
+    id: input_size
+    attributes:
+      label: Input Size / Data Characteristics (Optional)
+      description: >
+        Describe the size or characteristics of the input that triggers the issue.
+        Performance problems are often size-dependent.
+      placeholder: |
+        - Number of records: 100,000
+        - File size: 500MB
+        - Iterations: 10,000
+        - Data shape: 1000x1000 matrix
+    validations:
+      required: false
+
+  - type: textarea
+    id: dataset_details
+    attributes:
+      label: Sample Data (Optional)
+      description: >
+        If you can share data that reproduces the issue, provide a link or describe
+        how to generate equivalent test data. Real data helps us debug effectively.
+      placeholder: |
+        Link: https://gist.github.com/...
+        Or: "Run `generate_test_data(n=100000)` to create equivalent data"
+        Or: "Attached file: test_data.csv"
+        Or: "Data is confidential, but it's a 500MB CSV with 100k rows"
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the performance issue.
+      placeholder: |
+        1. Load a file with X records
+        2. Call `process_data()`
+        3. Observe slow performance
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_code
+    attributes:
+      label: Minimal Reproduction Code
+      description: >
+        Provide the smallest possible code snippet that demonstrates the
+        performance issue. Include any setup for data/inputs if needed.
+      placeholder: |
+        from simple_python_boilerplate import something
+        import time
+
+        # Setup
+        data = generate_test_data(size=10000)
+
+        # Benchmark
+        start = time.perf_counter()
+        result = something.process(data)
+        elapsed = time.perf_counter() - start
+
+        print(f"Elapsed: {elapsed:.2f}s")  # Expected: <1s, Actual: 15s
+      render: python
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Measurements
+  # ---------------------------------------------------------------------------
+  # Quantitative data about the performance issue.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Measurements
+
+        Provide quantitative data if available. Numbers help us understand
+        the severity and verify fixes.
+
+  - type: textarea
+    id: timing_measurements
+    attributes:
+      label: Timing Measurements (Optional)
+      description: >
+        Compare current vs. expected timing. Include execution time, latency,
+        throughput, or other time-based metrics.
+      placeholder: |
+        Current:
+        - Operation takes ~15 seconds
+        - Throughput: 100 records/second
+
+        Expected:
+        - Should be <1 second
+        - Previous version (v0.9.0): 200ms
+    validations:
+      required: false
+
+  - type: textarea
+    id: memory_measurements
+    attributes:
+      label: Memory Measurements (Optional)
+      description: >
+        Compare current vs. expected memory usage. Include peak memory,
+        memory growth, or other memory-related metrics.
+      placeholder: |
+        Current:
+        - Memory usage peaks at 2GB
+        - Memory grows by 100MB per iteration
+
+        Expected:
+        - Should be <500MB peak
+        - Previous version: stable at 200MB
+    validations:
+      required: false
+
+  - type: textarea
+    id: profiling_data
+    attributes:
+      label: Profiling Data (Optional)
+      description: >
+        If you have profiling results (cProfile, memory_profiler, py-spy, etc.),
+        paste text output here. For flamegraphs or screenshots, drag and drop
+        images into this field or the Additional Context section below.
+      placeholder: |
+        Top functions by cumulative time:
+        1. process_data() - 12.5s
+        2. inner_loop() - 10.2s
+        3. expensive_calculation() - 8.1s
+
+        (Drag and drop flamegraph images here)
+      render: shell
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Additional Context
+  # ---------------------------------------------------------------------------
+  # Workarounds, related issues, and any other relevant context.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround (Optional)
+      description: >
+        If you've found a workaround that improves performance, please share it.
+      placeholder: |
+        Example: "Using batch_size=100 instead of processing all at once reduces time to 2s"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: >
+        Add any other context: related issues, suspected causes, profiling
+        screenshots, comparison with similar libraries, etc.
+      placeholder: Any other information that might be helpful.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Contribution Interest
+  # ---------------------------------------------------------------------------
+  # Understanding willingness to contribute helps with planning.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to help investigate or fix this?
+      description: >
+        Performance fixes often benefit from collaboration. Let us know if
+        you're interested in contributing!
+      options:
+        - Yes, I'd like to work on this
+        - Yes, but I'd need guidance
+        - I can help with testing/benchmarking
+        - No, I'm just reporting the issue
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  # Ensures the user has done due diligence before submitting.
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have provided performance measurements (or explained why I couldn't)
+          required: true
+        - label: I have tested with the latest version
+          required: false
+        - label: I can provide sample data that reproduces this issue
+          required: false

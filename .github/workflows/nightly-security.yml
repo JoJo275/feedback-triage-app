@@ -1,0 +1,335 @@
+# ──────────────────────────────────────────────────────────────
+# Nightly Security Scan Workflow
+# ──────────────────────────────────────────────────────────────
+# Consolidated nightly security sweep that re-checks the
+# project against the latest vulnerability databases.
+#
+# The key value of a nightly scan is catching *newly disclosed*
+# CVEs against your current dependencies and container image
+# without waiting for the next push or weekly scan.
+#
+# Jobs:
+#   1. sbom-rescan-trivy  – Regenerate SBOM, scan with Trivy
+#   2. sbom-rescan-grype  – Regenerate SBOM, scan with Grype
+#   3. pip-audit          – Check Python deps against OSV/PyPI
+#   4. container-trivy    – Rebuild + scan container with Trivy
+#   5. container-grype    – Rebuild + scan container with Grype
+#
+# The SBOM-based jobs regenerate the SBOM from the installed
+# Python environment (fast — no container build), then scan it
+# with updated vulnerability databases.  This catches new CVEs
+# against what is currently on main.
+#
+# Triggers:
+#   - Nightly at 03:00 UTC
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_NIGHTLY_SECURITY = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+# ──────────────────────────────────────────────────────────────
+
+name: Nightly Security
+
+on:
+  schedule:
+    # Cron is a Unix time-scheduling syntax and the only way to
+    # define scheduled triggers in GitHub Actions. It uses five
+    # fields (all in UTC):
+    #
+    #   ┌─── minute (0–59)
+    #   │ ┌─── hour (0–23)
+    #   │ │ ┌─── day of month (1–31)
+    #   │ │ │ ┌─── month (1–12)
+    #   │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    #   │ │ │ │ │
+    #   * * * * *
+    #
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
+    #   03:00 UTC = 22:00 EST (Nov–Mar) / 23:00 EDT (Mar–Nov)
+    - cron: "0 3 * * *"  # Daily 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write    # Upload SARIF to Security tab
+
+concurrency:
+  group: ${{ github.workflow }}-nightly
+  cancel-in-progress: true
+
+jobs:
+  # ================================================================
+  # SBOM-based dependency rescans
+  # ================================================================
+  # Regenerate the SBOM from the installed Python environment and
+  # scan it with both Trivy and Grype.  This is fast (~2 min) and
+  # catches newly disclosed CVEs against your current dependency
+  # tree without needing to rebuild the container image.
+
+  # ── Generate SBOM ──────────────────────────────────────────
+  generate-sbom:
+    name: Generate SBOM for rescan
+
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_NIGHTLY_SECURITY == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      # Generate SPDX SBOM for downstream scanning jobs
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        with:
+          format: spdx-json
+          output-file: sbom-spdx.json
+          upload-artifact: false
+
+      # Generate CycloneDX SBOM (Grype works well with both formats)
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        with:
+          format: cyclonedx-json
+          output-file: sbom-cyclonedx.json
+          upload-artifact: false
+
+      - name: Upload SBOMs for scan jobs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # Upload a build artifact that can be used by… (v7.0.0)
+        with:
+          name: nightly-sbom
+          path: |
+            sbom-spdx.json
+            sbom-cyclonedx.json
+          retention-days: 7
+
+  # ── Scan SBOM with Trivy ────────────────────────────────────
+  sbom-rescan-trivy:
+    name: SBOM rescan (Trivy)
+    needs: generate-sbom
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download SBOMs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
+        with:
+          name: nightly-sbom
+
+      # Trivy can scan an SBOM file directly — it downloads the
+      # latest vulnerability database and matches against the
+      # dependency list in the SBOM.
+      - name: Scan SBOM with Trivy
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # Scans container images for vulnerabilities… (0.35.0)
+        with:
+          scan-type: sbom
+          scan-ref: sbom-spdx.json
+          format: sarif
+          output: trivy-sbom-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Upload Trivy SBOM SARIF
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        if: always()
+        with:
+          sarif_file: trivy-sbom-results.sarif
+          category: nightly-trivy-sbom
+
+  # ── Scan SBOM with Grype ────────────────────────────────────
+  sbom-rescan-grype:
+    name: SBOM rescan (Grype)
+    needs: generate-sbom
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download SBOMs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
+        with:
+          name: nightly-sbom
+
+      # Grype can scan an SBOM file directly — it downloads the
+      # latest Grype vulnerability database and matches against
+      # the dependency list in the SBOM.
+      - name: Scan SBOM with Grype
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # Scan docker containers with Grype for… (v7.3.2)
+        id: grype
+        with:
+          sbom: sbom-cyclonedx.json
+          severity-cutoff: high
+          output-format: sarif
+          fail-build: "false"
+
+      - name: Upload Grype SBOM SARIF
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        if: always()
+        with:
+          sarif_file: ${{ steps.grype.outputs.sarif }}
+          category: nightly-grype-sbom
+
+  # ================================================================
+  # Python dependency audit
+  # ================================================================
+
+  pip-audit:
+    name: pip-audit
+
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_NIGHTLY_SECURITY == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      # TODO: Remove ignore-vulns entry once pygments releases a fix for
+      #   CVE-2026-4539 (ReDoS in AdLLexer, affects <=2.19.2). No fixed
+      #   version is available as of 2026-03-26. Track upstream:
+      #   https://github.com/pygments/pygments/issues
+      - name: Run pip-audit
+        uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266 # Use pip-audit to scan Python dependencies for… (v1.1.0)
+        with:
+          inputs: ""
+          ignore-vulns: |
+            CVE-2026-4539
+
+  # ================================================================
+  # Container image rescans
+  # ================================================================
+  # Rebuild the container image nightly and scan with both
+  # Trivy and Grype against the latest vulnerability databases.
+
+  container-build:
+    name: Build container (nightly)
+
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_NIGHTLY_SECURITY == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Build container image
+        run: docker build -t scan-target:${{ github.sha }} -f Containerfile .
+
+      - name: Export image as tarball
+        run: docker save scan-target:${{ github.sha }} -o image.tar
+
+      - name: Upload image tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # Upload a build artifact that can be used by… (v7.0.0)
+        with:
+          name: nightly-container-image
+          path: image.tar
+          retention-days: 1
+
+  container-trivy:
+    name: Container scan (Trivy)
+    needs: container-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download image tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
+        with:
+          name: nightly-container-image
+
+      - name: Load image
+        run: docker load -i image.tar
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # Scans container images for vulnerabilities… (0.35.0)
+        with:
+          image-ref: scan-target:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+          category: nightly-trivy-container
+
+  container-grype:
+    name: Container scan (Grype)
+    needs: container-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download image tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
+        with:
+          name: nightly-container-image
+
+      - name: Load image
+        run: docker load -i image.tar
+
+      - name: Run Grype vulnerability scanner
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # Scan docker containers with Grype for… (v7.3.2)
+        id: grype
+        with:
+          image: scan-target:${{ github.sha }}
+          severity-cutoff: high
+          output-format: sarif
+          fail-build: "false"
+
+      - name: Upload Grype SARIF
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        if: always()
+        with:
+          sarif_file: ${{ steps.grype.outputs.sarif }}
+          category: nightly-grype-container

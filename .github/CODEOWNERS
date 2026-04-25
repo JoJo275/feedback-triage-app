@@ -1,0 +1,47 @@
+# =============================================================================
+# Code Owners
+# =============================================================================
+# These users will be automatically requested for review on PRs.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Last match wins — put more specific patterns AFTER general ones.
+#
+# TODO (template users):
+#   1. Replace @JoJo275 below with your own GitHub username or team
+#      (e.g. @myorg/backend-team).
+#   2. Remove sections that don't apply to your project.
+#   3. Add team-specific owners for areas with dedicated maintainers
+#      (e.g., @myorg/docs-team for /docs/).
+# =============================================================================
+
+# Default owner for everything in the repo
+* @JoJo275
+
+# ── Application code ──────────────────────────────────────────
+/src/ @JoJo275
+/tests/ @JoJo275
+
+# ── Documentation ─────────────────────────────────────────────
+*.md @JoJo275
+/docs/ @JoJo275
+/mkdocs.yml @JoJo275
+/mkdocs-hooks/ @JoJo275
+
+# ── Scripts & tooling ─────────────────────────────────────────
+/scripts/ @JoJo275
+/Taskfile.yml @JoJo275
+
+# ── Database ──────────────────────────────────────────────────
+/db/ @JoJo275
+
+# ── Security-sensitive paths (require explicit review) ────────
+/.github/workflows/ @JoJo275
+/.github/dependabot.yml @JoJo275
+/.github/CODEOWNERS @JoJo275
+/.github/FUNDING.yml @JoJo275
+/.pre-commit-config.yaml @JoJo275
+/pyproject.toml @JoJo275
+/Containerfile @JoJo275
+/docker-compose.yml @JoJo275
+/SECURITY.md @JoJo275
+/codecov.yml @JoJo275

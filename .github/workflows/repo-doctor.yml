@@ -1,0 +1,101 @@
+# ──────────────────────────────────────────────────────────────
+# Repo Doctor Workflow
+# ──────────────────────────────────────────────────────────────
+# Runs scripts/repo_doctor.py on PRs to catch structural issues
+# (missing files, broken conventions, deleted config) automatically.
+#
+# The repo doctor reads rules from .repo-doctor.toml and
+# repo_doctor.d/ profile files.  It is warn-only by design —
+# it never fails the build (always exits 0) — so it provides
+# visibility into potential issues without blocking merges.
+#
+# Triggers:
+#   - Pull requests targeting main
+#   - Push to main
+#   - Manual dispatch
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_REPO_DOCTOR = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Customize rules in .repo-doctor.toml and repo_doctor.d/ profiles.
+# ──────────────────────────────────────────────────────────────
+
+name: Repo Doctor
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repo-doctor:
+    name: Repo health check
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_REPO_DOCTOR = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_REPO_DOCTOR == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+          # Fetch enough history for --diff to work against main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Run repo doctor (working tree)
+        run: |
+          python scripts/repo_doctor.py \
+            --missing \
+            --profile all \
+            --include-info
+
+      - name: Run repo doctor (diff against main)
+        if: github.event_name == 'pull_request'
+        run: |
+          python scripts/repo_doctor.py \
+            --diff origin/${{ github.base_ref }}...HEAD \
+            --profile all \
+            --include-info
+
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## Repo Doctor" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          python scripts/repo_doctor.py \
+            --missing \
+            --profile all \
+            --include-info \
+            --no-color >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,362 @@
+[
+  {
+    "name": "autorelease: pending",
+    "description": "Release PR is open and waiting to be merged",
+    "color": "ededed"
+  },
+  {
+    "name": "autorelease: tagged",
+    "description": "Release PR was merged and the release tag was created",
+    "color": "ededed"
+  },
+  {
+    "name": "bug",
+    "description": "Something isn't working",
+    "color": "d73a4a"
+  },
+  {
+    "name": "dependencies",
+    "description": "Pull requests that update a dependency file",
+    "color": "0366d6"
+  },
+  {
+    "name": "docker",
+    "description": "Pull requests that update Docker/container configuration",
+    "color": "2496ed"
+  },
+  {
+    "name": "documentation",
+    "description": "Improvements or additions to documentation",
+    "color": "0075ca"
+  },
+  {
+    "name": "duplicate",
+    "description": "This issue or pull request already exists",
+    "color": "cfd3d7"
+  },
+  {
+    "name": "enhancement",
+    "description": "New feature or request",
+    "color": "a2eeef"
+  },
+  {
+    "name": "github-actions",
+    "description": "Pull requests that update GitHub Actions code",
+    "color": "000000"
+  },
+  {
+    "name": "good first issue",
+    "description": "Good for newcomers",
+    "color": "7057ff"
+  },
+  {
+    "name": "help wanted",
+    "description": "Extra attention is needed",
+    "color": "008672"
+  },
+  {
+    "name": "invalid",
+    "description": "This doesn't seem right",
+    "color": "e4e669"
+  },
+  {
+    "name": "pinned",
+    "description": "Exempt from stale bot; kept open indefinitely",
+    "color": "006b75"
+  },
+  {
+    "name": "python",
+    "description": "Pull requests that update Python dependencies",
+    "color": "3572a5"
+  },
+  {
+    "name": "question",
+    "description": "Further information is requested",
+    "color": "d876e3"
+  },
+  {
+    "name": "wontfix",
+    "description": "This will not be worked on",
+    "color": "ffffff"
+  },
+  {
+    "name": "status: needs-triage",
+    "description": "New issue; not yet reviewed/confirmed",
+    "color": "fbca04"
+  },
+  {
+    "name": "status: needs-info",
+    "description": "Reporter needs to provide missing details",
+    "color": "fef2c0"
+  },
+  {
+    "name": "status: needs-repro",
+    "description": "Needs a minimal reproduction case",
+    "color": "f9d0c4"
+  },
+  {
+    "name": "status: blocked",
+    "description": "Blocked by dependency/decision/external factor",
+    "color": "b60205"
+  },
+  {
+    "name": "priority: p0-critical",
+    "description": "Crash/data loss/security/major outage",
+    "color": "b60205"
+  },
+  {
+    "name": "priority: p1-high",
+    "description": "Important; should be addressed soon",
+    "color": "d93f0b"
+  },
+  {
+    "name": "priority: p2-medium",
+    "description": "Normal priority",
+    "color": "fbca04"
+  },
+  {
+    "name": "priority: p3-low",
+    "description": "Nice-to-have",
+    "color": "c2e0c6"
+  },
+  {
+    "name": "priority: backlog",
+    "description": "Accepted but not scheduled",
+    "color": "bfdadc"
+  },
+  {
+    "name": "area: cli",
+    "description": "Command-line interface",
+    "color": "006b75"
+  },
+  {
+    "name": "area: packaging",
+    "description": "pyproject/build/publishing/installers",
+    "color": "d4c5f9"
+  },
+  {
+    "name": "area: docs",
+    "description": "Docs content and examples",
+    "color": "0075ca"
+  },
+  {
+    "name": "area: tests",
+    "description": "Test suite, fixtures, harness",
+    "color": "c5def5"
+  },
+  {
+    "name": "area: ci",
+    "description": "CI pipelines and automation",
+    "color": "bfd4f2"
+  },
+  {
+    "name": "area: container",
+    "description": "Containerfile, Docker Compose, container builds",
+    "color": "2496ed"
+  },
+  {
+    "name": "area: database",
+    "description": "Database schema, migrations, queries",
+    "color": "006b75"
+  },
+  {
+    "name": "area: scripts",
+    "description": "Utility scripts in scripts/",
+    "color": "c5def5"
+  },
+  {
+    "name": "status: confirmed",
+    "description": "Triaged and confirmed valid",
+    "color": "0e8a16"
+  },
+  {
+    "name": "status: in-progress",
+    "description": "Work has started",
+    "color": "0052cc"
+  },
+  {
+    "name": "status: ready-for-review",
+    "description": "PR/solution ready for review",
+    "color": "1d76db"
+  },
+  {
+    "name": "status: waiting-on-maintainer",
+    "description": "Waiting on maintainer action/decision",
+    "color": "d4c5f9"
+  },
+  {
+    "name": "status: waiting-on-reporter",
+    "description": "Waiting on reporter response",
+    "color": "c5def5"
+  },
+  {
+    "name": "status: wont-merge",
+    "description": "Decision made not to accept a PR/approach",
+    "color": "000000"
+  },
+  {
+    "name": "type: performance",
+    "description": "Performance issue (slowdown/regression)",
+    "color": "e68a00"
+  },
+  {
+    "name": "type: refactor",
+    "description": "Internal cleanup; no user-facing change",
+    "color": "5319e7"
+  },
+  {
+    "name": "type: chore",
+    "description": "Maintenance task (non-feature, non-bug)",
+    "color": "ededed"
+  },
+  {
+    "name": "type: build",
+    "description": "Build tooling / packaging changes",
+    "color": "cfd3d7"
+  },
+  {
+    "name": "type: test",
+    "description": "Test additions/fixes only",
+    "color": "c5def5"
+  },
+  {
+    "name": "type: security",
+    "description": "Security-related work (non-sensitive discussion)",
+    "color": "ee0701"
+  },
+  {
+    "name": "type: breaking-change",
+    "description": "Backward incompatible change",
+    "color": "000000"
+  },
+  {
+    "name": "area: api",
+    "description": "Public API surface",
+    "color": "1d76db"
+  },
+  {
+    "name": "area: logging",
+    "description": "Logging/telemetry",
+    "color": "0e8a16"
+  },
+  {
+    "name": "area: config",
+    "description": "Configuration files/env behavior",
+    "color": "0052cc"
+  },
+  {
+    "name": "area: ux",
+    "description": "User experience and ergonomics",
+    "color": "a2eeef"
+  },
+  {
+    "name": "area: performance",
+    "description": "Subsystem performance (hot paths)",
+    "color": "e68a00"
+  },
+  {
+    "name": "area: compatibility",
+    "description": "OS/Python-version compatibility",
+    "color": "f9d0c4"
+  },
+  {
+    "name": "area: windows",
+    "description": "Windows-specific",
+    "color": "1d76db"
+  },
+  {
+    "name": "area: linux",
+    "description": "Linux-specific",
+    "color": "0e8a16"
+  },
+  {
+    "name": "area: macos",
+    "description": "macOS-specific",
+    "color": "5319e7"
+  },
+  {
+    "name": "triage: accepted",
+    "description": "Maintainers agree this should be addressed",
+    "color": "0e8a16"
+  },
+  {
+    "name": "triage: needs-design",
+    "description": "Needs design discussion before implementation",
+    "color": "d4c5f9"
+  },
+  {
+    "name": "triage: needs-decision",
+    "description": "Blocked pending a maintainer decision",
+    "color": "fbca04"
+  },
+  {
+    "name": "triage: needs-docs",
+    "description": "Requires docs update to ship",
+    "color": "0075ca"
+  },
+  {
+    "name": "triage: needs-tests",
+    "description": "Requires tests before merge/close",
+    "color": "c5def5"
+  },
+  {
+    "name": "triage: needs-benchmark",
+    "description": "Needs benchmark numbers to evaluate",
+    "color": "e68a00"
+  },
+  {
+    "name": "release: blocker",
+    "description": "Must be fixed before next release",
+    "color": "b60205"
+  },
+  {
+    "name": "release: candidate",
+    "description": "Candidate item for next release notes",
+    "color": "0052cc"
+  },
+  {
+    "name": "release: backport-needed",
+    "description": "Should be backported to a stable branch",
+    "color": "d93f0b"
+  },
+  {
+    "name": "release: backport-done",
+    "description": "Backport completed",
+    "color": "0e8a16"
+  },
+  {
+    "name": "contrib: mentor-available",
+    "description": "Maintainer willing to guide a contributor",
+    "color": "a2eeef"
+  },
+  {
+    "name": "contrib: needs-volunteer",
+    "description": "Seeking contributor help; no maintainer bandwidth",
+    "color": "bfdadc"
+  },
+  {
+    "name": "meta: duplicate-candidate",
+    "description": "Might be duplicate; needs confirmation",
+    "color": "cfd3d7"
+  },
+  {
+    "name": "meta: needs-scope",
+    "description": "Requirements unclear; needs scoping",
+    "color": "fbca04"
+  },
+  {
+    "name": "meta: stale",
+    "description": "Inactive; may be closed if no response",
+    "color": "eeeeee"
+  },
+  {
+    "name": "security",
+    "description": "Security-related; exempt from stale bot",
+    "color": "ee0701"
+  },
+  {
+    "name": "stale",
+    "description": "Inactive; may be closed if no response (applied by stale bot)",
+    "color": "eeeeee"
+  }
+]

@@ -1,0 +1,120 @@
+# =============================================================================
+# repo_doctor.d/security.toml — Security scanning & policy checks
+# =============================================================================
+# Activate: --profile security   or   profiles = ["security"] in [doctor]
+#
+# Validates security policy files, scanning configurations, and secret-
+# handling hygiene beyond what the core .repo-doctor.toml covers.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# Policy files
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "SECURITY.md"
+kind = "file"
+level = "warn"
+category = "security"
+impact = "No security policy — users won't know how to report vulnerabilities responsibly."
+hint = "Add SECURITY.md with a vulnerability disclosure process."
+
+[[rule]]
+type = "regex_present"
+path = "SECURITY.md"
+regex = "(?i)(report|disclose|contact|email|security@)"
+level = "info"
+category = "security"
+impact = "SECURITY.md exists but doesn't seem to mention how to report vulnerabilities."
+hint = "Include a contact method (email address, GitHub Security Advisories link, etc.)."
+only_if.path = "SECURITY.md"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Bandit configuration
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.bandit"
+level = "warn"
+category = "security"
+impact = "Bandit is in use but pyproject.toml has no [tool.bandit] — scans may fail or use only defaults."
+hint = "Add [tool.bandit] with targets and skips."
+link = "docs/adr/018-bandit-for-security-linting.md"
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?m)^\\s*-\\s*id:\\s*bandit\\b"
+
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.bandit.targets"
+level = "info"
+category = "security"
+impact = "[tool.bandit] has no targets — bandit may scan everything including tests, scripts, and venvs."
+hint = "Add targets = ['src'] to limit the scan scope."
+only_if.path = "pyproject.toml"
+only_if.regex = "\\[tool\\.bandit\\]"
+
+
+# ---------------------------------------------------------------------------
+# Git secrets / credential scanning
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = ".pre-commit-config.yaml"
+regex = "(?i)(detect-secrets|gitleaks|trufflehog|secret)"
+level = "info"
+category = "security"
+impact = "No secret-scanning hook detected in pre-commit — secrets may be committed accidentally."
+hint = "Add detect-secrets or gitleaks as a pre-commit hook."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Dependency auditing
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows"
+regex = "(?i)(pip-audit|safety|audit)"
+level = "info"
+category = "security"
+impact = "No dependency audit step detected in CI — known vulnerabilities in dependencies may go unnoticed."
+hint = "Add pip-audit or safety to your CI pipeline."
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Sensitive file guards
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = ".gitignore"
+regex = "(?m)^\\.env$|\\.env\\b"
+level = "warn"
+category = "security"
+impact = ".gitignore doesn't exclude .env files — secrets in .env could be committed accidentally."
+hint = "Add .env and .env.* to .gitignore."
+only_if.path = ".gitignore"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = ".gitignore"
+regex = "(?i)\\.pypirc"
+level = "info"
+category = "security"
+impact = ".gitignore doesn't exclude .pypirc — PyPI tokens could be committed."
+hint = "Add .pypirc to .gitignore."
+only_if.path = ".gitignore"
+only_if.regex = "(?s)."

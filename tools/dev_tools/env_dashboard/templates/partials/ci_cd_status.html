@@ -1,0 +1,73 @@
+{% from "partials/_macros.html" import kv_row, status_badge %}
+
+{# --- CI/CD Overview --- #}
+<table class="kv-table">
+    {{ kv_row("Total Workflows", data.total_workflows|default(0), hint="Number of GitHub Actions workflow files found in .github/workflows/.") }}
+    {{ kv_row("SHA-Pinned", (data.sha_pinned_pct|default(0)|string ~ "%"), hint="Percentage of third-party actions pinned to commit SHAs instead of tags. 100% is best practice for supply-chain security.") }}
+</table>
+
+{# --- CI Config files --- #}
+{% if data.ci_configs %}
+<h5>CI Configuration Files</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Tool</th><th>File</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+        {% for cfg in data.ci_configs %}
+        <tr>
+            <td>{{ cfg.name }}</td>
+            <td class="mono"><small>{{ cfg.file }}</small></td>
+            <td>
+                {% if cfg.found %}
+                <span class="badge badge-pass">Found</span>
+                {% else %}
+                <span class="badge">Missing</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{# --- Workflow list --- #}
+{% if data.workflows %}
+<details open>
+    <summary>
+        <strong>Workflows</strong>
+        <span class="badge">{{ data.workflows|length }}</span>
+    </summary>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>File</th><th>Triggers</th><th>SHA-Pinned</th></tr>
+        </thead>
+        <tbody>
+            {% for wf in data.workflows %}
+            <tr>
+                <td class="mono">{{ wf.file }}</td>
+                <td>
+                    {% for trigger in wf.triggers|default([]) %}
+                    <span class="badge badge-info">{{ trigger }}</span>
+                    {% endfor %}
+                    {% if not wf.triggers %}<span class="muted">—</span>{% endif %}
+                </td>
+                <td>
+                    {% if wf.sha_pinned|default(0) > 0 %}
+                    <span class="badge badge-pass">{{ wf.sha_pinned }}/{{ wf.actions }}</span>
+                    {% elif wf.actions|default(0) > 0 %}
+                    <span class="badge badge-warn">0/{{ wf.actions }}</span>
+                    {% else %}
+                    <span class="muted">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endif %}
+
+{% if not data.workflows %}
+<p class="muted">No GitHub Actions workflow files detected in .github/workflows/.</p>
+{% endif %}

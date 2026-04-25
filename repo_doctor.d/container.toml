@@ -1,0 +1,155 @@
+# =============================================================================
+# repo_doctor.d/container.toml — Container image build checks
+# =============================================================================
+# Activate: --profile container   or   profiles = ["container"] in [doctor]
+#
+# Validates Containerfile/Dockerfile hygiene, ignore files, and build-context
+# best practices.  All rules are gated on Containerfile existing.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# Containerfile basics
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "Containerfile"
+kind = "file"
+level = "warn"
+category = "container"
+impact = "No Containerfile — container image builds will fail."
+link = "docs/adr/019-containerfile.md"
+
+[[rule]]
+type = "regex_present"
+path = "Containerfile"
+regex = "(?i)^FROM\\s+"
+level = "warn"
+category = "container"
+impact = "Containerfile has no FROM instruction — it's not a valid container image definition."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "Containerfile"
+regex = "(?i)^USER\\s+"
+level = "info"
+category = "container"
+impact = "Containerfile has no USER instruction — the image will run as root by default."
+hint = "Add a non-root USER instruction for security hardening."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "Containerfile"
+regex = "(?i)^HEALTHCHECK\\s+"
+level = "info"
+category = "container"
+impact = "No HEALTHCHECK instruction — orchestrators can't monitor container health automatically."
+hint = "Add HEALTHCHECK CMD curl -f http://localhost/ || exit 1 (or equivalent)."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Ignore files
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = ".containerignore"
+kind = "file"
+level = "warn"
+category = "container"
+impact = "No .containerignore — build context will include .git, .venv, tests, docs, etc."
+hint = "Add .containerignore to exclude non-essential files from the build context."
+link = "docs/adr/019-containerfile.md"
+fix = "printf '.git\n.venv\n__pycache__\n*.egg-info\ndist\nbuild\ntests\ndocs\n' > .containerignore"
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = ".dockerignore"
+kind = "file"
+level = "info"
+category = "container"
+impact = "No .dockerignore — Docker ignores .containerignore. Docker users get an unfiltered build context."
+hint = "Add .dockerignore (mirror of .containerignore) for Docker compatibility."
+link = "docs/adr/019-containerfile.md"
+fix = "cp .containerignore .dockerignore"
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Multi-stage / size checks
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = "Containerfile"
+regex = "(?im)^FROM\\s+.*\\s+AS\\s+"
+level = "info"
+category = "container"
+impact = "Containerfile doesn't use multi-stage builds — the final image may contain build tools and be larger than needed."
+hint = "Consider a multi-stage build: build in one stage, copy artifacts to a slim runtime stage."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Docker Compose
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "docker-compose.yml"
+kind = "file"
+level = "info"
+category = "container"
+impact = "No docker-compose.yml — local container orchestration isn't available out of the box."
+hint = "Add docker-compose.yml for convenient local container builds and multi-service setups."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "docker-compose.yml"
+regex = "(?i)read_only:\\s*true"
+level = "info"
+category = "container"
+impact = "docker-compose.yml doesn't set read_only: true — the container filesystem is writable at runtime."
+hint = "Add read_only: true and tmpfs mounts for directories that need writes (/tmp)."
+only_if.path = "docker-compose.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "docker-compose.yml"
+regex = "(?i)no-new-privileges"
+level = "info"
+category = "container"
+impact = "docker-compose.yml doesn't set no-new-privileges — container processes could escalate privileges."
+hint = "Add security_opt: [no-new-privileges:true] to harden the container."
+only_if.path = "docker-compose.yml"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Container structure tests
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "container-structure-test.yml"
+kind = "file"
+level = "info"
+category = "container"
+impact = "No container-structure-test.yml — container image validation tests are missing."
+hint = "Add container-structure-test.yml to define command, file, and metadata tests for the built image."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."

@@ -1,0 +1,51 @@
+# Recommended Git Configuration
+# ─────────────────────────────────────────────────────────
+# A solid baseline for most development workflows.
+# Apply all at once:  git config --global --includes < .gitconfig.recommended
+# Or cherry-pick individual settings with: git config --global <key> <value>
+#
+# Your current global config (~/.gitconfig) already has:
+#   user.name, user.email, core.autocrlf, filter.lfs.*
+# The settings below fill in common gaps.
+
+[core]
+    # VS Code as default editor (--wait keeps terminal blocked until closed)
+    editor = code --wait
+
+[pull]
+    # Rebase local commits on top of upstream instead of merge commits
+    rebase = true
+
+[push]
+    # Push current branch to same-named remote branch
+    default = current
+    # Auto-create upstream tracking on first push (no more --set-upstream)
+    autoSetupRemote = true
+
+[fetch]
+    # Auto-remove stale remote-tracking branches on fetch
+    prune = true
+    # Also prune tags that no longer exist on remote
+    pruneTags = true
+
+[merge]
+    # zdiff3 shows base + ours + theirs (best conflict context)
+    conflictstyle = zdiff3
+
+[rebase]
+    # Auto-stash dirty working tree before rebase, re-apply after
+    autostash = true
+    # Auto-apply fixup!/squash! commits during interactive rebase
+    autoSquash = true
+
+[rerere]
+    # Remember conflict resolutions and auto-apply them next time
+    enabled = true
+
+[branch]
+    # Sort branches by most recent commit (most useful branch first)
+    sort = -committerdate
+
+[diff]
+    # histogram is generally better than default myers for code diffs
+    algorithm = histogram

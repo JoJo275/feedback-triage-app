@@ -1,0 +1,224 @@
+# MkDocs configuration
+# Docs: https://www.mkdocs.org/user-guide/configuration/
+#
+# TODO (template users):
+#   1. Replace site_name, site_description with your project name/description.
+#   2. Replace site_url with your GitHub Pages URL
+#      (e.g. https://myorg.github.io/myproject/).
+#   3. Replace repo_url and repo_name with your repo slug
+#      (e.g. https://github.com/myorg/myproject and myorg/myproject).
+#   4. Update the nav section — remove boilerplate-specific pages
+#      (ADRs, Templates, Notes) and add your own.
+#   5. In the mkdocstrings plugin, replace 'simple_python_boilerplate'
+#      module references in docs/reference/api.md with your package name.
+#   6. Update not_in_nav if you add or remove files from docs/.
+
+site_name: simple-python-boilerplate
+site_description: Simple Python boilerplate using src/ layout
+docs_dir: docs
+site_url: https://jojo275.github.io/simple-python-boilerplate/
+repo_url: https://github.com/JoJo275/simple-python-boilerplate
+repo_name: JoJo275/simple-python-boilerplate
+
+# README.md is excluded because it conflicts with index.md (MkDocs treats
+# README.md as index.md by default).  We use path-specific patterns so that
+# README.md files in the nav (adr/, templates/) are still built as pages.
+#
+# MkDocs 1.6+ silently excludes docs/templates/ by default (it treats
+# the directory name as "drafts/scaffolding").  Rather than using the
+# 1.6-specific `!templates/` negation in exclude_docs, the
+# include_templates.py hook re-adds excluded template files in a
+# version-agnostic way.  See mkdocs-hooks/include_templates.py.
+exclude_docs: |
+  /README.md
+  reference/README.md
+  design/README.md
+  development/README.md
+  notes/README.md
+
+# Many docs link to repo files outside docs/ (pyproject.toml, workflows, etc.).
+# These links work on GitHub but MkDocs can't resolve them. Downgrade to info
+# so --strict mode doesn't fail on them, while still catching real broken
+# doc-to-doc links.
+validation:
+  links:
+    not_found: info
+    absolute_links: info
+    unrecognized_links: info
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - content.tabs.link
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+
+# TODO (template users): Replace this nav with your own pages.
+#   Keep Home, Guide, and Reference as a starting point.
+#   Remove ADRs, Templates, and Notes sections unless you use them.
+nav:
+  - Home: index.md
+  - Guide:
+      - Getting Started: guide/getting-started.md
+      - Using This Template: USING_THIS_TEMPLATE.md
+      - Global Entry Points: guide/entry-points.md
+      - Environment Dashboard: guide/dashboard-guide.md
+      - Troubleshooting: guide/troubleshooting.md
+      - Repo Layout: repo-layout.md
+      - Tooling: tooling.md
+      - Labels: labels.md
+  - Development:
+      - Overview: development/development.md
+      - Dev Setup: development/dev-setup.md
+      - Developer Commands: development/developer-commands.md
+      - Command Workflows: development/command-workflows.md
+      - Branch Workflows: development/branch-workflows.md
+      - Pull Requests: development/pull-requests.md
+  - CI/CD:
+      - Workflows: workflows.md
+      - Releasing: releasing.md
+      - Release Policy: release-policy.md
+      - SBOM: sbom.md
+  - Design:
+      - Architecture: design/architecture.md
+      - CI/CD Design: design/ci-cd-design.md
+      - Tool Decisions: design/tool-decisions.md
+      - Database: design/database.md
+  - ADRs:
+      - Index: adr/README.md
+      - 001 – src/ Layout: adr/001-src-layout.md
+      - 002 – pyproject.toml: adr/002-pyproject-toml.md
+      - 003 – Separate Workflows: adr/003-separate-workflow-files.md
+      - 004 – Pin Action SHAs: adr/004-pin-action-shas.md
+      - 005 – Ruff: adr/005-ruff-for-linting-formatting.md
+      - 006 – pytest: adr/006-pytest-for-testing.md
+      - 007 – mypy: adr/007-mypy-for-type-checking.md
+      - 008 – Pre-commit Hooks: adr/008-pre-commit-hooks.md
+      - 009 – Conventional Commits: adr/009-conventional-commits.md
+      - 010 – Dependabot: adr/010-dependabot-for-dependency-updates.md
+      - 011 – Repository Guard: adr/011-repository-guard-pattern.md
+      - 012 – Security Scanning: adr/012-multi-layer-security-scanning.md
+      - 013 – SBOM: adr/013-sbom-bill-of-materials.md
+      - 014 – No Template Engine: adr/014-no-template-engine.md
+      - 015 – No .github README: adr/015-no-github-directory-readme.md
+      - 016 – Hatchling & Hatch: adr/016-hatchling-and-hatch.md
+      - 017 – Task Runner: adr/017-task-runner.md
+      - 018 – Bandit: adr/018-bandit-for-security-linting.md
+      - 019 – Containerfile: adr/019-containerfile.md
+      - 020 – MkDocs Stack: adr/020-mkdocs-documentation-stack.md
+      - 021 – Release Pipeline: adr/021-automated-release-pipeline.md
+      - 022 – Rebase Merge: adr/022-rebase-merge-strategy.md
+      - 023 – Branch Protection: adr/023-branch-protection-rules.md
+      - 024 – CI Gate: adr/024-ci-gate-pattern.md
+      - 025 – Container Strategy: adr/025-container-strategy.md
+      - 026 – No pip-tools: adr/026-no-pip-tools.md
+      - 027 – Database Strategy: adr/027-database-strategy.md
+      - 028 – Git Branching: adr/028-git-branching-strategy.md
+      - 029 – Testing Strategy: adr/029-testing-strategy.md
+      - 030 – Label Management: adr/030-label-management-as-code.md
+      - 031 – Script Conventions: adr/031-script-conventions.md
+      - 032 – Dependency Grouping: adr/032-dependency-grouping-strategy.md
+      - 033 – Prettier for Markdown: adr/033-prettier-for-markdown-formatting.md
+      - 034 – Documentation Organization: adr/034-documentation-organization-strategy.md
+      - 035 – Copilot Instructions: adr/035-copilot-instructions-as-context.md
+      - 036 – Diagnostic Tooling: adr/036-diagnostic-tooling-strategy.md
+      - 037 – Git Config as Code: adr/037-git-configuration-as-code.md
+      - 038 – VS Code Workspace: adr/038-vscode-workspace-configuration-strategy.md
+      - 039 – Onboarding Automation: adr/039-developer-onboarding-automation.md
+      - 040 – v1.0 Release Readiness: adr/040-v1-release-readiness.md
+      - 041 – Environment Dashboard: adr/041-env-inspect-web-dashboard.md
+      - 042 – Script Smoke Testing: adr/042-script-smoke-testing.md
+      - 043 – Collector Plugins: adr/043-collector-plugin-architecture.md
+      - 044 – Copilot Skills: adr/044-copilot-skills-and-instructions.md
+  - Templates:
+      - Overview: templates/README.md
+      - Security Policy: templates/SECURITY_no_bounty.md
+      - Security Policy (Bounty): templates/SECURITY_with_bounty.md
+      - Bug Bounty: templates/BUG_BOUNTY.md
+      - PR Draft: templates/pull-request-draft.md
+      - Issue Templates: templates/issue_templates/README.md
+  - Notes:
+      - Learning: notes/learning.md
+      - Learning — Web Apps: notes/learning-web-apps.md
+      - Resources (Links): notes/resources_links.md
+      - Resources (Written): notes/resources_written.md
+      - Tool Comparison: notes/tool-comparison.md
+      - Archive: notes/archive.md
+      - TODO: notes/todo.md
+  - Reference:
+      - Overview: reference/index.md
+      - API: reference/api.md
+      - Commands: reference/commands.md
+      - Template Inventory: reference/template-inventory.md
+      - Known Issues: known-issues.md
+
+hooks:
+  - mkdocs-hooks/repo_links.py
+  - mkdocs-hooks/generate_commands.py
+  - mkdocs-hooks/include_templates.py
+
+plugins:
+  - search
+  # TODO (template users): Update 'paths: [src]' if your package
+  #   uses a different layout (e.g. flat layout without src/).
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            heading_level: 2
+            members_order: source
+            docstring_style: google
+
+# Files that live in docs/ but are not part of the site navigation.
+# These are built as pages but don't appear in the sidebar — useful for
+# files that are linked to from other pages but aren't primary navigation
+# targets.  Without this list, --strict mode would warn about files not
+# included in nav.
+# TODO (template users): Update this list when adding/removing docs that
+#   aren't in the nav. Remove template-specific entries (ADR archives,
+#   issue templates) if you don't use them.
+not_in_nav: |
+  adr/template.md
+  adr/archive/**
+  templates/issue_templates/issue_forms/**
+  templates/issue_templates/legacy_markdown/**
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - toc:
+      permalink: true

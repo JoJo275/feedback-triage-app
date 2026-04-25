@@ -1,0 +1,72 @@
+# ──────────────────────────────────────────────────────────────
+# Cache Cleanup Workflow
+# ──────────────────────────────────────────────────────────────
+# Cleans up GitHub Actions caches when branches are deleted.
+# GitHub gives each repo 10 GB of cache storage. Once full, the
+# oldest caches get evicted — potentially evicting caches from
+# main that are still useful. This workflow prevents that by
+# cleaning up stale branch caches on branch deletion.
+#
+# Triggers:
+#   - Branch deletion (pull_request closed)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_CACHE_CLEANUP = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+# ──────────────────────────────────────────────────────────────
+
+name: Cache cleanup
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+permissions:
+  actions: write   # Required to delete caches
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    name: Clean branch caches
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_CACHE_CLEANUP == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Clean up caches for closed branch
+        run: |
+          echo "Fetching list of cache keys for branch: $BRANCH"
+          cacheKeysForPR=$(gh cache list -R "$REPO" -B "$BRANCH" --limit 100 | cut -f 1)
+
+          # Set the internal field separator to newline
+          echo "Deleting caches..."
+          count=0
+          while IFS= read -r cacheKey; do
+            if [ -n "$cacheKey" ]; then
+              gh cache delete "$cacheKey" -R "$REPO" --confirm
+              count=$((count + 1))
+              echo "  Deleted: $cacheKey"
+            fi
+          done <<< "$cacheKeysForPR"
+          echo "Done. Deleted $count cache(s) for branch: $BRANCH"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: refs/pull/${{ github.event.pull_request.number }}/merge

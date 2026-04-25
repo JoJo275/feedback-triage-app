@@ -1,0 +1,231 @@
+# =============================================================================
+# Documentation Issue Template
+# =============================================================================
+# This template is for reporting documentation problems or requesting
+# documentation improvements. Sections: Introduction, Redirect Notice,
+# Issue Details, Suggested Improvement, Contribution Interest, Checklist
+# =============================================================================
+
+name: 📚 Documentation
+description: >
+  Report a documentation issue or request an improvement.
+  For questions about using the project, please use Discussions instead.
+title: "[DOCS] Short description of the documentation issue"
+labels: ["documentation", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review documentation issues
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful documentation issue.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation! 📚
+
+        Good documentation helps everyone. Please provide as much detail
+        as possible so we can understand and address the issue.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Directs users to appropriate channels for questions vs doc issues.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        <!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+        ⚠️ **Before submitting**
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+        - **Simple "how do I…?"** Use [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Q&A).
+        - **Small doc fixes welcome:** see [CONTRIBUTING.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md).
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) and discussions to avoid duplicates.
+
+  # ---------------------------------------------------------------------------
+  # Issue Details
+  # ---------------------------------------------------------------------------
+  # Information about the documentation problem.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing documentation
+        - Incorrect / Inaccurate information
+        - Unclear / Confusing explanation
+        - Outdated information
+        - Typo / Grammar / Formatting
+        - Broken link
+        - Missing code example
+        - Accessibility issue
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue_type_other_unsure
+    attributes:
+      label: Issue Type – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the type of issue.
+      placeholder: Describe the issue type if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: affected_docs
+    attributes:
+      label: Affected Documentation
+      description: Which documentation is affected?
+      options:
+        - README
+        - API reference
+        - Getting started / Installation
+        - Configuration guide
+        - Contributing guide
+        - Code of Conduct
+        - Security policy
+        - Changelog / Release notes
+        - Inline code comments / Docstrings
+        - Development guide
+        - Multiple documents
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_docs_other_unsure
+    attributes:
+      label: Affected Documentation – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please specify which documentation.
+      placeholder: Describe which documentation is affected if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: input
+    id: location
+    attributes:
+      label: Location (Optional)
+      description: >
+        Link to the specific page, section, or line number where the issue exists.
+      placeholder: "e.g., README.md#installation, docs/api.md line 42, or URL"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Describe the documentation issue. What is wrong, missing, or unclear?
+      placeholder: |
+        Example: "The installation instructions don't mention that Python 3.10+ is required."
+        Example: "The example code in the API section doesn't work because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_content
+    attributes:
+      label: Current Content (Optional)
+      description: >
+        If applicable, paste the current documentation text that needs to be changed.
+      placeholder: Paste the existing documentation text here.
+      render: markdown
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Suggested Improvement
+  # ---------------------------------------------------------------------------
+  # How the documentation should be improved.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Suggested Improvement
+
+        Help us understand how to fix this issue.
+
+  - type: textarea
+    id: suggested_change
+    attributes:
+      label: Suggested Change
+      description: >
+        Describe how the documentation should be improved or what should be added.
+        If you have specific wording in mind, please include it.
+      placeholder: |
+        Example: "Add a prerequisites section that lists Python 3.10+ as a requirement."
+        Example: "Update the example to use the new API method instead of the deprecated one."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_content
+    attributes:
+      label: Proposed Content (Optional)
+      description: >
+        If you have specific text you'd like to suggest, provide it here.
+      placeholder: Write your proposed documentation text here.
+      render: markdown
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this documentation fix?
+      options:
+        - High – Blocking users or causing confusion
+        - Medium – Noticeable issue but workaround exists
+        - Low – Minor improvement or polish
+        - Unsure
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Contribution Interest
+  # ---------------------------------------------------------------------------
+  # Understanding willingness to contribute helps with planning.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to submit a PR for this?
+      description: >
+        Documentation contributions are a great way to get started!
+        We're happy to provide guidance.
+      options:
+        - Yes, I'd like to fix this myself
+        - Yes, but I'd need guidance
+        - Maybe, depending on complexity
+        - No, I'm just reporting the issue
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  # Ensures the user has done due diligence before submitting.
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have verified this is a documentation issue, not a code bug
+          required: true
+        - label: I have provided enough detail to understand and fix the issue
+          required: false

@@ -1,0 +1,81 @@
+# ──────────────────────────────────────────────────────────────
+# Labeler Workflow
+# ──────────────────────────────────────────────────────────────
+# Automatically labels pull requests based on which files were
+# changed. Uses the actions/labeler action with a configuration
+# file (.github/labeler.yml) that maps glob patterns to labels.
+#
+# Triggers:
+#   - Pull requests targeting main (opened, synchronized, reopened)
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_LABELER = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Create a .github/labeler.yml config file that maps file
+#      patterns to labels. Example:
+#
+#        documentation:
+#          - changed-files:
+#              - any-glob-to-any-file: 'docs/**'
+#        tests:
+#          - changed-files:
+#              - any-glob-to-any-file: 'tests/**'
+#        ci:
+#          - changed-files:
+#              - any-glob-to-any-file: '.github/**'
+#
+#      See: https://github.com/actions/labeler
+# ──────────────────────────────────────────────────────────────
+
+name: Labeler
+
+on:
+  # Trigger when a PR is opened or updated
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# Needs write access to add labels to the PR
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: Auto-label PR
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_LABELER = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_LABELER == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      # Reads .github/labeler.yml and applies matching labels
+      # to the PR based on which files were changed.
+      - name: Apply labels
+        uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # Automatically label new pull requests based on… (v6.0.1)
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

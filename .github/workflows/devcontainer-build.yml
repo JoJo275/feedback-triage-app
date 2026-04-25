@@ -1,0 +1,87 @@
+# ──────────────────────────────────────────────────────────────
+# Dev Container Validation Workflow
+# ──────────────────────────────────────────────────────────────
+# Validates that the dev container configuration builds and
+# runs successfully. Catches broken postCreateCommand scripts,
+# missing features, or image pull failures.
+#
+# Triggers:
+#   - Pull requests targeting main (when dev container files change)
+#   - Push to main (when dev container files change)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_DEVCONTAINER_BUILD = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#
+# This workflow is path-filtered — it only runs when dev container
+# config or key project files change. Not in the CI gate.
+# ──────────────────────────────────────────────────────────────
+
+name: Dev Container Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".devcontainer/**"
+      - "pyproject.toml"
+      - ".pre-commit-config.yaml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".devcontainer/**"
+      - "pyproject.toml"
+      - ".pre-commit-config.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build dev container
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_DEVCONTAINER_BUILD = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_DEVCONTAINER_BUILD == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Build dev container
+        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # Action to simplify using Dev Containers… (v0.3.1900000417)
+        with:
+          runCmd: |
+            echo "=== Dev container built successfully ==="
+            python --version
+            pip --version
+            echo "=== Verifying Hatch is installed ==="
+            hatch --version
+            echo "=== Verifying pre-commit hooks are installed ==="
+            pre-commit --version
+            echo "=== Running quick smoke test ==="
+            hatch run python -c "import simple_python_boilerplate; print('Package import OK')"
+            echo "=== All checks passed ==="

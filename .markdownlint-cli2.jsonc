@@ -1,0 +1,57 @@
+// markdownlint-cli2 configuration
+// https://github.com/DavidAnson/markdownlint-cli2#configuration
+//
+// This file configures markdownlint rules for the entire repository.
+// It is read automatically by both the VS Code extension and the
+// pre-commit hook (markdownlint-cli2, manual stage).
+//
+// Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+//
+// TODO (template users): Review disabled/relaxed rules below and tighten
+//   them if your project doesn't need the exceptions. Remove allowed_elements
+//   you don't use.
+{
+  "config": {
+    // MD024: Allow duplicate headings under different parent headings.
+    // tool-decisions.md repeats "Chosen" / "Skipped" / "Notes" under each
+    // tool category — this is intentional structure, not an error.
+    "MD024": {
+      "siblings_only": true
+    },
+
+    // MD033: Allow specific inline HTML elements used for collapsible
+    // sections in documentation (developer-commands.md, etc.).
+    // TODO (template users): Remove elements you don't use in your docs.
+    "MD033": {
+      "allowed_elements": [
+        "details",
+        "summary",
+        "br",
+        "sup",
+        "sub",
+        "kbd",
+        "img"
+      ]
+    },
+
+    // MD046: Disable code-block-style enforcement.
+    // We use fenced code blocks exclusively, but some indented blocks
+    // appear in list context (command-workflows.md) where Prettier
+    // formats them as indented. Let the formatter win.
+    "MD046": false,
+
+    // MD013: Disable line-length enforcement.
+    // Long lines are common in tables, URLs, and code examples.
+    // Ruff handles Python line length; Markdown is left flexible.
+    "MD013": false
+  },
+
+  // Ignore generated/vendored files
+  "ignores": [
+    "site/**",
+    "node_modules/**",
+    "**/CHANGELOG.md",
+    "var/**",
+    "experiments/**"
+  ]
+}

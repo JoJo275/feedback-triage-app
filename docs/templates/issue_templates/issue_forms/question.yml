@@ -1,0 +1,201 @@
+# =============================================================================
+# Question Issue Template
+# =============================================================================
+# This template is for specific technical questions that need tracking.
+# For general help, Q&A, or discussions, please use GitHub Discussions instead.
+# Sections: Introduction, Redirect Notice, Question Details, Context,
+#           Self-Help Checklist
+# =============================================================================
+
+name: ❓ Question
+description: >
+  Ask a specific technical question about the project.
+  For general help or discussions, please use Discussions instead.
+title: "[QUESTION] Short description of your question"
+labels: ["question", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review questions
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful question.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in this project! ❓
+
+        Please provide as much context as possible to help us understand
+        and answer your question effectively.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Strongly encourages users to use Discussions for general questions.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        <!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+        ⚠️ **Before submitting**
+        - **Most questions belong in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Q&A)** rather than Issues.
+        - If you're reporting a reproducible problem, use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template instead.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues), discussions, and documentation first.
+
+  # ---------------------------------------------------------------------------
+  # Question Details
+  # ---------------------------------------------------------------------------
+  # The actual question and what the user is trying to accomplish.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What is your question? Be as specific as possible.
+      placeholder: |
+        Example: "How do I configure X to work with Y?"
+        Example: "What is the recommended approach for doing Z?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to accomplish? (Optional)
+      description: >
+        Describe the broader goal or use case. This helps us provide
+        better answers and suggest alternative approaches if applicable.
+      placeholder: |
+        Example: "I'm trying to integrate this with my existing project that uses..."
+        Example: "I want to customize the behavior so that..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic Area
+      description: What area does your question relate to?
+      options:
+        - Installation / Setup
+        - Configuration
+        - Usage / API
+        - Integration with other tools
+        - Best practices
+        - Performance
+        - Troubleshooting
+        - Contributing / Development
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: topic_other_unsure
+    attributes:
+      label: Topic Area – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the topic area.
+      placeholder: Describe the topic area if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this question for you?
+      options:
+        - Blocking my work
+        - Important but not urgent
+        - Just curious / Learning
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Context
+  # ---------------------------------------------------------------------------
+  # Additional information to help answer the question.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Context
+
+        Provide any additional context that may help us answer your question.
+
+  - type: textarea
+    id: what_tried
+    attributes:
+      label: What have you tried?
+      description: >
+        Describe any approaches you've already attempted or research you've done.
+      placeholder: |
+        Example: "I tried reading the documentation but couldn't find..."
+        Example: "I attempted to configure it like this, but..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: code_example
+    attributes:
+      label: Code Example (Optional)
+      description: >
+        If relevant, provide a code snippet showing what you're working with.
+      placeholder: |
+        from simple_python_boilerplate import something
+
+        # Your code here
+        something.do_thing()
+      render: python
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (Optional)
+      description: >
+        If relevant, provide details about your environment (OS, Python version,
+        package version, etc.).
+      placeholder: |
+        - OS: Windows 11
+        - Python: 3.11.5
+        - Package version: 0.1.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: >
+        Add any other context, links, screenshots, or references that may help.
+      placeholder: |
+        - Related documentation: [link]
+        - Similar question I found: [link]
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Self-Help Checklist
+  # ---------------------------------------------------------------------------
+  # Ensures the user has done due diligence before asking.
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have checked the documentation
+          required: true
+        - label: This question is specific and not a general help request
+          required: false
+        - label: The answer to this question should be added to the documentation
+          required: false

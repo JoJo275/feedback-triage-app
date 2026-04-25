@@ -1,0 +1,72 @@
+# ──────────────────────────────────────────────────────────────
+# Commit Message Lint Workflow
+# ──────────────────────────────────────────────────────────────
+# Validates that all commits in a PR follow Conventional Commits.
+#
+# With rebase+merge, every commit lands individually on main —
+# so every commit message matters for changelog generation.
+# This workflow ensures commits are well-formed BEFORE merging.
+#
+# Locally, commitizen's pre-commit hook validates at commit time.
+# This CI check is the safety net for environments without hooks.
+#
+# Triggers:
+#   - Pull requests targeting main
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below.
+#        Option B – Set vars.ENABLE_COMMIT_LINT = 'true'.
+# ──────────────────────────────────────────────────────────────
+
+name: Commit Lint
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-commits:
+    name: Validate commit messages    # ci-gate: required
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_COMMIT_LINT == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          fetch-depth: 0             # Full history needed to check all PR commits
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+
+      - name: Install commitizen
+        run: pip install commitizen
+
+      # Validate every commit in the PR range.
+      # With rebase+merge, each of these commits will land individually on main.
+      # Non-conventional commits are flagged (they won't appear in CHANGELOG
+      # but should still be intentional, not accidental).
+      - name: Check commit messages
+        run: |
+          echo "Checking commits in range: origin/${{ github.base_ref }}..HEAD"
+          cz check --rev-range origin/${{ github.base_ref }}..HEAD

@@ -1,0 +1,320 @@
+# =============================================================================
+# Test Failure Issue Template
+# =============================================================================
+# This template is for reporting test failures, flaky tests, or test
+# infrastructure issues. Sections: Introduction, Redirect Notice, Failure
+# Details, Environment, Reproduction, Additional Context, Checklist
+# =============================================================================
+
+name: 🧪 Test Failure
+description: >
+  Report a test failure, flaky test, or test infrastructure issue.
+  For application bugs, use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template.
+title: "[TEST] Short description of the test failure"
+labels: ["test-failure", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review test failures
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it's org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful test failure report.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a test failure! 🧪
+
+        Reliable tests are essential for project quality.
+        Please provide as much detail as possible to help us investigate.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Directs users to appropriate templates for related but different issues.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        <!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+        ⚠️ **Before submitting**
+        - **Application bug?** If the test is failing due to an actual bug in the code, use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) to avoid duplicates.
+
+  # ---------------------------------------------------------------------------
+  # Failure Details
+  # ---------------------------------------------------------------------------
+  # Core information about the test failure.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Failure Details
+
+        Core information about the test failure.
+
+  - type: dropdown
+    id: failure_type
+    attributes:
+      label: Failure Type
+      description: What kind of test issue is this?
+      options:
+        - Test failure (consistent)
+        - Flaky test (intermittent failure)
+        - Test timeout
+        - Test infrastructure issue
+        - Test performance issue
+        - CI/CD pipeline failure
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: failure_type_other_unsure
+    attributes:
+      label: Failure Type – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the failure type.
+      placeholder: Describe the failure type if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: input
+    id: test_name
+    attributes:
+      label: Test Name / Location
+      description: >
+        Which test(s) are failing? Include file path and test name if known.
+      placeholder: "e.g., tests/test_utils.py::test_parse_input or tests/unit_test.py"
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: >
+        Describe the test failure. What is happening?
+      placeholder: |
+        Example: "test_parse_input fails with AssertionError when..."
+        Example: "This test passes locally but fails in CI ~30% of the time..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_output
+    attributes:
+      label: Error Output
+      description: >
+        Paste the test failure output, including the assertion error or traceback.
+      placeholder: |
+        FAILED tests/test_utils.py::test_parse_input - AssertionError: ...
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      description: How consistently does this test fail?
+      options:
+        - Always fails
+        - Flaky (fails sometimes)
+        - Only in CI
+        - Only locally
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Is this a regression?
+      description: Did this test pass previously?
+      options:
+        - "Yes – This test used to pass"
+        - "No – This is a new test"
+        - "No – This test has always been flaky"
+        - Unsure
+    validations:
+      required: true
+
+  - type: input
+    id: regression_info
+    attributes:
+      label: Last Known Passing (if regression)
+      description: >
+        If this is a regression, when did the test last pass? (commit, PR, version)
+      placeholder: "e.g., commit abc123, PR #42, or version 0.9.0"
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Environment
+  # ---------------------------------------------------------------------------
+  # System details to help reproduce the failure.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+
+        Provide details about where the test is failing.
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where does this fail?
+      description: In which environment(s) does the test fail?
+      options:
+        - Local development
+        - CI/CD (GitHub Actions, etc.)
+        - Both local and CI
+        - Unsure
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS (if local)
+      placeholder: "Windows 11 / macOS 14 / Ubuntu 22.04"
+    validations:
+      required: false
+
+  - type: input
+    id: python
+    attributes:
+      label: Python Version (if local)
+      placeholder: "3.11.5"
+    validations:
+      required: false
+
+  - type: input
+    id: commit_branch
+    attributes:
+      label: Commit / Branch / Release
+      description: >
+        Which commit SHA, branch, or release version exhibits the failure?
+      placeholder: "e.g., abc1234, main, or v1.2.0"
+    validations:
+      required: false
+
+  - type: input
+    id: ci_link
+    attributes:
+      label: CI Run Link (if applicable)
+      description: >
+        Link to the failing CI run, if available.
+      placeholder: "https://github.com/owner/repo/actions/runs/..."
+    validations:
+      required: false
+
+  - type: input
+    id: ci_job_runner
+    attributes:
+      label: CI Job Name + Runner OS (if applicable)
+      description: >
+        For matrix failures, which job and runner OS failed?
+      placeholder: "e.g., test (ubuntu-latest, 3.11) or build-windows"
+    validations:
+      required: false
+
+  - type: input
+    id: flake_rate
+    attributes:
+      label: Flake Rate / Frequency (if intermittent)
+      description: >
+        If you selected "Flaky" above, how often does it fail? Helps prioritize fixes.
+      placeholder: "e.g., ~1 in 20 runs, or 3 times this week"
+    validations:
+      required: false
+
+  - type: input
+    id: test_command
+    attributes:
+      label: Test Command Used
+      description: >
+        The exact command you ran (if not just `pytest`).
+      placeholder: "e.g., pytest -x -v tests/ --timeout=60"
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Reproduction
+  # ---------------------------------------------------------------------------
+  # How to reproduce the failure.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Reproduction
+
+        Help us reproduce the failure.
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce (Optional)
+      description: >
+        How can we reproduce this test failure? Skip if it's just "run the test."
+      placeholder: |
+        Usually just:
+        1. pip install -e ".[dev]"
+        2. Run the test command above
+
+        Add extra steps only if needed (e.g., specific env vars, seed data, timing).
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Additional Context
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Additional Context
+
+        Any extra information that might help.
+
+  - type: textarea
+    id: analysis
+    attributes:
+      label: Analysis / Suspected Cause (Optional)
+      description: >
+        If you have any insights into what might be causing the failure, share them here.
+      placeholder: |
+        Example: "I suspect this is a race condition because..."
+        Example: "This might be related to the recent changes in PR #42..."
+    validations:
+      required: false
+
+  - type: input
+    id: related_tests
+    attributes:
+      label: Other Tests Affected? (Optional)
+      description: >
+        Are other tests also failing or flaky? This can surface broader patterns.
+      placeholder: "e.g., test_auth.py also times out, or all async tests are flaky"
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have included the full error output
+          required: true
+        - label: I have verified this is a test issue, not an application bug
+          required: true

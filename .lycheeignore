@@ -1,0 +1,95 @@
+# Lychee Link Checker Ignore File
+# https://lychee.cli.rs/
+#
+# TODO (template users): After customizing the project, remove placeholder
+#   URL patterns and add patterns for any external URLs specific to your
+#   project that are intermittently unavailable in CI.
+
+# ──────────────────────────────────────────────────────────────
+# Template placeholder URLs (not real links)
+# ──────────────────────────────────────────────────────────────
+# These appear in template files and get replaced during
+# project customization.
+
+# GitHub placeholder URLs for template users
+https://github\.com/\[OWNER\]/\[REPO\]
+https://github\.com/YOURNAME/YOURREPO
+https://YOURNAME\.github\.io/YOURREPO
+
+# Example URLs in documentation templates
+https://github\.com/example.*
+
+# ──────────────────────────────────────────────────────────────
+# Template placeholder file paths
+# ──────────────────────────────────────────────────────────────
+# These are example paths in template.md that aren't real files.
+
+file://.*path/to/file
+file://.*path/to/other-file
+file://.*docs/adr/NNN-related\.md
+file://.*docs/adr/XXX-name\.md
+
+# ──────────────────────────────────────────────────────────────
+# Local / development URLs
+# ──────────────────────────────────────────────────────────────
+# These are valid in development but never reachable from CI.
+
+https?://localhost[:/].*
+https?://127\.0\.0\.1[:/].*
+https?://0\.0\.0\.0[:/].*
+https?://\[::1\][:/].*
+
+# ──────────────────────────────────────────────────────────────
+# External URLs with intermittent availability
+# ──────────────────────────────────────────────────────────────
+# These are valid URLs but sometimes fail in CI due to
+# certificate issues, rate limiting, or temporary outages.
+
+# Conventional commits - sometimes has certificate issues in CI
+https://www\.conventionalcommits\.org
+
+# ──────────────────────────────────────────────────────────────
+# Release-please compare URLs
+# ──────────────────────────────────────────────────────────────
+# Release-please generates compare URLs (e.g. v0.4.0...v0.5.0) in
+# CHANGELOG.md before the tag exists.  The URL 404s until the
+# release PR is merged and the tag is created.
+https://github\.com/.*/compare/v.*\.\.\.v.*
+
+# The Hitchhiker's Guide to Python - intermittent certificate errors
+https://docs\.python-guide\.org
+
+# Taskfile.dev - occasionally has certificate issues
+https://taskfile\.dev
+
+# Scientific Python - occasionally unavailable
+https://learn\.scientific-python\.org
+
+# GitHub CLI - manual/installation path sometimes 404s
+https://cli\.github\.com/manual/installation
+
+# ──────────────────────────────────────────────────────────────
+# Sites that block automated crawlers / rate-limit aggressively
+# ──────────────────────────────────────────────────────────────
+
+# CSS-Tricks rejects non-browser requests (415 Unsupported Media Type)
+https://css-tricks\.com
+
+# LinkedIn blocks all non-browser requests
+https://www\.linkedin\.com
+
+# Twitter / X.com aggressively rate-limits
+https://(www\.)?(twitter\.com|x\.com)
+
+# PyPI rate-limits CI runners
+https://pypi\.org
+
+# ──────────────────────────────────────────────────────────────
+# GitHub URLs that require authentication or are generated
+# ──────────────────────────────────────────────────────────────
+# GitHub edit/settings pages require login and will always 404 in CI
+https://github\.com/.*/settings
+https://github\.com/.*/edit
+
+# GitHub private profile URLs
+https://github\.com/orgs/.*/teams

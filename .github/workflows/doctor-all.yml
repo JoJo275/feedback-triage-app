@@ -1,0 +1,123 @@
+# ──────────────────────────────────────────────────────────────
+# Doctor All Workflow
+# ──────────────────────────────────────────────────────────────
+# Runs all health-check scripts from `task doctor:all` in CI:
+# env_doctor, repo_doctor, git_doctor, check_todos, check_known_issues,
+# and the diagnostics bundle (doctor.py).
+#
+# This is a **warn-only** workflow — it never blocks merges.
+# It provides visibility into project health across PRs and on
+# push to main.
+#
+# Triggers:
+#   - Pull requests targeting main
+#   - Push to main
+#   - Weekly schedule (catch drift)
+#   - Manual dispatch
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_DOCTOR_ALL = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. Remove individual doctor scripts you don't need.
+# ──────────────────────────────────────────────────────────────
+
+name: Doctor All
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 9 * * 1"  # Every Monday at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  doctor-all:
+    name: Full health check
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURREPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars.ENABLE_DOCTOR_ALL == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+          fetch-depth: 0  # Full history for git_doctor.py
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # ── Run all doctor scripts ──────────────────────────────
+      # Each step uses continue-on-error: true so downstream
+      # checks still run even if one fails.  The final step
+      # collects results into the job summary.
+
+      - name: Environment health
+        id: env
+        continue-on-error: true
+        run: python scripts/env_doctor.py
+
+      - name: Repository health
+        id: repo
+        continue-on-error: true
+        run: python scripts/repo_doctor.py --missing --profile all --include-info
+
+      - name: Git health
+        id: git
+        continue-on-error: true
+        run: python scripts/git_doctor.py
+
+      - name: Template TODOs
+        id: todos
+        continue-on-error: true
+        run: python scripts/check_todos.py --count
+
+      - name: Stale known issues
+        id: known
+        continue-on-error: true
+        run: python scripts/check_known_issues.py
+
+      - name: Diagnostics bundle
+        id: diag
+        continue-on-error: true
+        run: python scripts/doctor.py --quiet
+
+      # ── Summary ─────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## Doctor All Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "| :---- | :----: |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment health | ${{ steps.env.outcome == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Repository health | ${{ steps.repo.outcome == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Git health | ${{ steps.git.outcome == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Template TODOs | ${{ steps.todos.outcome == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Stale known issues | ${{ steps.known.outcome == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Diagnostics | ${{ steps.diag.outcome == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> This workflow is **warn-only** — it never blocks merges." >> $GITHUB_STEP_SUMMARY

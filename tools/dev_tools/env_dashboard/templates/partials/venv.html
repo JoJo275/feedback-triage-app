@@ -1,0 +1,97 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    <tr>
+        <td class="kv-label">
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Whether a virtual environment is active. Always develop inside a venv to isolate dependencies.</span>
+                </details>
+                <span>Active</span>
+            </span>
+        </td>
+        <td class="kv-value">
+            {% if data.active %}
+                <span class="badge badge-pass">Yes</span>
+            {% else %}
+                <span class="badge badge-warn">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    {{ kv_row("Prefix", data.prefix, copyable=true, hint="sys.prefix — the active environment's root directory.") }}
+    {{ kv_row("Base Prefix", data.base_prefix, copyable=true, hint="sys.base_prefix — the system Python root. Differs from prefix when inside a venv.") }}
+    {{ kv_row("VIRTUAL_ENV", data.virtual_env, hint="VIRTUAL_ENV env var. Set by venv/virtualenv activation scripts.") }}
+    {{ kv_row("CONDA_ENV", data.conda_env, hint="CONDA_DEFAULT_ENV var. Set when a Conda environment is active.") }}
+    {{ kv_row("HATCH_ENV", data.hatch_env, hint="Hatch environment name. Set when running inside 'hatch shell' or 'hatch run'.") }}
+</table>
+
+{% if data.discovered_venvs %}
+<h5>Discovered Virtual Environments</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Directory</th><th>Python</th><th>Prompt</th></tr>
+    </thead>
+    <tbody>
+        {% for venv in data.discovered_venvs %}
+        <tr>
+            <td class="mono">{{ venv.path }}</td>
+            <td>{{ venv.python_version|default("—") }}</td>
+            <td>{{ venv.prompt|default("—") }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if data.hatch %}
+<h5>Hatch</h5>
+<table class="kv-table">
+    {{ kv_row("Available", data.hatch.available, hint="Whether the hatch CLI is installed and accessible.") }}
+    {% if data.hatch.path %}
+    {{ kv_row("Path", data.hatch.path, copyable=true) }}
+    {% endif %}
+    {% if data.hatch.version %}
+    {{ kv_row("Version", data.hatch.version) }}
+    {% endif %}
+</table>
+
+{% if data.hatch.environments %}
+<h5>Hatch Environments</h5>
+{% if data.hatch.environments is mapping %}
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Environment</th><th>Type</th><th>Python</th><th>Features</th><th>Scripts</th></tr>
+    </thead>
+    <tbody>
+        {% for env_name, env_data in data.hatch.environments.items() %}
+        <tr>
+            <td><strong>{{ env_name }}</strong></td>
+            <td>{{ env_data.type|default("virtual") if env_data is mapping else "—" }}</td>
+            <td>{{ env_data.python|default("—") if env_data is mapping else "—" }}</td>
+            <td>
+                {% if env_data is mapping and env_data.features %}
+                <small>{{ env_data.features|join(", ") if env_data.features is iterable and env_data.features is not string else env_data.features }}</small>
+                {% else %}
+                <span class="muted">—</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if env_data is mapping and env_data.scripts %}
+                <small>{{ env_data.scripts.keys()|list|join(", ") if env_data.scripts is mapping else env_data.scripts }}</small>
+                {% else %}
+                <span class="muted">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<details>
+    <summary>Show environments</summary>
+    <pre><code>{{ data.hatch.environments }}</code></pre>
+</details>
+{% endif %}
+{% endif %}
+{% endif %}
