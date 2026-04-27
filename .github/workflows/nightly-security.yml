@@ -143,7 +143,7 @@ jobs:
       # latest vulnerability database and matches against the
       # dependency list in the SBOM.
       - name: Scan SBOM with Trivy
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # Scans container images for vulnerabilities… (0.35.0)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # Scans container images for vulnerabilities… (0.35.0)
         with:
           scan-type: sbom
           scan-ref: sbom-spdx.json
@@ -153,7 +153,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SBOM SARIF
-        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: trivy-sbom-results.sarif
@@ -185,7 +185,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SBOM SARIF
-        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
@@ -288,7 +288,7 @@ jobs:
         run: docker load -i image.tar
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # Scans container images for vulnerabilities… (0.35.0)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # Scans container images for vulnerabilities… (0.35.0)
         with:
           image-ref: scan-target:${{ github.sha }}
           format: sarif
@@ -297,7 +297,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: trivy-results.sarif
@@ -328,7 +328,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SARIF
-        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
