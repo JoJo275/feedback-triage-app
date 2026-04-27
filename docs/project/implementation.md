@@ -65,16 +65,16 @@ Before Phase 1 can start, the surrounding template must be repurposed.
 
 - `task lint`, `task typecheck`, and `task test` all pass on a clean
   checkout — even though the test suite is empty, the gates run.
-- `hatch shell` enters a working environment.
+- `uv sync` creates `.venv/` and produces `uv.lock`.
 - `git log` shows a single conventional commit:
   `chore: fork from simple-python-boilerplate template`.
 
 ### Verification
 
 ```bash
-hatch env create
-hatch run ruff check .
-hatch run mypy src tests   # passes trivially with empty src
+uv sync
+uv run ruff check .
+uv run mypy src tests   # passes trivially with empty src
 task test                  # 0 tests, 0 failures
 task lint
 git tag                    # no v0/v1 tags yet
@@ -302,7 +302,7 @@ behavior.
 ### Verification
 
 ```bash
-hatch run pytest tests/test_feedback_api.py -k "validation"
+uv run pytest tests/test_feedback_api.py -k "validation"
 APP_ENV=production task dev
 # trigger an unhandled error (e.g. patch a route to raise)
 # verify response body is generic and logs contain stack trace + request id
@@ -344,7 +344,7 @@ Fill out the API test matrix and bring up the Playwright smoke suite.
 ```bash
 task test
 task test:e2e
-hatch run coverage report --skip-covered --fail-under=85
+uv run coverage report --skip-covered --fail-under=85
 ```
 
 ---

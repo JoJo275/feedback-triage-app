@@ -42,21 +42,25 @@ auth, no multi-tenancy. Scope is intentionally narrow — see the spec's
 | Database    | PostgreSQL 16 + Alembic migrations                       |
 | Frontend    | Static HTML + vanilla JS + Fetch API (no Jinja, no SPA)  |
 | Tests       | pytest + httpx TestClient + Playwright (e2e smoke)       |
-| Build/env   | Hatch + `hatch-vcs` (versions from git tags)             |
+| Build/env   | uv (env, lockfile, Python install) + hatchling + `hatch-vcs` (build backend, versions from git tags) |
 | Tasks       | Task (`Taskfile.yml`)                                    |
 | Container   | Multi-stage `Containerfile`, non-root, `HEALTHCHECK /health` |
 | Deploy      | Railway, migrations via pre-deploy command               |
 
-### Build & Environment — Hatch
+### Build & Environment — uv + hatchling
 
-- **Build backend:** Hatchling with `hatch-vcs` for git-tag versioning.
-- **Envs:** `hatch run <cmd>` or `hatch shell`. Key envs: `default` (dev),
-  `docs` (mkdocs), `test` (pytest matrix 3.11–3.13), `e2e` (Playwright).
-- **Dependencies:** `[project.optional-dependencies]` groups are the source
-  of truth. Hatch envs consume via `features = [...]`.
-- **Removing a dep** requires `hatch env remove default` then re-create;
-  Hatch doesn't auto-uninstall.
-- **Version** from git tags via `hatch-vcs`. Fallback: `0.0.0+unknown`.
+- **Project / env manager:** `uv`. `uv sync` installs from `uv.lock`;
+  `uv run <cmd>` runs commands in the project env without manual
+  activation; `uv add <pkg>` / `uv remove <pkg>` edits `pyproject.toml`
+  and refreshes the lockfile in one step.
+- **Lockfile:** `uv.lock` is committed. CI uses `uv sync --frozen`; lock
+  drift fails the build.
+- **Build backend:** `hatchling` with `hatch-vcs` for git-tag versioning,
+  declared in `[build-system]`. uv invokes it on `uv build` and during
+  Docker image builds. Do **not** swap the build backend.
+- **Production image:** `uv pip install --system --frozen` — no venv
+  inside the container.
+- **Version** from git tags via `hatch-vcs`. Fallback: `0.0.0+<sha>`.
 
 ### Task Runner — Taskfile
 
@@ -93,13 +97,14 @@ and `.github/workflows/.instructions.md`.
 ### Documentation
 
 MkDocs Material. See `docs/.instructions.md` and `docs/adr/.instructions.md`.
-Serve: `hatch run docs:serve`.
+Serve: `uv run mkdocs serve`.
 
 ### Key Configuration Files
 
 | File | Controls |
 | --- | --- |
-| `pyproject.toml` | Project metadata, deps, Hatch envs, tool configs |
+| `pyproject.toml` | Project metadata, deps, tool configs |
+| `uv.lock` | Pinned dependency graph (committed) |
 | `.pre-commit-config.yaml` | Hook definitions and stages |
 | `Taskfile.yml` | Task runner shortcuts |
 | `mkdocs.yml` | Documentation site config |
@@ -199,8 +204,8 @@ is broken, say so.
 ### General Guidance
 
 - Prefer minimal diffs — Ruff handles formatting
-- Use `hatch shell` for envs, never bare `pip install`
-- Don't create `.venv` manually; use Hatch
+- Use `uv run` / `uv sync` for envs, never bare `pip install`
+- Don't create `.venv` manually; `uv sync` creates it
 - Do not introduce Jinja or a JS bundler without an ADR
 
 ---
@@ -257,8 +262,8 @@ that passes on the first try.** Full config in `pyproject.toml` under
 
 Validate before committing:
 
-    hatch run ruff check src/ scripts/ tests/    # lint
-    hatch run ruff format --check src/ scripts/  # format check
+    uv run ruff check src/ scripts/ tests/    # lint
+    uv run ruff format --check src/ scripts/  # format check
 
 Key conventions: double quotes, trailing commas, isort import order
 (stdlib → third-party → local), no `print()` in `src/` (T20), pathlib
@@ -269,7 +274,7 @@ For any specific rule: `ruff rule <CODE>`.
 ### Bandit — Security Linting
 
 Pre-commit hook. Config in `pyproject.toml` under `[tool.bandit]`.
-Validate: `hatch run bandit -c pyproject.toml -r src/`
+Validate: `uv run bandit -c pyproject.toml -r src/`
 
 Key rules: no `eval()`/`exec()`, no `pickle` on untrusted data, no
 `shell=True`, no hardcoded `/tmp` (use `tempfile`), `yaml.safe_load()`
@@ -306,7 +311,7 @@ not `yaml.load()`, parameterized SQL queries.
 Inherited template ADRs that still govern this project: 001 (src/ layout),
 002 (pyproject), 003 (separate workflow files), 004 (pin SHAs), 005 (ruff),
 006 (pytest), 007 (mypy), 008 (pre-commit), 009 (Conventional Commits),
-010 (Dependabot), 016 (Hatch), 017 (Task), 018 (bandit), 019 (Containerfile),
+010 (Dependabot), 016 (Hatch — env-manager half superseded by ADR 055; build-backend half still authoritative), 017 (Task), 018 (bandit), 019 (Containerfile),
 020 (MkDocs), 021 (release pipeline), 022 (rebase merge), 023 (branch
 protection), 024 (CI gate), 044 (Copilot instructions).
 
@@ -318,11 +323,11 @@ ADRs that need rewriting on fork (still present, wrong content for this project)
 
 ## Common Issues
 
-1. Missing `pip install -e .` — use editable install for src/ layout, or `hatch run` which handles it.
+1. Missing editable install — `uv sync` handles it for the src/ layout; do not run bare `pip install -e .`.
 2. Wrong imports — use `feedback_triage`, not `src`.
 3. Mutable default arguments — `def func(items=[])` is a bug.
-4. Hatch env stale after dep removal — `hatch env remove default` then re-create.
-5. Bare `pip install` outside venv — always use Hatch env or `pipx`.
+4. Lockfile drift — after editing `pyproject.toml` directly, run `uv lock` and commit `uv.lock` in the same change.
+5. Bare `pip install` outside venv — always use `uv` (`uv add`, `uv sync`) or `uv tool` for global tools.
 6. Sessions reused across requests — see ADR 048 (to be written) and the canary test.
 7. Migrations run from `main.py` on boot — don't; use the Railway pre-deploy command.
 

@@ -163,23 +163,39 @@ Those would be scope creep for this version.
 
 ### DevOps / Tooling
 
-- **Hatch** — Python environment and build management
-- **Task** (Taskfile) — task runner / command shortcuts
-- **uv** (optional) — fast resolver, can back Hatch envs via `installer = "uv"`
-- **Docker** + **docker-compose** — local Postgres and reproducible app container
-- **Railway** — deployment target (or any equivalent host)
-- **pre-commit** — ruff, mypy, bandit on every commit
+- **uv** — Python project manager: virtualenvs, dependency resolution,
+  `uv.lock` for reproducible installs, Python interpreter management, and
+  tool installation. Single static binary, no Python needed to bootstrap.
+- **hatchling** — build backend declared in `[build-system]`. uv consumes
+  it; uv does not replace it.
+- **hatch-vcs** — derives the package version from the latest git tag at
+  build time. No static `version = "..."` in `pyproject.toml`.
+- **Task** (Taskfile) — task runner / command shortcuts.
+- **Docker** + **docker-compose** — local Postgres and reproducible app
+  container.
+- **Railway** — deployment target (or any equivalent host).
+- **pre-commit** — ruff, mypy, bandit on every commit.
 
-> **Why Hatch?** It manages virtualenvs, build, and version-from-git in one
-> tool. It reads `pyproject.toml` directly, so there is no separate
-> `requirements.txt` to drift. For a portfolio project it signals that you
-> know modern Python packaging rather than just `pip install -r`.
+> **Why uv?** It collapses several tools into one: env management
+> (replaces `python -m venv` / `pipx`), dependency resolution and install
+> (replaces `pip` / `pip-tools`), Python interpreter install (replaces
+> `pyenv`), and tool runners (replaces `pipx run`). It produces a native
+> `uv.lock` for reproducible installs, which Hatch does not. It is also
+> 10–100× faster than the pip-based stack, which matters for cold CI
+> runs and Docker layer rebuilds. For a 2026-vintage portfolio project it
+> signals current Python tooling awareness.
+>
+> **Why keep `hatchling` as the build backend?** uv has no build backend
+> of its own — it consumes whatever `[build-system]` declares. `hatchling`
+> is small, fast, and pairs with `hatch-vcs` for git-tag-based versioning,
+> which the Release Flow depends on. Swapping the build backend would be
+> churn for no benefit.
 >
 > **Why Task?** A `Taskfile.yml` gives you discoverable, named commands
 > (`task dev`, `task test`, `task migrate`) that work the same on Windows,
-> macOS, and Linux. It is faster to type than long Hatch invocations and
-> doubles as living documentation of how to operate the project. Make works
-> too, but Make on Windows is awkward; Task is a single Go binary.
+> macOS, and Linux. It is faster to type than long `uv run` invocations
+> and doubles as living documentation of how to operate the project. Make
+> works too, but Make on Windows is awkward; Task is a single Go binary.
 
 ### Recommendation on frontend choice
 
@@ -630,7 +646,8 @@ feedback-triage-app/
 │   └── seed.py                # populate demo data
 ├── Containerfile              # multi-stage, non-root, HEALTHCHECK
 ├── docker-compose.yml
-├── pyproject.toml             # deps + Hatch envs (no requirements.txt)
+├── pyproject.toml             # deps + tool config (no requirements.txt)
+├── uv.lock                    # committed; reproducible installs
 ├── Taskfile.yml
 ├── alembic.ini
 ├── .env.example
@@ -643,10 +660,11 @@ feedback-triage-app/
 > exercise the actual installed code path. This matches the convention
 > used in the surrounding workspace template (see ADR 001).
 >
-> **Why no `requirements.txt`?** Hatch reads dependencies from
-> `pyproject.toml` directly. Keeping a second file in sync is a known
-> source of drift. If a deploy target needs a flat list, generate it with
-> `hatch dep show requirements > requirements.txt` in CI.
+> **Why no `requirements.txt`?** uv resolves directly from
+> `pyproject.toml` and pins exact versions in `uv.lock`. Keeping a third
+> file in sync is a known source of drift. If a deploy target needs a
+> flat list, generate it on the fly with `uv export --format
+> requirements-txt > requirements.txt` in CI; never hand-edit it.
 
 ---
 
@@ -922,9 +940,11 @@ Railway has no first-class "release command" hook the way Heroku does, so
 pick one of these and document it in the README:
 
 1. **Pre-deploy command (preferred).** In the service settings, set the
-   pre-deploy command to `hatch run alembic upgrade head` (or
-   `alembic upgrade head` if running from the built image). Railway runs
-   it in a one-off container before swapping traffic to the new release.
+   pre-deploy command to `alembic upgrade head` (the production image is
+   built with dependencies already installed system-wide via
+   `uv pip install --system`, so there is no env to activate). Railway
+   runs it in a one-off container before swapping traffic to the new
+   release.
 2. **Manual one-shot via `railway run`.** `railway run -- alembic upgrade
    head` from a developer machine, gated behind a checklist in the
    release runbook. Acceptable for a portfolio project; brittle for a
@@ -1071,27 +1091,44 @@ every `Source` and `Status` value. Wire it into Task as `task seed`.
 
 ---
 
-## Tooling — Hatch + Task
+## Tooling — uv + Task
 
-This project uses **Hatch** for Python environments and packaging, and
-**Task** as the cross-platform command runner. The two cooperate: Task
-shells out to Hatch, never the other way around.
+This project uses **uv** for Python environments, dependency resolution,
+and lockfile management, and **Task** as the cross-platform command
+runner. The two cooperate: Task shells out to `uv run`, never the other
+way around. The build backend is **`hatchling`** + **`hatch-vcs`**
+(declared in `[build-system]`), which uv invokes when building the wheel
+for the Docker image.
 
-### Why Hatch
+### Why uv
 
-- Reads dependencies and tool configs from a single `pyproject.toml`.
-- Manages multiple environments (`default`, `test`, `docs`) without manual
-  `venv` juggling.
-- Builds wheels/sdists for free via `hatchling`; gives you a clean Docker
-  install path (`pip install .`) instead of copying source trees.
-- Handles versioning from git tags via `hatch-vcs`, which avoids manual
-  bumps in two places.
-- Aligns with the surrounding workspace template (which is also Hatch-based).
+- Reads dependencies and tool configs from a single `pyproject.toml` and
+  pins exact versions in `uv.lock`. The lockfile is committed and gives
+  bit-for-bit reproducible installs in CI, in Docker, and on Railway.
+- One tool replaces Hatch (env), pip / pip-tools (resolution), pipx (tool
+  install), and pyenv (Python version install). Less surface area, fewer
+  failure modes.
+- 10–100× faster than pip; cold CI runs and `docker build` cache misses
+  feel measurably better.
+- `uv run <cmd>` materializes the env on demand and runs the command in
+  it; no `hatch shell` activation step.
+- Single static binary, no Python required to bootstrap. The Containerfile
+  installs uv from a pinned release tarball, then `uv pip install --system`
+  for the production image.
+
+### Why keep `hatchling` (and `hatch-vcs`) as the build backend
+
+uv does not have a build backend of its own; it consumes whatever
+`[build-system]` declares. `hatchling` is the smallest sensible choice,
+and `hatch-vcs` provides version-from-git-tag, which the Release Flow
+depends on. Swapping it for `setuptools` or `flit` would be churn for no
+benefit. The repo therefore uses **uv as the project manager** and
+**hatchling as the build backend**; these are different layers.
 
 ### Why Task
 
 - One discoverable command surface: `task` lists every task with
-  descriptions. New contributors do not have to grep your README.
+  descriptions. New contributors do not have to grep the README.
 - Cross-platform: a single Go binary that behaves the same on Windows,
   macOS, and Linux. PowerShell users do not have to install Make.
 - Task definitions are short YAML, not bash scripts; this matters for a
@@ -1101,43 +1138,45 @@ shells out to Hatch, never the other way around.
 
 ### Why not just one of them
 
-- **Hatch alone** works, but its CLI for everyday operations is verbose:
-  `hatch run test:cov` vs. `task test`. You will type these dozens of times
-  a day.
-- **Task alone** does not manage Python environments. You would still
-  need venv + pip-tools or uv. That is a second tool either way.
-- Together: Hatch owns environments and dependencies, Task owns
-  command ergonomics. Each does what it is best at.
+- **uv alone** works, but its everyday command surface is verbose:
+  `uv run --frozen pytest -q` vs. `task test`. You will type these dozens
+  of times a day.
+- **Task alone** does not manage Python environments or lockfiles. You
+  would still need uv (or pip + venv) underneath. That is two tools either
+  way.
+- Together: uv owns environments, dependencies, and the lockfile; Task
+  owns command ergonomics. Each does what it is best at.
 
 ### Recommended `Taskfile.yml` commands
 
 | Task              | What it does                                              |
 | ----------------- | --------------------------------------------------------- |
-| `task dev`        | Run FastAPI with auto-reload via `hatch run uvicorn ...`  |
+| `task sync`       | `uv sync` — install all deps from `uv.lock`               |
+| `task dev`        | `uv run uvicorn feedback_triage.main:app --reload`        |
 | `task up`         | `docker compose up -d` (start Postgres)                   |
 | `task down`       | `docker compose down`                                     |
-| `task migrate`    | `hatch run alembic upgrade head`                          |
-| `task migration`  | `hatch run alembic revision --autogenerate -m "..."`      |
-| `task seed`       | `hatch run python scripts/seed.py`                        |
-| `task test`       | `hatch run test:pytest`                                   |
-| `task lint`       | `hatch run ruff check .`                                  |
-| `task fmt`        | `hatch run ruff format .`                                 |
-| `task typecheck`  | `hatch run mypy src tests`                                |
+| `task migrate`    | `uv run alembic upgrade head`                             |
+| `task migration`  | `uv run alembic revision --autogenerate -m "..."`         |
+| `task seed`       | `uv run python scripts/seed.py`                           |
+| `task test`       | `uv run pytest`                                           |
+| `task test:e2e`   | `uv run pytest -m e2e`                                    |
+| `task lint`       | `uv run ruff check .`                                     |
+| `task fmt`        | `uv run ruff format .`                                    |
+| `task typecheck`  | `uv run mypy src tests`                                   |
 | `task check`      | runs `lint`, `typecheck`, `test` (CI gate)                |
-| `task build`      | `hatch build`                                             |
+| `task build`      | `uv build` — produces wheel + sdist via `hatchling`       |
+| `task lock`       | `uv lock` — refresh `uv.lock` after dependency edits      |
 
-### When to add `uv`
+### Lockfile policy
 
-Optional. If install times bother you, set Hatch's installer to `uv` in
-`pyproject.toml`:
-
-```toml
-[tool.hatch.envs.default]
-installer = "uv"
-```
-
-That keeps the workflow identical and makes env creation 5–10x faster.
-Do not introduce `uv pip` directly; let Hatch own the env.
+- `uv.lock` is **committed** to the repo. CI runs `uv sync --frozen` to
+  guarantee the lockfile and `pyproject.toml` agree; a drift fails the
+  build.
+- Dependabot opens PRs against `pyproject.toml`; the Dependabot job runs
+  `uv lock` and commits the refreshed lockfile alongside.
+- Production images install with `uv pip install --system --frozen` from
+  the same lockfile. There is no "works locally, breaks on Railway"
+  drift surface.
 
 ---
 
@@ -1187,7 +1226,8 @@ and worth doing:
 
 The `Containerfile` must:
 
-- Use a **multi-stage build** — stage 1 builds the wheel with Hatch, stage
+- Use a **multi-stage build** — stage 1 builds the wheel with `uv build`
+  (which invokes `hatchling`), stage
   2 is a slim runtime (`python:3.13-slim`) that `pip install`s the wheel.
   No source tree, no build tools, no `.git` in the final image.
 - Run as a **non-root user** (`USER app` after `useradd -m app`). Railway
@@ -1304,9 +1344,10 @@ isolation.
 ### Phase 1 — Project Setup
 
 - create project folder with `src/` layout
-- create `pyproject.toml` and Hatch environments
+- create `pyproject.toml` (with `[build-system]` set to `hatchling` +
+  `hatch-vcs`) and a `[project]` section
 - create `Taskfile.yml` with the standard commands (see Tooling)
-- install dependencies via `hatch env create`
+- install dependencies via `uv sync` (creates `.venv/` and `uv.lock`)
 - set up FastAPI app skeleton
 - add `docker-compose.yml` with a Postgres service
 - wire pre-commit (ruff, mypy, bandit)
@@ -1406,7 +1447,7 @@ Required sections:
   Stored under `docs/screenshots/`, referenced with relative paths.
 - **Features** \u2014 bulleted, matched to actual implemented behavior
 - **Tech stack** — short table (FastAPI, SQLModel, Postgres 16, Alembic,
-  pytest, Playwright, Hatch, Task, Docker, Railway)
+  pytest, Playwright, uv, Task, Docker, Railway)
 - **Architecture diagram** [Should] — a single Mermaid `flowchart` of
   browser → FastAPI → Postgres, with the static-HTML / JSON-API split
   visible. Mermaid renders natively on GitHub; no image asset needed.
@@ -1676,6 +1717,7 @@ if you renumber on fork.
 | 052 | API versioning under `/api/v1/`                    | Why prefix from day one; what stays unversioned (health, HTML routes).                         |
 | 053 | Migrations as Railway pre-deploy command           | Why not on app boot; the three options and which one was picked.                               |
 | 054 | Postgres for tests (no SQLite)                     | Dialect-parity over startup speed. The `truncate_all_tables()` fixture pattern.                |
+| 055 | uv as project manager; hatchling as build backend  | Supersedes the env-manager half of ADR 016. Lockfile policy, why uv over Hatch, what stays.    |
 
 ADRs to **rewrite** (not delete) when forking, because the template versions
 exist but encode the wrong decision for this project:
@@ -1689,7 +1731,7 @@ exist but encode the wrong decision for this project:
 | 031 | Script conventions             | Either rewrite for `scripts/seed.py` etc., or delete if the project has no script surface.   |
 
 Treat this list as the authoritative ADR backlog. Do not start implementing
-the project until at least #045\u2013#054 are drafted; the act of writing them
+the project until at least #045–#055 are drafted; the act of writing them
 catches spec gaps early.
 
 ---
