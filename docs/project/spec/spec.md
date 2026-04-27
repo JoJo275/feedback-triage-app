@@ -1390,22 +1390,22 @@ the project locally.
 
 ---
 
-## README Sections to Include
+## README Sections to Include [Must]
 
-Your final README should contain:
+The README is the portfolio surface. A reviewer who never clones the repo
+should still be able to judge it from the README alone.
 
-- project title
-- short summary
-- features
-- tech stack
-- screenshots
-- API endpoints
-- local setup instructions
-- Docker instructions
-- deployment link
-- future improvements
+Required sections:
 
----
+- **Project title and one-line description**
+- **Live demo link** (Railway URL) and **`/api/v1/docs` link**
+- **Screenshots** [Must] \u2014 at least three, embedded inline:
+  1. List page with seeded data
+  2. Detail / edit page mid-edit
+  3. `/api/v1/docs` Swagger UI
+  Stored under `docs/screenshots/`, referenced with relative paths.
+- **Features** \u2014 bulleted, matched to actual implemented behavior
+- **Tech stack** \u2014 short table (FastAPI, SQLModel, Postgres 16, Alembic,\n  pytest, Playwright, Hatch, Task, Docker, Railway)\n- **Architecture diagram** [Should] \u2014 a single Mermaid `flowchart` of\n  browser \u2192 FastAPI \u2192 Postgres, with the static-HTML / JSON-API split\n  visible. Mermaid renders natively on GitHub; no image asset needed.\n- **Local setup** \u2014 `task up && task migrate && task seed && task dev`\n  in a copy-paste block. If a reader has to read prose to figure out the\n  commands, the README has failed.\n- **Running tests** \u2014 separate blocks for `task test` and `task test:e2e`\n- **Deployment** \u2014 Railway-specific notes; link to `docs/deployment-notes.md`\n- **API reference** \u2014 link to `/api/v1/docs`; do not duplicate it in Markdown\n- **Future improvements** \u2014 short list, link to spec for full version\n- **License**\n\n## Dependency Updates [Must]\n\nUse **Dependabot** (already configured in the surrounding template; carry\nit over). Coverage:\n\n- `pip` ecosystem on `pyproject.toml` \u2014 weekly, grouped into a single PR\n  per week (`groups:` config). Patch + minor auto-merge after CI passes;\n  major upgrades wait for human review.\n- `github-actions` ecosystem \u2014 weekly. Pin updates land as SHA bumps so\n  ADR 004 stays honest.\n- `docker` ecosystem on the `Containerfile` base image \u2014 weekly digest\n  refresh.\n\nDo **not** also enable Renovate; pick one. Dependabot is GitHub-native\nand the template already has it configured.\n\n## Release Flow [Must]\n\nVersion comes from git tags via `hatch-vcs`. Release process:\n\n1. Land all changes for the release on `main` via reviewed PRs.\n2. `task release VERSION=v1.0.0` \u2014 a Task target that runs `git tag\n   -a v1.0.0 -m \"Release v1.0.0\"` and `git push origin v1.0.0`.\n3. The `release.yml` GitHub Actions workflow triggers on the tag, runs\n   the full CI gate, builds the Docker image, pushes it to GHCR tagged\n   with both `v1.0.0` and the commit SHA, and creates a GitHub Release\n   with auto-generated notes from Conventional Commits since the\n   previous tag (release-please handles this in the surrounding\n   template; carry it over).\n4. Railway pulls the new image. Migrations run via the pre-deploy\n   command (see Migrations section).\n\nNo manual version bumps anywhere. `pyproject.toml` does not contain a\nstatic `version =` field; `hatch-vcs` derives it from the latest tag at\nbuild time. Untagged builds report `0.0.0+<commit>`.\n\n---
 
 ## Why This Is a Better Portfolio Project Than a Notes API
 
