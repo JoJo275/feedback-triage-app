@@ -270,7 +270,7 @@ Suggested allowed values:
 - `reddit`
 - `support`
 - `app_store`
-- `twitter`
+- `X (Twitter)`
 - `other`
 
 ### Status
