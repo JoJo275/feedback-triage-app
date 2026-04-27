@@ -1,8 +1,48 @@
 # Feedback Triage App — Project Guide
 
+> **Grade:** Portfolio-grade — not a throwaway MVP. The scope is small but
+> the engineering posture (native enums, DB-level constraints, hand-reviewed
+> migrations, structured logging, separate readiness probe, Postgres-backed
+> tests) is intentionally one notch above "learning project." That gap is
+> the point: a reviewer should be able to read this spec and conclude the
+> author would not embarrass themselves shipping a real service.
+
 ## Recommended GitHub Repository Title
 
 **`feedback-triage-app`**
+
+---
+
+## Repository Context
+
+This spec lives inside a Python template repository (`simple-python-boilerplate`).
+Only files under `docs/project/` describe the Feedback Triage App; everything
+else in the repo (CI, scripts, dashboard, ADRs, `src/simple_python_boilerplate/`)
+is template scaffolding that will be replaced or removed once the spec is
+finalized.
+
+**Plan of record:** finalize this spec → fork/repurpose the template into the
+`feedback-triage-app` repository → replace `src/simple_python_boilerplate/`
+with `src/feedback_triage/` → trim CI to what this project actually needs.
+Until then, do not edit template files in this workspace.
+
+---
+
+## Requirement Tiers
+
+Not every line in this spec is equally important. Tiers below let a reviewer
+(and the author) see what is **core to the portfolio claim** vs. what is
+**polish** vs. what is **explicitly deferred**.
+
+| Tier         | Meaning                                                                 |
+| ------------ | ----------------------------------------------------------------------- |
+| **Must**     | Required for v1.0. Ship is blocked without these.                       |
+| **Should**   | Strongly recommended; included in v1.0 unless time forces a cut.        |
+| **Nice**     | Worth doing if time remains; otherwise documented as Future Improvement. |
+| **Defer**    | Explicitly out of scope for v1.0.                                       |
+
+Each major section below tags items with a tier when it is non-obvious.
+When in doubt, ship Must first; do not start Should items until Must is green.
 
 ---
 
@@ -13,8 +53,9 @@ viewing, updating, and managing product feedback items.
 
 The project is built around a **FastAPI backend** that exposes JSON endpoints
 and a **simple frontend web app** that consumes those endpoints. The purpose
-is to learn practical full-stack SaaS foundations without bloating the project
-into a large product.
+is to demonstrate practical full-stack engineering — API design, relational
+modeling, validation, deployment — at a quality bar that holds up to code
+review, not just "it runs."
 
 This project is a stronger portfolio piece than a generic notes or todo API
 because it models a real SaaS workflow: collecting customer pain points,
@@ -51,8 +92,8 @@ A user should be able to:
 - delete bad, duplicate, or irrelevant items
 - filter or sort items in a simple way
 
-This is not meant to be a complete production SaaS. It is an MVP and learning
-project.
+This is not meant to be a complete production SaaS. It is a portfolio-grade
+v1.0 release with a deliberately narrow feature set.
 
 ---
 
@@ -197,13 +238,13 @@ should be reviewed and triaged.
 | Field        | Type            | Rules                                              |
 | ------------ | --------------- | -------------------------------------------------- |
 | id           | integer         | Auto-generated, unique, primary key                |
-| title        | string          | Required, max 200 characters                       |
-| description  | string \| null  | Optional, free text                                |
+| title        | string          | Required, max 200 characters (DB: `text` + CHECK)  |
+| description  | string \| null  | Optional, free text, max 5000 chars (DB: `text` + CHECK) |
 | source       | enum (`Source`) | Required, one of the allowed source values         |
 | pain_level   | integer         | 1–5, enforced by `CHECK` constraint                |
 | status       | enum (`Status`) | Default `new`, one of the allowed status values    |
 | created_at   | timestamptz     | Auto-set on creation (`server_default=func.now()`) |
-| updated_at   | timestamptz     | Auto-set on update (`onupdate=func.now()`)         |
+| updated_at   | timestamptz     | Maintained by DB trigger (see PostgreSQL spec)     |
 
 > **Why enums and a CHECK constraint instead of plain strings?** The spec
 > already restricts `source` and `status` to a fixed list. Encoding that as
@@ -273,6 +314,14 @@ Returns a paginated **envelope** of feedback items:
 > **Why an envelope, not a bare array?** Frontends always need `total` to
 > render "Page 2 of 7." Returning a bare array forces a second request or a
 > custom header, which both UIs and tests get wrong. Lock the shape now.
+>
+> **Why offset pagination (`skip`/`limit`) and not cursor?** Offset is
+> simpler, matches the UI's "Page N of M" expectation, and is fine up to
+> ~10k rows. Its known weaknesses \u2014 deep-page cost (`OFFSET 100000` scans
+> 100k rows) and result drift when rows are inserted between page loads
+> \u2014 are documented as the upgrade path: switch to keyset pagination on
+> `(created_at DESC, id DESC)` if either becomes a real problem. Listed
+> under Future Improvements; not a v1.0 concern.
 
 Query params:
 
@@ -316,14 +365,22 @@ Deletes a feedback item. Returns `204 No Content`.
 `GET /health` — process is alive (returns `{"status": "ok"}` without
 touching the database).
 
-`GET /ready` — process is alive **and** can reach the database (executes
-`SELECT 1`). Returns `503` if the DB is unreachable.
+`GET /ready` — process is alive **and** can reach the database. Executes
+`SELECT 1` with a **hard 2-second timeout** (Postgres `statement_timeout`
+set on the session, plus a `pool_timeout=2` on the engine for the readiness
+endpoint specifically). Returns `503` with `{"status": "degraded"}` on
+timeout, connection failure, or pool exhaustion.
 
 > **Why split them?** Liveness and readiness answer different questions.
 > A platform restarts on liveness failure; it just stops sending traffic on
 > readiness failure. Conflating them causes restart loops when the DB
 > hiccups. This is the same convention Kubernetes and most PaaS providers
 > use, including Railway.
+>
+> **Why an explicit timeout?** Without one, `SELECT 1` will block on the
+> connection-pool wait, and Railway's healthcheck (default ~30s) will time
+> out *its* probe instead of getting a clean `503`. A 2s ceiling fails fast
+> and lets the platform make the right routing decision.
 
 ### CORS
 
@@ -331,7 +388,24 @@ If the frontend is ever served from a different origin (even
 `http://localhost:5173` while iterating on JS, or `127.0.0.1` vs
 `localhost`), enable `fastapi.middleware.cors.CORSMiddleware` with an
 explicit allow-list driven by an env var (`CORS_ALLOWED_ORIGINS`). Do
-**not** use `allow_origins=["*"]` in production.
+**not** use `allow_origins=["*"]` in production. The middleware must
+include `PATCH` and `DELETE` in `allow_methods` (FastAPI's defaults
+cover them, but be explicit) so browser preflight requests succeed.
+
+### Response models and OpenAPI
+
+[Must] Every route declares an explicit `response_model=` (e.g.
+`FeedbackResponse`, `FeedbackListEnvelope`). This is what makes `/docs`
+look professional and is the single cheapest credibility win in the API.
+Group routes with `tags=["feedback"]` / `tags=["health"]` so the Swagger
+UI is organized.
+
+### Idempotency
+
+`POST /feedback` is **not** idempotent in v1.0 — submitting the same body
+twice creates two rows. This is intentional: real feedback streams
+(emails, support tickets) genuinely contain near-duplicates that a human
+should triage. Duplicate detection is listed under Future Improvements.
 
 ---
 
@@ -372,6 +446,20 @@ Includes:
 - updated_at
 
 ---
+
+## Frontend Delivery Model
+
+FastAPI serves the HTML directly via Jinja2 templates (`templates/`) and
+static assets via `StaticFiles` (`static/`). The frontend is **not** a
+separate SPA build — there is no Node toolchain, no bundler, no dev
+server. Pages are rendered server-side; JavaScript only handles the
+dynamic bits (form submit, delete, filter) by calling the JSON API via
+`fetch()` from the same origin.
+
+This keeps deployment to one service, eliminates CORS in the common case
+(same-origin), and matches the "vanilla JS" stated goal. If a separate
+frontend origin is ever introduced (e.g. a Vite dev server on `:5173`),
+the `CORS_ALLOWED_ORIGINS` env var is the only knob that needs flipping.
 
 ## Frontend Pages
 
@@ -415,7 +503,7 @@ Shows:
 - save button
 - delete button
 
-This is enough for an MVP.
+This is enough for v1.0.
 
 ---
 
@@ -577,13 +665,21 @@ schema: public
 | Column        | Postgres type    | Nullable | Default            | Notes                                                                        |
 | ------------- | ---------------- | -------- | ------------------ | ---------------------------------------------------------------------------- |
 | `id`          | `bigint`         | no       | `GENERATED ALWAYS AS IDENTITY` | Primary key. `bigint` over `int` because growing past 2^31 is free insurance. |
-| `title`       | `varchar(200)`   | no       | —                  | Length capped at the column level, not just Pydantic.                        |
-| `description` | `varchar(5000)`  | yes      | `NULL`             | Optional free text. Length cap blocks abusive payloads.                      |
+| `title`       | `text`           | no       | —                  | Length enforced via `CHECK`, not `varchar(n)` — see note below.              |
+| `description` | `text`           | yes      | `NULL`             | Optional free text. Length enforced via `CHECK`.                             |
 | `source`      | `source_enum`    | no       | —                  | Native Postgres enum, not a string.                                          |
 | `pain_level`  | `smallint`       | no       | —                  | `smallint` is plenty for 1–5; saves bytes vs. `int`.                         |
 | `status`      | `status_enum`    | no       | `'new'`            | Native Postgres enum.                                                        |
 | `created_at`  | `timestamptz`    | no       | `now()`            | Always UTC. `now()` runs in the DB, not the app.                             |
-| `updated_at`  | `timestamptz`    | no       | `now()`            | Bumped by an `AFTER UPDATE` trigger (see below).                             |
+| `updated_at`  | `timestamptz`    | no       | `now()`            | Bumped by a `BEFORE UPDATE` trigger (see below).                             |
+
+> **Why `text` + `CHECK` instead of `varchar(n)`?** Postgres stores both
+> identically; there is no performance difference. `varchar(n)` makes
+> raising the limit a metadata-only `ALTER TABLE` in modern Postgres, but
+> *lowering* it requires a full rewrite, and `CHECK` constraints are the
+> standard idiom in the Postgres community. Using `text` everywhere also
+> sidesteps the `varchar` vs `character varying` naming inconsistency in
+> tooling output.
 
 > **Why `bigint` identity over UUID?** Sequential IDs are smaller, sort
 > naturally, and are easier to debug in URLs and logs. UUIDs are useful when
@@ -601,6 +697,14 @@ ALTER TABLE feedback_item
 ALTER TABLE feedback_item
     ADD CONSTRAINT feedback_item_title_not_blank
     CHECK (length(btrim(title)) > 0);
+
+ALTER TABLE feedback_item
+    ADD CONSTRAINT feedback_item_title_max_len
+    CHECK (length(title) <= 200);
+
+ALTER TABLE feedback_item
+    ADD CONSTRAINT feedback_item_description_max_len
+    CHECK (description IS NULL OR length(description) <= 5000);
 ```
 
 > Enums already enforce membership for `source` and `status`. The two
@@ -684,14 +788,20 @@ Define the model once; let Alembic's `--autogenerate` derive migrations.
 
 - One **engine** per process, created at import time in `database.py`.
 - One **session per request**, yielded via a `get_db` FastAPI dependency
-  with `try / finally: session.close()`.
+  with `try / finally: session.close()`. Sessions are **never** reused
+  across requests, cached on `app.state`, or stored on a module global.
+  This invariant is what makes `expire_on_commit=False` safe (see below).
 - `pool_size=5`, `max_overflow=5`, `pool_pre_ping=True`. Pre-ping costs a
   trivial round trip and prevents "server closed the connection
   unexpectedly" errors after Railway puts the DB to sleep.
+- Pool sizing rule of thumb: `pool_size * web_workers` ≤ DB max
+  connections. Railway's free Postgres allows ~20; with 2 uvicorn workers
+  and `pool_size=5, max_overflow=5`, peak is 20. Bump worker count only
+  after raising the DB plan.
 - Use `SQLALCHEMY_ECHO=false` in production. Echo is a debug-only setting.
 
 ```python
-# sketch
+# sketch — src/feedback_triage/database.py
 engine = create_engine(
     settings.database_url,
     pool_size=5,
@@ -702,27 +812,64 @@ engine = create_engine(
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, future=True)
 
 def get_db() -> Iterator[Session]:
+    """Session-per-request with commit/rollback wired to handler outcome."""
     session = SessionLocal()
     try:
         yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     finally:
         session.close()
 ```
 
-> **Why `expire_on_commit=False`?** FastAPI returns the response *after*
-> the request handler exits. With the default (`True`), every attribute
-> access on a returned ORM object after `commit()` triggers a re-fetch
-> from a now-closed session and raises. Disabling expire-on-commit makes
-> response serialization predictable.
+> **Why `expire_on_commit=False` is safe here — and the invariant that
+> keeps it safe.** With `expire_on_commit=True` (the default), every
+> attribute access on a returned ORM object after `commit()` triggers a
+> re-fetch from the session. FastAPI serializes the response *after* the
+> handler returns, by which point the session is closed, so serialization
+> raises `DetachedInstanceError`. Setting `expire_on_commit=False` keeps
+> the loaded attributes usable for serialization.
+>
+> The catch: with `expire_on_commit=False`, a session that **outlives a
+> single request** will serve stale reads — its identity map still holds
+> the row state from the last commit even after another request mutates
+> the database. The fix is structural, not a config flag: **scope every
+> session to exactly one request via `get_db`.** Do not store sessions on
+> `app.state`, in module globals, in background-task closures that
+> outlive the request, or in a worker pool that fans out work after the
+> response has been sent. If a future feature needs a long-lived worker,
+> it gets its **own** short-lived session per unit of work via
+> `with SessionLocal() as s: ...`, never the request's session.
+>
+> Tested at the API level: see `test_patch_then_get_returns_fresh_state`
+> in the testing plan.
 
 ### Transaction boundaries
 
 - One transaction per request. Begin implicitly when the session is used,
   commit at the end of a successful handler, roll back on exception.
-- Wire commit/rollback in a small dependency or middleware so handlers do
-  not call `session.commit()` themselves.
+- Commit/rollback live in `get_db` (see sketch above), **not** in route
+  handlers. Handlers call `session.add(...)` / `session.flush()` and
+  return; they never call `session.commit()` themselves.
+- `flush()` is fine inside a handler when an autogenerated `id` is needed
+  before the response is built (e.g. for the `Location` header on
+  `POST /feedback`). The commit still happens once, in `get_db`.
 - Never run multi-step write logic without a transaction; partial writes
   are the kind of bug that only shows up in production.
+
+### Concurrency model
+
+- **Local dev:** single uvicorn process with `--reload`.
+- **Production (Railway):** `uvicorn feedback_triage.main:app --workers 2
+  --host 0.0.0.0 --port $PORT`. Two workers is the minimum to survive a
+  single slow request without dropping the next one; more requires
+  raising the DB connection cap (see pool sizing above).
+- No async DB driver in v1.0. Routes are `def`, not `async def`, because
+  SQLModel/SQLAlchemy's sync session is simpler to reason about and the
+  workload (a single CRUD table) is not I/O-bound enough to justify
+  `asyncpg` + `AsyncSession`. Listed under Future Improvements.
 
 ### Migrations (Alembic)
 
@@ -738,6 +885,27 @@ def get_db() -> Iterator[Session]:
   and as a **separate one-shot job** in production. Do **not** run them
   inside the web process on Railway — concurrent boots race each other.
 
+#### Running migrations on Railway
+
+Railway has no first-class "release command" hook the way Heroku does, so
+pick one of these and document it in the README:
+
+1. **Pre-deploy command (preferred).** In the service settings, set the
+   pre-deploy command to `hatch run alembic upgrade head` (or
+   `alembic upgrade head` if running from the built image). Railway runs
+   it in a one-off container before swapping traffic to the new release.
+2. **Manual one-shot via `railway run`.** `railway run -- alembic upgrade
+   head` from a developer machine, gated behind a checklist in the
+   release runbook. Acceptable for a portfolio project; brittle for a
+   real team.
+3. **Separate `migrate` service in `railway.toml`** that runs once and
+   exits. Heaviest setup; only worth it if migrations grow long enough
+   to time out a pre-deploy hook.
+
+Do **not** run `alembic upgrade head` from `main.py` on app startup in
+production. Two web workers booting simultaneously will both try to
+acquire the migration lock and one will fail.
+
 ### Connecting from the app
 
 Connection string format (psycopg v3 driver):
@@ -751,7 +919,7 @@ directly. Do not hand-construct the URL from individual components.
 
 ### Backups and data safety (local dev)
 
-For an MVP, "backups" means: do not lose your demo data on a `docker
+For v1.0, "backups" means: do not lose your demo data on a `docker
 compose down -v`.
 
 - `docker-compose.yml` mounts a named volume (`pgdata`) so data survives
@@ -845,7 +1013,10 @@ PORT=8000
 DATABASE_URL=postgresql+psycopg://feedback:feedback@localhost:5432/feedback
 
 # CORS (comma-separated origins; empty = same-origin only)
-CORS_ALLOWED_ORIGINS=http://localhost:8000
+# Leave empty for the default same-origin setup (HTML served by FastAPI).
+# Populate only when iterating on a separate frontend dev server, e.g.:
+#   CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+CORS_ALLOWED_ORIGINS=
 
 # Pagination defaults (optional overrides)
 PAGE_SIZE_DEFAULT=20
@@ -946,7 +1117,7 @@ Do not introduce `uv pip` directly; let Hatch own the env.
 - Emit one structured log line per request via FastAPI middleware (method,
   path, status, duration_ms). JSON output if `APP_ENV=production`,
   human-readable otherwise.
-- Do **not** add Sentry, OpenTelemetry, or Prometheus for the MVP. They
+- Do **not** add Sentry, OpenTelemetry, or Prometheus for v1.0. They
   are easy to add later and easy to misconfigure now.
 
 > **Why mention this at all?** Without any logging you will not be able to
@@ -955,7 +1126,7 @@ Do not introduce `uv pip` directly; let Hatch own the env.
 
 ---
 
-## Security Checklist (MVP-appropriate)
+## Security Checklist (v1.0-appropriate)
 
 No auth means the threat model is small, but a few items are still cheap
 and worth doing:
@@ -966,7 +1137,7 @@ and worth doing:
 - CORS allow-list driven by env var, not `*`.
 - Strip stack traces from `500` responses (`debug=False` in production).
 - Do not log full request bodies (could contain user-pasted secrets).
-- Rate limiting is **out of scope** for MVP but worth a note in
+- Rate limiting is **out of scope** for v1.0 but worth a note in
   `Future Improvements` (`slowapi` is the easy choice).
 - `pip-audit` / `bandit` in pre-commit (already in the surrounding
   template).
@@ -975,33 +1146,63 @@ and worth doing:
 
 ## Testing Plan
 
-Test the backend API thoroughly. Skip vanilla-JS unit tests for the MVP and
-add a single Playwright happy-path E2E test only if you have time after
-shipping.
+Test the backend API thoroughly. Add a small **Playwright frontend smoke
+suite** to prove the UI is wired to the API. Skip vanilla-JS unit tests —
+testing framework-less JS without a runtime is high-friction and the smoke
+tests cover the same risks at the right level.
 
-> **Why drop `test_feedback_frontend.py`?** Testing vanilla JS without a
-> framework is awkward and high-friction. Either commit to a real E2E tool
-> (Playwright) or skip frontend tests entirely. Half-doing it produces
-> tests nobody runs. Backend tests give you the most coverage per minute.
-
-### API Tests
+### API Tests [Must]
 
 Write tests for:
 
 - create feedback with valid data → `201` and `Location` header set
 - create feedback with invalid `pain_level` → `422`
 - create feedback with missing `title` → `422`
-- list feedback items → envelope shape verified
+- create feedback with whitespace-only `title` → `422`
+- create feedback with oversized `description` (>5000 chars) → `422`
+- list feedback items → envelope shape verified (`items`, `total`, `skip`, `limit`)
 - list with `skip` / `limit` → returns the expected slice and `total`
 - list with invalid `sort_by` → `422`
 - get one existing feedback item → `200`
 - get nonexistent feedback item → `404`
 - patch feedback item (single field) → `200` and `updated_at` advances
+- patch with empty body → `200` and no fields change, `updated_at` still bumps (trigger fires on every UPDATE)
+- **`test_patch_then_get_returns_fresh_state`** — `PATCH` an item in one
+  request, `GET` it in the next request, assert the returned state
+  matches the patch. This is the canary for the session-reuse / stale-read
+  bug; if `expire_on_commit=False` ever leaks across requests, this test
+  fails.
 - delete feedback item → `204`
 - delete missing item → `404`
 - filter by `status` and by `source`
 - `/health` returns `200` always
-- `/ready` returns `503` when DB is unreachable
+- `/ready` returns `200` when DB is reachable
+- `/ready` returns `503` within 2s when DB is unreachable (test by
+  pointing `DATABASE_URL` at a closed port)
+
+### Frontend Smoke Tests [Should]
+
+A single Playwright spec, `tests/e2e/test_feedback_smoke.py`, exercising
+the critical UI paths against a running app + Postgres (use
+`docker compose up -d` in CI, then `task dev` in the background, then
+`pytest tests/e2e/`). Three tests, no more:
+
+1. **Create flow:** open `/new`, fill the form, submit, assert redirect
+   to `/` and that the new title appears in the list.
+2. **Edit flow:** open the most recent item's detail page, change
+   `status` from `new` to `reviewing`, save, reload, assert the new
+   status persists.
+3. **Delete flow:** delete the most recent item from the list page,
+   assert it disappears and that reloading does not bring it back.
+
+These three cover "the JS calls the API correctly" without ballooning
+into a full E2E suite. If a fourth test feels necessary, it almost
+certainly belongs at the API layer instead.
+
+Gate the smoke suite behind a pytest marker (`@pytest.mark.e2e`) so it
+does not run by default with `task test`. Run it via `task test:e2e` and
+in a dedicated CI job so a flaky browser does not block the unit-test
+gate.
 
 ### Test Database Strategy
 
@@ -1012,6 +1213,10 @@ behavior matches production. Two reasonable patterns:
    recreated per test session.
 2. A fresh schema per test using `CREATE SCHEMA test_<uuid>` and rolling
    back at the end.
+
+For v1.0, use option (1) plus a `truncate_all_tables()` fixture that runs
+before each test. It is the simplest pattern that still gives test
+isolation.
 
 > **Why not SQLite for tests?** SQLite lacks `ENUM`, has different `JSON`
 > semantics, and is case-insensitive by default. Tests that pass on SQLite
@@ -1090,7 +1295,7 @@ Railway is a reasonable option for this project because:
 
 - easy deploy flow
 - easy Postgres setup
-- good for small MVPs
+- good for small v1.0 services
 - simple for portfolio hosting
 
 ### Recommended Deployment Setup
@@ -1175,22 +1380,26 @@ It is a learning project and portfolio project.
 
 ---
 
-## Future Improvements After MVP
+## Future Improvements After v1.0
 
 Only after version 1 is complete, you could add:
 
 - authentication
 - labels or categories
-- search
-- duplicate detection
+- full-text search (`tsvector` + GIN index on `title || description`)
+- cursor / keyset pagination keyed on `(created_at, id)`
+- async DB driver (`asyncpg` + `AsyncSession`) if request volume warrants
+- rate limiting via `slowapi`
+- duplicate detection on `POST /feedback`
 - comment threads
 - attachments
 - simple analytics
 - export to CSV
 - audit history
 - AI clustering of similar feedback
+- observability stack (Sentry, OpenTelemetry, Prometheus)
 
-These are post-MVP enhancements, not current requirements.
+These are post-v1.0 enhancements, not current requirements.
 
 ---
 
