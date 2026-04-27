@@ -1491,6 +1491,46 @@ Build this project as:
 
 ---
 
+## ADRs to Write
+
+After forking the template into `feedback-triage-app`, write the following
+project-specific ADRs. Each one captures a decision that this spec makes
+implicitly; promoting them to numbered ADRs gives reviewers (and future you)
+a single page per call to point at when the question comes back.
+
+Numbering picks up after the highest inherited template ADR (044). Adjust
+if you renumber on fork.
+
+| #   | Title                                              | Captures                                                                                       |
+| --- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 045 | Single-table data model for v1.0                   | One `feedback_item` table, no users/labels/comments. When to split.                            |
+| 046 | Native Postgres enums + DB CHECK constraints       | Defense-in-depth over Pydantic-only validation. Enum migration policy.                         |
+| 047 | SQLModel over plain SQLAlchemy                     | Boilerplate reduction for single-table CRUD; escape hatch is "it's already SQLAlchemy."        |
+| 048 | Session-per-request with `expire_on_commit=False`  | The invariant that prevents stale reads. No sessions on `app.state` / module globals.          |
+| 049 | Offset pagination with documented keyset upgrade   | Why `skip`/`limit` for v1.0; the trigger to migrate to keyset on `(created_at DESC, id DESC)`. |
+| 050 | Sync DB driver in v1.0 (defer asyncpg)             | Routes are `def`, not `async def`. Conditions under which to revisit.                          |
+| 051 | Static HTML + vanilla JS (no Jinja, no SPA)        | Frontend delivery model. PE explicitly rejected for this scope.                                |
+| 052 | API versioning under `/api/v1/`                    | Why prefix from day one; what stays unversioned (health, HTML routes).                         |
+| 053 | Migrations as Railway pre-deploy command           | Why not on app boot; the three options and which one was picked.                               |
+| 054 | Postgres for tests (no SQLite)                     | Dialect-parity over startup speed. The `truncate_all_tables()` fixture pattern.                |
+
+ADRs to **rewrite** (not delete) when forking, because the template versions
+exist but encode the wrong decision for this project:
+
+| #   | Title                          | Rewrite focus                                                                                |
+| --- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| 014 | No template engine             | Reframe from "template repo has no Jinja" to "feedback-triage-app deliberately ships static HTML." |
+| 025 | Container strategy             | Consolidate with 019 or split deliberately; encode multi-stage + non-root + HEALTHCHECK.     |
+| 027 | Database strategy              | Replace template-generic content with the Postgres 16 + SQLModel + enums + trigger spec.     |
+| 029 | Testing strategy               | Add Postgres-for-tests and the Playwright smoke layer.                                       |
+| 031 | Script conventions             | Either rewrite for `scripts/seed.py` etc., or delete if the project has no script surface.   |
+
+Treat this list as the authoritative ADR backlog. Do not start implementing
+the project until at least #045\u2013#054 are drafted; the act of writing them
+catches spec gaps early.
+
+---
+
 ## Final Project Identity
 
 - **Project name:** Feedback Triage App

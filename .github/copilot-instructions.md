@@ -2,11 +2,15 @@
 
 Guidelines for GitHub Copilot when working in this repository.
 
-<!-- TODO (template users): After forking, update to match YOUR project:
-     - Replace project-specific names, entry points, and paths
-     - Add your own conventions and review priorities
-     - Remove sections that don't apply
-     Copilot reads this file on every interaction, so keep it accurate. -->
+> **Repository status (April 2026):** This repo is a Python template
+> (`simple-python-boilerplate`) being repurposed into the
+> **`feedback-triage-app`** project. The authoritative spec for the new
+> project lives at [`docs/project/spec/spec.md`](../docs/project/spec/spec.md).
+> Until the fork is complete, only files under `docs/project/` describe the
+> new project; everything else (CI, scripts, dashboard, `src/simple_python_boilerplate/`)
+> is template scaffolding that will be replaced or removed. **Do not edit
+> template files in this workspace until the spec is finalized and the fork
+> begins.**
 
 ---
 
@@ -14,66 +18,77 @@ Guidelines for GitHub Copilot when working in this repository.
 
 ### Overview
 
-A Python boilerplate/template project using src/ layout, Hatch for
-environment/build management, and extensive CI/CD. The single source of truth
-for tool configuration is `pyproject.toml`.
+**Feedback Triage App** is a small full-stack web application: a FastAPI
+backend exposing a JSON API under `/api/v1/`, backed by PostgreSQL 16, with
+a frontend of static HTML + vanilla JS served from the same FastAPI process.
+The single source of truth for tool configuration is `pyproject.toml`. The
+canonical spec is [`docs/project/spec/spec.md`](../docs/project/spec/spec.md).
 
 ### Domain / Business Context
 
-This is a **template repository** — no application logic. The "product" is the
-project structure, CI/CD pipelines, tooling conventions, and documentation.
-Everything under `src/` is placeholder code for template users to replace.
+The app helps a product team manage incoming customer feedback: create,
+list, view, update, and delete `feedback_item` rows with `source`,
+`status`, and `pain_level` fields. Single resource, single table, no
+auth, no multi-tenancy. Scope is intentionally narrow — see the spec's
+**Non-Goals** and **Future Improvements** sections.
 
-<!-- TODO (template users): Replace with 2-3 sentences describing what YOUR
-     application does, then delete this comment block. -->
+### Tech Stack
+
+| Layer       | Choice                                                   |
+| ----------- | -------------------------------------------------------- |
+| API         | FastAPI (sync routes, `def` not `async def` in v1.0)     |
+| ORM         | SQLModel on top of SQLAlchemy 2.x                        |
+| Validation  | Pydantic v2 (request/response) + Postgres `CHECK` + enums |
+| Database    | PostgreSQL 16 + Alembic migrations                       |
+| Frontend    | Static HTML + vanilla JS + Fetch API (no Jinja, no SPA)  |
+| Tests       | pytest + httpx TestClient + Playwright (e2e smoke)       |
+| Build/env   | Hatch + `hatch-vcs` (versions from git tags)             |
+| Tasks       | Task (`Taskfile.yml`)                                    |
+| Container   | Multi-stage `Containerfile`, non-root, `HEALTHCHECK /health` |
+| Deploy      | Railway, migrations via pre-deploy command               |
 
 ### Build & Environment — Hatch
 
 - **Build backend:** Hatchling with `hatch-vcs` for git-tag versioning.
-- **Envs:** `hatch run <cmd>` or `hatch shell`. Key envs: `default` (dev), `docs` (mkdocs), `test` (pytest matrix 3.11–3.13).
-- **Dependencies:** `[project.optional-dependencies]` groups are the source of truth. Hatch envs consume via `features = [...]`.
-- **Removing a dep** requires `hatch env remove default` then re-create; Hatch doesn't auto-uninstall.
+- **Envs:** `hatch run <cmd>` or `hatch shell`. Key envs: `default` (dev),
+  `docs` (mkdocs), `test` (pytest matrix 3.11–3.13), `e2e` (Playwright).
+- **Dependencies:** `[project.optional-dependencies]` groups are the source
+  of truth. Hatch envs consume via `features = [...]`.
+- **Removing a dep** requires `hatch env remove default` then re-create;
+  Hatch doesn't auto-uninstall.
 - **Version** from git tags via `hatch-vcs`. Fallback: `0.0.0+unknown`.
-
-### Pre-commit Hooks
-
-| Stage          | Key hooks                                                | Count |
-| :------------- | :------------------------------------------------------- | ----: |
-| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + suite   |    38 |
-| **commit-msg** | commitizen (Conventional Commits)                        |     1 |
-| **pre-push**   | pytest, pip-audit, gitleaks, repo-doctor                 |     4 |
-| **manual**     | markdownlint-cli2, hadolint-docker, prettier, forbid-sub |     4 |
-| **Total**      |                                                          | **47**|
-
-Config: `.pre-commit-config.yaml` · Full inventory: [ADR 008](../docs/adr/008-pre-commit-hooks.md)
-
-### GitHub Actions Workflows
-
-~37 workflow files in `.github/workflows/`, all SHA-pinned ([ADR 004](../docs/adr/004-pin-action-shas.md)).
-**Canonical inventory:** `docs/workflows.md`. See `.github/workflows/.instructions.md` for conventions.
 
 ### Task Runner — Taskfile
 
-Key tasks: `task test`, `task lint`, `task fmt`, `task typecheck`, `task check` (all gates),
-`task commit`, `task deps:versions`. Run `task` for full list.
+Key tasks (run `task` for the full list):
 
-### Scripts
+| Task              | What it does                                              |
+| ----------------- | --------------------------------------------------------- |
+| `task dev`        | FastAPI with auto-reload                                  |
+| `task up`/`down`  | `docker compose up/down` (Postgres)                       |
+| `task migrate`    | `alembic upgrade head`                                    |
+| `task migration`  | `alembic revision --autogenerate -m "..."`                |
+| `task seed`       | populate demo data via `scripts/seed.py`                  |
+| `task test`       | unit + API tests (pytest)                                 |
+| `task test:e2e`   | Playwright smoke suite (gated, opt-in)                    |
+| `task lint`       | ruff check                                                |
+| `task fmt`        | ruff format                                               |
+| `task typecheck`  | mypy                                                      |
+| `task check`      | lint + typecheck + test (CI gate)                         |
+| `task release`    | `git tag -a vX.Y.Z && git push origin vX.Y.Z`             |
 
-Utility scripts in `scripts/`. See `scripts/README.md` for inventory,
-`scripts/.instructions.md` for conventions.
+### Pre-commit Hooks
 
-### Global Entry Points
+Ruff, mypy, bandit, typos, actionlint, pip-audit, gitleaks, commitizen
+(Conventional Commits). Config: `.pre-commit-config.yaml`. Inherited from
+the template; trim to what this project actually needs after fork.
 
-22 CLI commands (21 `spb-*` commands plus `spb`) defined in `[project.scripts]` in `pyproject.toml`.
-Thin wrappers in `src/simple_python_boilerplate/scripts_cli.py` run bundled
-scripts via subprocess with `SPB_REPO_ROOT` set to CWD, enabling cross-repo
-use via `pipx install .`. See `docs/guide/entry-points.md` for the full list.
+### GitHub Actions Workflows
 
-### Environment Dashboard
-
-FastAPI + Jinja2 + HTMX + Alpine.js web app in `tools/dev_tools/env_dashboard/`.
-20 plugin-based collectors gather environment data. Start with `spb-dashboard`
-or `hatch run dashboard:serve`. See `docs/guide/dashboard-guide.md`.
+All actions SHA-pinned ([ADR 004](../docs/adr/004-pin-action-shas.md)).
+The workflow set inherited from the template will be reduced to: CI gate,
+release pipeline, Dependabot auto-merge, e2e smoke. See `docs/workflows.md`
+and `.github/workflows/.instructions.md`.
 
 ### Documentation
 
@@ -84,15 +99,16 @@ Serve: `hatch run docs:serve`.
 
 | File | Controls |
 | --- | --- |
-| `pyproject.toml` | Project metadata, deps, Hatch envs, tool configs (ruff, mypy, pytest, bandit, etc.) |
+| `pyproject.toml` | Project metadata, deps, Hatch envs, tool configs |
 | `.pre-commit-config.yaml` | Hook definitions and stages |
 | `Taskfile.yml` | Task runner shortcuts |
 | `mkdocs.yml` | Documentation site config |
-| `Containerfile` | Multi-stage container build |
+| `Containerfile` | Multi-stage container build (non-root, HEALTHCHECK) |
+| `docker-compose.yml` | Local Postgres + app |
+| `alembic.ini` | Migration config; reads `DATABASE_URL` from env |
 | `release-please-config.json` | Release automation |
-| `mkdocs-hooks/*.py` | MkDocs build hooks (repo_links, generate_commands, include_templates) |
-| `src/.../scripts_cli.py` | Entry point wrappers for `spb-*` CLI commands |
-| `*.code-workspace` | VS Code settings. **Note:** use relative paths, not `${workspaceFolder}`. |
+| `.env.example` | Documented env-var surface |
+| `*.code-workspace` | VS Code settings. Use relative paths, not `${workspaceFolder}`. |
 
 ### Targeted Instruction Files
 
@@ -103,45 +119,34 @@ Serve: `hatch run docs:serve`.
 | `docs/.instructions.md` | Documentation conventions |
 | `docs/adr/.instructions.md` | ADR creation procedure |
 | `tests/.instructions.md` | Test conventions |
-| `.github/instructions/dashboard.instructions.md` | Dashboard app conventions (FastAPI, htmx, Alpine.js) |
-| `.github/instructions/dashboard-css.instructions.md` | Dashboard CSS/theme conventions |
-| `.github/instructions/dashboard-templates.instructions.md` | Dashboard Jinja2 template conventions |
-| `.github/instructions/collectors.instructions.md` | Environment data collector conventions |
 | `.github/instructions/python.instructions.md` | Python style, imports, type hints, security |
 | `.github/instructions/tests.instructions.md` | pytest conventions, fixtures, coverage |
 
-This file covers **project-wide** rules. Prefer the targeted instruction file for file-type-specific details.
+This file covers **project-wide** rules. Prefer the targeted instruction
+file for file-type-specific details.
 
 ---
 
 ## Working Style
 
-### Leave TODOs for Template Users
+### Spec Is Source of Truth
 
-Include `TODO (template users):` comments in new files explaining what to
-customise. Be specific: "Replace `YOURNAME/YOURREPO` with your repo slug."
-
-### Check Templates Before Creating Files
-
-Check [template inventory](../docs/reference/template-inventory.md) for
-existing templates and conventions before creating files from scratch.
-
-### Use SKILL.md for Multi-step Operations
-
-`.github/SKILL.md` has step-by-step procedures for adding components
-(workflows, scripts, ADRs, hooks, deps, instruction files). **Always read
-it before multi-step operations** — it lists sync steps easy to forget.
+When in doubt about scope, schema, or a decision, read
+[`docs/project/spec/spec.md`](../docs/project/spec/spec.md) before asking.
+The spec uses **Must / Should / Nice / Defer** tiers — respect them. Do not
+implement Should items before Must is green.
 
 ### Keep Related Files in Sync
 
-When updating a file, update dependent files too. Use `.github/SKILL.md`
-as a checklist. Don't let documentation drift from reality.
+When updating a file, update dependent files too. The spec, the README, the
+ADRs, the OpenAPI shape, and the Playwright smoke tests are linked surfaces
+— if one moves, check the others.
 
 ### Provide Feedback and Pushback
 
 Push back when a request introduces unnecessary complexity, conflicts with
-conventions/ADRs, or has a simpler alternative. Be direct: state the problem,
-explain why, suggest an alternative.
+the spec or an ADR, or has a simpler alternative. Be direct: state the
+problem, explain why, suggest an alternative.
 
 ### Clean Up Dead Code
 
@@ -151,66 +156,104 @@ Preserve public API and documented extension points.
 ### Session Recap
 
 After significant sessions, provide a brief recap: what changed, why,
-impact (pros and cons), what to watch for, decisions made, and recommendations.
-Skip for trivial single-file edits.
+impact, what to watch for, decisions made. Skip for trivial single-file edits.
 
 ### Surface Issues
 
 Proactively flag issues, risks, or anomalies noticed during any session —
-even if unrelated to the current task. Keep flags brief: what's wrong,
-why it matters, suggested next step.
+even if unrelated to the current task. Keep flags brief: what's wrong, why
+it matters, suggested next step.
 
 ### Verify Before Finishing
 
-- **Code** — run tests (`task test`) or check for syntax/type errors
+- **Code** — run `task test` (and `task test:e2e` if frontend touched)
 - **Workflows** — run `actionlint`
 - **Hooks** — `pre-commit run <hook-id> --all-files`
 - **SHA-pinned actions** — verify the commit SHA exists upstream
+- **Migrations** — every Alembic migration is hand-reviewed after
+  autogenerate; never trust the autogenerated diff blind
 
 ### Don't Churn
 
 Avoid unnecessary rewrites, renames, or restructurings that don't fix a
 bug or deliver a requested feature. Churn creates merge conflicts, pollutes
-blame history, and wastes CI minutes. If existing code works and isn't
-blocking a change, leave it alone.
+blame history, and wastes CI minutes.
 
 ### Tone
 
 Direct and factual. No filler praise or diplomatic hedging. If something
 is broken, say so.
 
+---
+
 ## Review Priorities
 
-1. **Type hints** — Public functions in `src/` should have annotations
-2. **Tests** — Changes should include or update tests
-3. **Security** — Flag hardcoded secrets, `shell=True`, unsafe `yaml.load()`, SQL injection
-4. **Import errors** — Must work with src/ layout
-5. **Docstrings** — Google style on public functions
-6. **Error handling** — Appropriate exception handling
+1. **Spec alignment** — Changes should match `docs/project/spec/spec.md`. If they don't, either update the spec first or push back.
+2. **Type hints** — Public functions in `src/feedback_triage/` must be annotated; mypy strict.
+3. **Tests** — Changes include or update API tests; UI changes update the Playwright smoke suite if a smoke path is affected.
+4. **Security** — Flag hardcoded secrets, `shell=True`, raw SQL string concatenation, `yaml.load()` without `safe_load`, unbounded payloads.
+5. **DB invariants** — Session-per-request, no sessions on `app.state` / module globals; migrations hand-reviewed; native enums + CHECK constraints in every schema change.
+6. **Imports** — Must work with `src/` layout. `from feedback_triage.X import Y`, never `from src...`.
+7. **Docstrings** — Google style on public functions.
 
 ### General Guidance
 
 - Prefer minimal diffs — Ruff handles formatting
 - Use `hatch shell` for envs, never bare `pip install`
 - Don't create `.venv` manually; use Hatch
+- Do not introduce Jinja or a JS bundler without an ADR
+
+---
 
 ## Conventions
 
 ### Python
 
-- Absolute imports: `from simple_python_boilerplate.module import func`
+- Absolute imports: `from feedback_triage.module import func`
+- `from __future__ import annotations` at top of every file
 - Type hints on all public functions; mypy strict mode
 - Google style docstrings; constants in UPPER_SNAKE_CASE
 - `pathlib.Path` over `os.path`; `subprocess.run()` with arg lists (never `shell=True`)
-- `from __future__ import annotations` at top of every file
 - `tomllib` for TOML; `importlib.metadata` for package introspection
+- Routes are `def`, not `async def`, in v1.0 (sync DB driver)
 
-Script-specific conventions are in `scripts/.instructions.md`.
+### FastAPI / API
+
+- All JSON routes under `/api/v1/`; HTML page routes (`/`, `/new`, `/feedback/{id}`) and probes (`/health`, `/ready`) stay unversioned
+- Every route declares an explicit `response_model=`
+- Group routes with `tags=[...]` so `/api/v1/docs` is organized
+- List endpoints return an envelope (`items`, `total`, `skip`, `limit`), not a bare array
+- `PATCH` for partial updates, `PUT` is not used in v1.0
+- Datetimes serialized as ISO 8601 with `Z` suffix, UTC, microsecond precision
+
+### Database
+
+- One `feedback_item` table; do not introduce a second table without an ADR
+- Native Postgres enums (`source_enum`, `status_enum`) + DB `CHECK` constraints; never plain strings
+- `updated_at` maintained by a `BEFORE UPDATE` trigger, not ORM `onupdate`
+- Session-per-request via `get_db`; `expire_on_commit=False`; commit/rollback live in `get_db`, not handlers
+- Alembic with `compare_type=True` and `compare_server_default=True`; every migration hand-reviewed
+- Use `text` + `CHECK length(...) <= N`, not `varchar(n)`
+
+### Frontend
+
+- Static HTML files served via `StaticFiles`; **no Jinja, no bundler, no SPA framework**
+- Vanilla JS + Fetch API for dynamic behavior
+- Semantic HTML, every input has a `<label>`, buttons are `<button>`
+- Same-origin delivery; CSRF is N/A in v1.0 (no cookie auth)
+
+### Testing
+
+- Postgres for tests, never SQLite (dialect parity)
+- API tests use httpx TestClient; one transaction per test, truncate fixture between tests
+- Playwright smoke suite is gated behind `@pytest.mark.e2e`, run via `task test:e2e`
+- The canary test for session reuse is `test_patch_then_get_returns_fresh_state` — keep it green
 
 ### Ruff — Linting & Formatting
 
 Ruff handles both linting and formatting as pre-commit hooks. **Write code
-that passes on the first try.** Full config in `pyproject.toml` under `[tool.ruff]`.
+that passes on the first try.** Full config in `pyproject.toml` under
+`[tool.ruff]`.
 
 Validate before committing:
 
@@ -234,8 +277,10 @@ not `yaml.load()`, parameterized SQL queries.
 
 ### Project Structure
 
-- Source: `src/simple_python_boilerplate/`
-- Tests: `tests/` · Scripts: `scripts/` · Docs: `docs/`
+- Source: `src/feedback_triage/`
+- Tests: `tests/` (API) and `tests/e2e/` (Playwright)
+- Scripts: `scripts/`
+- Docs: `docs/` · Spec: `docs/project/spec/spec.md` · ADRs: `docs/adr/`
 
 ### Git & PRs
 
@@ -243,6 +288,8 @@ not `yaml.load()`, parameterized SQL queries.
 - One logical change per commit; PR titles follow conventional format
 - Commit message template in `.gitmessage.txt`: `<type>(<scope>): <description>`
   with body sections `Why:`, `What changed:`, `How tested:`
+
+---
 
 ## Ignore / Don't Flag
 
@@ -252,23 +299,32 @@ not `yaml.load()`, parameterized SQL queries.
 
 ## Architecture References
 
-- `docs/design/architecture.md` — System overview, data flows
-- `docs/design/tool-decisions.md` — Tool comparison notes
-- `docs/adr/` — 44 Architecture Decision Records
+- **Spec:** `docs/project/spec/spec.md` (canonical; everything below is cross-reference)
+- **ADRs:** `docs/adr/` — stack and process decisions inherited from the template plus project-specific ADRs (045–054, see spec's "ADRs to Write" table)
+- **Workflows:** `docs/workflows.md`
 
-Key ADRs: 001 (src/ layout), 008 (pre-commit hooks), 024 (CI gate),
-031 (script conventions), 040 (v1.0 readiness), 041 (env dashboard),
-042 (smoke testing), 043 (collector plugins), 044 (Copilot instructions).
+Inherited template ADRs that still govern this project: 001 (src/ layout),
+002 (pyproject), 003 (separate workflow files), 004 (pin SHAs), 005 (ruff),
+006 (pytest), 007 (mypy), 008 (pre-commit), 009 (Conventional Commits),
+010 (Dependabot), 016 (Hatch), 017 (Task), 018 (bandit), 019 (Containerfile),
+020 (MkDocs), 021 (release pipeline), 022 (rebase merge), 023 (branch
+protection), 024 (CI gate), 044 (Copilot instructions).
 
-**When numbers here conflict with those docs, the docs win.**
+ADRs that need rewriting on fork (still present, wrong content for this project):
+014 (no template engine), 025 (container strategy), 027 (database strategy),
+029 (testing strategy), 031 (script conventions).
+
+**When numbers here conflict with the docs, the docs win.**
 
 ## Common Issues
 
-1. Missing `pip install -e .` — use editable install for src/ layout
-2. Wrong imports — use `simple_python_boilerplate`, not `src`
-3. Mutable default arguments — `def func(items=[])` is a bug
-4. Hatch env stale after dep removal — `hatch env remove default` then re-create
-5. Bare `pip install` outside venv — always use Hatch env or `pipx`
+1. Missing `pip install -e .` — use editable install for src/ layout, or `hatch run` which handles it.
+2. Wrong imports — use `feedback_triage`, not `src`.
+3. Mutable default arguments — `def func(items=[])` is a bug.
+4. Hatch env stale after dep removal — `hatch env remove default` then re-create.
+5. Bare `pip install` outside venv — always use Hatch env or `pipx`.
+6. Sessions reused across requests — see ADR 048 (to be written) and the canary test.
+7. Migrations run from `main.py` on boot — don't; use the Railway pre-deploy command.
 
 ## Known Limitations
 
