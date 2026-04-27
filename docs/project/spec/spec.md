@@ -288,7 +288,23 @@ These are enough for version 1.
 
 ## API Endpoints
 
-Use one clean REST resource.
+Use one clean REST resource. **All JSON endpoints are versioned under
+`/api/v1/`** (e.g. `/api/v1/feedback`). HTML page routes (`/`, `/new`,
+`/feedback/{id}`) are unversioned because they are UI surface, not API
+contract.
+
+> **Why version from day one?** Adding `/api/v1` costs five characters
+> now and prevents an awkward migration the first time a response shape
+> changes. Health and readiness probes (`/health`, `/ready`) stay
+> unversioned by convention — platforms expect them at fixed paths.
+
+### Datetime serialization
+
+All `created_at` / `updated_at` fields are serialized as ISO 8601 with a
+`Z` suffix and microsecond precision (e.g. `2026-04-27T14:32:11.482910Z`).
+Configure Pydantic with a `model_config = ConfigDict(ser_json_timedelta=...)`
+and a custom `datetime` serializer that forces UTC and `Z`. Naive
+datetimes never cross the API boundary.
 
 ### Create
 
@@ -449,17 +465,29 @@ Includes:
 
 ## Frontend Delivery Model
 
-FastAPI serves the HTML directly via Jinja2 templates (`templates/`) and
-static assets via `StaticFiles` (`static/`). The frontend is **not** a
-separate SPA build — there is no Node toolchain, no bundler, no dev
-server. Pages are rendered server-side; JavaScript only handles the
-dynamic bits (form submit, delete, filter) by calling the JSON API via
-`fetch()` from the same origin.
+FastAPI serves the frontend as **plain static HTML files** via `StaticFiles`,
+plus a few thin route handlers that return the right HTML for `/`, `/new`,
+and `/feedback/{id}`. There is no Jinja templating, no Node toolchain, no
+bundler, no SPA framework. JavaScript calls the JSON API via `fetch()` from
+the same origin and does all rendering client-side.
 
-This keeps deployment to one service, eliminates CORS in the common case
-(same-origin), and matches the "vanilla JS" stated goal. If a separate
-frontend origin is ever introduced (e.g. a Vite dev server on `:5173`),
-the `CORS_ALLOWED_ORIGINS` env var is the only knob that needs flipping.
+This is a deliberate choice. With three pages and a JS-driven UI, server-
+side templating would template `{}` placeholders into otherwise-static
+HTML — pure overhead. Dropping Jinja means one fewer dependency, one fewer
+language in the repo, and the "vanilla HTML/CSS/JS" claim in the README is
+literally true.
+
+> **When to revisit.** If progressive enhancement (works without JS,
+> server-rendered first paint) becomes a goal, swap `StaticFiles` for
+> Jinja templates and render the list HTML server-side. That is an
+> evening's work and lives under Future Improvements.
+
+Same-origin delivery also means **CSRF is not a concern in v1.0**: no
+cookie-based auth, no cross-origin form posts, all writes are JSON via
+`fetch()` with `Content-Type: application/json`. Browsers do not auto-
+attach credentials to cross-origin JSON requests without explicit
+`credentials: 'include'`. Document this in the security checklist; do
+not add a CSRF token mechanism.
 
 ## Frontend Pages
 
@@ -573,31 +601,34 @@ feedback-triage-app/
 │       ├── schemas.py         # request/response Pydantic models
 │       ├── enums.py           # Source, Status
 │       ├── crud.py            # DB-layer functions
+│       ├── middleware.py      # request-id, structured logging
 │       ├── routes/
 │       │   ├── __init__.py
-│       │   ├── feedback.py
-│       │   └── health.py
-│       ├── templates/
-│       │   ├── base.html
-│       │   ├── index.html
-│       │   ├── new_feedback.html
-│       │   └── feedback_detail.html
+│       │   ├── feedback.py    # /api/v1/feedback
+│       │   ├── health.py      # /health, /ready
+│       │   └── pages.py       # /, /new, /feedback/{id} → serve HTML
 │       └── static/
+│           ├── index.html
+│           ├── new.html
+│           ├── detail.html
 │           ├── css/styles.css
 │           └── js/
 │               ├── index.js
-│               ├── new_feedback.js
-│               └── feedback_detail.js
+│               ├── new.js
+│               └── detail.js
 ├── alembic/
 │   ├── env.py
 │   └── versions/
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py
-│   └── test_feedback_api.py
+│   ├── test_feedback_api.py
+│   └── e2e/
+│       ├── conftest.py
+│       └── test_feedback_smoke.py
 ├── scripts/
 │   └── seed.py                # populate demo data
-├── Containerfile              # or Dockerfile
+├── Containerfile              # multi-stage, non-root, HEALTHCHECK
 ├── docker-compose.yml
 ├── pyproject.toml             # deps + Hatch envs (no requirements.txt)
 ├── Taskfile.yml
@@ -1114,8 +1145,15 @@ Do not introduce `uv pip` directly; let Hatch own the env.
 
 - Use Python's stdlib `logging` configured once in `main.py`; respect
   `LOG_LEVEL` from settings.
+- **Request-ID middleware** [Must]: assign a UUID to every incoming
+  request (or trust an inbound `X-Request-ID` header if present), attach
+  it to a `contextvars.ContextVar`, include it in every log record via a
+  `logging.Filter`, and echo it back in the response `X-Request-ID`
+  header. Without this, debugging a Railway 500 means scrolling through
+  interleaved logs from two workers; with it, one grep finds the whole
+  request.
 - Emit one structured log line per request via FastAPI middleware (method,
-  path, status, duration_ms). JSON output if `APP_ENV=production`,
+  path, status, duration_ms, request_id). JSON output if `APP_ENV=production`,
   human-readable otherwise.
 - Do **not** add Sentry, OpenTelemetry, or Prometheus for v1.0. They
   are easy to add later and easy to misconfigure now.
@@ -1137,10 +1175,46 @@ and worth doing:
 - CORS allow-list driven by env var, not `*`.
 - Strip stack traces from `500` responses (`debug=False` in production).
 - Do not log full request bodies (could contain user-pasted secrets).
+- **CSRF: not applicable in v1.0.** No cookie-based auth, no cross-origin
+  form posts, all writes are JSON via `fetch()`. Adding a CSRF token
+  mechanism would be cargo-cult security here. Revisit if/when auth lands.
 - Rate limiting is **out of scope** for v1.0 but worth a note in
   `Future Improvements` (`slowapi` is the easy choice).
 - `pip-audit` / `bandit` in pre-commit (already in the surrounding
   template).
+
+## Container Hardening [Must]
+
+The `Containerfile` must:
+
+- Use a **multi-stage build** — stage 1 builds the wheel with Hatch, stage
+  2 is a slim runtime (`python:3.13-slim`) that `pip install`s the wheel.
+  No source tree, no build tools, no `.git` in the final image.
+- Run as a **non-root user** (`USER app` after `useradd -m app`). Railway
+  does not require it, but it is the bare minimum hardening any reviewer
+  will check.
+- Declare `EXPOSE 8000` and a `HEALTHCHECK` that hits `/health` (not
+  `/ready` — healthcheck failure restarts the container, and a DB blip
+  should not).
+- Pin the base image by digest (`python:3.13-slim@sha256:...`) for
+  reproducibility; refresh with Renovate/Dependabot.
+- Set `PYTHONDONTWRITEBYTECODE=1`, `PYTHONUNBUFFERED=1`,
+  `PIP_NO_CACHE_DIR=1` as ENV.
+
+## Accessibility Floor [Should]
+
+The frontend is HTML and forms; basic accessibility is essentially free:
+
+- Semantic HTML (`<main>`, `<nav>`, `<table>` for the list, `<form>` for
+  inputs).
+- Every `<input>` / `<select>` has an associated `<label>`.
+- Buttons are `<button>`, not `<div onclick=...>`.
+- Visible focus rings (do not `outline: none` in CSS without replacement).
+- Color contrast meets WCAG AA (lighthouse score ≥ 90 on the
+  Accessibility category).
+- The Playwright smoke suite drives forms via labels (`page.get_by_label`),
+  which doubles as an accessibility check — if it can't find a label, you
+  forgot one.
 
 ---
 
@@ -1180,12 +1254,11 @@ Write tests for:
 - `/ready` returns `503` within 2s when DB is unreachable (test by
   pointing `DATABASE_URL` at a closed port)
 
-### Frontend Smoke Tests [Should]
+### Frontend Smoke Tests [Must]
 
-A single Playwright spec, `tests/e2e/test_feedback_smoke.py`, exercising
-the critical UI paths against a running app + Postgres (use
-`docker compose up -d` in CI, then `task dev` in the background, then
-`pytest tests/e2e/`). Three tests, no more:
+Three Playwright specs in `tests/e2e/test_feedback_smoke.py` exercise the
+critical UI paths against a running app + Postgres. CI brings up the
+stack with `docker compose up -d` and runs the suite via `task test:e2e`.
 
 1. **Create flow:** open `/new`, fill the form, submit, assert redirect
    to `/` and that the new title appears in the list.
@@ -1202,7 +1275,8 @@ certainly belongs at the API layer instead.
 Gate the smoke suite behind a pytest marker (`@pytest.mark.e2e`) so it
 does not run by default with `task test`. Run it via `task test:e2e` and
 in a dedicated CI job so a flaky browser does not block the unit-test
-gate.
+gate. Use Playwright's `chromium` only for v1.0 — cross-browser is
+Future Improvements territory.
 
 ### Test Database Strategy
 
