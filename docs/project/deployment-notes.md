@@ -213,18 +213,37 @@ not for production DR.
 
 ## Release Flow Summary
 
-Per [spec — Release Flow](spec/spec.md#release-flow-must):
+Per [spec — Release Flow](spec/spec.md#release-flow-must), this project
+separates **Deploy** (continuous, every merge to `main`) from **Release**
+(tag-driven via release-please).
 
-1. PR merged to `main`.
-2. `task release VERSION=v1.0.0` tags and pushes.
-3. `release.yml` builds the image, pushes to GHCR, drafts a release.
-4. Railway pulls the new image.
-5. Railway runs the pre-deploy command (`alembic upgrade head`).
-6. Railway swaps traffic to the new release.
+**Deploy (every PR merge):**
 
-If step 5 fails, the old release keeps serving. That is the entire
-rollback story for v1.0; documented forward-only migrations are part
-of the discipline that makes this safe.
+1. PR merged to `main` (CI gate required, rebase merge, branch protected).
+2. Railway — configured with this **GitHub repo** as its source — pulls
+   the new commit and builds from `Containerfile`.
+3. Railway runs the pre-deploy command (`alembic upgrade head`).
+4. Railway starts the new container; healthcheck on `/health` must pass
+   before traffic swaps over.
+
+If step 3 fails, the previous container keeps serving. That is the
+entire rollback story for v1.0; forward-only migrations are part of the
+discipline that makes this safe.
+
+**Release (cadence chosen by humans):**
+
+1. release-please maintains an open Release PR on `main` with the
+   computed version bump and `CHANGELOG.md` updates.
+2. Merging the Release PR creates the tag (e.g. `v1.0.0`) and publishes
+   the GitHub Release with auto-generated notes.
+3. The tag triggers `release.yml`, which runs the full CI gate, builds
+   the image, and pushes it to GHCR tagged with the version and the
+   commit SHA.
+4. **Railway is unaffected by the tag** — the deploy that shipped this
+   commit already happened when the underlying feature PRs merged.
+
+`task release VERSION=vX.Y.Z` exists only as an emergency fallback for
+when release-please is unavailable.
 
 ---
 

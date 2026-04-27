@@ -57,11 +57,9 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [008](008-pre-commit-hooks.md)                        | Use pre-commit hooks for automated checks                          | Accepted |
 | [009](009-conventional-commits.md)                    | Use Conventional Commits for commit messages                       | Accepted |
 | [010](010-dependabot-for-dependency-updates.md)       | Use Dependabot for dependency updates                              | Accepted |
-| [011](011-repository-guard-pattern.md)                | Repository guard pattern for optional workflows                    | Accepted |
 | [012](012-multi-layer-security-scanning.md)           | Multi-layer security scanning in CI                                | Accepted |
 | [013](013-sbom-bill-of-materials.md)                  | SBOM generation and distribution strategy                          | Accepted |
 | [014](014-no-template-engine.md)                      | No template engine — manual customisation                          | Accepted |
-| [015](015-no-github-directory-readme.md)              | No README.md in .github/ directory                                 | Accepted |
 | [016](016-hatchling-and-hatch.md)                     | Use Hatchling (build backend) and Hatch (project manager) together | Accepted |
 | [017](017-task-runner.md)                             | Use Taskfile as the project task runner                            | Accepted |
 | [018](018-bandit-for-security-linting.md)             | Use Bandit for Python security linting                             | Accepted |
@@ -82,15 +80,13 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [033](033-prettier-for-markdown-formatting.md)        | Prettier for Markdown formatting                                   | Accepted |
 | [034](034-documentation-organization-strategy.md)     | Documentation organization strategy                                | Accepted |
 | [035](035-copilot-instructions-as-context.md)         | Copilot instructions as developer context                          | Accepted |
-| [036](036-diagnostic-tooling-strategy.md)             | Diagnostic tooling strategy (doctor scripts and profiles)          | Accepted |
 | [037](037-git-configuration-as-code.md)               | Git configuration as code                                          | Accepted |
 | [038](038-vscode-workspace-configuration-strategy.md) | VS Code workspace configuration strategy                           | Accepted |
-| [039](039-developer-onboarding-automation.md)         | Developer onboarding automation (bootstrap and customize)          | Accepted |
-| [040](040-v1-release-readiness.md)                    | v1.0 release readiness checklist                                   | Accepted |
-| [041](041-env-inspect-web-dashboard.md)               | Environment inspection web dashboard                               | Accepted |
-| [042](042-script-smoke-testing.md)                    | Script smoke testing in CI                                         | Accepted |
-| [043](043-collector-plugin-architecture.md)           | Environment data collector plugin architecture                     | Accepted |
 | [044](044-copilot-skills-and-instructions.md)         | Copilot skills and instruction file architecture                   | Accepted |
+
+> ADRs 011, 015, 036, 039–043 were deprecated during the fork from
+> `simple-python-boilerplate` to `feedback-triage-app` and live in
+> [archive/](archive/).
 
 ## Archive
 

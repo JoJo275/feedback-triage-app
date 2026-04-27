@@ -1405,7 +1405,170 @@ Required sections:
   3. `/api/v1/docs` Swagger UI
   Stored under `docs/screenshots/`, referenced with relative paths.
 - **Features** \u2014 bulleted, matched to actual implemented behavior
-- **Tech stack** \u2014 short table (FastAPI, SQLModel, Postgres 16, Alembic,\n  pytest, Playwright, Hatch, Task, Docker, Railway)\n- **Architecture diagram** [Should] \u2014 a single Mermaid `flowchart` of\n  browser \u2192 FastAPI \u2192 Postgres, with the static-HTML / JSON-API split\n  visible. Mermaid renders natively on GitHub; no image asset needed.\n- **Local setup** \u2014 `task up && task migrate && task seed && task dev`\n  in a copy-paste block. If a reader has to read prose to figure out the\n  commands, the README has failed.\n- **Running tests** \u2014 separate blocks for `task test` and `task test:e2e`\n- **Deployment** \u2014 Railway-specific notes; link to `docs/deployment-notes.md`\n- **API reference** \u2014 link to `/api/v1/docs`; do not duplicate it in Markdown\n- **Future improvements** \u2014 short list, link to spec for full version\n- **License**\n\n## Dependency Updates [Must]\n\nUse **Dependabot** (already configured in the surrounding template; carry\nit over). Coverage:\n\n- `pip` ecosystem on `pyproject.toml` \u2014 weekly, grouped into a single PR\n  per week (`groups:` config). Patch + minor auto-merge after CI passes;\n  major upgrades wait for human review.\n- `github-actions` ecosystem \u2014 weekly. Pin updates land as SHA bumps so\n  ADR 004 stays honest.\n- `docker` ecosystem on the `Containerfile` base image \u2014 weekly digest\n  refresh.\n\nDo **not** also enable Renovate; pick one. Dependabot is GitHub-native\nand the template already has it configured.\n\n## Release Flow [Must]\n\nVersion comes from git tags via `hatch-vcs`. Release process:\n\n1. Land all changes for the release on `main` via reviewed PRs.\n2. `task release VERSION=v1.0.0` \u2014 a Task target that runs `git tag\n   -a v1.0.0 -m \"Release v1.0.0\"` and `git push origin v1.0.0`.\n3. The `release.yml` GitHub Actions workflow triggers on the tag, runs\n   the full CI gate, builds the Docker image, pushes it to GHCR tagged\n   with both `v1.0.0` and the commit SHA, and creates a GitHub Release\n   with auto-generated notes from Conventional Commits since the\n   previous tag (release-please handles this in the surrounding\n   template; carry it over).\n4. Railway pulls the new image. Migrations run via the pre-deploy\n   command (see Migrations section).\n\nNo manual version bumps anywhere. `pyproject.toml` does not contain a\nstatic `version =` field; `hatch-vcs` derives it from the latest tag at\nbuild time. Untagged builds report `0.0.0+<commit>`.\n\n---
+- **Tech stack** — short table (FastAPI, SQLModel, Postgres 16, Alembic,
+  pytest, Playwright, Hatch, Task, Docker, Railway)
+- **Architecture diagram** [Should] — a single Mermaid `flowchart` of
+  browser → FastAPI → Postgres, with the static-HTML / JSON-API split
+  visible. Mermaid renders natively on GitHub; no image asset needed.
+- **Local setup** — `task up && task migrate && task seed && task dev`
+  in a copy-paste block. If a reader has to read prose to figure out the
+  commands, the README has failed.
+- **Running tests** — separate blocks for `task test` and `task test:e2e`
+- **Deployment** — Railway-specific notes; link to `docs/deployment-notes.md`
+- **API reference** — link to `/api/v1/docs`; do not duplicate it in Markdown
+- **Future improvements** — short list, link to spec for full version
+- **License**
+
+## Dependency Updates [Must]
+
+Use **Dependabot** (already configured in the surrounding template; carry
+it over). Coverage:
+
+- `pip` ecosystem on `pyproject.toml` — weekly, grouped into a single PR
+  per week (`groups:` config). Patch + minor auto-merge after CI passes;
+  major upgrades wait for human review.
+- `github-actions` ecosystem — weekly. Pin updates land as SHA bumps so
+  ADR 004 stays honest.
+- `docker` ecosystem on the `Containerfile` base image — weekly digest
+  refresh.
+
+Do **not** also enable Renovate; pick one. Dependabot is GitHub-native
+and the template already has it configured.
+
+## Release Flow [Must]
+
+This project separates **Deploy** (continuous, every merge to `main`) from
+**Release** (tag-driven, human-paced). They run on the same commit stream
+but answer different questions: deploy = "is the running site fresh?",
+release = "what version did we ship and what changed?".
+
+### Branch protection
+
+- `main` is protected. Direct pushes are rejected.
+- All changes land via PR. Required checks: the CI gate workflow
+  (`task check` matrix) must pass before merge. The e2e smoke
+  (`task test:e2e`) is **not** a required check in v1.0 — it is gated
+  behind `@pytest.mark.e2e` and run on demand or on a nightly schedule.
+- Merge strategy is **rebase** (per ADR 022); no squash, no merge commits.
+- Conversation resolution required; stale approvals dismissed on new pushes.
+
+### Deploy: continuous from `main`
+
+Railway is configured with the **GitHub repository** as its source (not
+GHCR). Every push to `main` triggers Railway to:
+
+1. Pull the new commit.
+2. Build the image from `Containerfile`.
+3. Run the **pre-deploy command**: `alembic upgrade head` (against the
+   production `DATABASE_URL`, which Railway injects from the Postgres
+   plugin). If the migration fails, the deploy aborts and the previous
+   container keeps serving traffic.
+4. Start the new container. The Railway healthcheck hits `/health`; only
+   when it returns 200 does Railway swap traffic over.
+
+So the answer to "do I just merge a PR to `main` and Railway picks it up?"
+is **yes, that is exactly the model.** No manual deploy step, no image
+promotion, no `task release` required to ship a feature.
+
+### Release: tag-driven, on top of the deploy stream
+
+Releases are bookkeeping, not deployment. They produce two artifacts a
+reviewer can inspect:
+
+- a **GitHub Release** with auto-generated notes from Conventional Commits
+- a **GHCR image** tagged with the version and commit SHA, for traceability
+  and (future) image-promotion workflows
+
+The mechanism is **release-please** running on every push to `main`:
+
+1. release-please opens (or updates) a long-lived **Release PR** that
+   bumps the version derived from Conventional Commits and rewrites
+   `CHANGELOG.md`. The Release PR sits open while features keep landing —
+   it just keeps updating.
+2. When you decide a cut is ready, you **merge the Release PR**.
+3. Merging the Release PR causes release-please to:
+   - create the git tag (`v1.2.3`) on the merge commit,
+   - publish the GitHub Release with the generated notes.
+4. The tag push triggers `release.yml`, which runs the full CI gate,
+   builds the image, and pushes it to GHCR tagged `v1.2.3` and
+   `sha-<short-sha>`.
+5. **Railway is unaffected by the tag.** The deploy that shipped this
+   commit already happened when the underlying feature PRs merged. The
+   tag is a label on a commit that is already live.
+
+This is intentional: deploy cadence is decoupled from release cadence,
+and rolling back a release does not require re-deploying anything.
+
+### Flow at a glance
+
+```
+feat: add filter           ──┐
+fix: validate pain_level   ──┤  (PRs merged to main, each one ships immediately)
+chore: bump deps           ──┘
+                              │
+                              ▼
+                          main branch ───► Railway: build → migrate → /health → serve
+                              │
+                              ▼
+                  release-please Release PR (open, accumulating changes)
+                              │
+                              │  (human merges Release PR when ready)
+                              ▼
+                        tag v1.2.3 created
+                              │
+                              ▼
+                    release.yml: CI gate → GHCR push → GitHub Release
+```
+
+### Versioning
+
+- Version is derived from the latest git tag by `hatch-vcs`. There is no
+  static `version = "..."` in `pyproject.toml`.
+- Untagged builds (every commit on `main` between releases) report
+  `0.0.0+<short-sha>`. That is the version Railway is running between cuts.
+- No manual version bumps anywhere; release-please owns the tag.
+- `task release` exists as an **emergency fallback** (`git tag -a vX.Y.Z`
+  + `git push origin vX.Y.Z`) for cases where release-please is unavailable.
+  It is not the normal path.
+
+### Configuration checklist
+
+- [ ] Railway service: source = GitHub repo (this repo), branch = `main`.
+- [ ] Railway pre-deploy command: `alembic upgrade head`.
+- [ ] Railway healthcheck path: `/health`, timeout 5s.
+- [ ] `DATABASE_URL` injected by Railway Postgres plugin; app normalizes
+      `postgres://` → `postgresql+psycopg://` at startup.
+- [ ] GitHub branch protection on `main`: require CI gate, require PR,
+      rebase merge, dismiss stale approvals.
+- [ ] `release-please-config.json` configured for a Python project.
+- [ ] `.github/workflows/release.yml` triggers on `push` of tags matching
+      `v*.*.*`, runs full CI, builds image, pushes to
+      `ghcr.io/<owner>/feedback-triage-app:v*` and `:sha-*`.
+
+### Hotfixes
+
+A hotfix is just a normal PR. Open it, get review, merge to `main`,
+Railway redeploys. If the fix should also bump the version, the next
+release-please Release PR will pick up the `fix:` commit and propose a
+patch bump.
+
+There is no separate hotfix branch in v1.0 — the project is single-tenant
+and rolling forward is acceptable. A hotfix branch model can be added
+later if traffic grows.
+
+### Why GHCR images aren't promoted to Railway
+
+GHCR images exist for traceability and for a future "promote a tagged
+image to production" workflow. In v1.0 there is only one environment, so
+having Railway build directly from the repo is simpler than wiring image
+promotion: one source of truth, one build, no skew between the GHCR image
+and the running container.
+
+If a staging environment is added later, the natural upgrade path is to
+switch Railway to deploy from GHCR tags and have a workflow promote
+`sha-*` tags to a `staging` tag and then to a `production` tag.
+
+---
 
 ## Why This Is a Better Portfolio Project Than a Notes API
 

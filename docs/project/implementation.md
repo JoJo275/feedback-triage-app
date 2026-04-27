@@ -362,6 +362,9 @@ command.
       base, `PYTHONDONTWRITEBYTECODE=1` etc.
 - [ ] Image builds locally via `docker build .` and runs.
 - [ ] Railway service created, Postgres plugin attached.
+- [ ] Railway service source set to **this GitHub repo, branch `main`**
+      (continuous deploy on every merge — see
+      [spec — Release Flow](spec/spec.md#release-flow-must)).
 - [ ] Pre-deploy command set to `alembic upgrade head`.
 - [ ] Env vars set per
       [`deployment-notes.md`](deployment-notes.md#required-environment-variables).
@@ -425,20 +428,31 @@ Last-mile work: README, screenshots, demo seed, `v1.0.0` tag.
 
 ### Definition of Done
 
-- `task release VERSION=v1.0.0` tags, pushes, and triggers
-  `release.yml`.
-- The GitHub Release page lists conventional-commit notes.
+- Every PR merged to `main` triggers a Railway deploy that builds, runs
+  `alembic upgrade head` as the pre-deploy command, and passes the
+  `/health` healthcheck before swapping traffic.
+- The release-please Release PR is open against `main` and accumulates
+  Conventional Commit changes; merging it produces the `v1.0.0` tag.
+- The tag push triggers `release.yml`, which runs the full CI gate,
+  builds the image, and pushes it to GHCR tagged `v1.0.0` and
+  `sha-<short-sha>`. The GitHub Release page lists the auto-generated
+  notes.
 - A reviewer who has never seen the project can read the README, click
   the demo URL, and understand both *what it does* and *how it is
   built* in under 5 minutes.
 
+See [spec — Release Flow](spec/spec.md#release-flow-must) for the full
+deploy-vs-release model.
+
 ### Verification
 
 ```bash
-task check          # lint + typecheck + test
+task check          # lint + typecheck + test (matches the CI gate)
 task test:e2e
-task release VERSION=v1.0.0
-# verify GHCR image, GitHub Release, and Railway deploy
+
+# Deploy is automatic on merge to main; check Railway dashboard.
+# Release is cut by merging the release-please Release PR on GitHub.
+# `task release` is an emergency fallback only — not the normal path.
 ```
 
 ---
