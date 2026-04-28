@@ -42,7 +42,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_TYPE_CHECK = 'true'.
     if: >-
       ${{
-        github.repository == 'JoJo275/feedback-triage-app'
+        github.repository == 'OWNER/REPO'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_TYPE_CHECK == 'true'
       }}

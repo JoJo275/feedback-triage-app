@@ -19,7 +19,7 @@
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
-#        Option A – Replace 'JoJo275/feedback-triage-app' below with
+#        Option A – Replace 'OWNER/REPO' below with
 #                   your actual repo slug (e.g. 'myorg/myproject').
 #        Option B – Set a repository variable (no YAML edits needed):
 #                     vars.ENABLE_PR_TITLE = 'true'
@@ -53,7 +53,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_PR_TITLE = 'true'.
     if: >-
       ${{
-        github.repository == 'JoJo275/feedback-triage-app'
+        github.repository == 'OWNER/REPO'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_PR_TITLE == 'true'
       }}
