@@ -9,16 +9,16 @@
 #      (e.g. https://github.com/myorg/myproject and myorg/myproject).
 #   4. Update the nav section — remove boilerplate-specific pages
 #      (ADRs, Templates, Notes) and add your own.
-#   5. In the mkdocstrings plugin, replace 'simple_python_boilerplate'
+#   5. In the mkdocstrings plugin, replace 'feedback_triage'
 #      module references in docs/reference/api.md with your package name.
 #   6. Update not_in_nav if you add or remove files from docs/.
 
-site_name: simple-python-boilerplate
+site_name: feedback-triage-app
 site_description: Simple Python boilerplate using src/ layout
 docs_dir: docs
-site_url: https://jojo275.github.io/simple-python-boilerplate/
-repo_url: https://github.com/JoJo275/simple-python-boilerplate
-repo_name: JoJo275/simple-python-boilerplate
+site_url: https://jojo275.github.io/feedback-triage-app/
+repo_url: https://github.com/JoJo275/feedback-triage-app
+repo_name: JoJo275/feedback-triage-app
 
 # README.md is excluded because it conflicts with index.md (MkDocs treats
 # README.md as index.md by default).  We use path-specific patterns so that
