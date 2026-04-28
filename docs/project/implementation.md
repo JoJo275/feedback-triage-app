@@ -339,17 +339,17 @@ Fill out the API test matrix and bring up the Playwright smoke suite.
 
 ### Deliverables `[Must]`
 
-- [ ] `tests/conftest.py` — TestClient fixture, isolated Postgres test
+- [x] `tests/conftest.py` — TestClient fixture, isolated Postgres test
       database, per-test `truncate_all_tables()` fixture.
-- [ ] `tests/test_feedback_api.py` — full coverage of
+- [x] `tests/test_feedback_api.py` — full coverage of
       [spec — API Tests](spec/spec.md#api-tests-must).
-- [ ] `tests/e2e/conftest.py` — Playwright fixtures, app + Postgres
+- [x] `tests/e2e/conftest.py` — Playwright fixtures, app + Postgres
       lifecycle, `chromium` only.
-- [ ] `tests/e2e/test_feedback_smoke.py` — three smoke specs (create,
+- [x] `tests/e2e/test_feedback_smoke.py` — three smoke specs (create,
       edit, delete).
-- [ ] `pytest.ini` (or `[tool.pytest.ini_options]` in `pyproject.toml`)
+- [x] `pytest.ini` (or `[tool.pytest.ini_options]` in `pyproject.toml`)
       registers the `e2e` marker.
-- [ ] `task test:e2e` runs the smoke suite against a live stack.
+- [x] `task test:e2e` runs the smoke suite against a live stack.
 
 ### Definition of Done
 
