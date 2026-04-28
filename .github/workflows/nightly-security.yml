@@ -26,7 +26,7 @@
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
-#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#        Option A – Replace 'JoJo275/feedback-triage-app' below with
 #                   your actual repo slug (e.g. 'myorg/myproject').
 #        Option B – Set a repository variable (no YAML edits needed):
 #                     vars.ENABLE_NIGHTLY_SECURITY = 'true'
@@ -77,7 +77,7 @@ jobs:
 
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURREPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_NIGHTLY_SECURITY == 'true'
       }}
@@ -200,7 +200,7 @@ jobs:
 
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURREPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_NIGHTLY_SECURITY == 'true'
       }}
@@ -246,7 +246,7 @@ jobs:
 
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURREPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_NIGHTLY_SECURITY == 'true'
       }}

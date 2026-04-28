@@ -30,7 +30,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_TEST = 'true'.
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURREPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_TEST == 'true'
       }}
@@ -71,4 +71,4 @@ jobs:
       # including integration tests to get accurate coverage numbers.
       # This workflow prioritizes fast feedback over completeness.
       - name: Run tests
-        run: pytest -v -m "not integration"
+        run: pytest -v -m "not integration and not e2e"

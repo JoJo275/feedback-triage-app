@@ -43,7 +43,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_SPELLCHECK_AUTOFIX = 'true'.
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURREPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_SPELLCHECK_AUTOFIX == 'true'
       }}
