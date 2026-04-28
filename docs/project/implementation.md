@@ -39,20 +39,18 @@ Before Phase 1 can start, the surrounding template must be repurposed.
         Alembic, psycopg[binary], pydantic-settings, uvicorn)
   - [ ] optional groups: `test`, `e2e`, `docs`
 - [ ] `tools/dev_tools/`, `mkdocs-hooks/`, `repo_doctor.d/`, `labels/`,
-      `experiments/` reviewed and either removed or trimmed.
-      **Required removals** (contradict archived ADRs 036/041/043):
-      `tools/dev_tools/env_dashboard/`, `scripts/_env_collectors/`,
-      `scripts/env_inspect.py`. Everything else under `scripts/` and
-      `tools/` is retained as general-purpose dev tooling.
+      `experiments/` reviewed. All retained as general-purpose dev
+      tooling on the forked project; trim only if a specific item is
+      clearly broken or unused after fork.
 - [ ] `scripts/` retained as a project-wide tooling library (bootstrap,
-      doctor family, dep/version helpers, container-test scripts,
-      pre-commit hooks). The only project-specific addition for v1.0 is
-      `scripts/seed.py`. Template `spb-*` console-script entry points are
-      removed from `pyproject.toml`; the underlying scripts stay.
-- [ ] `.github/workflows/` retained mostly as-is; **required removals**
-      (tied to archived ADRs): `doctor-all.yml`, `repo-doctor.yml`
-      (ADR 036), `smoke-test.yml` (ADR 042). All other workflows stay
-      and are SHA-pin-refreshed.
+      doctor family, env collectors / dashboard, dep/version helpers,
+      container-test scripts, pre-commit hooks). The only project-
+      specific addition for v1.0 is `scripts/seed.py`. Template `spb-*`
+      console-script entry points in `pyproject.toml` should be renamed
+      (e.g. `fta-*`) or dropped; the underlying scripts stay.
+- [ ] `.github/workflows/` retained as-is. SHA pins refreshed at fork
+      time. Trim only if a specific workflow proves to be wrong for
+      this project after first green run.
 - [ ] `.pre-commit-config.yaml` trimmed to hooks this project actually
       uses.
 - [ ] `Taskfile.yml` rewritten to the task list in

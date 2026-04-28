@@ -6,11 +6,14 @@ Guidelines for GitHub Copilot when working in this repository.
 > (`simple-python-boilerplate`) being repurposed into the
 > **`feedback-triage-app`** project. The authoritative spec for the new
 > project lives at [`docs/project/spec/spec.md`](../docs/project/spec/spec.md).
-> Until the fork is complete, only files under `docs/project/` describe the
-> new project; everything else (CI, scripts, dashboard, `src/simple_python_boilerplate/`)
-> is template scaffolding that will be replaced or removed. **Do not edit
-> template files in this workspace until the spec is finalized and the fork
-> begins.**
+> Until the fork is complete, only files under `docs/project/` describe
+> the new project; everything else (CI, scripts, dashboard,
+> `src/simple_python_boilerplate/`) is template scaffolding. The fork
+> retains most of `scripts/`, `tools/`, and `.github/workflows/` as
+> general-purpose dev tooling — only `src/simple_python_boilerplate/`
+> and project-name-bound config (e.g. `spb-*` console scripts) are
+> guaranteed to be replaced. **Do not edit template files in this
+> workspace until the spec is finalized and the fork begins.**
 
 ---
 
@@ -90,9 +93,11 @@ the template; trim to what this project actually needs after fork.
 ### GitHub Actions Workflows
 
 All actions SHA-pinned ([ADR 004](../docs/adr/004-pin-action-shas.md)).
-The workflow set inherited from the template will be reduced to: CI gate,
-release pipeline, Dependabot auto-merge, e2e smoke. See `docs/workflows.md`
-and `.github/workflows/.instructions.md`.
+The full template workflow set is retained on the forked project as
+general-purpose CI/dev tooling; SHA pins are refreshed at fork time.
+Trim only if a specific workflow proves wrong for this project after
+first green run. See `docs/workflows.md` and
+`.github/workflows/.instructions.md`.
 
 ### Documentation
 
