@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted
+**Needs rewrite** — inherited from the template. The decision is preserved
+for history; the framing ("this repo is a template; reject template
+engines") no longer matches the project. Reframe as "feedback-triage-app
+intentionally ships static HTML, not Jinja" and cross-link to
+[ADR 051](051-static-html-vanilla-js.md).
+
+Originally: Accepted
 
 ## Context
 

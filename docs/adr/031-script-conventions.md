@@ -2,7 +2,15 @@
 
 ## Status
 
-Accepted
+**Needs rewrite** — inherited from the template, where `scripts/` was
+the primary user-facing surface. In feedback-triage-app, `scripts/` is
+retained as **general-purpose dev tooling** (doctor family, env
+collectors, dep helpers); the only project-specific addition is
+`scripts/seed.py`. Either rewrite to describe "dev tooling kept from
+template + project seed script" or delete if the conventions are no
+longer enforced.
+
+Originally: Accepted
 
 ## Context
 

@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted
+**Needs rewrite** — inherited from the template. The current text is
+project-agnostic. Rewrite to describe the v1.0 multi-stage Containerfile
+concretely (uv-based wheel build, slim runtime, non-root, HEALTHCHECK
+`/health`, digest-pinned base, Railway target). Cross-link to
+[ADR 019](019-containerfile.md) and [ADR 053](053-migrations-as-pre-deploy-command.md).
+
+Originally: Accepted
 
 ## Context
 
