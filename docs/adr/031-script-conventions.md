@@ -2,202 +2,157 @@
 
 ## Status
 
-**Needs rewrite** — inherited from the template, where `scripts/` was
-the primary user-facing surface. In feedback-triage-app, `scripts/` is
-retained as **general-purpose dev tooling** (doctor family, env
-collectors, dep helpers); the only project-specific addition is
-`scripts/seed.py`. Either rewrite to describe "dev tooling kept from
-template + project seed script" or delete if the conventions are no
-longer enforced.
-
-Originally: Accepted
+Accepted
 
 ## Context
 
-The `scripts/` directory has grown to 14+ Python scripts plus shell wrappers
-and subdirectories. Without conventions, scripts become inconsistent in naming,
-argument handling, output formatting, and error behavior — making them harder
-to maintain, discover, and compose.
+`scripts/` is retained from the template as a project-wide tooling
+library: `bootstrap.py`, the doctor family (`doctor.py`,
+`env_doctor.py`, `repo_doctor.py`, `git_doctor.py`), env collectors
+(`_env_collectors/*`), dependency helpers (`dep_versions.py`,
+`workflow_versions.py`, `check_python_support.py`), container test
+runners (`test_containerfile.py`, `test_docker_compose.py`),
+spec-related helpers (`archive_todos.py`, `check_todos.py`,
+`changelog_check.py`, `check_known_issues.py`), and pre-commit hooks
+under `scripts/precommit/`.
 
-### Current inventory
+Two things changed at the fork that affect this ADR:
 
-```
-scripts/
-├── apply_labels.py      # Apply GitHub labels from JSON definitions
-├── apply-labels.sh      # Shell wrapper for apply_labels.py
-├── archive_todos.py     # Archive completed TODOs
-├── bootstrap.py         # One-command project setup
-├── changelog_check.py   # Validate CHANGELOG entries
-├── check_todos.py       # Scan for TODO comments
-├── clean.py             # Remove build artifacts and caches
-├── customize.py         # Interactive project customization
-├── dep_versions.py      # Show dependency versions
-├── doctor.py            # Diagnostics bundle for bug reports
-├── env_doctor.py        # Environment health checks
-├── repo_doctor.py       # Repository health checks (configurable)
-├── workflow_versions.py # Show SHA-pinned action versions
-├── precommit/           # Pre-commit hook scripts
-├── sql/                 # SQL utility scripts
-└── README.md            # Script inventory and usage guide
-```
+1. The package being introspected is now `feedback_triage`, not
+   `simple_python_boilerplate`.
+2. Scripts must work without the project's runtime dependencies on
+   `PATH`. Where they need them, they declare so with a
+   `# /// script` PEP 723 header or are invoked through `uv run`.
 
-### Forces
-
-- Scripts are standalone tools, not part of the installed package — they
-  must work without `pip install -e .`
-- Some scripts are called from CI, some from Taskfile, some directly by
-  developers
-- Consistency in argument parsing, exit codes, and output formatting
-  reduces cognitive load
-- New contributors should be able to add a script that "fits in" by
-  following clear patterns
+Without conventions, scripts drift in shape (argparse vs. plain
+`sys.argv`, exit codes, where output goes), and adding the next one
+becomes an exercise in deciding everything from scratch.
 
 ## Decision
 
-Establish the following conventions for all scripts in `scripts/`:
+The conventions below apply to every Python script in `scripts/`.
+Project-specific scripts (only `scripts/seed.py` in v1.0) follow them
+too.
 
 ### Naming
 
-- **Python scripts:** `snake_case.py` (e.g., `dep_versions.py`,
-  `check_todos.py`)
-- **Shell scripts:** `kebab-case.sh` (e.g., `apply-labels.sh`)
-- **Subdirectories:** Group related scripts by domain (`precommit/`,
-  `sql/`)
-- Names should be verb-first or noun-descriptive: `clean.py`,
-  `doctor.py`, `bootstrap.py`
-
-### Shebang and permissions
-
-All scripts with a shebang (`#!/usr/bin/env python3`) must be marked
-executable in git:
-
-```bash
-git add --chmod=+x scripts/my_script.py
-```
-
-The pre-commit hook `check-shebang-scripts-are-executable` enforces this.
+- Python scripts: `snake_case.py`.
+- Shell wrappers: `kebab-case.sh`.
+- Subdirectories group related scripts: `_env_collectors/`, `precommit/`,
+  `sql/`.
+- The leading underscore on `_env_collectors`, `_imports.py`,
+  `_doctor_common.py`, `_ui.py`, etc. signals "private — imported only
+  by other scripts in this folder". They are not stable interfaces.
 
 ### Argument parsing
 
-- Use `argparse` for all scripts that accept arguments — including
-  pre-commit hooks in `scripts/precommit/`
-- Always include `--version` (print version and exit)
-- Always include `--dry-run` where the script modifies files or state
-- Include `-q` / `--quiet` for scripts with verbose output
-- Use `description=` and `epilog=` in `ArgumentParser` for self-documenting
-  help text
+- Use `argparse` for any script that takes arguments.
+- Always include `--version`.
+- Include `--dry-run` whenever the script writes files, mutates Git
+  state, or hits the network.
+- Include `-q` / `--quiet` for scripts with verbose output.
+- Use `description=` and `epilog=` to make `--help` self-documenting.
 
 ### Exit codes
 
-| Code | Meaning                                          |
-| :--- | :----------------------------------------------- |
-| `0`  | Success                                          |
-| `1`  | General error or check failure                   |
-| `2`  | Usage error (argparse default for bad arguments) |
+| Code | Meaning |
+|---|---|
+| `0` | Success |
+| `1` | General failure / check failed |
+| `2` | Usage error (argparse default) |
 
-### Output conventions
+### Output
 
-- **Normal output** goes to `stdout`
-- **Errors and warnings** go to `stderr`
-- **Quiet mode** (`--quiet`) suppresses informational output; errors still
-  go to `stderr`
-- **Dry-run mode** prefixes output with `[DRY RUN]` or equivalent to make
-  it clear no changes were made
+- Normal output → `stdout`.
+- Errors and warnings → `stderr`.
+- `--quiet` suppresses informational output but never errors.
+- `--dry-run` prefixes any "would do X" line with `[DRY RUN]`.
 
-### Logging
+### Independence and runtime
 
-- Use `print()` for simple scripts with minimal output
-- Use the `logging` module for scripts with configurable verbosity
-- Never use `print()` for error messages — use `sys.stderr` or `logging`
-
-### Independence
-
-Scripts are **standalone** — they do not import from
-`simple_python_boilerplate` (the installed package) and do not require
-the package to be installed. They may import from the standard library
-and from each other (within `scripts/`).
+- Scripts do **not** import from `feedback_triage`. The doctor / env /
+  dep helpers must work on a fresh clone before `uv sync`.
+- Scripts that depend on third-party libraries declare them via PEP 723
+  `# /// script` headers, so `uv run scripts/<name>.py` resolves the
+  right env automatically.
+- Scripts may import each other within `scripts/`. Common helpers live
+  under leading-underscore modules.
 
 ### Taskfile integration
 
-Scripts that are commonly used have Taskfile shortcuts:
+Frequently used scripts get a Taskfile shortcut. Currently:
 
-| Script                 | Taskfile command        |
-| :--------------------- | :---------------------- |
-| `bootstrap.py`         | `task setup`            |
-| `customize.py`         | `task customize`        |
-| `clean.py`             | `task clean`            |
-| `dep_versions.py`      | `task deps:versions`    |
+| Script | Task |
+|---|---|
+| `bootstrap.py` | `task setup` |
+| `clean.py` | `task clean` |
+| `dep_versions.py` | `task deps:versions` |
 | `workflow_versions.py` | `task actions:versions` |
+| `seed.py` | `task seed` |
+| `doctor.py` | `task doctor` |
 
-Not every script needs a Taskfile entry. The boundary: if a script is
-used frequently during development, give it a task. If it's used
-occasionally or only from CI, calling it directly is fine.
+Single-shot or CI-only scripts (`changelog_check.py`,
+`archive_todos.py`, etc.) are called directly; no task entry needed.
 
-### Documentation
+### Pre-commit hooks
 
-- Each script should have a module-level docstring explaining what it does
-- `scripts/README.md` maintains a full inventory with one-line descriptions
-- Scripts with CLI arguments should have helpful `--help` output
-  (via `argparse`)
+Hooks under `scripts/precommit/` follow the same conventions.
+`check-shebang-scripts-are-executable` enforces the executable bit on
+shebang-bearing files.
+
+### Tests
+
+Tests for the doctor / env / dep helpers live under
+`tests/scripts/test_*.py` (added in Phase 1+ as the suite grows). They
+run with the same pytest invocation as everything else.
 
 ## Alternatives Considered
 
-### Scripts as package entry points
+### Promote scripts to `[project.scripts]` console entries
 
-Define scripts as `[project.scripts]` entry points in `pyproject.toml` so
-they install as CLI commands.
+**Rejected for v1.0.** These are dev tooling, not user-facing CLIs.
+Console entries require an installed package, which forces the
+chicken-and-egg "doctor before install" tools to grow extra paths.
+Reconsider per-script if a workflow proves the abstraction useful.
 
-**Rejected because:** These are development/maintenance scripts, not
-user-facing CLI tools. Entry points require the package to be installed,
-adding friction. Standalone scripts work immediately after cloning.
+### Replace scripts with a `nox` or `invoke` setup
 
-### invoke / fabric
+**Rejected because:** Taskfile already does the runner role; `uv run`
+already does the env-execution role. Adding `nox` would duplicate both.
 
-Use a Python task automation library for scripts.
+### Rewrite scripts as entries in `Taskfile.yml`
 
-**Rejected because:** Adds a dependency, overlaps with Taskfile's role,
-and doesn't solve the core problem of inconsistent script conventions.
-
-### All scripts in a single file
-
-Consolidate utility functions into one large script with subcommands.
-
-**Rejected because:** Separate scripts are easier to maintain, test, and
-compose. Each script has a focused responsibility.
+**Rejected because:** Taskfile is good for short pipelines, not for
+multi-hundred-line Python with rich output and argument parsing.
 
 ## Consequences
 
 ### Positive
 
-- Consistency — new scripts follow established patterns
-- Discoverability — `scripts/README.md` and `--help` make scripts findable
-- Safety — `--dry-run` prevents accidental damage
-- CI-friendly — predictable exit codes and output streams
-- Pre-commit enforces executable permissions on shebangs
+- A new contributor can read one ADR and produce a script that fits.
+- `--help`, `--dry-run`, and predictable exit codes make scripts safe
+  to call from CI and from `Taskfile.yml`.
+- Pre-commit enforces the executable-bit invariant; nothing else needs
+  policing.
 
 ### Negative
 
-- Some boilerplate per script (argparse setup, shebang, docstring)
-- Convention enforcement is social, not automated (no linter for script
-  conventions)
-- Taskfile integration requires manual sync when scripts are added/renamed
-
-### Mitigations
-
-- The boilerplate is small (~15 lines) and consistent
-- PR review catches convention violations
-- `copilot-instructions.md` documents the shebang → executable requirement
+- Boilerplate per script (argparse setup, docstring, shebang). It's
+  ~15 lines and consistent.
+- Convention enforcement is social, not automated, beyond the executable
+  bit. PR review is the backstop.
 
 ## Implementation
 
-- [scripts/](../../scripts/) — Script directory
-- [scripts/README.md](../../scripts/README.md) — Script inventory
-- [Taskfile.yml](../../Taskfile.yml) — Task runner shortcuts
-- [.pre-commit-config.yaml](../../.pre-commit-config.yaml) —
-  `check-shebang-scripts-are-executable` hook
+- [`scripts/`](../../scripts/) — script directory
+- [`scripts/README.md`](../../scripts/README.md) — running inventory
+- [`Taskfile.yml`](../../Taskfile.yml) — task shortcuts
+- [`.pre-commit-config.yaml`](../../.pre-commit-config.yaml) —
+  `check-shebang-scripts-are-executable`
 
-## References
+## See also
 
-- [ADR 017](017-task-runner.md) — Taskfile as task runner
-- [Python argparse documentation](https://docs.python.org/3/library/argparse.html)
-- [scripts/README.md](../../scripts/README.md) — Full script inventory
+- [ADR 008](008-pre-commit-hooks.md) — pre-commit framework
+- [ADR 017](017-task-as-runner.md) — Task as the developer runner
+- [ADR 055](055-uv-as-project-manager.md) — `uv run` for env-aware
+  script execution

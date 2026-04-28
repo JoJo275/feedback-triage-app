@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 Partially supersedes [ADR 016](016-hatchling-and-hatch.md) — the
 env-manager half (Hatch envs, `hatch run`, `hatch shell`). The
