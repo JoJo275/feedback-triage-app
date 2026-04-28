@@ -161,13 +161,14 @@ All workflows in this project follow these patterns:
 | Convention                     | Detail                                                                                                                                                                   |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **SHA-pinned actions**         | Full commit SHAs with human-readable version comments ([ADR 004](adr/004-pin-action-shas.md))                                                                            |
-| **Repository guard**           | Workflows are disabled by default via `YOURNAME/YOURREPO` slug check; enable with repo slug or `vars.ENABLE_*` variable ([ADR 011](adr/011-repository-guard-pattern.md)) |
+| **Repository guard**           | Workflows are disabled by default via `OWNER/REPO` slug placeholder; enable by setting `vars.ENABLE_WORKFLOWS = true` (single switch) or per-workflow `vars.<NAME>_ENABLE` overrides ([ADR 011](adr/011-repository-guard-pattern.md)) |
 | **Concurrency control**        | `cancel-in-progress: true` per workflow + ref                                                                                                                            |
 | **Timeout limits**             | `timeout-minutes` set on every job                                                                                                                                       |
 | **Minimal permissions**        | `permissions: contents: read` (least privilege)                                                                                                                          |
 | **Persist-credentials: false** | On all checkout steps                                                                                                                                                    |
 | **Manual triggers**            | Most workflows include `workflow_dispatch` for manual runs (exceptions: PR-only workflows like `dependency-review`, `labeler`, `pr-title`, `commit-lint`)                |
 | **Header comments**            | Each file has a comment block explaining purpose, triggers, and TODO instructions for template users                                                                     |
+| **uv-driven setup**            | Python jobs use `astral-sh/setup-uv` + `uv sync --frozen` (no pip install, no venv activation). `uv run …` invokes the right interpreter inside the synced env.          |
 
 ### File Naming
 
@@ -248,7 +249,7 @@ local diagnostics. The `doctor-all.yml` workflow runs all of them in CI.
 
 | Script                   | Task shortcut      | Purpose                                         |
 | ------------------------ | ------------------ | ----------------------------------------------- |
-| `scripts/env_doctor.py`  | `task doctor:env`  | Check Python, Hatch, tools, editable install    |
+| `scripts/env_doctor.py`  | `task doctor:env`  | Check Python, uv, tools, editable install       |
 | `scripts/repo_doctor.py` | `task doctor:repo` | Verify repo structure and conventions           |
 | `scripts/git_doctor.py`  | `task doctor:git`  | Git health dashboard, branch stats, remote sync |
 | `scripts/doctor.py`      | `task doctor`      | Diagnostics bundle (for bug reports)            |

@@ -11,15 +11,54 @@ it's configured, and where to learn more.
 
 ## Build & Environments
 
-| Tool                                               | What it does                                                                                                                                                                  | Config                                    | Docs                                                         |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------ |
-| **[Hatchling](https://hatch.pypa.io/latest/)**     | Builds Python packages (sdist + wheel) from source. This is the _build backend_ — it runs when you `pip install .` or `hatch build`.                                          | `pyproject.toml` → `[build-system]`       | [Hatchling docs](https://hatch.pypa.io/latest/config/build/) |
-| **[Hatch](https://hatch.pypa.io/latest/)**         | Manages virtual environments, runs scripts, and orchestrates builds. This is the _project manager_ — it creates envs, installs deps, and runs commands like `hatch run test`. | `pyproject.toml` → `[tool.hatch.*]`       | [Hatch docs](https://hatch.pypa.io/latest/)                  |
-| **[hatch-vcs](https://github.com/ofek/hatch-vcs)** | Derives the package version from git tags at build time. No manual version bumping needed.                                                                                    | `pyproject.toml` → `[tool.hatch.version]` | [hatch-vcs docs](https://github.com/ofek/hatch-vcs)          |
-| **[Task](https://taskfile.dev/)**                  | A task runner that wraps `hatch run` commands into shorter aliases like `task test`. Optional convenience layer.                                                              | `Taskfile.yml`                            | [Taskfile docs](https://taskfile.dev/)                       |
+This project splits the "Python packaging stack" into three roles. Keep
+the roles distinct — conflating them is the most common cause of
+confusion when reading `pyproject.toml`.
 
-> **How these layers relate:** See [command-workflows.md](development/command-workflows.md)
-> for a visual breakdown of `task test` → `hatch run test` → `pytest`.
+| Role | Tool | Why it's there |
+| --- | --- | --- |
+| **Project / env manager** | [`uv`](https://docs.astral.sh/uv/) | Resolves dependencies, writes `uv.lock`, creates and maintains `.venv/`, and runs commands inside it via `uv run`. Replaces the env-management half of Hatch — see [ADR 055](adr/055-uv-as-project-manager.md). |
+| **Build backend** | [`hatchling`](https://hatch.pypa.io/latest/config/build/) + [`hatch-vcs`](https://github.com/ofek/hatch-vcs) | Turns the source tree into an sdist/wheel. `hatch-vcs` derives the version from `git describe`. Authoritative half of [ADR 016](adr/016-hatch-as-the-toolkit.md); the env-manager half of that ADR is superseded by [ADR 055](adr/055-uv-as-project-manager.md). |
+| **Task runner** | [`Task`](https://taskfile.dev/) | Wraps the common `uv run …` invocations into short aliases (`task test`, `task dev`). See [ADR 017](adr/017-task-as-runner.md). |
+
+### Daily uv commands
+
+| Command | What it does |
+| --- | --- |
+| `uv sync` | Resolve `pyproject.toml`, write `uv.lock`, install everything into `.venv/`. Run after every git pull. |
+| `uv sync --frozen` | Same, but fail if the lockfile is out of date. CI uses this. |
+| `uv add <pkg>` | Add a runtime dependency, update `pyproject.toml`, re-resolve, and update `uv.lock` in one step. |
+| `uv add --group dev <pkg>` | Same, but adds to the `dev` group. |
+| `uv remove <pkg>` | Inverse of `uv add`. |
+| `uv lock` | Re-resolve and write `uv.lock` without installing. Use after editing `pyproject.toml` by hand. |
+| `uv run <cmd>` | Run `<cmd>` inside `.venv/`, syncing first if needed. No manual activation. |
+| `uv run --python 3.12 pytest` | Run with a specific interpreter; uv installs the toolchain on demand. |
+| `uv build` | Invoke `hatchling` to produce `dist/*.whl` + `dist/*.tar.gz`. |
+| `uv tool install <pkg>` | Install a CLI tool in its own isolated env, on `PATH`. |
+| `uvx <pkg>` | Ephemeral one-shot run of a CLI without installing it permanently. |
+
+### Mental model
+
+- `pyproject.toml` is the human-edited source of truth: dependencies,
+  metadata, build backend choice.
+- `uv.lock` is generated and committed. CI fails if it drifts.
+- `.venv/` is generated and **not** committed. `uv sync` is idempotent;
+  delete `.venv/` and re-run `uv sync` if anything looks wrong.
+- The container image installs into the system Python with
+  `uv pip install --system --frozen` — no venv inside the container
+  (see [ADR 025](adr/025-container-strategy.md)).
+
+### Pitfalls
+
+- Don't run `pip install` inside the venv. It bypasses `uv.lock` and
+  desyncs the environment from CI.
+- Don't run `uv sync` against a venv someone else created with `python
+  -m venv`. Let `uv` create `.venv/` itself.
+- `uv.lock` is platform-independent at the resolution level, but
+  binary wheels are pinned per-platform. Re-resolving on a new OS may
+  produce a different lockfile.
+- Editable installs are the default for the current project. If you
+  need a non-editable install, use `uv pip install --no-editable .`.
 
 ---
 
