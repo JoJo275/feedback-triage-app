@@ -10,20 +10,14 @@ build-backend = "hatchling.build"
 # ============================================================================
 [project]
 name = "feedback-triage-app"
-dynamic = ["version"]                   # Version derived from git tags via hatch-vcs
+dynamic = ["version"]                                                                    # Version derived from git tags via hatch-vcs
 description = "Portfolio-grade FastAPI + PostgreSQL app for triaging customer feedback."
 readme = "README.md"
 requires-python = ">=3.11"
-license = {file = "LICENSE"}
-authors = [{name = "Joseph"}]
+license = { file = "LICENSE" }
+authors = [{ name = "Joseph" }]
 
-keywords = [
-    "fastapi",
-    "postgres",
-    "sqlmodel",
-    "feedback",
-    "triage",
-]
+keywords = ["fastapi", "postgres", "sqlmodel", "feedback", "triage"]
 
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -45,13 +39,13 @@ classifiers = [
 # Railway image lives here. Dev/test/docs/extras live under
 # [project.optional-dependencies].
 dependencies = [
-    "fastapi[standard]>=0.115",       # Web framework + uvicorn
-    "sqlmodel>=0.0.22",               # ORM (Pydantic + SQLAlchemy)
-    "sqlalchemy>=2.0",                # Pin floor; sqlmodel pulls a 2.x
-    "alembic>=1.13",                  # Migrations
-    "psycopg[binary]>=3.2",           # Postgres driver (sync)
-    "pydantic>=2.7",                  # Validation
-    "pydantic-settings>=2.4",         # Settings via env vars
+    "fastapi[standard]>=0.115", # Web framework + uvicorn
+    "sqlmodel>=0.0.22",         # ORM (Pydantic + SQLAlchemy)
+    "sqlalchemy>=2.0",          # Pin floor; sqlmodel pulls a 2.x
+    "alembic>=1.13",            # Migrations
+    "psycopg[binary]>=3.2",     # Postgres driver (sync)
+    "pydantic>=2.7",            # Validation
+    "pydantic-settings>=2.4",   # Settings via env vars
 ]
 
 [project.urls]
@@ -75,13 +69,10 @@ Changelog = "https://github.com/JoJo275/feedback-triage-app/blob/main/CHANGELOG.
 test = [
     "pytest>=9.0",
     "pytest-cov>=6.0",
-    "httpx>=0.27",                    # FastAPI TestClient transport
-    "anyio>=4.4",                     # async backend
+    "httpx>=0.27",     # FastAPI TestClient transport
+    "anyio>=4.4",      # async backend
 ]
-e2e = [
-    "playwright>=1.47",
-    "pytest-playwright>=0.5",
-]
+e2e = ["playwright>=1.47", "pytest-playwright>=0.5"]
 dev = [
     "feedback-triage-app[test]",
     "ruff>=0.11",
@@ -99,9 +90,7 @@ docs = [
 ]
 # Tool group used by tools/dev_tools/env_dashboard. Retained from template
 # as general-purpose dev tooling per project guidelines.
-dashboard = [
-    "fastapi[standard]>=0.115",
-]
+dashboard = ["fastapi[standard]>=0.115"]
 
 # ============================================================================
 # HATCH BUILD CONFIG
@@ -121,12 +110,7 @@ version-file = "src/feedback_triage/_version.py"
 packages = ["src/feedback_triage"]
 
 [tool.hatch.build.targets.sdist]
-include = [
-    "src/feedback_triage",
-    "README.md",
-    "LICENSE",
-    "pyproject.toml",
-]
+include = ["src/feedback_triage", "README.md", "LICENSE", "pyproject.toml"]
 
 # ============================================================================
 # TOOL CONFIGURATIONS
@@ -136,9 +120,7 @@ include = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --strict-markers --strict-config"
-filterwarnings = [
-    "error::DeprecationWarning",
-]
+filterwarnings = ["error::DeprecationWarning"]
 markers = [
     "e2e: end-to-end Playwright smoke tests (gated, opt-in via task test:e2e)",
     "slow: marks tests as slow",
@@ -149,16 +131,10 @@ markers = [
 [tool.coverage.run]
 source = ["src"]
 branch = true
-omit = [
-    "*/feedback_triage/_version.py",
-    "*/feedback_triage/static/*",
-]
+omit = ["*/feedback_triage/_version.py", "*/feedback_triage/static/*"]
 
 [tool.coverage.paths]
-source = [
-    "src/feedback_triage",
-    "*/feedback_triage",
-]
+source = ["src/feedback_triage", "*/feedback_triage"]
 
 [tool.coverage.report]
 fail_under = 85
@@ -175,26 +151,43 @@ exclude_lines = [
 line-length = 88
 target-version = "py311"
 src = ["src", "tests", "scripts"]
-extend-exclude = ["attic", "tools", "mkdocs-hooks"]
+extend-exclude = ["attic", "tools", "mkdocs-hooks", "src/feedback_triage/_version.py"]
 
 [tool.ruff.lint]
 select = [
-    "E", "W", "F", "I", "UP", "D",
-    "T20", "B", "C4", "SIM", "PTH", "PERF", "RUF",
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+    "D",
+    "T20",
+    "B",
+    "C4",
+    "SIM",
+    "PTH",
+    "PERF",
+    "RUF",
 ]
 ignore = [
-    "E501",   # Line length — formatter handles it
-    "D100",   # Missing docstring in public module
-    "D104",   # Missing docstring in public package
-    "D203",   # Conflicts with D211
-    "D213",   # Conflicts with D212
+    "E501", # Line length — formatter handles it
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+    "D203", # Conflicts with D211
+    "D213", # Conflicts with D212
 ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"src/feedback_triage/_version.py" = ["UP006", "UP007", "UP035", "I001", "RUF022"]
+"src/feedback_triage/_version.py" = [
+    "UP006",
+    "UP007",
+    "UP035",
+    "I001",
+    "RUF022",
+]
 "tests/**" = ["T20", "D"]
 "scripts/**" = ["T20", "D"]
 "scripts/_colors.py" = ["T20", "D", "RUF002", "RUF003"]
@@ -223,7 +216,15 @@ targets = ["src"]
 
 # -- deptry (dependency hygiene) --
 [tool.deptry]
-extend_exclude = ["scripts", "experiments", "docs", "site", "tools", "attic", "alembic"]
+extend_exclude = [
+    "scripts",
+    "experiments",
+    "docs",
+    "site",
+    "tools",
+    "attic",
+    "alembic",
+]
 pep621_dev_dependency_groups = ["test", "e2e", "dev", "docs", "dashboard"]
 ignore = ["DEP004"]
 package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs-material = "material", pymdown-extensions = "pymdownx", mkdocstrings = "mkdocstrings", "psycopg[binary]" = "psycopg", "fastapi[standard]" = "fastapi", "mkdocstrings[python]" = "mkdocstrings" }
@@ -234,4 +235,4 @@ name = "cz_conventional_commits"
 version_provider = "scm"
 tag_format = "v$version"
 update_changelog_on_bump = false
-major_version_zero = true               # Pre-1.0 during initial build-out
+major_version_zero = true        # Pre-1.0 during initial build-out
