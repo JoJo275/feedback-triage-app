@@ -3,13 +3,6 @@
 These specs prove the static HTML + vanilla JS frontend is wired to the
 API correctly. They intentionally do **not** drill into edge cases the
 API tests already cover. See spec — Frontend Smoke Tests.
-
-Note on the create flow: the spec says "submit, assert redirect to `/`",
-but the implemented behaviour in ``new.js`` redirects to the detail page
-``/feedback/{id}``. The smoke test follows the implementation and then
-verifies the item shows up on the list view, which preserves the
-spec's intent (the new item is visible to the user) without churning
-production code from a testing phase. Flagged for follow-up.
 """
 
 from __future__ import annotations
