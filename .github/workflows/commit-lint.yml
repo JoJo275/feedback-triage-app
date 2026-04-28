@@ -15,7 +15,7 @@
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
-#        Option A – Replace 'JoJo275/feedback-triage-app' below.
+#        Option A – Replace 'OWNER/REPO' below.
 #        Option B – Set vars.ENABLE_COMMIT_LINT = 'true'.
 # ──────────────────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ jobs:
     # ── Repository guard ──────────────────────────────────────
     if: >-
       ${{
-        github.repository == 'JoJo275/feedback-triage-app'
+        github.repository == 'OWNER/REPO'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_COMMIT_LINT == 'true'
       }}
