@@ -379,11 +379,11 @@ command.
 
 ### Deliverables `[Must]`
 
-- [ ] `Containerfile` per
+- [x] `Containerfile` per
       [spec — Container Hardening](spec/spec.md#container-hardening-must)
       — multi-stage, non-root user, `HEALTHCHECK /health`, digest-pinned
       base, `PYTHONDONTWRITEBYTECODE=1` etc.
-- [ ] Image builds locally via `docker build .` and runs.
+- [x] Image builds locally via `docker build .` and runs.
 - [ ] Railway service created, Postgres plugin attached.
 - [ ] Railway service source set to **this GitHub repo, branch `main`**
       (continuous deploy on every merge — see
@@ -397,8 +397,8 @@ command.
 
 ### Deliverables `[Should]`
 
-- [ ] CI workflow builds and pushes the image to GHCR on tag.
-- [ ] Container image scanned by `trivy` (or equivalent) in CI; high-
+- [x] CI workflow builds and pushes the image to GHCR on tag.
+- [x] Container image scanned by `trivy` (or equivalent) in CI; high-
       severity findings fail the build.
 
 ### Definition of Done

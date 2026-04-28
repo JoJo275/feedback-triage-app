@@ -74,7 +74,7 @@ jobs:
     # ── Repository guard ──────────────────────────────────────
     if: >-
       ${{
-        github.repository == 'OWNER/REPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_CONTAINER_SCAN == 'true'
       }}
@@ -125,9 +125,9 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
-          # Don't fail the build on vulnerabilities in base images
-          # that you don't control. Change to 1 for strict mode.
-          exit-code: 0
+          # Per spec Phase 7 [Should]: high-severity findings fail the build.
+          # Triage real findings; ignore base-image noise via .trivyignore.
+          exit-code: 1
 
       # Upload SARIF to GitHub Security tab → Code scanning alerts
       - name: Upload Trivy SARIF
@@ -163,9 +163,8 @@ jobs:
           image: scan-target:${{ github.sha }}
           severity-cutoff: high
           output-format: sarif
-          # Don't fail the build on vulnerabilities in base images
-          # that you don't control. Change to "true" for strict mode.
-          fail-build: "false"
+          # Per spec Phase 7 [Should]: high-severity findings fail the build.
+          fail-build: "true"
 
       - name: Upload Grype SARIF
         uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # Upload the analysis results (v4.32.6)
@@ -183,7 +182,7 @@ jobs:
 
     if: >-
       ${{
-        github.repository == 'OWNER/REPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_CONTAINER_SCAN == 'true'
       }}
