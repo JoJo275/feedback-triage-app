@@ -1,16 +1,22 @@
 # =============================================================================
-# Dependabot Configuration
+# Dependabot Configuration — feedback-triage-app
 # =============================================================================
-# Automated dependency update PRs for GitHub Actions, Python, and Docker.
-# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# Automated dependency update PRs.
 #
-# Key design decisions:
-#   - rebase-strategy: disabled — we squash-merge PRs, so rebasing wastes CI
-#   - Groups: minor/patch grouped together, majors kept separate (breaking)
-#   - Security updates are always created regardless of open-pull-requests-limit
+# Ecosystems covered:
+#   - github-actions  (action SHA pins in .github/workflows/)
+#   - pip             (PEP 621 floor pins in pyproject.toml)
+#   - uv              (uv.lock pinned graph)
+#   - docker          (Containerfile base image digests)
 #
-# TODO (template users): Adjust timezone, reviewers, and limits to match
-#   your team's workflow. See inline TODOs below.
+# Why both `pip` and `uv` ecosystems:
+#   - `pip` raises the >= floors declared in pyproject.toml so a fresh
+#     `uv sync` on a teammate's box doesn't silently regress.
+#   - `uv` updates uv.lock so the actually-installed graph stays current
+#     between floor bumps.
+#
+# Docs:
+#   https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 # =============================================================================
 
 version: 2
@@ -31,19 +37,13 @@ updates:
       - "github-actions"
     open-pull-requests-limit: 5
     rebase-strategy: "disabled"
-    # TODO (template users): Uncomment and set your GitHub username or team
-    # reviewers:
-    #   - "your-github-username"
-    # assignees:
-    #   - "your-github-username"
     groups:
-      # Group minor/patch updates together, keep majors separate (breaking changes)
       actions-minor-patch:
         update-types:
           - "minor"
           - "patch"
 
-  # ── Python Dependencies ─────────────────────────────────────
+  # ── Python — PEP 621 floors in pyproject.toml ───────────────
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -59,26 +59,38 @@ updates:
       - "python"
     open-pull-requests-limit: 10
     rebase-strategy: "disabled"
-    # TODO (template users): Uncomment and set your GitHub username or team
-    # reviewers:
-    #   - "your-github-username"
-    # assignees:
-    #   - "your-github-username"
     groups:
-      # Group all minor/patch updates together
       pip-minor-patch:
         update-types:
           - "minor"
           - "patch"
-      # Major updates stay as individual PRs (breaking changes)
-    # TODO (template users): Uncomment to ignore specific packages
-    # ignore:
-    #   - dependency-name: "some-package"
-    #     update-types: ["version-update:semver-major"]
+
+  # ── Python — uv.lock pinned graph ───────────────────────────
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+      - "uv"
+    open-pull-requests-limit: 10
+    rebase-strategy: "disabled"
+    groups:
+      uv-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   # ── Pre-commit Hooks ────────────────────────────────────────
   # NOTE: Dependabot does not support .pre-commit-config.yaml natively.
-  # Use the pre-commit-update workflow or `pre-commit autoupdate` instead.
+  # Use the pre-commit-update workflow or `pre-commit autoupdate`.
 
   # ── Container Base Images (Containerfile) ───────────────────
   - package-ecosystem: "docker"
