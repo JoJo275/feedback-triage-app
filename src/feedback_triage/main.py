@@ -12,11 +12,13 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from feedback_triage import __version__
 from feedback_triage.config import Settings, get_settings
 from feedback_triage.middleware import RequestIDMiddleware, RequestLoggingMiddleware
-from feedback_triage.routes import feedback, health
+from feedback_triage.routes import feedback, health, pages
+from feedback_triage.routes.pages import STATIC_DIR
 
 
 def _configure_logging(settings: Settings) -> None:
@@ -62,6 +64,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(feedback.router)
+    app.include_router(pages.router)
+
+    app.mount(
+        "/static",
+        StaticFiles(directory=STATIC_DIR),
+        name="static",
+    )
 
     return app
 

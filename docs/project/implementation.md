@@ -259,24 +259,24 @@ Jinja, no bundler.
 
 ### Deliverables `[Must]`
 
-- [ ] `src/feedback_triage/static/index.html` — list view with filter
+- [x] `src/feedback_triage/static/index.html` — list view with filter
       controls.
-- [ ] `src/feedback_triage/static/new.html` — create form.
-- [ ] `src/feedback_triage/static/detail.html` — edit form.
-- [ ] `src/feedback_triage/static/css/styles.css` — neutral palette,
+- [x] `src/feedback_triage/static/new.html` — create form.
+- [x] `src/feedback_triage/static/detail.html` — edit form.
+- [x] `src/feedback_triage/static/css/styles.css` — neutral palette,
       readable spacing, visible focus rings, WCAG AA contrast.
-- [ ] `src/feedback_triage/static/js/index.js`,
+- [x] `src/feedback_triage/static/js/index.js`,
       `static/js/new.js`, `static/js/detail.js` — `fetch` against the
       JSON API, render results, handle errors.
-- [ ] `src/feedback_triage/routes/pages.py` — unversioned routes (`/`,
+- [x] `src/feedback_triage/routes/pages.py` — unversioned routes (`/`,
       `/new`, `/feedback/{id}`) returning the correct HTML files.
-- [ ] `StaticFiles` mounted for `/static`.
+- [x] `StaticFiles` mounted for `/static`.
 
 ### Deliverables `[Should]`
 
-- [ ] Inline form-validation errors (HTML5 + `aria-invalid` on the
+- [x] Inline form-validation errors (HTML5 + `aria-invalid` on the
       offending field).
-- [ ] Filter state preserved in `?status=&source=` query params so a
+- [x] Filter state preserved in `?status=&source=` query params so a
       reload keeps the user's view.
 
 ### Definition of Done

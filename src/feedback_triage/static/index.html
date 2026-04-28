@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Feedback Triage</title>
+        <link rel="stylesheet" href="/static/css/styles.css" />
+    </head>
+    <body>
+        <header class="site-header">
+            <h1>Feedback Triage</h1>
+            <nav>
+                <a class="button button-primary" href="/new">New feedback</a>
+            </nav>
+        </header>
+
+        <main id="main" class="container">
+            <section aria-labelledby="filters-heading" class="filters">
+                <h2 id="filters-heading" class="visually-hidden">Filters</h2>
+                <form id="filter-form" class="filter-form">
+                    <div class="field">
+                        <label for="filter-status">Status</label>
+                        <select id="filter-status" name="status">
+                            <option value="">All statuses</option>
+                            <option value="new">New</option>
+                            <option value="reviewing">Reviewing</option>
+                            <option value="planned">Planned</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="filter-source">Source</label>
+                        <select id="filter-source" name="source">
+                            <option value="">All sources</option>
+                            <option value="email">Email</option>
+                            <option value="interview">Interview</option>
+                            <option value="reddit">Reddit</option>
+                            <option value="support">Support</option>
+                            <option value="app_store">App store</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="filter-sort">Sort by</label>
+                        <select id="filter-sort" name="sort_by">
+                            <option value="-created_at">Newest first</option>
+                            <option value="created_at">Oldest first</option>
+                            <option value="-pain_level">
+                                Pain (high → low)
+                            </option>
+                            <option value="pain_level">
+                                Pain (low → high)
+                            </option>
+                            <option value="status">Status (A → Z)</option>
+                            <option value="source">Source (A → Z)</option>
+                        </select>
+                    </div>
+                    <div class="field field-actions">
+                        <button type="submit" class="button">Apply</button>
+                        <button
+                            type="button"
+                            id="filter-reset"
+                            class="button button-ghost"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section aria-labelledby="list-heading">
+                <h2 id="list-heading">Feedback items</h2>
+                <p
+                    id="list-status"
+                    class="status"
+                    role="status"
+                    aria-live="polite"
+                >
+                    Loading…
+                </p>
+                <div id="list-error" class="error" role="alert" hidden></div>
+                <table id="list-table" class="data-table" hidden>
+                    <thead>
+                        <tr>
+                            <th scope="col">Title</th>
+                            <th scope="col">Source</th>
+                            <th scope="col">Pain</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Created</th>
+                            <th scope="col">
+                                <span class="visually-hidden">Actions</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-body"></tbody>
+                </table>
+                <p id="list-summary" class="summary" hidden></p>
+            </section>
+        </main>
+
+        <script type="module" src="/static/js/index.js"></script>
+    </body>
+</html>
