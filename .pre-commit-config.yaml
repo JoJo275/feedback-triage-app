@@ -59,40 +59,40 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: trailing-whitespace        # Remove trailing whitespace
+      - id: trailing-whitespace # Remove trailing whitespace
         # Comment out and uncomment stages: [manual] to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
         # stages: [manual]             # Uncomment to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
-      - id: end-of-file-fixer          # Ensure files end with newline
-      - id: check-yaml                 # Validate YAML syntax
-      - id: check-toml                 # Validate TOML syntax
-      - id: check-json                 # Validate JSON syntax
-        exclude: ^(\.devcontainer/|\.vscode/settings\.json$|\.markdownlint-cli2\.jsonc$)  # JSONC files (JSON with comments) — VS Code understands them, check-json doesn't
-      - id: check-ast                  # Validate Python syntax (catches SyntaxError)
-      - id: check-added-large-files    # Prevent giant files from being committed
-        args: ['--maxkb=500']
-      - id: check-merge-conflict       # Check for merge conflict markers
-      - id: check-case-conflict        # Check for files that would conflict on case-insensitive fs
-      - id: debug-statements           # Check for debugger imports and py37+ breakpoint()
-      - id: detect-private-key         # Detect private keys
-      - id: fix-byte-order-marker      # Remove UTF-8 BOM (causes subtle bugs on Linux/CI)
-      - id: name-tests-test            # Enforce test_*.py naming in tests/
-        args: ['--pytest-test-first']
+      - id: end-of-file-fixer # Ensure files end with newline
+      - id: check-yaml # Validate YAML syntax
+      - id: check-toml # Validate TOML syntax
+      - id: check-json # Validate JSON syntax
+        exclude: ^(\.devcontainer/|\.vscode/settings\.json$|\.markdownlint-cli2\.jsonc$) # JSONC files (JSON with comments) — VS Code understands them, check-json doesn't
+      - id: check-ast # Validate Python syntax (catches SyntaxError)
+      - id: check-added-large-files # Prevent giant files from being committed
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict # Check for merge conflict markers
+      - id: check-case-conflict # Check for files that would conflict on case-insensitive fs
+      - id: debug-statements # Check for debugger imports and py37+ breakpoint()
+      - id: detect-private-key # Detect private keys
+      - id: fix-byte-order-marker # Remove UTF-8 BOM (causes subtle bugs on Linux/CI)
+      - id: name-tests-test # Enforce test_*.py naming in tests/
+        args: ["--pytest-test-first"]
         files: ^tests/
         types: [python]
-      - id: check-executables-have-shebangs  # Executables must have shebangs
-      - id: check-shebang-scripts-are-executable  # Shebang scripts must be +x
-      - id: check-symlinks                # Check for broken symlinks
-      - id: destroyed-symlinks            # Detect symlinks replaced by regular files (e.g. after merge)
-      - id: check-vcs-permalinks          # Catch GitHub URLs pointing to branches instead of commit SHAs
-      - id: forbid-submodules           # Block git submodules
-        stages: [manual]               # Disabled — enable if your project forbids submodules
-      - id: check-docstring-first       # Catches code before the module docstring
-      - id: no-commit-to-branch            # Prevent direct commits to main/master
-        args: ['--branch', 'main', '--branch', 'master']
-      - id: mixed-line-ending          # Normalize line endings (LF)
+      - id: check-executables-have-shebangs # Executables must have shebangs
+      - id: check-shebang-scripts-are-executable # Shebang scripts must be +x
+      - id: check-symlinks # Check for broken symlinks
+      - id: destroyed-symlinks # Detect symlinks replaced by regular files (e.g. after merge)
+      - id: check-vcs-permalinks # Catch GitHub URLs pointing to branches instead of commit SHAs
+      - id: forbid-submodules # Block git submodules
+        stages: [manual] # Disabled — enable if your project forbids submodules
+      - id: check-docstring-first # Catches code before the module docstring
+      - id: no-commit-to-branch # Prevent direct commits to main/master
+        args: ["--branch", "main", "--branch", "master"]
+      - id: mixed-line-ending # Normalize line endings (LF)
         # LF is enforced repo-wide — paired with .gitattributes (eol=lf).
         # Windows users get native CRLF on checkout; the repo always stores LF.
-        args: ['--fix=lf']
+        args: ["--fix=lf"]
 
   # ---------------------------------------------------------------------------
   # Ruff - Fast Python linter and formatter
@@ -186,7 +186,7 @@ repos:
     hooks:
       - id: check-github-workflows
       - id: check-github-actions
-      - id: check-dependabot          # Validate .github/dependabot.yml schema
+      - id: check-dependabot # Validate .github/dependabot.yml schema
 
   # ---------------------------------------------------------------------------
   # Local hooks (pre-commit stage)
@@ -195,7 +195,7 @@ repos:
     hooks:
       - id: no-do-not-commit-marker
         name: Block @@DO_NOT_COMMIT@@ marker
-        entry: '@@DO_NOT_COMMIT@@'
+        entry: "@@DO_NOT_COMMIT@@"
         language: pygrep
         types: [text]
         exclude: \.pre-commit-config\.yaml$
@@ -298,7 +298,6 @@ repos:
         language: python
         files: ^scripts/[^/]+\.py$
         exclude: ^scripts/_
-
 
   # ===========================================================================
   # STAGE: commit-msg  (validates the commit message)
