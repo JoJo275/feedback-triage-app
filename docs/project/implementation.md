@@ -28,48 +28,50 @@ Before Phase 1 can start, the surrounding template must be repurposed.
 
 ### Deliverables
 
-- [ ] Repository renamed / new repo created as `feedback-triage-app`.
-- [ ] `src/simple_python_boilerplate/` removed; replaced with empty
+- [x] Repository renamed / new repo created as `feedback-triage-app`.
+- [x] `src/simple_python_boilerplate/` removed; replaced with empty
       `src/feedback_triage/__init__.py`.
-- [ ] `pyproject.toml` updated:
-  - [ ] `name = "feedback-triage-app"`
-  - [ ] `[project.scripts]` cleared of `spb-*` entries
-  - [ ] description, URLs, classifiers updated
-  - [ ] dependencies trimmed to runtime needs (FastAPI, SQLModel,
+- [x] `pyproject.toml` updated:
+  - [x] `name = "feedback-triage-app"`
+  - [x] `[project.scripts]` cleared of `spb-*` entries
+  - [x] description, URLs, classifiers updated
+  - [x] dependencies trimmed to runtime needs (FastAPI, SQLModel,
         Alembic, psycopg[binary], pydantic-settings, uvicorn)
-  - [ ] optional groups: `test`, `e2e`, `docs`
-- [ ] `tools/dev_tools/`, `mkdocs-hooks/`, `repo_doctor.d/`, `labels/`,
+  - [x] optional groups: `test`, `e2e`, `docs`
+- [x] `tools/dev_tools/`, `mkdocs-hooks/`, `repo_doctor.d/`, `labels/`,
       `experiments/` reviewed. All retained as general-purpose dev
       tooling on the forked project; trim only if a specific item is
       clearly broken or unused after fork.
-- [ ] `scripts/` retained as a project-wide tooling library (bootstrap,
+- [x] `scripts/` retained as a project-wide tooling library (bootstrap,
       doctor family, env collectors / dashboard, dep/version helpers,
       container-test scripts, pre-commit hooks). The only project-
       specific addition for v1.0 is `scripts/seed.py`. Template `spb-*`
       console-script entry points in `pyproject.toml` should be renamed
       (e.g. `fta-*`) or dropped; the underlying scripts stay.
-- [ ] `.github/workflows/` retained as-is. SHA pins refreshed at fork
+- [x] `.github/workflows/` retained as-is. SHA pins refreshed at fork
       time. Trim only if a specific workflow proves to be wrong for
       this project after first green run.
-- [ ] `.pre-commit-config.yaml` trimmed to hooks this project actually
+- [x] `.pre-commit-config.yaml` trimmed to hooks this project actually
       uses.
-- [ ] `Taskfile.yml` rewritten to the task list in
+- [x] `Taskfile.yml` rewritten to the task list in
       [spec — Task Runner](spec/spec.md#task-runner--taskfile).
-- [ ] `Containerfile` rewritten per
+- [x] `Containerfile` rewritten per
       [spec — Container Hardening](spec/spec.md#container-hardening-must).
 - [ ] ADRs cleaned up:
-  - [ ] Template-only ADRs already moved to `docs/adr/archive/`
+  - [x] Template-only ADRs already moved to `docs/adr/archive/`
         (011, 015, 036, 039, 040, 041, 042, 043) with `Deprecated`
         status and an archive note. See
         [`docs/adr/archive/README.md`](../adr/archive/README.md).
   - [ ] ADRs 014, 025, 027, 029, 031 rewritten for this project
-  - [ ] New ADRs 045–055 drafted (see
+        (currently flagged with "Needs rewrite" banners; rewrites are
+        a follow-up before v0.1.0)
+  - [x] New ADRs 045–055 drafted (see
         [spec — ADRs to Write](spec/spec.md#adrs-to-write)). ADR 055
         partially supersedes ADR 016 (uv replaces Hatch as the env
         manager; `hatchling` + `hatch-vcs` stay as the build backend).
 - [ ] `docs/` cleaned: keep `docs/project/`, ADRs, and a fresh `index.md`
       pointing at the spec; remove template-specific guides.
-- [ ] `README.md` replaced with the structure in
+- [x] `README.md` replaced with the structure in
       [spec — README Sections to Include](spec/spec.md#readme-sections-to-include-must).
 
 ### Definition of Done
@@ -79,6 +81,13 @@ Before Phase 1 can start, the surrounding template must be repurposed.
 - `uv sync` creates `.venv/` and produces `uv.lock`.
 - `git log` shows a single conventional commit:
   `chore: fork from simple-python-boilerplate template`.
+
+  > **Note (2026-04-28):** the fork was landed across ten logical
+  > conventional commits (`chore:`, `feat:`, `build:`, `ci:`,
+  > `build(container):`, `build(pre-commit):`, `docs:`, `test:`,
+  > `docs(adr):`) instead of one squashed commit. Deviation accepted by
+  > the maintainer; future template forks may still prefer the single-
+  > commit form.
 
 ### Verification
 
