@@ -2,18 +2,15 @@
 
 Guidelines for GitHub Copilot when working in this repository.
 
-> **Repository status (April 2026):** This repo is a Python template
-> (`simple-python-boilerplate`) being repurposed into the
-> **`feedback-triage-app`** project. The authoritative spec for the new
-> project lives at [`docs/project/spec/spec.md`](../docs/project/spec/spec.md).
-> Until the fork is complete, only files under `docs/project/` describe
-> the new project; everything else (CI, scripts, dashboard,
-> `src/simple_python_boilerplate/`) is template scaffolding. The fork
-> retains most of `scripts/`, `tools/`, and `.github/workflows/` as
-> general-purpose dev tooling — only `src/simple_python_boilerplate/`
-> and project-name-bound config (e.g. `spb-*` console scripts) are
-> guaranteed to be replaced. **Do not edit template files in this
-> workspace until the spec is finalized and the fork begins.**
+> **Repository status (April 2026):** Pre-Phase fork from
+> `simple-python-boilerplate` is complete. The active package is
+> `src/feedback_triage/`; the original template lives under `attic/`
+> as read-only reference material and is not imported by the live tree.
+> The authoritative spec is [`docs/project/spec/spec.md`](../docs/project/spec/spec.md);
+> phase order is in [`docs/project/implementation.md`](../docs/project/implementation.md).
+> `scripts/`, `tools/`, `mkdocs-hooks/`, and `.github/workflows/` are
+> retained as general-purpose dev tooling; trim only when something
+> proves wrong for this project after a green CI run.
 
 ---
 
