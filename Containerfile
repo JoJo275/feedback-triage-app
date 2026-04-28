@@ -1,96 +1,101 @@
+# syntax=docker/dockerfile:1.7
 # ──────────────────────────────────────────────────────────────
-# Containerfile (OCI-compatible, works with Podman and Docker)
+# Containerfile — Feedback Triage App
+# OCI-compatible (Docker, Podman, BuildKit).
 # ──────────────────────────────────────────────────────────────
-# Builds a minimal container image for the application.
+# Multi-stage:
+#   Stage 1 (builder) — uses `uv build` (which calls hatchling) to produce
+#                        the project wheel. uv itself is copied in from the
+#                        official Astral image, pinned by digest.
+#   Stage 2 (runtime) — slim Python image. Installs only the wheel via
+#                        `uv pip install --system --no-cache`, then drops
+#                        privileges. No source tree, no build tools, no
+#                        .git in the final image.
 #
-# Usage:
-#   podman build -t simple-python-boilerplate -f Containerfile .
-#   podman run --rm simple-python-boilerplate
-#
-# Or with Docker:
-#   docker build -t simple-python-boilerplate -f Containerfile .
-#   docker run --rm simple-python-boilerplate
-#
-# Multi-stage build:
-#   Stage 1 (builder) – installs build tools + builds the wheel
-#   Stage 2 (runtime) – copies only the installed package into
-#                        a slim image with no build tooling
-#
-# Pinning the base image:
-#   The base image is pinned to a specific digest for reproducible
-#   builds. To update, run:
-#     docker pull python:3.12-slim
-#     docker inspect --format='{{index .RepoDigests 0}}' python:3.12-slim
-#   Then replace the digest below.
+# Refresh base/uv digests with Dependabot's `docker` ecosystem block.
 # ──────────────────────────────────────────────────────────────
 
-# Base image digest — pin for reproducibility (update via comment above)
-ARG PYTHON_BASE=python:3.12-slim@sha256:41563b9752d16a220983617270a893a0ddd478717e1b9af7ca1df5c5fdb13c34
+# Pinned base image. Refresh via:
+#   docker pull python:3.13-slim
+#   docker inspect --format='{{index .RepoDigests 0}}' python:3.13-slim
+# TODO: refresh on first build before tagging v0.1.0.
+ARG PYTHON_BASE=python:3.13-slim
+
+# Pinned uv binary image. Refresh via:
+#   docker pull ghcr.io/astral-sh/uv:latest
+#   docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/astral-sh/uv:latest
+ARG UV_IMAGE=ghcr.io/astral-sh/uv:latest
 
 # ── Stage 1: Build ────────────────────────────────────────────
 FROM ${PYTHON_BASE} AS builder
 
-# Prevent Python from writing .pyc files and enable unbuffered output
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Bring in uv (the binary, no Python deps).
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /build
 
-# Install build tool first (layer cached independently of source changes)
-COPY pyproject.toml README.md LICENSE ./
-RUN python -m pip install --no-cache-dir build
-
-# Allow CI to inject the version when .git is unavailable inside the container.
-# Usage: podman build --build-arg VERSION=$(git describe --tags) ...
+# Allow CI to inject the version when .git is unavailable inside the build.
+# Usage: docker build --build-arg VERSION=$(git describe --tags --always) ...
 ARG VERSION=""
-ENV SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION}
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION} \
+    HATCH_BUILD_HOOK_VCS_FALLBACK_VERSION=${VERSION}
 
-# Copy source and directories referenced by force-include in pyproject.toml
+# Copy only what hatchling needs to build the wheel. Source last so deps
+# layer-cache independently.
+COPY pyproject.toml README.md LICENSE ./
 COPY src/ src/
-COPY scripts/ scripts/
-COPY tools/ tools/
-COPY repo_doctor.d/ repo_doctor.d/
-RUN python -m build --wheel --outdir /build/dist
+
+RUN uv build --wheel --out-dir /build/dist
 
 # ── Stage 2: Runtime ──────────────────────────────────────────
 FROM ${PYTHON_BASE} AS runtime
 
-# Prevent Python from writing .pyc files and enable unbuffered output
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8000
 
-# OCI image metadata
-# See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
-# TODO (template users): Replace the source URL, title, and description below
-#   with your own repository slug and project details.
-LABEL org.opencontainers.image.title="simple-python-boilerplate" \
-      org.opencontainers.image.description="A Python boilerplate project" \
-      org.opencontainers.image.source="https://github.com/JoJo275/simple-python-boilerplate" \
+LABEL org.opencontainers.image.title="feedback-triage-app" \
+      org.opencontainers.image.description="FastAPI + PostgreSQL feedback triage service" \
+      org.opencontainers.image.source="https://github.com/JoJo275/feedback-triage-app" \
       org.opencontainers.image.licenses="Apache-2.0"
 
-# Don't run as root
+# uv used only for the wheel install step. Drop after install if you want
+# an even leaner runtime; left in for ad-hoc `uv pip` debugging on Railway.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Non-root user for the app process.
 RUN groupadd --gid 1000 app \
     && useradd --uid 1000 --gid app --create-home app
 
 WORKDIR /app
 
-# Install only the built wheel (no build tools in final image)
+# Install the built wheel + its runtime deps from PyPI into the system
+# Python (no venv inside the container, per ADR 055 / spec).
 COPY --from=builder /build/dist/*.whl /tmp/
-RUN python -m pip install --no-cache-dir /tmp/*.whl \
+RUN uv pip install --system --no-cache /tmp/*.whl \
     && rm -rf /tmp/*.whl
+
+# Copy alembic config + migrations so the Railway pre-deploy command can
+# run `alembic upgrade head`. They live at /app/ to match WORKDIR.
+COPY alembic.ini ./
+COPY alembic/ alembic/
 
 USER app
 
-# Basic health check — override in docker-compose or orchestrator as needed
+EXPOSE 8000
+
+# Healthcheck hits /health (liveness only). /ready bounces on DB blips
+# and would cause container restart loops if used here.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import simple_python_boilerplate" || exit 1
+    CMD python -c "import urllib.request,sys; \
+import os; \
+sys.exit(0) if urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/health', timeout=4).status == 200 else sys.exit(1)" \
+    || exit 1
 
-# Healthcheck — uncomment if this becomes an HTTP service:
-# HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-#   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-
-# Default command — runs the CLI entry point
-# TODO (template users): Replace "spb" with your package's actual CLI entry
-#   point, or switch to CMD ["python", "-m", "your_package"] if you don't
-#   define a console_scripts entry point.
-ENTRYPOINT ["spb"]
+# Default command — Railway overrides with $PORT.
+CMD ["sh", "-c", "uvicorn feedback_triage.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
