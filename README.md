@@ -1,5 +1,16 @@
 # feedback-triage-app
 
+[![CI](https://github.com/JoJo275/feedback-triage-app/actions/workflows/ci-gate.yml/badge.svg?branch=main)](https://github.com/JoJo275/feedback-triage-app/actions/workflows/ci-gate.yml)
+[![Container Build](https://github.com/JoJo275/feedback-triage-app/actions/workflows/container-build.yml/badge.svg?branch=main)](https://github.com/JoJo275/feedback-triage-app/actions/workflows/container-build.yml)
+[![Container Scan](https://github.com/JoJo275/feedback-triage-app/actions/workflows/container-scan.yml/badge.svg?branch=main)](https://github.com/JoJo275/feedback-triage-app/actions/workflows/container-scan.yml)
+[![codecov](https://codecov.io/gh/JoJo275/feedback-triage-app/branch/main/graph/badge.svg)](https://codecov.io/gh/JoJo275/feedback-triage-app)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 A small, portfolio-grade FastAPI + PostgreSQL service for triaging
 incoming customer feedback. Create, list, view, update, and delete
 `feedback_item` rows with `source`, `status`, and `pain_level` fields.
