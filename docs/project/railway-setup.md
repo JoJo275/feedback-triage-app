@@ -33,7 +33,7 @@ Relevant primitives for this project:
 | **Pre-Deploy Command** | A one-shot container Railway runs *against the new image* before swapping traffic. Where `alembic upgrade head` lives. Failure aborts the deploy; old version keeps serving. |
 | **Healthcheck** | HTTP probe Railway runs against the new container before it accepts traffic. Must hit `/health` (liveness), not `/ready` (DB-touching). |
 | **App Sleeping / Serverless** | Idle services suspend; first request after sleep cold-starts in ~1–3s. The single biggest cost lever for this stack. |
-| **Hard Usage Limit** | Per-project cap. If billed usage hits it, the project stops. The difference between a $7 month and a $700 surprise. |
+| **Hard Usage Limit** | Per-project cap. If billed usage hits it, the project stops. The difference between a \$7 month and a \$700 surprise. |
 
 ---
 
