@@ -127,7 +127,9 @@ def test_get_one_existing_returns_200(client: TestClient) -> None:
 def test_get_nonexistent_returns_404(client: TestClient) -> None:
     resp = client.get("/api/v1/feedback/99999")
     assert resp.status_code == 404
-    assert resp.json() == {"detail": "Feedback item not found"}
+    body = resp.json()
+    assert body["detail"] == "Feedback item not found"
+    assert body["request_id"] == resp.headers["X-Request-ID"]
 
 
 # --- Patch ----------------------------------------------------------------

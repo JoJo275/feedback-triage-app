@@ -305,13 +305,13 @@ behavior.
 
 ### Deliverables `[Must]`
 
-- [ ] Pydantic validators for all rules in
+- [x] Pydantic validators for all rules in
       [spec — Validation Rules](spec/spec.md#validation-rules).
-- [ ] Global exception handler returning the documented 404 / 422 / 500
+- [x] Global exception handler returning the documented 404 / 422 / 500
       shapes.
-- [ ] `debug=False` in production; stack traces never leak.
-- [ ] Request-ID echoed in 4xx/5xx response bodies.
-- [ ] Structured request log: method, path, status, duration_ms,
+- [x] `debug=False` in production; stack traces never leak.
+- [x] Request-ID echoed in 4xx/5xx response bodies.
+- [x] Structured request log: method, path, status, duration_ms,
       request_id (JSON when `APP_ENV=production`).
 
 ### Definition of Done

@@ -13,6 +13,7 @@ The stack is intentionally tiny:
 
 from __future__ import annotations
 
+import contextvars
 import json
 import logging
 import time
@@ -30,6 +31,29 @@ if TYPE_CHECKING:
 
 REQUEST_ID_HEADER = "X-Request-ID"
 
+# Per-request ID, set by :class:`RequestIDMiddleware` and read by the
+# logging filter and exception handlers. Empty string means "no active
+# request" (e.g. background work, app startup).
+request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "request_id",
+    default="",
+)
+
+
+def get_request_id() -> str:
+    """Return the request ID for the current context (empty if unset)."""
+    return request_id_ctx.get()
+
+
+class RequestIDLogFilter(logging.Filter):
+    """Inject ``request_id`` from the contextvar onto every log record."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Attach the current ``request_id`` to ``record`` and keep it."""
+        record.request_id = request_id_ctx.get() or "-"
+        return True
+
+
 logger = logging.getLogger("feedback_triage.access")
 
 
@@ -45,7 +69,11 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         incoming = request.headers.get(REQUEST_ID_HEADER)
         request_id = incoming or uuid.uuid4().hex
         request.state.request_id = request_id
-        response = await call_next(request)
+        token = request_id_ctx.set(request_id)
+        try:
+            response = await call_next(request)
+        finally:
+            request_id_ctx.reset(token)
         response.headers[REQUEST_ID_HEADER] = request_id
         return response
 
