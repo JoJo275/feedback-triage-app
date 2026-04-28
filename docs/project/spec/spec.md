@@ -1227,9 +1227,11 @@ and worth doing:
 The `Containerfile` must:
 
 - Use a **multi-stage build** — stage 1 builds the wheel with `uv build`
-  (which invokes `hatchling`), stage
-  2 is a slim runtime (`python:3.13-slim`) that `pip install`s the wheel.
-  No source tree, no build tools, no `.git` in the final image.
+  (which invokes `hatchling`), stage 2 is a slim runtime
+  (`python:3.13-slim`) that installs the wheel via
+  `uv pip install --system --no-cache <wheel>`. No source tree, no build
+  tools, no `.git` in the final image. uv itself is copied in from the
+  official `ghcr.io/astral-sh/uv` image, pinned by digest.
 - Run as a **non-root user** (`USER app` after `useradd -m app`). Railway
   does not require it, but it is the bare minimum hardening any reviewer
   will check.

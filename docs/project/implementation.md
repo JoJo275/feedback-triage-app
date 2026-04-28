@@ -40,10 +40,19 @@ Before Phase 1 can start, the surrounding template must be repurposed.
   - [ ] optional groups: `test`, `e2e`, `docs`
 - [ ] `tools/dev_tools/`, `mkdocs-hooks/`, `repo_doctor.d/`, `labels/`,
       `experiments/` reviewed and either removed or trimmed.
-- [ ] `scripts/` reduced to `seed.py` (placeholder) and any project-
-      specific helpers; template `spb-*` scripts removed.
-- [ ] `.github/workflows/` trimmed to: CI gate, release pipeline,
-      Dependabot auto-merge, e2e smoke. SHA pins refreshed.
+      **Required removals** (contradict archived ADRs 036/041/043):
+      `tools/dev_tools/env_dashboard/`, `scripts/_env_collectors/`,
+      `scripts/env_inspect.py`. Everything else under `scripts/` and
+      `tools/` is retained as general-purpose dev tooling.
+- [ ] `scripts/` retained as a project-wide tooling library (bootstrap,
+      doctor family, dep/version helpers, container-test scripts,
+      pre-commit hooks). The only project-specific addition for v1.0 is
+      `scripts/seed.py`. Template `spb-*` console-script entry points are
+      removed from `pyproject.toml`; the underlying scripts stay.
+- [ ] `.github/workflows/` retained mostly as-is; **required removals**
+      (tied to archived ADRs): `doctor-all.yml`, `repo-doctor.yml`
+      (ADR 036), `smoke-test.yml` (ADR 042). All other workflows stay
+      and are SHA-pin-refreshed.
 - [ ] `.pre-commit-config.yaml` trimmed to hooks this project actually
       uses.
 - [ ] `Taskfile.yml` rewritten to the task list in
@@ -51,11 +60,15 @@ Before Phase 1 can start, the surrounding template must be repurposed.
 - [ ] `Containerfile` rewritten per
       [spec — Container Hardening](spec/spec.md#container-hardening-must).
 - [ ] ADRs cleaned up:
-  - [ ] Template-only ADRs already deleted (036, 040, 041, 042, 043,
-        011, 015, 039)
+  - [ ] Template-only ADRs already moved to `docs/adr/archive/`
+        (011, 015, 036, 039, 040, 041, 042, 043) with `Deprecated`
+        status and an archive note. See
+        [`docs/adr/archive/README.md`](../adr/archive/README.md).
   - [ ] ADRs 014, 025, 027, 029, 031 rewritten for this project
-  - [ ] New ADRs 045–054 drafted (see
-        [spec — ADRs to Write](spec/spec.md#adrs-to-write))
+  - [ ] New ADRs 045–055 drafted (see
+        [spec — ADRs to Write](spec/spec.md#adrs-to-write)). ADR 055
+        partially supersedes ADR 016 (uv replaces Hatch as the env
+        manager; `hatchling` + `hatch-vcs` stay as the build backend).
 - [ ] `docs/` cleaned: keep `docs/project/`, ADRs, and a fresh `index.md`
       pointing at the spec; remove template-specific guides.
 - [ ] `README.md` replaced with the structure in

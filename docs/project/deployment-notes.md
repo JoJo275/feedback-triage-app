@@ -149,12 +149,86 @@ Configure Railway:
 
 ## Cost Controls
 
-Railway charges for resource usage (CPU, memory, storage, egress), not
-just traffic. On Hobby, the $5 subscription counts toward usage; if you
-exceed $5 in resources, you pay the difference. A running service
-consumes CPU and RAM regardless of whether traffic is hitting it.
+### Target: demo-grade, not absolute minimum
 
-**Cost-saving goal:** keep the app small, idle, and sleeping when not used.
+The goal is **"cheap and reviewable"**, not "smallest possible bill".
+Optimizing for absolute minimum gives a 1–3 second cold start on every
+first reviewer click and risks the service hard-stopping mid-demo when
+the usage limit trips. Both of those are worse outcomes than paying $7
+instead of $4.
+
+Concrete target:
+
+- **Realistic monthly cost:** ~$5–$8 with sleep on and the rules below.
+- **Hard usage limit:** $10 (not $5). One bad week of build storms or
+  demo traffic should not brick the service.
+- **Alert threshold:** $6.
+- **Optimize for:** "reviewer lands on the link → sees the app within
+  3s → can click around without errors". Not for shaving the last
+  dollar.
+
+### Resource caps are not the constraint — cost is
+
+The Hobby plan caps services at 48 vCPU and 48 GB RAM. This app needs
+~0.1 vCPU and ~256 MB. The plan limits are not relevant; **billed
+usage is**. Every CPU-second and GB-hour the service is awake is
+metered against the $5 included credit.
+
+### Will this app fit inside the Hobby tier?
+
+**Probably yes, but it is tight and Postgres is the long pole.** The
+$5/month Hobby subscription includes $5 of resource credit; usage above
+that is billed per second. Back-of-envelope:
+
+| Resource                                 | Approx. monthly cost |
+| ---------------------------------------- | -------------------- |
+| FastAPI service, ~256 MB, sleeping       | ~$1–$3               |
+| FastAPI service, ~256 MB, never sleeps   | ~$3–$5               |
+| Railway Postgres, smallest plan          | ~$2–$5               |
+| Egress (portfolio traffic levels)        | rounding error       |
+| **Realistic total with sleep on**        | **~$3–$8**           |
+| **Realistic total with sleep off**       | **~$6–$10**          |
+
+So the app *can* fit under $5, but only if:
+
+1. **App-sleeping is enabled** — no background loops, no scheduled
+   pings, no analytics callbacks. Anything keeping the service warm
+   costs roughly $0.10–$0.20/day in idle CPU/RAM.
+2. **Postgres stays on the smallest plan** with low storage. The
+   database does **not** sleep — it is the dominant idle cost. Empty
+   tables and trimmed seed data (~20 rows) keep storage rounding to
+   zero.
+3. **No external uptime monitor.** A pinger hitting `/health` every
+   minute defeats sleep entirely and is the single biggest accidental
+   cost on this stack.
+4. **One replica only**, `--workers 2` per the spec (see worker-count
+   note below).
+5. **Hard usage limit set** to ~$10 *before* the first deploy. Then a
+   runaway loop fails closed instead of becoming a bill.
+
+The first expensive surprise is almost always "I added a cron job /
+uptime monitor that pings the service every minute" — don't.
+
+### `--workers 2` vs `--workers 1`
+
+The spec calls for `--workers 2`. Keep it. Cost impact at this scale
+is negligible:
+
+- Uvicorn workers share the parent process's CPU allotment. Two idle
+  workers cost ~the same as one idle worker on Railway's per-second
+  CPU billing (idle Python is idle Python).
+- Memory is the only real delta: ~50–80 MB extra resident for the
+  second worker. At 256 MB cap that leaves ~120 MB headroom, which is
+  enough for this workload (small JSON payloads, no large response
+  buffering, sync psycopg pool of 5+5).
+- In return you get crash isolation (one worker OOM does not 502 every
+  request) and a small concurrency boost on the cold-start path.
+
+If memory ever gets tight (logs show OOM kills, or Alembic at boot
+spikes RSS), the cheap fix is bumping the cap to 384 MB (~+$0.50–1/mo),
+not dropping to one worker. Do not pre-optimize.
+
+### How to keep it cheap (operational rules)
 
 ### 1. Enable Serverless / App Sleeping
 
@@ -169,10 +243,12 @@ are in v1.0; do not add them.
 
 For a learning / portfolio app:
 
-- Alert at ~$3–$4
-- Hard limit at ~$5–$7
+- Alert at ~$6
+- Hard limit at ~$10
 
-A misconfigured loop or runaway worker should not become an expensive bill.
+A misconfigured loop or runaway worker should not become an expensive
+bill, but the limit should also leave room for one bad week without the
+service hard-stopping mid-demo.
 
 ### 3. Resource limits
 
