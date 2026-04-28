@@ -1,123 +1,148 @@
-# ADR 025: Container Strategy — Production, Development, and Orchestration
+# ADR 025: Container Strategy for v1.0
 
 ## Status
 
-**Needs rewrite** — inherited from the template. The current text is
-project-agnostic. Rewrite to describe the v1.0 multi-stage Containerfile
-concretely (uv-based wheel build, slim runtime, non-root, HEALTHCHECK
-`/health`, digest-pinned base, Railway target). Cross-link to
-[ADR 019](019-containerfile.md) and [ADR 053](053-migrations-as-pre-deploy-command.md).
+Accepted
 
-Originally: Accepted
+Refines [ADR 019: Containerfile](019-containerfile.md) for this project's
+runtime stack.
 
 ## Context
 
-Modern Python projects benefit from containerization for both development consistency
-and production deployment. However, "containers" can mean different things:
+`feedback-triage-app` ships as a containerised FastAPI service deployed
+to Railway, fronted by a managed Postgres. We need a container story
+that covers three audiences without conflating them:
 
-1. **Production containers** — Minimal images that run your application
-2. **Development containers** — Full environments for writing code
-3. **Container orchestration** — Tools to manage multi-container setups
+1. **Production** — the image Railway runs.
+2. **Local development** — what a contributor runs to work on the app.
+3. **Local production-likeness** — what a contributor runs to
+   reproduce the production image on their machine.
 
-These serve different purposes and shouldn't be conflated. The project needed a clear
-strategy for when and how to use each approach.
+The template-era ADR (which classified containers into "production /
+dev / orchestration" abstractly) does not capture the concrete shape of
+this project's stack. This ADR replaces it.
 
 ## Decision
 
-We provide three container-related configurations, each serving a distinct purpose:
+### Production image — `Containerfile` at the repo root
 
-### 1. Containerfile (Production)
+A multi-stage OCI image. Stage 1 (`builder`) uses the official `uv`
+image to build a wheel via `uv build --wheel`. Stage 2 (`runtime`) is
+a slim Python base. The wheel is installed system-wide via
+`uv pip install --system --no-cache <wheel>`. **No virtualenv inside
+the container.**
 
-Located at the repository root, this builds a minimal OCI-compliant image containing
-only the installed application — no dev tools, no source code, no tests.
+Runtime invariants:
 
-**Use case:** Deploying to production, CI/CD pipelines, distribution.
+- Non-root user `app` (uid 1000); `WORKDIR /app`.
+- `ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1`.
+- `EXPOSE 8000`; `CMD ["uvicorn", "feedback_triage.main:app", "--host", "0.0.0.0", "--port", "8000"]`.
+- `HEALTHCHECK` polls `GET /health` every 30s. `/health` is liveness
+  (process up); `/ready` is readiness (DB reachable). The container's
+  HEALTHCHECK uses `/health` to avoid restart loops when Postgres
+  blips — see [ADR 053](053-migrations-as-pre-deploy-command.md).
+- Base image and `uv` image are **digest-pinned** before any tagged
+  release (`v0.1.0+`). The `latest` tags in `Containerfile` are TODOs
+  during pre-1.0 churn only.
+- Migrations are **never** run from `main.py` on boot. Railway's
+  pre-deploy command runs `alembic upgrade head`. See
+  [ADR 053](053-migrations-as-pre-deploy-command.md).
+
+### Local development — `docker compose up`
+
+`docker-compose.yml` defines two services:
+
+- `db` — `postgres:16-alpine` with a named volume `pgdata`,
+  `pg_isready` healthcheck, and the credentials from `.env`.
+- `app` — the same image as production, gated behind the
+  `container` profile so `task up` (no profile) starts only Postgres.
+
+Day-to-day, contributors run the app with `task dev` (FastAPI's
+auto-reload server on the host) against the Compose-managed Postgres.
+The `container` profile is only used when reproducing the production
+image locally:
 
 ```bash
-docker build -t simple-python-boilerplate -f Containerfile .
-docker run --rm simple-python-boilerplate
+docker compose --profile container up --build
 ```
 
-### 2. Dev Container (Development)
+### Dev container — kept, but lightweight
 
-Located in `.devcontainer/`, this configures VS Code to run inside a container with
-all development tools pre-installed: Python, Node.js, pre-commit hooks, extensions.
+`.devcontainer/devcontainer.json` is retained from the template as
+optional infrastructure for Codespaces / VS Code Remote Containers
+contributors. It is not required for development; the host-toolchain
+path (`uv sync` + `task up` + `task dev`) is the documented default.
 
-**Use case:** Consistent development environment, onboarding new contributors, Codespaces.
+### Production target — Railway
 
-```
-VS Code → "Reopen in Container" → Full IDE inside container
-```
+Railway is the target platform ([ADR 053](053-migrations-as-pre-deploy-command.md)):
 
-### 3. Docker Compose (Orchestration)
-
-Located at `docker-compose.yml`, this provides convenience commands for building and
-running the production container locally. It can also define multi-service setups
-(app + database, etc.).
-
-**Use case:** Local testing of production build, multi-container development.
-
-```bash
-docker compose up --build
-```
+- Image is built from `Containerfile` on every push to `main`.
+- `alembic upgrade head` runs as the pre-deploy command.
+- The container starts only if migrations succeed.
+- Continuous deploy from `main`; no separate staging environment in
+  v1.0.
 
 ## Alternatives Considered
 
-### Single Dockerfile for everything
+### Single Dockerfile with build args for dev/prod
 
-Use one Dockerfile with build arguments to switch between dev and production modes.
+**Rejected because:** the dev container has its own JSON contract for
+VS Code (`devcontainer.json`); folding it into the production
+Dockerfile loses that integration and complicates both surfaces.
 
-**Rejected because:** Over-complicates the Dockerfile, makes each mode harder to
-understand, and dev containers have their own JSON format that integrates with
-VS Code features.
+### Run migrations from `main.py` on boot
 
-### Skip Docker Compose
+**Rejected because:** crashloops, race conditions across replicas, and
+slow startup. See [ADR 053](053-migrations-as-pre-deploy-command.md)
+for the full reasoning.
 
-Just use `docker build` and `docker run` commands directly.
+### Bundle a venv in the runtime image
 
-**Rejected because:** Compose provides a declarative, version-controlled way to
-specify build/run options. It's also the foundation for multi-service setups if
-the project grows.
+**Rejected because:** `uv pip install --system` writes directly into
+the image's site-packages and removes the activation dance. A venv
+inside a container is the worst of both worlds.
 
-### Use Docker-in-Docker for dev container
+### Distroless runtime base
 
-Run Docker inside the dev container for full container workflow testing.
-
-**Rejected because:** Adds complexity and security considerations. Users who need
-to test container builds can exit the dev container and run Docker on the host.
+**Deferred.** Listed as a future hardening step. `python:3.13-slim`
+keeps the iteration cost low for v1.0; switching to distroless is a
+mechanical change once the surface stabilises.
 
 ## Consequences
 
 ### Positive
 
-- Clear separation of concerns — each file has one purpose
-- Template users can delete what they don't need
-- Zero-setup development via Codespaces or Dev Containers
-- Production images stay minimal (~150MB vs ~1GB+ for dev)
-- Docker Compose enables easy multi-service expansion
+- One image runs in CI, locally (via the `container` profile), and on
+  Railway. Reproducibility is a property of the file, not the platform.
+- `uv` makes the build fast: a clean `uv build --wheel` resolves
+  against the committed `uv.lock` in seconds.
+- Non-root + `HEALTHCHECK` + digest-pinned base satisfies the spec's
+  Container Hardening section.
+- Migrations as a pre-deploy step keep the runtime image idempotent
+  and crash-safe.
 
 ### Negative
 
-- Three files to maintain instead of one
-- Users must understand which tool serves which purpose
-- Dev container requires Docker Desktop (or Podman) installed
-
-### Mitigations
-
-- Clear README files explain each component
-- This ADR documents the rationale
-- Files are optional — template users can remove any they don't use
+- Two compose profiles (`default` for `db`, `container` for `app`)
+  is a small cognitive cost; documented in
+  [README.md](../../README.md) and [`Taskfile.yml`](../../Taskfile.yml).
+- Pre-deploy migrations couple deployment to Railway's feature; moving
+  off Railway requires reconfiguring the equivalent hook on the new
+  platform.
 
 ## Implementation
 
-- [Containerfile](../../Containerfile) — Production container build
-- [.devcontainer/devcontainer.json](../../.devcontainer/devcontainer.json) — VS Code dev container config
-- [.devcontainer/README.md](../../.devcontainer/README.md) — Dev container documentation
-- [docker-compose.yml](../../docker-compose.yml) — Container orchestration
+- [`Containerfile`](../../Containerfile)
+- [`docker-compose.yml`](../../docker-compose.yml)
+- [`.dockerignore`](../../.dockerignore)
+- [`Taskfile.yml`](../../Taskfile.yml) — `up`, `down`, `container:build`,
+  `container:run`
+- [`container-structure-test.yml`](../../container-structure-test.yml)
 
-## References
+## See also
 
-- [ADR 019: Containerfile](019-containerfile.md) — Original production container decision
-- [Dev Containers specification](https://containers.dev/)
-- [Docker Compose documentation](https://docs.docker.com/compose/)
-- [GitHub Codespaces](https://github.com/features/codespaces)
+- [ADR 019](019-containerfile.md) — original Containerfile decision
+- [ADR 053](053-migrations-as-pre-deploy-command.md) — migrations as
+  pre-deploy command
+- [ADR 055](055-uv-as-project-manager.md) — uv as project manager
