@@ -4,7 +4,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "simple-python-boilerplate",
+      "package-name": "feedback-triage-app",
       "include-component-in-tag": false,
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": false,
@@ -14,7 +14,7 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "src/simple_python_boilerplate/__init__.py"
+          "path": "src/feedback_triage/__init__.py"
         }
       ]
     }

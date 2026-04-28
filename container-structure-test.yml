@@ -7,8 +7,8 @@
 #   go install github.com/GoogleContainerTools/container-structure-test/cmd/container-structure-test@latest
 #
 # Usage:
-#   docker build -t simple-python-boilerplate:test -f Containerfile .
-#   container-structure-test test --image simple-python-boilerplate:test --config container-structure-test.yml
+#   docker build -t feedback-triage-app:test -f Containerfile .
+#   container-structure-test test --image feedback-triage-app:test --config container-structure-test.yml
 #
 # TODO (template users): Update the package name, entrypoint, and user/group
 #   to match your project after running customize.py.
@@ -36,7 +36,7 @@ commandTests:
 
   - name: "Package is installed"
     command: "python"
-    args: ["-c", "import simple_python_boilerplate; print('ok')"]
+    args: ["-c", "import feedback_triage; print('ok')"]
     expectedOutput: ["ok"]
 
   - name: "pip is available"
