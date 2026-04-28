@@ -158,25 +158,25 @@ autogenerate, and bring up an empty schema.
 
 ### Deliverables `[Must]`
 
-- [ ] `src/feedback_triage/enums.py` — `Source` and `Status` Python enums
+- [x] `src/feedback_triage/enums.py` — `Source` and `Status` Python enums
       (single source of truth, imported by both models and schemas).
-- [ ] `src/feedback_triage/models.py` — `FeedbackItem` SQLModel with
+- [x] `src/feedback_triage/models.py` — `FeedbackItem` SQLModel with
       `text` columns, native enum mapping, `bigint` identity, server
       defaults on `created_at` / `updated_at`.
-- [ ] `src/feedback_triage/database.py` — engine, `SessionLocal`,
+- [x] `src/feedback_triage/database.py` — engine, `SessionLocal`,
       `get_db` dependency with commit/rollback wired in (see
       [spec sketch](spec/spec.md#database-session-lifecycle)).
-- [ ] `alembic.ini` reading `DATABASE_URL` from env.
-- [ ] `alembic/env.py` with `target_metadata = SQLModel.metadata`,
+- [x] `alembic.ini` reading `DATABASE_URL` from env.
+- [x] `alembic/env.py` with `target_metadata = SQLModel.metadata`,
       `compare_type=True`, `compare_server_default=True`.
-- [ ] First migration `versions/0001_create_feedback_item.py`,
+- [x] First migration `versions/0001_create_feedback_item.py`,
       hand-reviewed, containing:
-  - [ ] `source_enum` and `status_enum` types
-  - [ ] `feedback_item` table
-  - [ ] All four CHECK constraints (pain_level range, title not blank,
+  - [x] `source_enum` and `status_enum` types
+  - [x] `feedback_item` table
+  - [x] All four CHECK constraints (pain_level range, title not blank,
         title max length, description max length)
-  - [ ] All three indexes (`created_at DESC`, `status`, `source`)
-  - [ ] `set_updated_at()` function and `BEFORE UPDATE` trigger
+  - [x] All three indexes (`created_at DESC`, `status`, `source`)
+  - [x] `set_updated_at()` function and `BEFORE UPDATE` trigger
 
 ### Definition of Done
 
