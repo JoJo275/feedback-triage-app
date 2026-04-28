@@ -251,7 +251,7 @@ repos:
       # "Executable not found" or false positives.
       - id: deptry
         name: deptry (dependency hygiene)
-        entry: hatch run deptry .
+        entry: uv run deptry src/
         language: system
         pass_filenames: false
         always_run: true
@@ -260,15 +260,18 @@ repos:
       # -----------------------------------------------------------------------
       # check-python-support — Python version consistency
       # -----------------------------------------------------------------------
-      # Verifies that requires-python, Hatch test matrix, classifier
-      # list, and CI matrix all agree on supported Python versions.
-      # Runs only when pyproject.toml or workflow files change.
+      # Verifies that requires-python, classifier list, and CI matrix all
+      # agree on supported Python versions.
+      # Disabled until the script is reworked to read uv config instead of
+      # the removed Hatch test matrix. Re-enable by switching stage back
+      # to pre-commit once `scripts/check_python_support.py` is updated.
       - id: check-python-support
         name: check-python-support (version consistency)
         entry: python scripts/check_python_support.py --quiet
         language: system
         pass_filenames: false
         always_run: false
+        stages: [manual]
         files: (pyproject\.toml|\.github/workflows/.*\.yml)$
 
       # -----------------------------------------------------------------------
@@ -327,7 +330,7 @@ repos:
     hooks:
       - id: tests
         name: Run test suite
-        entry: hatch run test
+        entry: uv run pytest -m "not e2e"
         language: system
         pass_filenames: false
         always_run: true
@@ -344,7 +347,12 @@ repos:
     rev: v2.10.0
     hooks:
       - id: pip-audit
-        args: ["-r", "requirements-dev.txt"]
+        # Audit the resolved graph from uv.lock. uv export produces a
+        # requirements.txt-style file pip-audit understands. Keeping
+        # this on pre-push (not pre-commit) so it doesn't slow commits.
+        entry: bash -c 'uv export --no-emit-project --format requirements-txt | pip-audit -r /dev/stdin'
+        language: system
+        pass_filenames: false
         stages: [pre-push]
 
   # ---------------------------------------------------------------------------
