@@ -69,8 +69,11 @@ Before Phase 1 can start, the surrounding template must be repurposed.
         [spec — ADRs to Write](spec/spec.md#adrs-to-write)). ADR 055
         partially supersedes ADR 016 (uv replaces Hatch as the env
         manager; `hatchling` + `hatch-vcs` stay as the build backend).
-- [ ] `docs/` cleaned: keep `docs/project/`, ADRs, and a fresh `index.md`
-      pointing at the spec; remove template-specific guides.
+- [x] `docs/` cleaned: fresh `index.md` now points at the spec, ADRs,
+      and the implementation plan. Removal of legacy template guides
+      (`docs/guide/`, `docs/development/`, `docs/reference/`,
+      `docs/notes/`, etc.) is deferred until they prove wrong for this
+      project after first green CI run, per the fork policy.
 - [x] `README.md` replaced with the structure in
       [spec — README Sections to Include](spec/spec.md#readme-sections-to-include-must).
 
@@ -109,20 +112,20 @@ endpoint serves over HTTP and can talk to a running database.
 
 ### Deliverables `[Must]`
 
-- [ ] `src/feedback_triage/config.py` — `Settings` via `pydantic-settings`,
+- [x] `src/feedback_triage/config.py` — `Settings` via `pydantic-settings`,
       reading `DATABASE_URL`, `APP_ENV`, `LOG_LEVEL`, `PORT`,
       `CORS_ALLOWED_ORIGINS`, `PAGE_SIZE_DEFAULT`, `PAGE_SIZE_MAX`.
       Normalize `postgres://` → `postgresql+psycopg://` at load time.
-- [ ] `src/feedback_triage/main.py` — `create_app()` factory, CORS
+- [x] `src/feedback_triage/main.py` — `create_app()` factory, CORS
       middleware reading from settings, request-ID middleware, structured
       request-logging middleware.
-- [ ] `src/feedback_triage/routes/health.py` — `/health` and `/ready`
+- [x] `src/feedback_triage/routes/health.py` — `/health` and `/ready`
       with the 2s readiness timeout per
       [spec](spec/spec.md#health-and-readiness).
-- [ ] `docker-compose.yml` — Postgres 16, named `pgdata` volume, healthy
+- [x] `docker-compose.yml` — Postgres 16, named `pgdata` volume, healthy
       `depends_on`.
-- [ ] `.env.example` matches the spec's env-var surface.
-- [ ] `Taskfile.yml` — `task up`, `task down`, `task dev` work.
+- [x] `.env.example` matches the spec's env-var surface.
+- [x] `Taskfile.yml` — `task up`, `task down`, `task dev` work.
 
 ### Definition of Done
 
