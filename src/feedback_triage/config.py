@@ -1,0 +1,69 @@
+"""Application settings via pydantic-settings.
+
+Loads configuration from process env vars (and optionally a `.env` file
+in development). Values here are the single source of truth for runtime
+configuration; nothing else should read `os.environ` directly.
+
+See `docs/project/spec/spec.md` for the full env-var surface and
+`.env.example` for documented defaults.
+"""
+
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Runtime configuration loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    app_env: Literal["development", "production", "test"] = "development"
+    log_level: Literal["trace", "debug", "info", "warning", "error", "critical"] = (
+        "info"
+    )
+    port: int = Field(default=8000, ge=1, le=65535)
+
+    database_url: str = Field(
+        default="postgresql+psycopg://feedback:feedback@localhost:5432/feedback",
+    )
+
+    cors_allowed_origins: str = ""
+
+    page_size_default: int = Field(default=20, ge=1, le=1000)
+    page_size_max: int = Field(default=100, ge=1, le=1000)
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, value: object) -> object:
+        """Normalize Railway's legacy ``postgres://`` scheme to psycopg v3."""
+        if isinstance(value, str) and value.startswith("postgres://"):
+            return "postgresql+psycopg://" + value[len("postgres://") :]
+        if isinstance(value, str) and value.startswith("postgresql://"):
+            return "postgresql+psycopg://" + value[len("postgresql://") :]
+        return value
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Parsed list of CORS-allowed origins (empty list disables CORS)."""
+        return [o.strip() for o in self.cors_allowed_origins.split(",") if o.strip()]
+
+    @property
+    def is_production(self) -> bool:
+        """Return True when running with production semantics."""
+        return self.app_env == "production"
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Return the process-wide cached :class:`Settings` instance."""
+    return Settings()
