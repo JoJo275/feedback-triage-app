@@ -73,19 +73,18 @@ jobs:
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
         with:
           python-version: "3.12"
-          cache: "pip"
 
-      # Install the package with test extras from pyproject.toml.
-      # This uses the [test] optional dependency group which includes
-      # pytest and pytest-cov as the single source of truth.
-      #
-      # TODO (template users): For large projects, consider caching the
-      # installed virtualenv to skip pip install on cache hits. See:
-      # actions/cache with a key based on hashFiles('pyproject.toml').
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # Install uv with caching (v8.1.0)
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'uv.lock'
+
+      # Install the project with test extras using the committed lockfile.
+      # The [test] optional-dependency group in pyproject.toml is the
+      # single source of truth for pytest + pytest-cov.
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[test]"
+        run: uv sync --frozen --extra test
 
       # Run tests with coverage. Configuration (source dirs,
       # branch coverage, exclusions) is read from pyproject.toml
@@ -96,7 +95,7 @@ jobs:
       # integration tests for faster feedback. Coverage needs
       # the full picture, so we include everything here.
       - name: Run tests with coverage
-        run: pytest -m "not e2e" --cov=feedback_triage --cov-report=xml --cov-report=html --cov-report=term-missing
+        run: uv run pytest -m "not e2e" --cov=feedback_triage --cov-report=xml --cov-report=html --cov-report=term-missing
 
       # Upload the coverage report to Codecov.
       # For private repos, set the CODECOV_TOKEN secret.

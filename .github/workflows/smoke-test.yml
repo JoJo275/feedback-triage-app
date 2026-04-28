@@ -69,10 +69,15 @@ jobs:
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
-          cache: "pip"
 
-      - name: Install project (editable)
-        run: pip install -e ".[dev]"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # Install uv with caching (v8.1.0)
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'uv.lock'
+
+      - name: Install project
+        run: uv sync --frozen --extra dev
 
       - name: Run smoke tests
         working-directory: scripts
@@ -97,7 +102,7 @@ jobs:
           )
           for script in "${scripts[@]}"; do
             echo "::group::${script}"
-            if python "$script" --smoke; then
+            if uv run python "$script" --smoke; then
               echo "✓ ${script}"
             else
               echo "::error::${script} --smoke failed"
