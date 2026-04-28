@@ -1309,7 +1309,8 @@ critical UI paths against a running app + Postgres. CI brings up the
 stack with `docker compose up -d` and runs the suite via `task test:e2e`.
 
 1. **Create flow:** open `/new`, fill the form, submit, assert redirect
-   to `/` and that the new title appears in the list.
+   to the detail page `/feedback/{id}` and that the new title also
+   appears in the list at `/`.
 2. **Edit flow:** open the most recent item's detail page, change
    `status` from `new` to `reviewing`, save, reload, assert the new
    status persists.
