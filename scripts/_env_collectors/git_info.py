@@ -7,9 +7,8 @@ import shutil
 import subprocess  # nosec B404
 from typing import Any
 
-from _imports import find_repo_root
-
 from _env_collectors._base import BaseCollector
+from _imports import find_repo_root
 
 _tier = None
 
