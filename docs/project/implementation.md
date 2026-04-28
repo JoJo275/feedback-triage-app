@@ -207,26 +207,26 @@ pagination, filtering, sorting, and the canary stale-read test.
 
 ### Deliverables `[Must]`
 
-- [ ] `src/feedback_triage/schemas.py` — `FeedbackCreate`,
+- [x] `src/feedback_triage/schemas.py` — `FeedbackCreate`,
       `FeedbackUpdate`, `FeedbackResponse`, `FeedbackListEnvelope`.
       Datetime serializer pinned to ISO 8601 + `Z`.
-- [ ] `src/feedback_triage/crud.py` — pure DB-layer functions
+- [x] `src/feedback_triage/crud.py` — pure DB-layer functions
       (`create_item`, `get_item`, `list_items`, `update_item`,
       `delete_item`). No HTTP concerns.
-- [ ] `src/feedback_triage/routes/feedback.py` — handlers under
+- [x] `src/feedback_triage/routes/feedback.py` — handlers under
       `/api/v1/feedback`, every route with explicit `response_model=`
       and `tags=["feedback"]`.
-- [ ] `POST /api/v1/feedback` returns `201` and a `Location` header.
-- [ ] `GET /api/v1/feedback` returns the envelope shape exactly as
+- [x] `POST /api/v1/feedback` returns `201` and a `Location` header.
+- [x] `GET /api/v1/feedback` returns the envelope shape exactly as
       [specified](spec/spec.md#list).
-- [ ] `sort_by` allow-list enforced; invalid value → `422`.
-- [ ] `PATCH` performs partial updates only.
-- [ ] `DELETE` returns `204`.
+- [x] `sort_by` allow-list enforced; invalid value → `422`.
+- [x] `PATCH` performs partial updates only.
+- [x] `DELETE` returns `204`.
 
 ### Deliverables `[Should]`
 
-- [ ] OpenAPI tags grouped (`feedback`, `health`).
-- [ ] Custom 404 body matches the spec
+- [x] OpenAPI tags grouped (`feedback`, `health`).
+- [x] Custom 404 body matches the spec
       (`{"detail":"Feedback item not found"}`).
 
 ### Definition of Done

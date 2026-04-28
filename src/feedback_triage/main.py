@@ -16,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from feedback_triage import __version__
 from feedback_triage.config import Settings, get_settings
 from feedback_triage.middleware import RequestIDMiddleware, RequestLoggingMiddleware
-from feedback_triage.routes import health
+from feedback_triage.routes import feedback, health
 
 
 def _configure_logging(settings: Settings) -> None:
@@ -61,6 +61,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     app.include_router(health.router)
+    app.include_router(feedback.router)
 
     return app
 
