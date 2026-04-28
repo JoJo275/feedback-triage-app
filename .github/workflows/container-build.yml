@@ -115,11 +115,18 @@ jobs:
       # github.repository preserves the owner's original casing
       # (e.g. "JoJo275/repo") but Docker requires lowercase image
       # names. The image variable below normalises the reference.
-      - name: Smoke test — entrypoint
+      # The image's CMD is `sh -c "uvicorn ..."` with no ENTRYPOINT, so
+      # `docker run IMAGE --help` would replace the CMD with `--help` and
+      # fail. Verify the wheel imports cleanly inside the runtime stage
+      # instead — that proves the build artifact is functional without
+      # booting Uvicorn.
+      - name: Smoke test — package imports
         if: github.event_name == 'pull_request'
         env:
           IMAGE: ghcr.io/${{ github.repository }}:pr-${{ github.event.number }}
-        run: docker run --rm "${IMAGE,,}" --help
+        run: |
+          docker run --rm --entrypoint python "${IMAGE,,}" \
+            -c "import feedback_triage; from feedback_triage import main; print('import ok')"
 
       - name: Smoke test — non-root user
         if: github.event_name == 'pull_request'
