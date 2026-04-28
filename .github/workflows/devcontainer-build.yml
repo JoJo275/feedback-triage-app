@@ -12,7 +12,7 @@
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
-#        Option A – Replace 'YOURNAME/YOURREPO' below with
+#        Option A – Replace 'JoJo275/feedback-triage-app' below with
 #                   your actual repo slug (e.g. 'myorg/myproject').
 #        Option B – Set a repository variable (no YAML edits needed):
 #                     vars.ENABLE_DEVCONTAINER_BUILD = 'true'
@@ -58,7 +58,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_DEVCONTAINER_BUILD = 'true'.
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURREPO'
+        github.repository == 'JoJo275/feedback-triage-app'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_DEVCONTAINER_BUILD == 'true'
       }}
@@ -78,10 +78,10 @@ jobs:
             echo "=== Dev container built successfully ==="
             python --version
             pip --version
-            echo "=== Verifying Hatch is installed ==="
-            hatch --version
+            echo "=== Verifying uv is installed ==="
+            uv --version
             echo "=== Verifying pre-commit hooks are installed ==="
             pre-commit --version
             echo "=== Running quick smoke test ==="
-            hatch run python -c "import simple_python_boilerplate; print('Package import OK')"
+            uv run python -c "import feedback_triage; print('Package import OK')"
             echo "=== All checks passed ==="
