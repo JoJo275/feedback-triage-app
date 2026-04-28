@@ -18,13 +18,13 @@
 # Pinned base image. Refresh via:
 #   docker pull python:3.13-slim
 #   docker inspect --format='{{index .RepoDigests 0}}' python:3.13-slim
-# TODO: refresh on first build before tagging v0.1.0.
-ARG PYTHON_BASE=python:3.13-slim
+# Refreshed 2026-04-28.
+ARG PYTHON_BASE=python:3.13-slim@sha256:a0779d7c12fc20be6ec6b4ddc901a4fd7657b8a6bc9def9d3fde89ed5efe0a3d
 
 # Pinned uv binary image. Refresh via:
 #   docker pull ghcr.io/astral-sh/uv:latest
 #   docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/astral-sh/uv:latest
-ARG UV_IMAGE=ghcr.io/astral-sh/uv:latest
+ARG UV_IMAGE=ghcr.io/astral-sh/uv@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347
 
 # ── Stage 1: Build ────────────────────────────────────────────
 FROM ${PYTHON_BASE} AS builder
@@ -34,7 +34,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 # Bring in uv (the binary, no Python deps).
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347 /uv /usr/local/bin/uv
 
 WORKDIR /build
 
@@ -66,7 +66,7 @@ LABEL org.opencontainers.image.title="feedback-triage-app" \
 
 # uv used only for the wheel install step. Drop after install if you want
 # an even leaner runtime; left in for ad-hoc `uv pip` debugging on Railway.
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347 /uv /usr/local/bin/uv
 
 # Non-root user for the app process.
 RUN groupadd --gid 1000 app \
