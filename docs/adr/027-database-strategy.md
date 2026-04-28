@@ -2,7 +2,19 @@
 
 ## Status
 
-Accepted
+**Needs rewrite** — inherited from the template ("raw SQL, no ORM").
+This project uses **SQLModel + SQLAlchemy 2.x + Postgres 16 + Alembic**.
+Replace the entire content with the database stack actually shipped, or
+delete this ADR in favour of:
+
+- [ADR 046](046-postgres-enums-and-check-constraints.md) — enums + CHECKs
+- [ADR 047](047-sqlmodel-over-sqlalchemy.md) — SQLModel choice
+- [ADR 048](048-session-per-request.md) — session lifecycle
+- [ADR 049](049-offset-pagination.md) — pagination
+- [ADR 050](050-sync-db-driver-v1.md) — sync driver
+- [ADR 054](054-postgres-for-tests.md) — Postgres in tests
+
+Originally: Accepted
 
 ## Context
 

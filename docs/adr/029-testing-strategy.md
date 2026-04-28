@@ -2,7 +2,17 @@
 
 ## Status
 
-Accepted
+**Needs rewrite** — inherited from the template. The current text
+describes the template's test posture, not this project's. Rewrite to
+cover:
+
+- Postgres-backed API tests (see [ADR 054](054-postgres-for-tests.md))
+- The `truncate_all_tables()` fixture pattern
+- The Playwright smoke layer gated behind `@pytest.mark.e2e`
+- The canary `test_patch_then_get_returns_fresh_state` test (see
+  [ADR 048](048-session-per-request.md))
+
+Originally: Accepted
 
 ## Context
 
