@@ -88,6 +88,7 @@ nav:
       - Troubleshooting: guide/troubleshooting.md
       - Repo Layout: repo-layout.md
       - Tooling: tooling.md
+      - Tool Comparisons: tool-comparisons.md
       - Labels: labels.md
   - Development:
       - Overview: development/development.md
