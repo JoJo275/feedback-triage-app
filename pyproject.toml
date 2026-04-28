@@ -151,7 +151,12 @@ exclude_lines = [
 line-length = 88
 target-version = "py311"
 src = ["src", "tests", "scripts"]
-extend-exclude = ["attic", "tools", "mkdocs-hooks", "src/feedback_triage/_version.py"]
+extend-exclude = [
+    "attic",
+    "tools",
+    "mkdocs-hooks",
+    "src/feedback_triage/_version.py",
+]
 
 [tool.ruff.lint]
 select = [

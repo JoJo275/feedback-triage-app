@@ -77,7 +77,7 @@ tasks:
       - uv run alembic revision --autogenerate -m "{{.CLI_ARGS}}"
 
   migrate:downgrade:
-    desc: 'Roll back N revisions (default 1): task migrate:downgrade -- 1'
+    desc: "Roll back N revisions (default 1): task migrate:downgrade -- 1"
     cmds:
       - uv run alembic downgrade {{.CLI_ARGS | default "-1"}}
 
@@ -182,7 +182,7 @@ tasks:
       - uv run pre-commit autoupdate
 
   pre-commit:hook:
-    desc: 'Run a single hook: task pre-commit:hook -- ruff'
+    desc: "Run a single hook: task pre-commit:hook -- ruff"
     cmds:
       - uv run pre-commit run {{.CLI_ARGS}} --all-files
 
@@ -199,7 +199,7 @@ tasks:
 
   # ── Release ────────────────────────────────────────────────
   release:
-    desc: 'Tag and push a release: task release -- v0.1.0'
+    desc: "Tag and push a release: task release -- v0.1.0"
     cmds:
       - git tag -a {{.CLI_ARGS}} -m "Release {{.CLI_ARGS}}"
       - git push origin {{.CLI_ARGS}}

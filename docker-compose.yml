@@ -31,7 +31,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-feedback} -d ${POSTGRES_DB:-feedback}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-feedback} -d ${POSTGRES_DB:-feedback}",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -39,7 +43,7 @@ services:
     restart: unless-stopped
 
   app:
-    profiles: ["container"]   # only started with: docker compose --profile container up
+    profiles: ["container"] # only started with: docker compose --profile container up
     build:
       context: .
       dockerfile: Containerfile
