@@ -1,85 +1,72 @@
 # =============================================================================
-# Docker Compose Configuration
+# docker-compose.yml — local-dev stack for feedback-triage-app
 # =============================================================================
-# Provides a convenient way to build and run the application container locally.
+# Two services:
+#   db   — Postgres 16 with a named volume for persistence
+#   app  — the FastAPI service built from Containerfile (optional; most
+#          local-dev workflows run the app via `task dev` against this DB
+#          instead of building the container every change).
 #
-# Usage:
-#   docker compose up --build       # Build and run in foreground
-#   docker compose up -d --build    # Build and run in background
-#   docker compose down             # Stop and remove containers
-#   docker compose logs -f          # Follow logs
+# Common flows:
+#   task up            # just Postgres
+#   task dev           # FastAPI on host, talking to compose-postgres
+#   task migrate       # alembic upgrade head
 #
-# This uses the production Containerfile, not the dev container.
-# For development, use the VS Code Dev Container instead.
+#   docker compose up app    # full container stack (smoke-tests Containerfile)
 #
-# See: https://docs.docker.com/compose/compose-file/
-#
-# TODO (template users): Update service name, image name, container_name,
-#   ports, environment variables, and volumes for your application.
+# DATABASE_URL is sourced from .env (see .env.example). Passwords are never
+# committed; the app service inherits the value from the host environment.
 # =============================================================================
 
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: feedback-triage-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-feedback}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-feedback}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-feedback} -d ${POSTGRES_DB:-feedback}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
   app:
+    profiles: ["container"]   # only started with: docker compose --profile container up
     build:
       context: .
       dockerfile: Containerfile
-      # Pass git-derived version to the build (matches Containerfile ARG)
       args:
         VERSION: ${VERSION:-}
-    image: simple-python-boilerplate:local
-    container_name: simple-python-boilerplate
-    # Security: drop all capabilities and run read-only where possible
+    image: feedback-triage-app:local
+    container_name: feedback-triage-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://feedback:${POSTGRES_PASSWORD}@db:5432/feedback}
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PORT: "8000"
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+    ports:
+      - "${APP_PORT:-8000}:8000"
     read_only: true
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
-    pids_limit: 100
-
-    # tmpfs mounts — required because read_only: true makes the root filesystem
-    # immutable. Python and many libraries need /tmp for temporary files at runtime.
+    pids_limit: 200
     tmpfs:
       - /tmp
+    restart: unless-stopped
 
-    # Uncomment to expose ports (e.g., if this becomes a web service)
-    # ports:
-    #   - "8000:8000"
-
-    # Uncomment to mount local files for development
-    # volumes:
-    #   - ./src:/app/src:ro
-
-    # Uncomment to set environment variables
-    # environment:
-    #   - LOG_LEVEL=INFO
-    #   - DATABASE_URL=sqlite:///var/app.sqlite3
-
-    # Uncomment if you have a .env file
-    # env_file:
-    #   - .env
-
-    # Restart policy for production
-    # restart: unless-stopped
-
-    # Resource limits (optional)
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.5'
-    #       memory: 256M
-
-# Uncomment to add a database service
-#   db:
-#     image: postgres:16-alpine
-#     environment:
-#       POSTGRES_USER: app
-#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD env var}
-#       POSTGRES_DB: app
-#     volumes:
-#       - db_data:/var/lib/postgresql/data
-#     ports:
-#       - "5432:5432"
-
-# Uncomment if using volumes
-# volumes:
-#   db_data:
+volumes:
+  pgdata:
