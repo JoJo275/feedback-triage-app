@@ -11,33 +11,47 @@ this project's runtime stack. Cross-references
 
 ## Context
 
-The template-era version of this ADR described a unit / integration
-split, a pytest-hatch matrix, and an 80% coverage floor against the
-template's example modules. That posture does not match
-`feedback-triage-app`:
+[ADR 006](006-pytest-for-testing.md) established pytest as the testing
+framework. This ADR addresses the higher-level questions ADR 006 did
+not: how tests are organised, what coverage expectations exist, how the
+test matrix works, and where the boundaries are between test
+categories.
 
-- The app has one HTTP surface and one database table; "unit vs
-  integration" is mostly an artefact of the test setup, not the code.
-- The matrix tool is now `uv`, not Hatch (see
-  [ADR 055](055-uv-as-project-manager.md)).
-- The runtime stack (FastAPI + SQLModel + Postgres) and the docs
-  (Playwright e2e smoke) introduce specific test patterns the template
-  ADR did not cover.
+### Forces
+
+- Tests must run fast in local development (seconds, not minutes).
+- CI must validate across Python 3.11–3.13 to match the support matrix.
+- Coverage must be measured and enforced to prevent silent regressions.
+- Integration tests may need real resources (the Postgres database) that
+  fast feedback tests must not depend on.
+- The runtime stack (FastAPI + SQLModel + Postgres) and the
+  Playwright-driven e2e smoke suite introduce specific patterns the
+  template-era version of this ADR did not cover.
+
+The template-era version split tests by directory (`tests/unit/`,
+`tests/integration/`) with a 80% coverage floor. We keep most of that
+shape but adapt it: this app's logic is overwhelmingly "validate input
+→ run a query → serialize output", so the meaningful boundaries are
+"API tests against a real DB" vs "browser e2e", not "unit vs
+integration".
 
 ## Decision
 
 ### Three layers, gated by markers
 
 | Layer | Where | How it runs | Marker |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | API | `tests/test_*.py` | `httpx.TestClient` against the FastAPI app, real Postgres backing it | (none — default) |
 | End-to-end smoke | `tests/e2e/test_*.py` | Playwright driving the same app | `@pytest.mark.e2e` |
 | Slow / opt-in | anywhere | runs on `task test:slow` only | `@pytest.mark.slow` |
+| Integration (optional) | `tests/integration/` | real external services beyond Postgres | `@pytest.mark.integration` |
 
-`task test` excludes `e2e` and `slow`. CI's `test.yml` and `coverage.yml`
-also exclude `e2e` (no browser available). The Playwright suite runs
-via `task test:e2e` locally and through a dedicated CI job once it
-exists.
+`task test` excludes `e2e` and `slow`. CI's `test.yml` and
+`coverage.yml` also exclude `e2e` (no browser available). The
+Playwright suite runs via `task test:e2e` locally and through a
+dedicated CI job once it exists. The `integration` marker is kept for
+one-off cases that need services beyond Postgres (a future webhook
+smoke, etc.); it is not the default routing marker for DB-backed tests.
 
 ### Real Postgres, not SQLite
 
@@ -66,30 +80,52 @@ commits to fire the `BEFORE UPDATE` trigger).
 2. Sends `PATCH /api/v1/feedback/{id}` to change `status`.
 3. Sends `GET /api/v1/feedback/{id}` and asserts the new `status`.
 
-If a session is leaked across requests, the GET will return the pre-PATCH
-state and the test goes red. **Fix the lifecycle, do not patch the
-test.**
+If a session is leaked across requests, the GET will return the
+pre-PATCH state and the test goes red. **Fix the lifecycle, do not
+patch the test.**
+
+### conftest hierarchy
+
+The same fixture-scoping pattern from the template carries forward:
+
+- [`tests/conftest.py`](../../tests/conftest.py) — root fixtures
+  (engine, FastAPI app instance, marker registration).
+- [`tests/e2e/conftest.py`](../../tests/e2e/conftest.py) — Playwright
+  browser/page fixtures.
 
 ### Coverage
 
-- `pytest-cov` against `src/feedback_triage`.
-- Branch coverage on.
-- `fail_under = 85`.
-- `tests/`, `scripts/`, `tools/`, `attic/`, and the generated
-  `_version.py` are excluded.
-- Coverage runs the full non-e2e suite; the fast `test.yml` job is for
-  PR feedback only.
+`pytest-cov` against `src/feedback_triage`:
+
+- **Branch coverage** enabled.
+- **Threshold** `fail_under = 85` (raised from the template's 80%
+  because the runtime is small and well-defined).
+- **Excluded** from measurement: `tests/`, `scripts/`, `tools/`,
+  `attic/`, generated `_version.py`.
+- **Excluded lines:** `pragma: no cover`, `TYPE_CHECKING` blocks,
+  `__main__` guards, `NotImplementedError`.
+- **Path mapping** ensures CI (site-packages) and local (`src/`)
+  coverage data merge correctly.
+
+Coverage runs the full non-e2e suite; the fast `test.yml` job is for
+PR feedback only.
 
 ### Test-matrix posture
 
-CI runs the API suite on Python 3.11, 3.12, 3.13. The matrix is driven
-by `actions/setup-python` plus `uv sync`, not by Hatch envs. Local
-matrix runs use `uv run --python 3.X pytest` when a regression is
-suspected on a specific minor.
+CI runs the API suite on Python 3.11, 3.12, 3.13 via
+`actions/setup-python` plus `uv sync`. The matrix is **not** driven by
+Hatch envs (see [ADR 055](055-uv-as-project-manager.md)). Local matrix
+runs use:
+
+```bash
+uv run --python 3.12 pytest
+```
+
+uv installs the toolchain on demand.
 
 ### Pytest configuration
 
-Already in [`pyproject.toml`](../../pyproject.toml):
+In [`pyproject.toml`](../../pyproject.toml):
 
 ```toml
 [tool.pytest.ini_options]
@@ -103,18 +139,32 @@ markers = [
 ]
 ```
 
-`integration` is kept as a marker for one-off cases that need real
-external services beyond Postgres (e.g. a future webhook smoke). It is
-not the default routing marker for DB-backed tests.
+- `strict_markers` catches marker typos at collection time.
+- `strict_config` catches invalid pytest config keys.
+- `filterwarnings = ["error::DeprecationWarning"]` turns deprecation
+  warnings into errors so they surface before upstream libraries
+  remove deprecated APIs.
 
 ## Alternatives Considered
 
-### Unit / integration split with mocked DB sessions
+### Unit / integration directory split with mocked DB sessions
 
-**Rejected because:** the app's logic is overwhelmingly "validate input
-→ run a query → serialize output". Mocking the DB session in "unit"
-tests duplicates `httpx.TestClient` coverage and leaves the most
-likely failure mode (SQL or schema bugs) untested.
+Have a `tests/unit/` for fast no-I/O tests with mocked sessions, and
+`tests/integration/` for everything that touches Postgres. This was the
+template's posture.
+
+**Rejected because:** the app's logic is overwhelmingly "validate
+input → run a query → serialize output". Mocking the DB session in
+"unit" tests duplicates `httpx.TestClient` coverage and leaves the
+most likely failure mode (SQL or schema bugs) untested. We keep the
+`integration` marker available but it is not the default routing
+boundary.
+
+### Flat test directory (no subdirectories at all)
+
+**Considered.** We mostly do this, with `tests/e2e/` carved out
+because Playwright fixtures are heavyweight and shouldn't load on
+every API run.
 
 ### SQLite for tests, Postgres only in CI
 
@@ -124,14 +174,26 @@ likely failure mode (SQL or schema bugs) untested.
 ### Per-test database creation (`createdb` / `dropdb`)
 
 **Rejected because:** orders of magnitude slower than SAVEPOINT or
-TRUNCATE. Reach for it only when a test demands schema-level isolation,
-which v1.0 never does.
+TRUNCATE. Reach for it only when a test demands schema-level
+isolation, which v1.0 never does.
 
-### 100% coverage floor
+### tox for the test matrix
+
+**Rejected because:** `uv run --python 3.X pytest` already does
+matrix runs against any installed-on-demand interpreter. Adding tox
+duplicates env management and conflicts with the uv-based workflow
+([ADR 055](055-uv-as-project-manager.md)).
+
+### 100% coverage requirement
 
 **Rejected because:** perverse incentive (testing trivial code,
 `# pragma: no cover` spam). 85% is high enough to catch regressions
 without forcing the team to test boilerplate.
+
+### No coverage threshold
+
+**Rejected because:** automated enforcement prevents gradual erosion.
+A PR-review-only floor relies on reviewer attention.
 
 ## Consequences
 
@@ -143,6 +205,10 @@ without forcing the team to test boilerplate.
   every CI run.
 - One clear gate (`task test`) for fast feedback; one clear gate
   (`task test:e2e`) for browser-level checks.
+- `strict_markers` and `strict_config` catch configuration errors.
+- Deprecation warnings surfaced as errors before they become breaking
+  changes.
+- conftest.py hierarchy provides fixture scoping (root → e2e).
 
 ### Negative
 
@@ -150,6 +216,16 @@ without forcing the team to test boilerplate.
   README and Taskfile help.
 - CI cold start is slower than a SQLite-only suite. Mitigated by
   service-container caching in the workflow.
+- Multi-version matrix increases CI run time (~3× for 3 versions).
+  Mitigated by parallel jobs.
+
+### Mitigations
+
+- The marker boundary is simple (`@pytest.mark.e2e` for browser tests,
+  `@pytest.mark.slow` for opt-in long runs, otherwise default API tier).
+- Coverage threshold is configurable in `pyproject.toml` if a phase
+  legitimately needs a different floor.
+- CI matrix runs in parallel; wall-clock time stays reasonable.
 
 ## Implementation
 
@@ -158,8 +234,10 @@ without forcing the team to test boilerplate.
 - [`tests/`](../../tests/) — API tests
 - [`tests/e2e/`](../../tests/e2e/) — Playwright smoke
 - [`Taskfile.yml`](../../Taskfile.yml) — `test`, `test:e2e`, `test:slow`
-- [`.github/workflows/test.yml`](../../.github/workflows/test.yml)
-- [`.github/workflows/coverage.yml`](../../.github/workflows/coverage.yml)
+- [`.github/workflows/test.yml`](../../.github/workflows/test.yml) — CI
+  test matrix (3.11–3.13)
+- [`.github/workflows/coverage.yml`](../../.github/workflows/coverage.yml) — CI
+  coverage reporting
 
 ## See also
 
@@ -167,3 +245,5 @@ without forcing the team to test boilerplate.
 - [ADR 048](048-session-per-request.md) — session-per-request invariant
 - [ADR 054](054-postgres-for-tests.md) — Postgres for tests
 - [ADR 055](055-uv-as-project-manager.md) — uv replaces Hatch envs
+- [pytest documentation](https://docs.pytest.org/)
+- [coverage.py configuration](https://coverage.readthedocs.io/en/latest/config.html)
