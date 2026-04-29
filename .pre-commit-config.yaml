@@ -158,7 +158,10 @@ repos:
   # each catches things the other misses.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/crate-ci/typos
-    rev: v1
+    # Pin to an immutable tag — pre-commit refuses to refresh mutable refs
+    # (e.g. ``v1``) after the first install, which makes the local copy
+    # silently drift from upstream.
+    rev: v1.30.2
     hooks:
       - id: typos
         args: [--config, _typos.toml]
