@@ -29,14 +29,10 @@ on:
     branches: [main]
     paths:
       - ".devcontainer/**"
-      - "pyproject.toml"
-      - ".pre-commit-config.yaml"
   pull_request:
     branches: [main]
     paths:
       - ".devcontainer/**"
-      - "pyproject.toml"
-      - ".pre-commit-config.yaml"
   workflow_dispatch:
 
 permissions:
@@ -71,7 +67,21 @@ jobs:
         with:
           persist-credentials: false
 
+      # No-op early when the project does not (yet) ship a dev
+      # container config. Lets us keep the workflow wired without
+      # having to author a config we are not actively using.
+      - name: Detect devcontainer config
+        id: detect
+        run: |
+          if [ -f .devcontainer/devcontainer.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No .devcontainer/devcontainer.json — skipping build."
+          fi
+
       - name: Build dev container
+        if: steps.detect.outputs.present == 'true'
         uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # Action to simplify using Dev Containers… (v0.3.1900000417)
         with:
           runCmd: |

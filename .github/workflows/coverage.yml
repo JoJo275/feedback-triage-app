@@ -63,6 +63,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    # Tests run against a real Postgres — see test.yml for the rationale.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: feedback
+          POSTGRES_PASSWORD: feedback
+          POSTGRES_DB: feedback
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U feedback -d feedback"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://feedback:feedback@localhost:5432/feedback
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
@@ -85,6 +104,9 @@ jobs:
       # single source of truth for pytest + pytest-cov.
       - name: Install dependencies
         run: uv sync --frozen --extra test
+
+      - name: Apply database migrations
+        run: uv run alembic upgrade head
 
       # Run tests with coverage. Configuration (source dirs,
       # branch coverage, exclusions) is read from pyproject.toml

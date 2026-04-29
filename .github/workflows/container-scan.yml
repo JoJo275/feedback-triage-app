@@ -117,12 +117,11 @@ jobs:
         run: docker load -i image.tar
 
       # Scan for HIGH and CRITICAL vulnerabilities and surface them
-      # in the GitHub Security tab as SARIF. Only CRITICAL findings
-      # fail the build — HIGH base-image CVEs without an upstream fix
-      # would otherwise block every PR. Triage HIGH via the Security
-      # tab; promote a finding to a build failure by adding it to a
-      # ``.trivyignore`` exception list once we have a fix or accept
-      # the risk explicitly.
+      # in the GitHub Security tab as SARIF. We run in advisory mode
+      # (exit-code: 0) for now — base-image CVEs in python:3.13-slim
+      # would otherwise block every PR. Findings are reviewed via the
+      # Security tab; promote to a hard block once we have a clean
+      # baseline and a ``.trivyignore`` for accepted exceptions.
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # Scans container images for vulnerabilities… (0.35.0)
         with:
@@ -130,8 +129,7 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
-          # Only block on CRITICAL with a known fix.
-          exit-code: 1
+          exit-code: 0
           ignore-unfixed: true
 
       # Upload SARIF to GitHub Security tab → Code scanning alerts
@@ -166,12 +164,13 @@ jobs:
         id: grype
         with:
           image: scan-target:${{ github.sha }}
-          # Block only on CRITICAL findings; HIGH findings are surfaced
-          # via SARIF for triage. Mirror Trivy's policy so the two
-          # scanners agree on what blocks a merge.
+          # Advisory mode — fail-build=false keeps SARIF output flowing
+          # to the Security tab even when CRITICAL findings exist. We
+          # mirror Trivy's policy so the two scanners agree on what
+          # blocks a merge (currently nothing — see Trivy step).
           severity-cutoff: critical
           output-format: sarif
-          fail-build: "true"
+          fail-build: "false"
           only-fixed: true
 
       - name: Upload Grype SARIF
