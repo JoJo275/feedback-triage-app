@@ -65,9 +65,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/api/v1/openapi.json",
     )
 
-    # Order matters: outermost middleware runs first on the way in. The
-    # request-ID middleware must wrap logging so the access log carries
-    # the ID; both wrap CORS so preflights are still logged with an ID.
+    # Starlette's ``add_middleware`` *prepends* — the LAST class added is
+    # the OUTERMOST wrapper at runtime. We want the request-ID middleware
+    # outermost so it sets ``request.state.request_id`` (and the
+    # contextvar) before the logging middleware runs, and so it is the
+    # last thing to clean up on the way out.
     app.add_middleware(
         RequestLoggingMiddleware,
         json_format=settings.is_production,

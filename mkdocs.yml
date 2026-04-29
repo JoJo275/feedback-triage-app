@@ -81,7 +81,6 @@ theme:
 nav:
   - Home: index.md
   - Guide:
-      - Getting Started: guide/getting-started.md
       - Using This Template: USING_THIS_TEMPLATE.md
       - Global Entry Points: guide/entry-points.md
       - Environment Dashboard: guide/dashboard-guide.md
@@ -90,6 +89,12 @@ nav:
       - Tooling: tooling.md
       - Tool Comparisons: tool-comparisons.md
       - Labels: labels.md
+  - Project:
+      - Spec: project/spec/spec.md
+      - Implementation Plan: project/implementation.md
+      - Open Questions: project/questions.md
+      - Deployment Notes: project/deployment-notes.md
+      - Railway Setup: project/railway-setup.md
   - Development:
       - Overview: development/development.md
       - Dev Setup: development/dev-setup.md
@@ -119,11 +124,9 @@ nav:
       - 008 – Pre-commit Hooks: adr/008-pre-commit-hooks.md
       - 009 – Conventional Commits: adr/009-conventional-commits.md
       - 010 – Dependabot: adr/010-dependabot-for-dependency-updates.md
-      - 011 – Repository Guard: adr/011-repository-guard-pattern.md
       - 012 – Security Scanning: adr/012-multi-layer-security-scanning.md
       - 013 – SBOM: adr/013-sbom-bill-of-materials.md
       - 014 – No Template Engine: adr/014-no-template-engine.md
-      - 015 – No .github README: adr/015-no-github-directory-readme.md
       - 016 – Hatchling & Hatch: adr/016-hatchling-and-hatch.md
       - 017 – Task Runner: adr/017-task-runner.md
       - 018 – Bandit: adr/018-bandit-for-security-linting.md
@@ -144,15 +147,42 @@ nav:
       - 033 – Prettier for Markdown: adr/033-prettier-for-markdown-formatting.md
       - 034 – Documentation Organization: adr/034-documentation-organization-strategy.md
       - 035 – Copilot Instructions: adr/035-copilot-instructions-as-context.md
-      - 036 – Diagnostic Tooling: adr/036-diagnostic-tooling-strategy.md
       - 037 – Git Config as Code: adr/037-git-configuration-as-code.md
       - 038 – VS Code Workspace: adr/038-vscode-workspace-configuration-strategy.md
-      - 039 – Onboarding Automation: adr/039-developer-onboarding-automation.md
-      - 040 – v1.0 Release Readiness: adr/040-v1-release-readiness.md
-      - 041 – Environment Dashboard: adr/041-env-inspect-web-dashboard.md
-      - 042 – Script Smoke Testing: adr/042-script-smoke-testing.md
-      - 043 – Collector Plugins: adr/043-collector-plugin-architecture.md
       - 044 – Copilot Skills: adr/044-copilot-skills-and-instructions.md
+      - 045 – Single Table Data Model: adr/045-single-table-data-model.md
+      - 046 – Postgres Enums + CHECK: adr/046-postgres-enums-and-check-constraints.md
+      - 047 – SQLModel: adr/047-sqlmodel-over-sqlalchemy.md
+      - 048 – Session Per Request: adr/048-session-per-request.md
+      - 049 – Offset Pagination: adr/049-offset-pagination.md
+      - 050 – Sync DB Driver: adr/050-sync-db-driver-v1.md
+      - 051 – Static HTML + Vanilla JS: adr/051-static-html-vanilla-js.md
+      - 052 – API Versioning: adr/052-api-versioning.md
+      - 053 – Migrations Pre-Deploy: adr/053-migrations-as-pre-deploy-command.md
+      - 054 – Postgres for Tests: adr/054-postgres-for-tests.md
+      - 055 – uv as Project Manager: adr/055-uv-as-project-manager.md
+      - Archive:
+          - Archive Index: adr/archive/README.md
+          - 011 – Repository Guard: adr/archive/011-repository-guard-pattern.md
+          - 015 – No .github README: adr/archive/015-no-github-directory-readme.md
+          - 036 – Diagnostic Tooling: adr/archive/036-diagnostic-tooling-strategy.md
+          - 039 – Onboarding Automation: adr/archive/039-developer-onboarding-automation.md
+          - 040 – v1.0 Release Readiness: adr/archive/040-v1-release-readiness.md
+          - 041 – Environment Dashboard: adr/archive/041-env-inspect-web-dashboard.md
+          - 042 – Script Smoke Testing: adr/archive/042-script-smoke-testing.md
+          - 043 – Collector Plugins: adr/archive/043-collector-plugin-architecture.md
+  - Blueprints:
+      - Overview: blueprints/README.md
+      - Template: blueprints/template.md
+      - 001 – Env Dashboard: blueprints/001-env-inspect-web-dashboard.md
+  - Explorations:
+      - Overview: explorations/README.md
+      - Template: explorations/template.md
+      - 001 – Env Dashboard: explorations/001-env-inspect-web-dashboard.md
+  - Implementation Plans:
+      - Overview: implementation-plans/README.md
+      - Template: implementation-plans/template.md
+      - 001 – Env Dashboard: implementation-plans/001-env-inspect-web-dashboard.md
   - Templates:
       - Overview: templates/README.md
       - Security Policy: templates/SECURITY_no_bounty.md
@@ -161,8 +191,6 @@ nav:
       - PR Draft: templates/pull-request-draft.md
       - Issue Templates: templates/issue_templates/README.md
   - Notes:
-      - Learning: notes/learning.md
-      - Learning — Web Apps: notes/learning-web-apps.md
       - Resources (Links): notes/resources_links.md
       - Resources (Written): notes/resources_written.md
       - Tool Comparison: notes/tool-comparison.md
@@ -172,7 +200,7 @@ nav:
       - Overview: reference/index.md
       - API: reference/api.md
       - Commands: reference/commands.md
-      - Template Inventory: reference/template-inventory.md
+      - Scripts: reference/scripts.md
       - Known Issues: known-issues.md
 
 hooks:
@@ -206,7 +234,6 @@ plugins:
 #   issue templates) if you don't use them.
 not_in_nav: |
   adr/template.md
-  adr/archive/**
   templates/issue_templates/issue_forms/**
   templates/issue_templates/legacy_markdown/**
 

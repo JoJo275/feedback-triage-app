@@ -66,7 +66,7 @@ repos:
       - id: check-yaml # Validate YAML syntax
       - id: check-toml # Validate TOML syntax
       - id: check-json # Validate JSON syntax
-        exclude: ^(\.devcontainer/|\.vscode/settings\.json$|\.markdownlint-cli2\.jsonc$) # JSONC files (JSON with comments) — VS Code understands them, check-json doesn't
+        exclude: ^(\.devcontainer/|\.vscode/.*\.json$|.*\.jsonc$) # JSONC files (JSON with comments) — VS Code understands them, check-json doesn't
       - id: check-ast # Validate Python syntax (catches SyntaxError)
       - id: check-added-large-files # Prevent giant files from being committed
         args: ["--maxkb=500"]
@@ -112,23 +112,20 @@ repos:
   #       the pre-commit stage. You can move it to pre-push (stages: [pre-push])
   #       or rely on the type-check GitHub Actions workflow instead.
   #
-  # This hook intentionally uses the same strict config as the CI workflow
-  # (type-check.yml) so that a commit passing locally will also pass CI.
-  # If you change mypy settings here, update pyproject.toml [tool.mypy] and
-  # the CI workflow to match.
+  # We use a `language: system` hook (rather than mirrors-mypy) so mypy runs
+  # inside the project's uv-managed venv — the same one CI uses. Mirrors-mypy
+  # creates an isolated venv with no project deps installed, which produces
+  # spurious `[misc]` errors against Pydantic/SQLModel/Starlette base classes.
   # ---------------------------------------------------------------------------
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.20.1
+  - repo: local
     hooks:
       - id: mypy
-        # Only check src/ to avoid issues with untyped test files
+        name: mypy (strict)
+        entry: uv run mypy src/
+        language: system
+        pass_filenames: false
         files: ^src/
-        # TODO (template users): When you add typed dependencies (e.g.,
-        #   requests, click), add their type stubs here so mypy can resolve
-        #   them in the isolated pre-commit venv:
-        # additional_dependencies:
-        #   - types-requests
-        #   - types-pyyaml
+        types: [python]
 
   # ---------------------------------------------------------------------------
   # Security checks

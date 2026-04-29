@@ -54,7 +54,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_CONTAINER_BUILD = 'true'.
     if: >-
       ${{
-        github.repository == 'JoJo275/feedback-triage-app'
+        github.repository == 'OWNER/REPO'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_CONTAINER_BUILD == 'true'
       }}
@@ -68,9 +68,9 @@ jobs:
           persist-credentials: false
 
       # Extract metadata (tags, labels) for the container image.
-      # On push to main:  ghcr.io/owner/repo:latest, :sha-abc1234
-      # On version tag:   ghcr.io/owner/repo:v1.2.3, :latest
-      # On PR:            ghcr.io/owner/repo:pr-123 (not pushed)
+      # On push to main:  ghcr.io/OWNER/REPO:latest, :sha-abc1234
+      # On version tag:   ghcr.io/OWNER/REPO:v1.2.3, :latest
+      # On PR:            ghcr.io/OWNER/REPO:pr-123 (not pushed)
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # Extract metadata (tags, labels) for Docker (v6.0.0)

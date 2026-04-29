@@ -1,0 +1,76 @@
+{
+  // ──────────────────────────────────────────────────────────
+  // Workspace Recommended Extensions
+  // ──────────────────────────────────────────────────────────
+  // VS Code prompts contributors to install these on first
+  // open. The list is curated from the maintainer's installed
+  // extensions, filtered to those directly useful for this
+  // project's stack: FastAPI + SQLModel + Postgres + MkDocs +
+  // pre-commit + Containers.
+  //
+  // Add: open Command Palette → "Extensions: Configure Recommended
+  // Extensions (Workspace Folder)".
+  //
+  // unwantedRecommendations blocks recommendations VS Code might
+  // otherwise surface (e.g. competing Python linters that conflict
+  // with Ruff).
+  // ──────────────────────────────────────────────────────────
+  "recommendations": [
+    // -- Python core -----------------------------------------
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "ms-python.vscode-python-envs",
+    "charliermarsh.ruff",
+    "njpwerner.autodocstring",
+
+    // -- Test runners ----------------------------------------
+    "littlefoxteam.vscode-python-test-adapter",
+    "hbenl.vscode-test-explorer",
+    "ms-vscode.test-adapter-converter",
+
+    // -- TOML / YAML / JSON config ---------------------------
+    "tamasfe.even-better-toml",
+
+    // -- Containers / Docker ---------------------------------
+    "ms-azuretools.vscode-containers",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+
+    // -- HTTP / API testing ----------------------------------
+    "humao.rest-client",
+
+    // -- SQL / Postgres --------------------------------------
+    "alexcvzz.vscode-sqlite",
+    "bradymholt.pgformatter",
+    "dorzey.vscode-sqlfluff",
+    "mechatroner.rainbow-csv",
+
+    // -- Markdown / docs (MkDocs Material) -------------------
+    "davidanson.vscode-markdownlint",
+    "bierner.markdown-mermaid",
+    "bierner.markdown-emoji",
+
+    // -- Spelling / typos ------------------------------------
+    "streetsidesoftware.code-spell-checker",
+
+    // -- Git / GitHub ----------------------------------------
+    "eamodio.gitlens",
+    "github.vscode-github-actions",
+    "github.copilot-chat",
+
+    // -- Editor quality of life ------------------------------
+    "usernamehw.errorlens",
+    "aaron-bond.better-comments",
+    "oderwat.indent-rainbow",
+    "sirtori.indenticator",
+    "tyriar.sort-lines",
+    "fabiospampinato.vscode-todo-plus",
+    "esbenp.prettier-vscode"
+  ],
+
+  // Extensions VS Code should NOT recommend in this workspace,
+  // because they conflict with our chosen toolchain (Ruff handles
+  // lint+format; we don't use autopep8/flake8 in this repo).
+  "unwantedRecommendations": ["ms-python.autopep8", "ms-python.flake8"]
+}

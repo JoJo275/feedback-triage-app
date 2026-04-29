@@ -86,8 +86,12 @@ def on_files(files: Files, *, config: MkDocsConfig, **kwargs: object) -> Files:
         )
         return files
 
-    # Build a set of already-included source paths for fast lookup
-    existing_src_paths: set[str] = {f.src_path for f in files}
+    # Build a set of already-included source paths for fast lookup.
+    # Normalise to forward slashes — on Windows, ``File.src_path`` uses
+    # backslashes while ``Path.as_posix()`` produces forward slashes,
+    # so a naïve comparison would miss matches and trigger MkDocs' new
+    # "replace before append" deprecation warning (which fails strict).
+    existing_src_paths: set[str] = {f.src_path.replace("\\", "/") for f in files}
 
     # Import File here to avoid import-time dependency on mkdocs
     from mkdocs.structure.files import File

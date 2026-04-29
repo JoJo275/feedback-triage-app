@@ -48,7 +48,7 @@ when the test needs schema-level isolation.
 ### Positive
 
 - Migrations are exercised by the test setup path.
-- Native enums, CHECKs, and triggers are real in tests.
+- Native enums, CHECK constraints, and triggers are real in tests.
 - Production-shaped bugs surface in CI, not in production.
 
 ### Negative

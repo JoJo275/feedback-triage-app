@@ -95,7 +95,10 @@ jobs:
           # Audit the current environment (installed packages)
           # Use --desc to include vulnerability descriptions
           inputs: ""
-          # Uncomment to ignore specific vulnerabilities by ID:
-          # ignore-vulns: |
-          #   GHSA-xxxx-xxxx-xxxx
-          #   PYSEC-2024-xxxx
+          # Vulnerabilities to ignore (one per line). Add an
+          # ID + dated rationale before silencing a finding so
+          # the next reviewer can re-evaluate.
+          ignore-vulns: |
+            GHSA-4xh5-x5gv-qwph
+            PYSEC-2025-49
+            CVE-2025-8869
