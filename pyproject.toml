@@ -43,7 +43,7 @@ dependencies = [
   "sqlmodel>=0.0.22",         # ORM (Pydantic + SQLAlchemy)
   "sqlalchemy>=2.0",          # Pin floor; sqlmodel pulls a 2.x
   "alembic>=1.13",            # Migrations
-  "psycopg[binary]>=3.2",     # Postgres driver (sync)
+  "psycopg[binary]>=3.3.3",     # Postgres driver (sync)
   "pydantic>=2.7",            # Validation
   "pydantic-settings>=2.4",   # Settings via env vars
 ]
