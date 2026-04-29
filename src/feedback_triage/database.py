@@ -27,7 +27,7 @@ def make_engine(settings: Settings | None = None) -> Engine:
     """
     settings = settings or get_settings()
     return create_engine(
-        settings.database_url,
+        settings.database_url.get_secret_value(),
         pool_size=5,
         max_overflow=5,
         pool_pre_ping=True,

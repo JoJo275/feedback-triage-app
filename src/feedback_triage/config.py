@@ -13,7 +13,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,8 +33,10 @@ class Settings(BaseSettings):
     )
     port: int = Field(default=8000, ge=1, le=65535)
 
-    database_url: str = Field(
-        default="postgresql+psycopg://feedback:feedback@localhost:5432/feedback",
+    database_url: SecretStr = Field(
+        default=SecretStr(
+            "postgresql+psycopg://feedback:feedback@localhost:5432/feedback",
+        ),
     )
 
     cors_allowed_origins: str = ""
@@ -45,11 +47,25 @@ class Settings(BaseSettings):
     @field_validator("database_url", mode="before")
     @classmethod
     def _normalize_database_url(cls, value: object) -> object:
-        """Normalize Railway's legacy ``postgres://`` scheme to psycopg v3."""
+        """Normalize Railway's legacy ``postgres://`` scheme to psycopg v3.
+
+        Wraps the result in :class:`pydantic.SecretStr` so the URL (which
+        contains the DB password) never appears in ``repr(settings)``,
+        ``logger.info(settings)``, or a Pydantic validation error.
+        Read the plain value via ``settings.database_url.get_secret_value()``.
+        """
+        if isinstance(value, SecretStr):
+            value = value.get_secret_value()
         if isinstance(value, str) and value.startswith("postgres://"):
-            return "postgresql+psycopg://" + value[len("postgres://") :]
+            return SecretStr(
+                "postgresql+psycopg://" + value[len("postgres://") :],
+            )
         if isinstance(value, str) and value.startswith("postgresql://"):
-            return "postgresql+psycopg://" + value[len("postgresql://") :]
+            return SecretStr(
+                "postgresql+psycopg://" + value[len("postgresql://") :],
+            )
+        if isinstance(value, str):
+            return SecretStr(value)
         return value
 
     @property
