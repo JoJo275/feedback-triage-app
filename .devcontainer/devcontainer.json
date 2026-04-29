@@ -14,18 +14,20 @@
     // Pin the major version of every feature; the underlying images
     // refresh on rebuild without forcing a config edit.
     //
-    // ``docker-outside-of-docker`` mounts the host Docker socket
-    // instead of running a daemon inside the container. This avoids
-    // the heavy apt setup that the full ``docker-in-docker`` feature
-    // performs (which intermittently breaks on upstream Yarn-repo
-    // GPG-key rotations during CI builds, NO_PUBKEY 62D54FD4003F6525)
-    // while still letting devs run ``docker compose`` from the
-    // container against their host's daemon.
+    // Docker is intentionally NOT pulled in via a devcontainer
+    // feature — both ``docker-in-docker`` and
+    // ``docker-outside-of-docker`` register the upstream Docker apt
+    // repository, which currently fails ``apt-get update`` in CI
+    // because the Yarn-hosted Debian mirror's signing key rotated
+    // (NO_PUBKEY 62D54FD4003F6525). Devs who need Docker access from
+    // inside the container should install ``docker.io`` from the
+    // Debian repo (``sudo apt-get install -y docker.io``) and bind-
+    // mount the host socket via ``mounts`` in their personal
+    // override; the project's compose stack runs fine from the host.
     //
     // ``uv`` and ``task`` are installed in postCreateCommand because
     // their ghcr.io feature manifests are not publicly resolvable
     // from CI runners (anonymous ghcr.io requests return 403).
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "remoteUser": "vscode",
