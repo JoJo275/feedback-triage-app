@@ -257,7 +257,7 @@ and compose. Each script has a focused responsibility.
 ## See also
 
 - [ADR 008](008-pre-commit-hooks.md) — pre-commit framework
-- [ADR 017](017-task-as-runner.md) — Task as the developer runner
+- [ADR 017](017-task-runner.md) — Task as the developer runner
 - [ADR 055](055-uv-as-project-manager.md) — `uv run` for env-aware
   script execution
 - [Python argparse documentation](https://docs.python.org/3/library/argparse.html)

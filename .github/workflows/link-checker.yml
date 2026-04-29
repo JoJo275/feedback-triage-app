@@ -113,16 +113,30 @@ jobs:
             --exclude-path 'tools/dev_tools/env_dashboard/templates'
             --exclude-path 'docs/adr/archive'
             --exclude-path 'attic'
+            --exclude-path 'site'
             --exclude-path 'CHANGELOG.md'
+            --exclude-path 'docs/USING_THIS_TEMPLATE.md'
+            --exclude-path 'docs/templates'
+            --exclude-path 'docs/notes'
+            --exclude-path 'docs/guide'
+            --exclude-path 'docs/blueprints'
+            --exclude-path 'docs/design'
+            --exclude-path 'docs/development'
+            --exclude-path 'docs/explorations'
+            --exclude-path 'docs/implementation-plans'
+            --exclude-path 'docs/reference'
+            --exclude-path 'docs/repo-layout.md'
+            --exclude-path 'src/ENTRY_POINTS.md'
+            --exclude-path 'src/feedback_triage/static'
+            --exclude-path 'scripts/sql/README.md'
             '**/*.md'
             '**/*.html'
           # Fail on PRs (catch regressions) but not on schedule
           # (external link rot is advisory, not a blocker).
           # Also don't fail on release-please branches — they contain
           # CHANGELOG links to tags that don't exist yet.
-          #
-          # Currently disabled hard-fail (advisory only) while the fork
-          # cleanup is in flight: many template docs reference paths
-          # that have been moved/deleted in this project. Re-enable
-          # PR-blocking once docs/* has been swept.
-          fail: false
+          fail: >-
+            ${{
+              github.event_name != 'schedule'
+              && !startsWith(github.head_ref || '', 'release-please')
+            }}

@@ -126,10 +126,11 @@ what the fix is, automating the apply step saves time and reduces errors.
 ## Implementation
 
 - [scripts/git_doctor.py](../../scripts/git_doctor.py) — Config catalog, export, and apply logic
-- [git-config-reference.md](../../git-config-reference.md) — Generated reference file
-- [ADR 036](036-diagnostic-tooling-strategy.md) — Overall diagnostic architecture
+- `git-config-reference.md` — generated on demand by
+  `scripts/git_doctor.py --export-config`; **not committed**
+- ADR 036 (diagnostic tooling strategy) — inherited template ADR; not
+  shipped in this repo and slated for rewrite per the fork policy
 
 ## References
 
 - [git-config documentation](https://git-scm.com/docs/git-config)
-- [ADR 036: Diagnostic tooling strategy](036-diagnostic-tooling-strategy.md)

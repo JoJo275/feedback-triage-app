@@ -22,7 +22,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes                   |
 | **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes      |
 | **TODO Check**         | [todo-check.yml](../.github/workflows/todo-check.yml)                 | push, PR, manual | `Check template TODOs`                 | Reports remaining TODO (template users) markers |
-| **Smoke Test**         | [smoke-test.yml](../.github/workflows/smoke-test.yml)                 | push (path-filtered), PR (path-filtered), manual | `Script Smoke Test` | Runs `--smoke` on scripts to validate imports and argparse ([ADR 042](adr/042-script-smoke-testing.md)) |
+| **Smoke Test**         | [smoke-test.yml](../.github/workflows/smoke-test.yml)                 | push (path-filtered), PR (path-filtered), manual | `Script Smoke Test` | Runs `--smoke` on scripts to validate imports and argparse (script-smoke-testing ADR is inherited from the template and slated for rewrite) |
 
 ### Security
 
@@ -161,7 +161,7 @@ All workflows in this project follow these patterns:
 | Convention                     | Detail                                                                                                                                                                   |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **SHA-pinned actions**         | Full commit SHAs with human-readable version comments ([ADR 004](adr/004-pin-action-shas.md))                                                                            |
-| **Repository guard**           | Workflows are disabled by default via `OWNER/REPO` slug placeholder; enable by setting `vars.ENABLE_WORKFLOWS = true` (single switch) or per-workflow `vars.<NAME>_ENABLE` overrides ([ADR 011](adr/011-repository-guard-pattern.md)) |
+| **Repository guard**           | Workflows are disabled by default via `OWNER/REPO` slug placeholder; enable by setting `vars.ENABLE_WORKFLOWS = true` (single switch) or per-workflow `vars.<NAME>_ENABLE` overrides (repository-guard ADR is inherited from the template and slated for rewrite) |
 | **Concurrency control**        | `cancel-in-progress: true` per workflow + ref                                                                                                                            |
 | **Timeout limits**             | `timeout-minutes` set on every job                                                                                                                                       |
 | **Minimal permissions**        | `permissions: contents: read` (least privilege)                                                                                                                          |
@@ -285,6 +285,5 @@ All commands support `--dry-run` where applicable. Pass extra flags with
 - [USING_THIS_TEMPLATE.md](USING_THIS_TEMPLATE.md) — Workflow enablement, disabling, and categories
 - [ADR 003](adr/003-separate-workflow-files.md) — Why separate workflow files
 - [ADR 004](adr/004-pin-action-shas.md) — Why pin to SHAs
-- [ADR 011](adr/011-repository-guard-pattern.md) — Repository guard pattern
 - [ADR 013](adr/013-sbom-bill-of-materials.md) — SBOM strategy (SPDX + CycloneDX)
 - [ADR 024](adr/024-ci-gate-pattern.md) — CI gate pattern

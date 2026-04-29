@@ -150,7 +150,17 @@ markers = [
 [tool.coverage.run]
 source = ["src"]
 branch = true
-omit = ["*/feedback_triage/_version.py", "*/feedback_triage/static/*"]
+# ``entry_points.py`` is a thin set of subprocess wrappers around the
+# scripts in ``scripts/`` (dev tooling). It is not part of the FastAPI
+# runtime surface, would only run inside an editable install, and is
+# exercised by the underlying script's own tests rather than via the
+# wheel. Keeping it in the coverage denominator drags the project
+# total down without measuring app quality.
+omit = [
+  "*/feedback_triage/_version.py",
+  "*/feedback_triage/static/*",
+  "*/feedback_triage/entry_points.py",
+]
 
 [tool.coverage.paths]
 source = ["src/feedback_triage", "*/feedback_triage"]

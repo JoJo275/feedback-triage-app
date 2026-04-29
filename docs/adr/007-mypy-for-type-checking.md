@@ -73,7 +73,7 @@ Skip static type checking entirely.
 
 - [pyproject.toml](../../pyproject.toml) — `[tool.mypy]` section with `strict = true`
 - [.pre-commit-config.yaml](../../.pre-commit-config.yaml) — mypy hook for pre-commit checks
-- [src/simple_python_boilerplate/](../../src/simple_python_boilerplate/) — Type-annotated source code
+- [src/feedback_triage/](../../src/feedback_triage/) — Type-annotated source code
 
 ## References
 
