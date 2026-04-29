@@ -20,7 +20,27 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 SET="${1:-}"
 shift || true
-EXTRA_ARGS=("$@")
+EXTRA_ARGS=()
+
+# If the next positional arg looks like OWNER/REPO (no leading dash, contains
+# a single '/'), promote it to a `--repo OWNER/REPO` flag for apply_labels.py.
+# Anything else (e.g. --dry-run) is forwarded as-is.
+while (($#)); do
+  case "$1" in
+    -*)
+      EXTRA_ARGS+=("$1")
+      shift
+      ;;
+    */*)
+      EXTRA_ARGS+=("--repo" "$1")
+      shift
+      ;;
+    *)
+      EXTRA_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
 
 if [[ -z "${SET}" || ! "${SET}" =~ ^(baseline|extended)$ ]]; then
   echo "Usage: $0 {baseline|extended} [OWNER/REPO] [--dry-run]" >&2
