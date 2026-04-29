@@ -1,12 +1,10 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Suggested branch rename: feat/env-dashboard -->
+<!-- Branch: chore/fork-bring-up -->
 <!--
-  Suggested PR titles (must use conventional commit format — type: description):
+  Suggested PR title (conventional commit format — type: description):
 
-  Full titles:
-    feat: Add environment dashboard web app with collector plugin architecture
-    feat: Add environment inspection dashboard, global entry points, and Copilot instructions
+    chore: fork bring-up — feedback-triage-app skeleton through Phase 6 + Railway runbook
 
   Available prefixes:
     feat:     — new feature or capability
@@ -38,54 +36,54 @@
 
 ## Description
 
-Adds a full-featured environment inspection dashboard — a local-only FastAPI
-web app that collects and displays development environment data across 20
-plugin-based collectors. Also introduces global `spb-*` CLI entry points,
-VS Code task definitions, Copilot instruction/skill files, and extensive
-documentation (ADRs, guides, notes).
+Initial bring-up of `feedback-triage-app` after forking from
+`simple-python-boilerplate`. Lands the FastAPI + PostgreSQL skeleton
+through Phase 6 (Playwright smoke), wires up the deployment runbook for
+Railway (Phase 7), and restores the `fta-*` console scripts as
+project-bound wrappers around the retained dev tooling.
 
-**What changes you made:**
+**What changed:**
 
-- **Environment Dashboard** (`tools/dev_tools/env_dashboard/`): FastAPI +
-  Jinja2 + htmx + Alpine.js web app with 20 data collector plugins, export
-  functionality, background scanning, offline support (service worker),
-  graceful shutdown, dark/light theming, and a responsive UI.
-- **20 Collector Plugins** (`scripts/_env_collectors/`): Plugin-based
-  architecture gathering data on hardware, system, git, packages, runtimes,
-  PATH analysis, disk/workspace, container files, CI/CD status, docs status,
-  dependency health, pre-commit hooks, security, network, filesystem,
-  pip environments, virtualenvs, and project commands.
-- **Global Entry Points** (`src/.../scripts_cli.py`, `pyproject.toml`):
-  21 `spb-*` CLI commands defined in `[project.scripts]`, thin subprocess
-  wrappers enabling cross-repo use via `pipx install .`.
-- **VS Code Tasks** (`.vscode/tasks.json`): Task definitions for test, lint,
-  format, typecheck, docs, dashboard, build, and more.
-- **Copilot Customization** (`.github/instructions/`, `.github/skills/`):
-  6 targeted instruction files and 1 skill file covering Python style,
-  tests, dashboard development, CSS, templates, and collectors.
-- **ADRs**: 042 (script smoke testing), 043 (collector plugin architecture),
-  044 (Copilot instructions).
-- **Documentation**: Dashboard guide, entry points guide, web dev notes,
-  command reference updates, architecture updates, repo layout updates.
-- **Unit Tests** (`tests/unit/`): 12 new test files covering dashboard app,
-  API, routes, collectors, export, redact, and several scripts.
-- **Misc**: Hatch env additions (`dashboard`, updated deps), Taskfile
-  additions, `_typos.toml` updates, `.gitignore` additions, improved
-  `git_doctor.py` with interactive branch creation.
+- **Pre-Phase fork:** archived the template package to [attic/](attic/), scaffolded
+  [src/feedback_triage/](src/feedback_triage/), retargeted [pyproject.toml](pyproject.toml), [Taskfile.yml](Taskfile.yml),
+  [Containerfile](Containerfile), [docker-compose.yml](docker-compose.yml), workflows, README, ADRs, and
+  [.env.example](.env.example) for the new project.
+- **Build/env:** migrated from `pip install -e .` to `uv sync --frozen`
+  across CI and pre-commit; Hatchling + `hatch-vcs` retained as the build
+  backend (per ADR 016).
+- **Phase 1–2:** core FastAPI app factory, settings via
+  `pydantic-settings`, SQLModel/SQLAlchemy session-per-request, Alembic
+  migration `0001_create_feedback_item` with native enums + CHECK
+  constraints + `BEFORE UPDATE` trigger.
+- **Phase 3:** `/api/v1/feedback` CRUD with envelope-based list responses,
+  explicit `response_model=` on every route, ISO-8601 UTC datetimes.
+- **Phase 4:** static HTML pages (list / new / detail) served via
+  `StaticFiles` with vanilla JS + Fetch — no Jinja, no bundler.
+- **Phase 5:** global exception handlers, request-ID middleware, and
+  structured logging that propagates the request ID through every record.
+- **Phase 6:** Playwright smoke suite under `tests/e2e/`, gated behind
+  `@pytest.mark.e2e` and the `task test:e2e` runner.
+- **Phase 7 prep:** Railway runbook in [docs/](docs/) covering pre-deploy
+  migrations, env-var surface, and cost guardrails.
+- **ADRs:** drafted 045–055 (project-specific) and rewrote inherited
+  014 / 025 / 027 / 029 / 031 to reflect the FastAPI + Postgres stack.
+- **Console scripts:** restored [`src/feedback_triage/entry_points.py`](src/feedback_triage/entry_points.py)
+  with the 19 `fta-*` wrappers (script helpers + dashboard) targeting
+  the editable install — the wheel still ships only the FastAPI app.
 
-**Why you made them:**
+**Why:**
 
-The boilerplate lacked a way to quickly inspect and debug the development
-environment. The dashboard provides a single-pane view of everything a
-developer needs to diagnose setup issues — replacing scattered CLI commands
-with a browsable, searchable, exportable web UI. The entry points make
-scripts usable outside the repo (via `pipx`), and the Copilot instructions
-codify project conventions for AI-assisted development.
+The template gave us CI, ADRs, docs scaffolding, and dev tooling for free;
+the app code, schema, and deployment story all needed to be authored from
+the spec ([docs/project/spec/spec.md](docs/project/spec/spec.md)). Landing Pre-Phase through Phase 6
+in one branch keeps the rewrite atomic — every surface (spec, ADRs,
+README, CI, Containerfile, tests) moves together so reviewers can verify
+internal consistency in a single pass.
 
 ## Related Issue
 
-N/A — Feature development from blueprint
-[001-env-inspect-web-dashboard](../blueprints/001-env-inspect-web-dashboard.md).
+N/A — initial fork bring-up; tracked against the implementation plan in
+[docs/project/implementation.md](docs/project/implementation.md).
 
 ## Type of Change
 
@@ -93,99 +91,117 @@ N/A — Feature development from blueprint
 - [x] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [x] 📚 Documentation update
-- [ ] 🔧 Refactor (no functional changes)
+- [x] 🔧 Refactor (no functional changes)
 - [x] 🧪 Test update
 
 ## How to Test
 
 **Steps:**
 
-1. Install the project in editable mode: `hatch shell`
-2. Start the dashboard: `spb-dashboard` (or `hatch run dashboard:serve`)
-3. Open <http://127.0.0.1:8000> — verify all 20 sections load with data
-4. Test export via the Export button (JSON download)
-5. Test theme toggle (dark/light)
-6. Test graceful shutdown via the shutdown button in the sidebar
-7. Run unit tests to verify backend logic
+1. `uv sync` — installs the project + dev/test extras into `.venv`.
+2. `task up` — boots the Postgres 16 container via Compose.
+3. `task migrate` — applies `0001_create_feedback_item`.
+4. `task dev` — FastAPI on `http://localhost:8000`; visit `/api/v1/docs`
+   and the `/`, `/new`, `/feedback/{id}` HTML pages.
+5. `task check` — runs ruff + mypy (strict) + pytest API suite.
+6. `task test:e2e` — Playwright smoke against the running app.
+7. (Optional) `fta-env-doctor`, `fta-repo-doctor`, `fta-dashboard` — sanity
+   check the restored console scripts.
 
 **Test command(s):**
 
 ```bash
-# Dashboard unit tests
-hatch run pytest tests/unit/test_dashboard_app.py tests/unit/test_dashboard_api.py tests/unit/test_dashboard_routes.py tests/unit/test_dashboard_collector.py tests/unit/test_dashboard_export.py tests/unit/test_dashboard_redact.py -v
-
-# All unit tests
-hatch run pytest tests/ -v
-
-# Entry point smoke test
-spb-dashboard --help
+uv sync
+task up && task migrate
+task check
+task test:e2e
 ```
 
 **Screenshots / Demo (if applicable):**
 
-<!-- TODO: Add screenshots of the dashboard sections before merging -->
+N/A — UI is intentionally minimal vanilla HTML/JS; see [docs/project/spec/spec.md](docs/project/spec/spec.md)
+"Frontend" section for the rendered shape.
 
 ## Risk / Impact
 
-**Risk level:** Low
+**Risk level:** High — first commit of the application; everything below
+the fork point is greenfield code on a still-empty `main` history.
 
 **What could break:**
 
-- New dependencies (`fastapi`, `uvicorn`, `jinja2`, `python-multipart`) are
-  isolated to the `dashboard` Hatch env and `[project.optional-dependencies]`
-  — they do not affect the default dev environment.
-- The 21 new `spb-*` entry points are additive; no existing scripts or
-  commands are modified.
-- Collector plugins use `subprocess.run()` with argument lists (no
-  `shell=True`) and redact sensitive data (tokens, keys, passwords).
+- Railway deploy: pre-deploy `alembic upgrade head` must run before the
+  app boots (runbook documents this; Phase 7 has not yet been exercised
+  against a live Railway project).
+- Session-per-request: the canary test
+  `test_patch_then_get_returns_fresh_state` is the contract; if anyone
+  reintroduces a module-global `Session`, that test must catch it.
+- Native Postgres enums: schema changes that touch `source_enum` /
+  `status_enum` need hand-written Alembic ops — autogenerate misses them.
+- `fta-*` scripts only resolve in an editable checkout; running them from
+  a wheel install will exit with the documented error message.
 
-**Rollback plan:** Revert this PR
+**Rollback plan:** Revert this PR. The repository has no published
+release tag yet and no production deployment, so rollback is purely a
+git operation.
 
 ## Dependencies (if applicable)
 
-**New runtime dependencies (optional group `dashboard`):**
+**Depends on:** N/A — first feature PR on the fork.
 
-- `fastapi` — web framework
-- `uvicorn[standard]` — ASGI server
-- `jinja2` — templating
-- `python-multipart` — form data support
+**Blocked by:** N/A.
 
-No external PRs or upstream changes required.
+## Breaking Changes / Migrations (if applicable)
+
+- [x] Config changes required — copy [.env.example](.env.example) to `.env` and set
+  `POSTGRES_PASSWORD` / `DATABASE_URL` before first boot.
+- [x] Data migration needed — `alembic upgrade head` creates the
+  `feedback_item` table, native enums, CHECK constraints, and the
+  `updated_at` trigger.
+- [x] API changes — establishes `/api/v1/feedback` (no prior surface to
+  break).
+- [x] Dependency changes — replaces the template's runtime stack with
+  `fastapi[standard]`, `sqlmodel`, `psycopg[binary]`, `alembic`,
+  `pydantic-settings`. `uv.lock` is committed.
+
+**Details:**
+
+See [docs/project/spec/spec.md](docs/project/spec/spec.md) §"Configuration & Environment Variables"
+for the env-var surface and §"Data Model" for the schema.
 
 ## Checklist
 
-- [x] My code follows the project's style guidelines
+- [x] My code follows the project's style guidelines (ruff + mypy strict)
 - [x] I have performed a self-review of my code
 - [x] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
-- [ ] No new warnings (or explained in Additional Notes)
+- [x] No new warnings (or explained in Additional Notes)
 - [x] I have added tests that prove my fix is effective or that my feature works
 - [x] Relevant tests pass locally (or explained in Additional Notes)
 - [x] No security concerns introduced (or flagged for review)
 - [x] No performance regressions expected (or flagged for review)
 
-## Reviewer Focus
+## Reviewer Focus (Optional)
 
-- **Collector plugins** (`scripts/_env_collectors/`): Verify the plugin
-  discovery pattern in `__init__.py` and that each collector handles missing
-  tools gracefully (returns empty/default data, never crashes).
-- **Redaction** (`scripts/_env_collectors/_redact.py`,
-  `tools/dev_tools/env_dashboard/redact.py`): Confirm sensitive values
-  (tokens, API keys, passwords, paths with usernames) are properly masked
-  in all output paths (HTML, JSON export, API responses).
-- **Entry points** (`src/.../scripts_cli.py`): Verify subprocess wrappers
-  don't introduce `shell=True` or path injection risks.
-- **Dashboard shutdown** (`tools/dev_tools/env_dashboard/api.py`): The
-  graceful shutdown endpoint calls `os._exit()` — confirm this is acceptable
-  for a local-only dev tool.
+Please pay close attention to:
+
+1. **[alembic/versions/0001_create_feedback_item.py](alembic/versions/0001_create_feedback_item.py)** — the autogenerated
+   diff was hand-edited to add the native enum types, CHECK constraints,
+   and `BEFORE UPDATE` trigger. Verify those weren't lost on rebase.
+2. **[src/feedback_triage/database.py](src/feedback_triage/database.py)** — `get_db` is the only place
+   commit/rollback lives; no sessions on `app.state` or module globals.
+3. **[src/feedback_triage/routes/feedback.py](src/feedback_triage/routes/feedback.py)** — every route declares an
+   explicit `response_model=`; list endpoint returns the
+   `{items, total, skip, limit}` envelope, not a bare array.
+4. **ADR rewrites** (014, 025, 027, 029, 031) — confirm they reflect the
+   FastAPI + Postgres stack rather than the template's defaults.
 
 ## Additional Notes
 
-- This is a large PR (~19,000 lines across 140 files). Consider reviewing
-  by area: collectors → dashboard backend → templates/CSS → entry points →
-  docs → tests.
-- The dashboard is a **local-only dev tool** — it binds to `127.0.0.1` and
-  is not intended for production or network-exposed use.
-- The `wip/2026-04-02-scratch` branch should be renamed to something like
-  `feat/env-dashboard` before merging.
-- Some commits could be squashed for a cleaner history on `main`.
+- The template's `spb` / `spb-version` / `spb-doctor` core entry points
+  were intentionally **not** ported: they delegated to `cli.py` and
+  `engine.py` modules that don't exist in `feedback_triage`. The app is
+  launched via `uvicorn feedback_triage.main:app` or `task dev`.
+- [attic/](attic/) is read-only reference material; nothing in the live tree
+  imports from it.
+- `uv.lock` is committed and CI uses `uv sync --frozen`; lock drift will
+  fail the build.

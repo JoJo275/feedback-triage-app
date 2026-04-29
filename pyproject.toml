@@ -20,32 +20,32 @@ authors = [{ name = "Joseph" }]
 keywords = ["fastapi", "postgres", "sqlmodel", "feedback", "triage"]
 
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Framework :: FastAPI",
-    "Framework :: Pydantic :: 2",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "Typing :: Typed",
+  "Development Status :: 3 - Alpha",
+  "Framework :: FastAPI",
+  "Framework :: Pydantic :: 2",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Typing :: Typed",
 ]
 
 # Runtime dependencies — keep this list tight. Anything that runs in the
 # Railway image lives here. Dev/test/docs/extras live under
 # [project.optional-dependencies].
 dependencies = [
-    "fastapi[standard]>=0.115", # Web framework + uvicorn
-    "sqlmodel>=0.0.22",         # ORM (Pydantic + SQLAlchemy)
-    "sqlalchemy>=2.0",          # Pin floor; sqlmodel pulls a 2.x
-    "alembic>=1.13",            # Migrations
-    "psycopg[binary]>=3.2",     # Postgres driver (sync)
-    "pydantic>=2.7",            # Validation
-    "pydantic-settings>=2.4",   # Settings via env vars
+  "fastapi[standard]>=0.115", # Web framework + uvicorn
+  "sqlmodel>=0.0.22",         # ORM (Pydantic + SQLAlchemy)
+  "sqlalchemy>=2.0",          # Pin floor; sqlmodel pulls a 2.x
+  "alembic>=1.13",            # Migrations
+  "psycopg[binary]>=3.2",     # Postgres driver (sync)
+  "pydantic>=2.7",            # Validation
+  "pydantic-settings>=2.4",   # Settings via env vars
 ]
 
 [project.urls]
@@ -57,36 +57,55 @@ Changelog = "https://github.com/JoJo275/feedback-triage-app/blob/main/CHANGELOG.
 
 # Console scripts. The fta-* names are the project-bound rename of the
 # template's spb-* helpers. The underlying scripts in scripts/ are
-# retained as general-purpose dev tooling. Wired up in a follow-up after
-# Phase 1, once we confirm which diagnostic helpers earn their keep here.
-# [project.scripts]
-# fta-doctor = "feedback_triage.entry_points:doctor"
+# retained as general-purpose dev tooling and are NOT bundled in the
+# wheel — these helpers therefore only resolve from an editable install
+# (`uv sync`). See src/feedback_triage/entry_points.py for the wrappers.
+[project.scripts]
+fta-start = "feedback_triage.entry_points:start"
+fta-bootstrap = "feedback_triage.entry_points:bootstrap"
+fta-clean = "feedback_triage.entry_points:clean"
+fta-customize = "feedback_triage.entry_points:customize"
+fta-git-doctor = "feedback_triage.entry_points:git_doctor"
+fta-env-doctor = "feedback_triage.entry_points:env_doctor"
+fta-repo-doctor = "feedback_triage.entry_points:repo_doctor"
+fta-diag = "feedback_triage.entry_points:doctor_bundle"
+fta-env-inspect = "feedback_triage.entry_points:env_inspect"
+fta-repo-stats = "feedback_triage.entry_points:repo_sauron"
+fta-dep-versions = "feedback_triage.entry_points:dep_versions"
+fta-workflow-versions = "feedback_triage.entry_points:workflow_versions"
+fta-check-todos = "feedback_triage.entry_points:check_todos"
+fta-check-python = "feedback_triage.entry_points:check_python_support"
+fta-changelog-check = "feedback_triage.entry_points:changelog_check"
+fta-apply-labels = "feedback_triage.entry_points:apply_labels"
+fta-archive-todos = "feedback_triage.entry_points:archive_todos"
+fta-check-issues = "feedback_triage.entry_points:check_known_issues"
+fta-dashboard = "feedback_triage.entry_points:dashboard"
 
 # ============================================================================
 # OPTIONAL DEPENDENCY GROUPS
 # ============================================================================
 [project.optional-dependencies]
 test = [
-    "pytest>=9.0",
-    "pytest-cov>=6.0",
-    "httpx>=0.27",     # FastAPI TestClient transport
-    "anyio>=4.4",      # async backend
+  "pytest>=9.0",
+  "pytest-cov>=6.0",
+  "httpx>=0.27",     # FastAPI TestClient transport
+  "anyio>=4.4",      # async backend
 ]
 e2e = ["playwright>=1.47", "pytest-playwright>=0.5"]
 dev = [
-    "feedback-triage-app[test]",
-    "ruff>=0.11",
-    "mypy>=1.20",
-    "pre-commit>=4.0",
-    "bandit>=1.9",
-    "commitizen>=4.4",
-    "deptry>=0.25",
+  "feedback-triage-app[test]",
+  "ruff>=0.11",
+  "mypy>=1.20",
+  "pre-commit>=4.0",
+  "bandit>=1.9",
+  "commitizen>=4.4",
+  "deptry>=0.25",
 ]
 docs = [
-    "mkdocs>=1.6",
-    "mkdocs-material>=9.4",
-    "pymdown-extensions>=10.21",
-    "mkdocstrings[python]>=0.27",
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.4",
+  "pymdown-extensions>=10.21",
+  "mkdocstrings[python]>=0.27",
 ]
 # Tool group used by tools/dev_tools/env_dashboard. Retained from template
 # as general-purpose dev tooling per project guidelines.
@@ -122,9 +141,9 @@ testpaths = ["tests"]
 addopts = "-q --strict-markers --strict-config"
 filterwarnings = ["error::DeprecationWarning"]
 markers = [
-    "e2e: end-to-end Playwright smoke tests (gated, opt-in via task test:e2e)",
-    "slow: marks tests as slow",
-    "integration: marks tests as integration tests",
+  "e2e: end-to-end Playwright smoke tests (gated, opt-in via task test:e2e)",
+  "slow: marks tests as slow",
+  "integration: marks tests as integration tests",
 ]
 
 # -- Coverage --
@@ -140,10 +159,10 @@ source = ["src/feedback_triage", "*/feedback_triage"]
 fail_under = 85
 show_missing = true
 exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    'if __name__ == "__main__":',
-    "raise NotImplementedError",
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  'if __name__ == "__main__":',
+  "raise NotImplementedError",
 ]
 
 # -- Ruff (linter/formatter) --
@@ -152,34 +171,34 @@ line-length = 88
 target-version = "py311"
 src = ["src", "tests", "scripts"]
 extend-exclude = [
-    "attic",
-    "tools",
-    "mkdocs-hooks",
-    "src/feedback_triage/_version.py",
+  "attic",
+  "tools",
+  "mkdocs-hooks",
+  "src/feedback_triage/_version.py",
 ]
 
 [tool.ruff.lint]
 select = [
-    "E",
-    "W",
-    "F",
-    "I",
-    "UP",
-    "D",
-    "T20",
-    "B",
-    "C4",
-    "SIM",
-    "PTH",
-    "PERF",
-    "RUF",
+  "E",
+  "W",
+  "F",
+  "I",
+  "UP",
+  "D",
+  "T20",
+  "B",
+  "C4",
+  "SIM",
+  "PTH",
+  "PERF",
+  "RUF",
 ]
 ignore = [
-    "E501", # Line length — formatter handles it
-    "D100", # Missing docstring in public module
-    "D104", # Missing docstring in public package
-    "D203", # Conflicts with D211
-    "D213", # Conflicts with D212
+  "E501", # Line length — formatter handles it
+  "D100", # Missing docstring in public module
+  "D104", # Missing docstring in public package
+  "D203", # Conflicts with D211
+  "D213", # Conflicts with D212
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -187,11 +206,11 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "src/feedback_triage/_version.py" = [
-    "UP006",
-    "UP007",
-    "UP035",
-    "I001",
-    "RUF022",
+  "UP006",
+  "UP007",
+  "UP035",
+  "I001",
+  "RUF022",
 ]
 "tests/**" = ["T20", "D"]
 "scripts/**" = ["T20", "D"]
@@ -222,13 +241,13 @@ targets = ["src"]
 # -- deptry (dependency hygiene) --
 [tool.deptry]
 extend_exclude = [
-    "scripts",
-    "experiments",
-    "docs",
-    "site",
-    "tools",
-    "attic",
-    "alembic",
+  "scripts",
+  "experiments",
+  "docs",
+  "site",
+  "tools",
+  "attic",
+  "alembic",
 ]
 pep621_dev_dependency_groups = ["test", "e2e", "dev", "docs", "dashboard"]
 ignore = ["DEP004"]
