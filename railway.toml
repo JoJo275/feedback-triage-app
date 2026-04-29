@@ -1,0 +1,24 @@
+# Railway service configuration.
+#
+# Railway/Railpack only auto-detects a file literally named `Dockerfile`.
+# This repo uses the OCI-neutral name `Containerfile` (see ADR 025), so
+# we have to point Railway at it explicitly. Without this file, Railway
+# falls back to Railpack's Python autodetect and fails with
+# "No start command detected" because the project ships no Procfile and
+# no module-level `app.py` / `main.py` at the repo root.
+#
+# Keep this file in sync with `docs/project/railway-setup.md` and
+# `docs/project/deployment-notes.md`.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Containerfile"
+
+[deploy]
+# Pre-deploy migrations (ADR 025 — never run from main.py on boot).
+preDeployCommand = "alembic upgrade head"
+# Liveness probe; `/ready` touches the DB and would cause restart loops.
+healthcheckPath = "/health"
+healthcheckTimeout = 5
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
