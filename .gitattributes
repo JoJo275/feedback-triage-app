@@ -125,7 +125,11 @@ CHANGELOG.md linguist-generated=true
 .repo-doctor.toml export-ignore
 _typos.toml export-ignore
 codecov.yml export-ignore
-Containerfile export-ignore
+# NOTE: Do NOT mark `Containerfile` as `export-ignore`.
+# Railway's snapshot builder uses `git archive`, which strips
+# `export-ignore` paths *before* the archive is handed to BuildKit.
+# Excluding it makes Railway fail with
+# "couldn't locate the dockerfile at path Containerfile in code archive".
 docker-compose.yml export-ignore
 Taskfile.yml export-ignore
 release-please-config.json export-ignore
