@@ -64,8 +64,15 @@ var/
 experiments/
 labels/
 
-# Container / orchestration files (not needed inside the image)
-Containerfile
+# Container / orchestration files (not needed inside the image).
+#
+# Do NOT exclude `Containerfile` itself: Railway/Railpack snapshots the
+# repo and applies `.dockerignore` *before* handing the archive to
+# BuildKit, so excluding it makes the platform fail with
+# "couldn't locate the dockerfile at path Containerfile in code archive".
+# Local `docker build -f Containerfile .` is unaffected because the
+# daemon reads the Dockerfile out-of-band; the runtime stage never does
+# `COPY . .`, so leaving the file in the context costs nothing.
 docker-compose.yml
 .containerignore
 .dockerignore
