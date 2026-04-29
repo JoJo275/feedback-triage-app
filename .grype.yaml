@@ -1,0 +1,23 @@
+# Grype configuration.
+#
+# Mirrors the flags the Container Scan workflow passes to anchore/scan-action
+# so local `grype` runs match CI.
+# Docs: https://github.com/anchore/grype#configuration
+
+# Advisory mode in CI: emit SARIF for the Security tab without failing
+# the build. Flip `fail-on-severity` to `critical` once the baseline is
+# clean and a `.grype.yaml` ignore block covers accepted exceptions.
+fail-on-severity: ""
+
+# Match CI: only surface findings that have a fix available, mirroring
+# Trivy's `ignore-unfixed: true`.
+only-fixed: true
+
+output:
+  - sarif
+
+# Suppress findings here once they are triaged. Each entry must carry
+# a one-line justification and a review date (mirrors `.trivyignore`).
+ignore: []
+#  - vulnerability: CVE-YYYY-NNNNN
+#    # <justification>; review by <YYYY-MM-DD>

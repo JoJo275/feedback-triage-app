@@ -119,17 +119,30 @@ reference. Total of six entries.
 
 ### 4. Wire the deploy lifecycle
 
-In **web service → Settings → Deploy**:
+[`railway.toml`](../../railway.toml) at the repo root owns the deploy
+lifecycle: pre-deploy command, healthcheck path/timeout, and restart
+policy. **Leave the dashboard fields blank** so there is exactly one
+source of truth — anything typed into **Settings → Deploy** wins over
+`railway.toml` and creates drift.
+
+In **web service → Settings → Deploy**, confirm:
 
 | Field | Value |
 | --- | --- |
 | **Branch** | `main` |
-| **Build Command** | *(empty — Containerfile handles it)* |
-| **Pre-Deploy Command** | `alembic upgrade head` |
+| **Build Command** | *(empty)* |
+| **Pre-Deploy Command** | *(empty — set by `railway.toml`)* |
 | **Start Command** | *(empty — image's `CMD` handles it)* |
-| **Healthcheck Path** | `/health` |
-| **Healthcheck Timeout** | `5` (seconds) |
-| **Restart Policy** | `ON_FAILURE` with max 3 retries |
+| **Healthcheck Path** | *(empty — set by `railway.toml`)* |
+| **Healthcheck Timeout** | *(empty — set by `railway.toml`)* |
+| **Restart Policy** | *(empty — set by `railway.toml`)* |
+
+The values that `railway.toml` actually sets:
+
+- `preDeployCommand = "alembic upgrade head"`
+- `healthcheckPath = "/health"`
+- `healthcheckTimeout = 5`
+- `restartPolicyType = "ON_FAILURE"` with `restartPolicyMaxRetries = 3`
 
 > **Why `/health`, not `/ready`:** liveness probes restart the
 > container on failure; readiness probes just stop traffic. A DB blip
@@ -137,7 +150,9 @@ In **web service → Settings → Deploy**:
 > [spec — Health and readiness](spec/spec.md#health-and-readiness).
 
 ✅ **Check:** the next deploy log shows a "Pre-deploy" step running
-`alembic upgrade head` *before* the "Healthcheck" step.
+`alembic upgrade head` *before* the "Healthcheck" step. If you ever
+need to change one of these knobs, edit `railway.toml` in a PR — do
+not paste a value into the dashboard.
 
 ### 5. Enable App Sleeping
 
