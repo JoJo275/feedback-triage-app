@@ -349,7 +349,7 @@ repos:
         # Audit the resolved graph from uv.lock. uv export produces a
         # requirements.txt-style file pip-audit understands. Keeping
         # this on pre-push (not pre-commit) so it doesn't slow commits.
-        entry: bash -c 'uv export --no-emit-project --format requirements-txt | pip-audit -r /dev/stdin'
+        entry: bash -c 'tmp=$(mktemp) && uv export --no-emit-project --format requirements-txt -o "$tmp" && uv run --with pip-audit pip-audit -r "$tmp"; rc=$?; rm -f "$tmp"; exit $rc'
         language: system
         pass_filenames: false
         stages: [pre-push]
