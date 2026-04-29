@@ -148,7 +148,9 @@ jobs:
           #   - For proprietary: you may want a stricter list
           #   - Run `uv run pip-licenses --format=plain` to see what
           #     your current deps actually use, then allow those.
-          uv run pip-licenses --allow-only="\
+          uv run pip-licenses \
+          --ignore-packages psycopg psycopg-binary psycopg-pool \
+          --allow-only="\
           Apache Software License;\
           Apache License 2.0;\
           Apache-2.0;\
