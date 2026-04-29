@@ -39,7 +39,7 @@ classifiers = [
 # Railway image lives here. Dev/test/docs/extras live under
 # [project.optional-dependencies].
 dependencies = [
-  "fastapi[standard]>=0.115", # Web framework + uvicorn
+  "fastapi[standard]>=0.136.1", # Web framework + uvicorn
   "sqlmodel>=0.0.22",         # ORM (Pydantic + SQLAlchemy)
   "sqlalchemy>=2.0",          # Pin floor; sqlmodel pulls a 2.x
   "alembic>=1.13",            # Migrations
@@ -109,7 +109,7 @@ docs = [
 ]
 # Tool group used by tools/dev_tools/env_dashboard. Retained from template
 # as general-purpose dev tooling per project guidelines.
-dashboard = ["fastapi[standard]>=0.115"]
+dashboard = ["fastapi[standard]>=0.136.1"]
 
 # ============================================================================
 # HATCH BUILD CONFIG
