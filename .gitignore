@@ -122,6 +122,10 @@ dmypy.json
 .vscode/*.log
 .vscode/.ropeproject
 
+# Local diagnostic logs from `task check` / pre-commit runs
+/check.log
+/precommit.log
+
 # VS Code workspace files (personal layout/state)
 *.code-workspace
 # But track the project's shared workspace config
