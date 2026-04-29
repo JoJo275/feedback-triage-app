@@ -64,10 +64,14 @@ end so you can tell whether it actually took.
 3. Authorize the Railway GitHub App against
    `JoJo275/feedback-triage-app`. Grant access to the single repo, not
    the whole org.
-4. When Railway asks "what should we build?", let it auto-detect — it
-   will see the `Containerfile` at the repo root and pick that builder.
-   Do **not** pick Nixpacks. The spec mandates the multi-stage
-   Containerfile per [Container Hardening](spec/spec.md#container-hardening-must).
+4. When Railway asks "what should we build?", the repo's
+   [`railway.toml`](../../railway.toml) pins the builder to
+   `DOCKERFILE` with `dockerfilePath = "Containerfile"`. Railpack does
+   **not** auto-detect `Containerfile` (only literal `Dockerfile`), so
+   without this config Railway falls back to Python autodetect and
+   fails with `No start command detected`. The spec mandates the
+   multi-stage Containerfile per
+   [Container Hardening](spec/spec.md#container-hardening-must).
 
 ✅ **Check:** the project dashboard shows one service whose source is
 `JoJo275/feedback-triage-app @ main` and whose builder is `Dockerfile`
