@@ -1,0 +1,13 @@
+# Trivy CVE suppression list.
+#
+# One ID per line. Always pair with a comment explaining:
+#   - why the finding is acceptable for this project, and
+#   - when to re-evaluate (date or trigger).
+#
+# Audit cadence: revisit every entry on each base-image bump and
+# whenever the Container Scan workflow shows a new HIGH/CRITICAL.
+#
+# Format:
+#   CVE-YYYY-NNNNN  # <one-line justification>; review by <YYYY-MM-DD>
+#
+# (No active suppressions. Add entries below as findings are triaged.)

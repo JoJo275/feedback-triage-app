@@ -1,0 +1,25 @@
+# Trivy central configuration.
+#
+# Mirrors the flags the Container Scan workflow passes to the
+# trivy-action so local `trivy image` runs match CI.
+# Docs: https://trivy.dev/latest/docs/references/configuration/config-file/
+
+format: sarif
+exit-code: 0 # advisory mode in CI; flip to 1 once baseline is clean
+ignore-unfixed: true # don't block on CVEs with no fix available
+
+severity:
+  - HIGH
+  - CRITICAL
+
+vulnerability:
+  type:
+    - os
+    - library
+
+# Honor `.trivyignore` at the repo root.
+ignorefile: .trivyignore
+
+# Misconfig scan defaults (Containerfile / IaC lint).
+misconfiguration:
+  include-non-failures: false
