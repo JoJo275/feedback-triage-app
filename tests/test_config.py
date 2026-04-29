@@ -35,7 +35,7 @@ def test_defaults_are_development() -> None:
 )
 def test_database_url_normalised_to_psycopg(raw: str, expected: str) -> None:
     s = Settings(_env_file=None, database_url=raw)  # type: ignore[call-arg]
-    assert s.database_url == expected
+    assert s.database_url.get_secret_value() == expected
 
 
 def test_cors_origins_split_and_trimmed() -> None:
@@ -49,3 +49,22 @@ def test_cors_origins_split_and_trimmed() -> None:
 def test_cors_origins_empty_disables_cors() -> None:
     s = Settings(_env_file=None, cors_allowed_origins="")  # type: ignore[call-arg]
     assert s.cors_origins == []
+
+
+def test_database_url_password_is_masked_in_repr() -> None:
+    """The DB password must never leak via repr/str/model_dump.
+
+    Guards against an accidental ``logger.info(settings)`` exposing the
+    URL on a public Railway deploy.
+    """
+    secret = "s3cret-pw"  # fixture password, not a real credential
+    s = Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        database_url=f"postgresql+psycopg://u:{secret}@h:5432/d",
+    )
+    assert secret not in repr(s)
+    assert secret not in str(s)
+    assert secret not in repr(s.database_url)
+    assert secret not in str(s.model_dump())
+    # The plaintext is still reachable for callers that explicitly opt in.
+    assert s.database_url.get_secret_value().endswith(f":{secret}@h:5432/d")
