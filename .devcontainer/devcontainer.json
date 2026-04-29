@@ -12,12 +12,20 @@
   "image": "mcr.microsoft.com/devcontainers/python:1-3.13-bookworm",
   "features": {
     // Pin the major version of every feature; the underlying images
-    // refresh on rebuild without forcing a config edit. ``uv``,
-    // ``task``, and Docker are installed via the postCreateCommand
-    // because several ghcr.io feature manifests are not publicly
-    // resolvable from CI (anonymous ghcr.io requests return 403),
-    // and the docker-in-docker feature's apt setup intermittently
-    // breaks on upstream Yarn repo GPG-key rotations during CI builds.
+    // refresh on rebuild without forcing a config edit.
+    //
+    // ``docker-outside-of-docker`` mounts the host Docker socket
+    // instead of running a daemon inside the container. This avoids
+    // the heavy apt setup that the full ``docker-in-docker`` feature
+    // performs (which intermittently breaks on upstream Yarn-repo
+    // GPG-key rotations during CI builds, NO_PUBKEY 62D54FD4003F6525)
+    // while still letting devs run ``docker compose`` from the
+    // container against their host's daemon.
+    //
+    // ``uv`` and ``task`` are installed in postCreateCommand because
+    // their ghcr.io feature manifests are not publicly resolvable
+    // from CI runners (anonymous ghcr.io requests return 403).
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "remoteUser": "vscode",
@@ -29,8 +37,10 @@
   // ``uv sync`` provisions the project's virtualenv from uv.lock and
   // makes ``feedback_triage`` importable. ``pre-commit install`` wires
   // the local hooks so commits made inside the container go through
-  // the same gates as local dev.
-  "postCreateCommand": "sh -c 'curl -fsSL https://taskfile.dev/install.sh | sh -s -- -d -b /usr/local/bin' && pipx install uv && uv sync --frozen --extra dev && uv run pre-commit install --install-hooks",
+  // the same gates as local dev. ``sudo`` is required for the task
+  // installer because /usr/local/bin is root-owned and the
+  // postCreateCommand runs as the unprivileged ``vscode`` user.
+  "postCreateCommand": "sh -c 'curl -fsSL https://taskfile.dev/install.sh | sudo sh -s -- -d -b /usr/local/bin' && pipx install uv && uv sync --frozen --extra dev && uv run pre-commit install --install-hooks",
   "customizations": {
     "vscode": {
       "extensions": [
