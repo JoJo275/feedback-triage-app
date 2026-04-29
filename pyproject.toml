@@ -253,6 +253,17 @@ pep621_dev_dependency_groups = ["test", "e2e", "dev", "docs", "dashboard"]
 ignore = ["DEP004"]
 package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs-material = "material", pymdown-extensions = "pymdownx", mkdocstrings = "mkdocstrings", "psycopg[binary]" = "psycopg", "fastapi[standard]" = "fastapi", "mkdocstrings[python]" = "mkdocstrings" }
 
+# Per-rule ignores:
+# DEP002 — declared deps that aren't directly imported. ``alembic`` is
+#   invoked via the CLI / Taskfile (`alembic upgrade head`) and ``psycopg``
+#   is loaded by SQLAlchemy via the driver URL, never imported by name.
+# DEP003 — transitive deps imported directly. ``starlette`` types are part
+#   of FastAPI's public API surface (Request/Response/middleware base);
+#   importing them directly is the documented FastAPI pattern.
+[tool.deptry.per_rule_ignores]
+DEP002 = ["alembic", "psycopg"]
+DEP003 = ["starlette"]
+
 # -- Commitizen --
 [tool.commitizen]
 name = "cz_conventional_commits"

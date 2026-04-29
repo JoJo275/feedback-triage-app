@@ -96,6 +96,30 @@ Trim only if a specific workflow proves wrong for this project after
 first green run. See `docs/workflows.md` and
 `.github/workflows/.instructions.md`.
 
+#### Repository guards — single switch policy
+
+Every workflow ships with a three-clause `if:` guard:
+
+```yaml
+if: >-
+  ${{
+    github.repository == 'OWNER/REPO'
+    || vars.ENABLE_WORKFLOWS == 'true'
+    || vars.ENABLE_<NAME> == 'true'
+  }}
+```
+
+**Do not replace the `OWNER/REPO` literal with the real slug.** This
+project deliberately keeps `OWNER/REPO` so that the only on/off switch
+is the `vars.ENABLE_WORKFLOWS` repository variable (already set to
+`'true'` on `JoJo275/feedback-triage-app`). Per-workflow overrides
+(`vars.ENABLE_<NAME>`) remain available for selectively disabling a
+single workflow without touching YAML.
+
+When adding new workflows, copy the same three-clause guard verbatim,
+including the `OWNER/REPO` literal. Bulk find-replace passes that
+substitute the real slug must be reverted.
+
 ### Documentation
 
 MkDocs Material. See `docs/.instructions.md` and `docs/adr/.instructions.md`.

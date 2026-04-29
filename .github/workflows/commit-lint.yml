@@ -59,14 +59,39 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install commitizen
-        run: pip install commitizen
-
-      # Validate every commit in the PR range.
-      # With rebase+merge, each of these commits will land individually on main.
-      # Non-conventional commits are flagged (they won't appear in CHANGELOG
-      # but should still be intentional, not accidental).
-      - name: Check commit messages
+      # Validate every commit subject line in the PR range against the
+      # Conventional Commits regex. We deliberately bypass `cz check`
+      # here because commitizen escalates *any* unrecognised body line
+      # (including Copilot's ``Co-authored-by:`` trailers and the
+      # multi-paragraph bodies we use for fork-bring-up commits) to a
+      # whole-message failure.
+      #
+      # Rationale: release-please only reads the subject line; if the
+      # subject is conventional, the changelog is correct.
+      - name: Check commit subjects (Conventional Commits)
         run: |
-          echo "Checking commits in range: origin/${{ github.base_ref }}..HEAD"
-          cz check --rev-range origin/${{ github.base_ref }}..HEAD
+          set -euo pipefail
+          base="origin/${{ github.base_ref }}"
+          range="${base}..HEAD"
+          echo "Checking subjects in range: ${range}"
+
+          pattern='^(build|bump|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([^)]+\))?!?: .+'
+          fail=0
+          while read -r sha; do
+            [ -z "${sha}" ] && continue
+            subject=$(git log -1 --format='%s' "${sha}")
+            if [[ "${subject}" =~ ${pattern} ]]; then
+              echo "ok    ${sha:0:7}  ${subject}"
+            else
+              echo "BAD   ${sha:0:7}  ${subject}"
+              fail=1
+            fi
+          done < <(git rev-list --reverse "${range}")
+
+          if [ "${fail}" -ne 0 ]; then
+            echo ""
+            echo "::error::One or more commit subjects do not match Conventional Commits."
+            echo "Allowed types: build, bump, chore, ci, docs, feat, fix, perf, refactor, revert, style, test"
+            echo "Format: <type>(<scope>)?: <description>"
+            exit 1
+          fi

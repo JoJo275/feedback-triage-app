@@ -111,7 +111,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return response
 
     def _log(self, request: Request, *, status: int, duration_ms: float) -> None:
-        request_id = getattr(request.state, "request_id", "")
+        # Pull the ID off ``request.state`` directly. ``request.state`` is
+        # populated by :class:`RequestIDMiddleware` synchronously before
+        # ``call_next`` is awaited, so it is reliable even when the
+        # contextvar copy in this child task drifts (a known
+        # ``BaseHTTPMiddleware`` quirk under anyio task groups).
+        request_id = getattr(request.state, "request_id", "") or "-"
         payload = {
             "method": request.method,
             "path": request.url.path,
@@ -119,8 +124,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             "duration_ms": round(duration_ms, 2),
             "request_id": request_id,
         }
+        # Pass ``request_id`` via ``extra=`` so the formatter sees the real
+        # value even if :class:`RequestIDLogFilter` has not run (or runs in
+        # a context where the contextvar has been reset).
+        log_extra = {"request_id": request_id}
         if self._json:
-            logger.info(json.dumps(payload, separators=(",", ":")))
+            logger.info(json.dumps(payload, separators=(",", ":")), extra=log_extra)
         else:
             logger.info(
                 "%s %s -> %d (%.2fms) request_id=%s",
@@ -129,4 +138,5 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 payload["status"],
                 duration_ms,
                 request_id,
+                extra=log_extra,
             )

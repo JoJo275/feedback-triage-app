@@ -49,6 +49,8 @@ FO = "FO"      # Windows tasklist /FO flag (format output) — not a typo
 certifi = "certifi"  # Python package for Mozilla CA certificates
 datas = "datas"      # Valid in setuptools/packaging contexts
 SHA = "SHA"          # Secure Hash Algorithm
+ser = "ser"          # Pydantic v2 serializer convention (`@field_serializer`, `_ser_dt`, `ser_json_*`)
+CHECKs = "CHECKs"    # Plural of SQL `CHECK` constraint
 
 # -----------------------------------------------------------------------------
 # Per-identifier overrides  (code identifiers → allow)

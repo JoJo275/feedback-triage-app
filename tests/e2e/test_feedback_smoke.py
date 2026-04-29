@@ -8,7 +8,16 @@ API tests already cover. See spec — Frontend Smoke Tests.
 from __future__ import annotations
 
 import pytest
-from playwright.sync_api import Page, expect
+
+# Skip the entire module when Playwright is not installed (the default
+# in the unit/coverage CI jobs that install only the [test] extra).
+# This MUST run before the ``from playwright...`` import below.
+playwright_sync_api = pytest.importorskip(
+    "playwright.sync_api",
+    reason="playwright is only installed for the e2e job",
+)
+
+from playwright.sync_api import Page, expect  # noqa: E402
 
 pytestmark = pytest.mark.e2e
 
