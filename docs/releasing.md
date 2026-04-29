@@ -480,8 +480,8 @@ compatibility promises, security responsiveness, and baseline quality.
 - [ ] `commitizen` `major_version_zero` set to `false` (if applicable)
 - [ ] Version tag format verified (e.g., `v1.0.0`)
 
-> **See also:** [ADR 040](adr/040-v1-release-readiness.md) for the architectural
-> decision record on release readiness criteria.
+> **See also:** the v1 release-readiness ADR is inherited from the template
+> and slated for rewrite per the fork policy.
 
 **Will `feat:` bump you to 2.0?** No. A plain `feat:` commit only bumps the
 minor version (`1.2.0` → `1.3.0`). Only an explicit breaking change

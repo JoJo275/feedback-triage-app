@@ -163,8 +163,9 @@ proportional benefit for a template project.
 
 - [pyproject.toml](../../pyproject.toml) — `[project.optional-dependencies]`
   and `[tool.hatch.envs.*]` sections
-- [requirements.txt](../../requirements.txt) — Runtime dependency mirror
-- [requirements-dev.txt](../../requirements-dev.txt) — Dev dependency mirror
+- `requirements.txt` / `requirements-dev.txt` — **not committed** in this
+  project; dependencies are managed via `uv sync` against `uv.lock` (see
+  [ADR 055](055-uv-as-project-manager.md))
 - [scripts/dep_versions.py](../../scripts/dep_versions.py) — Show installed
   dependency versions
 

@@ -123,7 +123,7 @@ repo, not require each contributor to configure manually.
 
 - [.vscode/settings.json](../../.vscode/settings.json) — All functional settings
 - [.vscode/extensions.json](../../.vscode/extensions.json) — Extension recommendations (Open Folder)
-- [simple-python-boilerplate.code-workspace](../../simple-python-boilerplate.code-workspace) — Extension recommendations (Open Workspace)
+- [feedback-triage-app.code-workspace](../../feedback-triage-app.code-workspace) — Extension recommendations (Open Workspace)
 
 ## References
 

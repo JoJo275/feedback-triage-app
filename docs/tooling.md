@@ -18,8 +18,8 @@ confusion when reading `pyproject.toml`.
 | Role | Tool | Why it's there |
 | --- | --- | --- |
 | **Project / env manager** | [`uv`](https://docs.astral.sh/uv/) | Resolves dependencies, writes `uv.lock`, creates and maintains `.venv/`, and runs commands inside it via `uv run`. Replaces the env-management half of Hatch — see [ADR 055](adr/055-uv-as-project-manager.md). |
-| **Build backend** | [`hatchling`](https://hatch.pypa.io/latest/config/build/) + [`hatch-vcs`](https://github.com/ofek/hatch-vcs) | Turns the source tree into an sdist/wheel. `hatch-vcs` derives the version from `git describe`. Authoritative half of [ADR 016](adr/016-hatch-as-the-toolkit.md); the env-manager half of that ADR is superseded by [ADR 055](adr/055-uv-as-project-manager.md). |
-| **Task runner** | [`Task`](https://taskfile.dev/) | Wraps the common `uv run …` invocations into short aliases (`task test`, `task dev`). See [ADR 017](adr/017-task-as-runner.md). |
+| **Build backend** | [`hatchling`](https://hatch.pypa.io/latest/config/build/) + [`hatch-vcs`](https://github.com/ofek/hatch-vcs) | Turns the source tree into an sdist/wheel. `hatch-vcs` derives the version from `git describe`. Authoritative half of [ADR 016](adr/016-hatchling-and-hatch.md); the env-manager half of that ADR is superseded by [ADR 055](adr/055-uv-as-project-manager.md). |
+| **Task runner** | [`Task`](https://taskfile.dev/) | Wraps the common `uv run …` invocations into short aliases (`task test`, `task dev`). See [ADR 017](adr/017-task-runner.md). |
 
 ### Daily uv commands
 

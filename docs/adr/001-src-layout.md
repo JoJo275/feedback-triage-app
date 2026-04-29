@@ -70,7 +70,7 @@ Just a `main.py` at the root.
 
 ## Implementation
 
-- [src/simple_python_boilerplate/](../../src/simple_python_boilerplate/) — Package source code
+- [src/feedback_triage/](../../src/feedback_triage/) — Package source code
 - [pyproject.toml](../../pyproject.toml) — `[tool.setuptools]` section configures `package-dir = {"" = "src"}`
 - [tests/](../../tests/) — Tests directory (separate from src/)
 

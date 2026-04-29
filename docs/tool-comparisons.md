@@ -23,7 +23,7 @@ makes the trade-offs visible at a glance.
 is dramatically faster, manages Python toolchains itself, keeps the
 build backend choice ours, and reads `pyproject.toml` directly. We
 keep `hatchling` + `hatch-vcs` for the build backend role only — see
-[ADR 016](adr/016-hatch-as-the-toolkit.md).
+[ADR 016](adr/016-hatchling-and-hatch.md).
 
 ---
 
@@ -40,7 +40,7 @@ heavier than the project requires).
 ## Task runner — `Task` over `make`, `nox`, `invoke`, `just`
 
 Decision: [`Task`](https://taskfile.dev/) (Go binary, YAML config). See
-[ADR 017](adr/017-task-as-runner.md).
+[ADR 017](adr/017-task-runner.md).
 
 - `make` — fragile on Windows; tab-indentation hostility.
 - `nox` / `tox` — they're test-matrix runners, not generic shortcuts.

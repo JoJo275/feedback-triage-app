@@ -163,7 +163,7 @@ task test
 - **Hatch** (`pyproject.toml`) — Manages virtualenv, runs commands inside it
 - **Tool** — The actual linter/tester/formatter
 
-For a deeper explanation, see [docs/notes/learning.md](docs/notes/learning.md) ("Command Workflow" section).
+For the project workflow as a whole, see [docs/tooling.md](docs/tooling.md).
 
 ---
 
@@ -377,7 +377,7 @@ This contributing guide covers the essentials. For deeper dives:
 
 | Topic                             | Document                                                                         |
 | --------------------------------- | -------------------------------------------------------------------------------- |
-| **Getting started**               | [docs/guide/getting-started.md](docs/guide/getting-started.md)                   |
+| **Spec (canonical scope)**        | [docs/project/spec/spec.md](docs/project/spec/spec.md)                           |
 | **Developer setup (detailed)**    | [docs/development/dev-setup.md](docs/development/dev-setup.md)                   |
 | **Developer commands**            | [docs/development/developer-commands.md](docs/development/developer-commands.md) |
 | **Command workflows**             | [docs/development/command-workflows.md](docs/development/command-workflows.md)   |

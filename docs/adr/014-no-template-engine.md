@@ -72,7 +72,7 @@ runtime-frontend one:
   HTML served via `StaticFiles` + vanilla JS calling the JSON API.
   Documented in [ADR 051](051-static-html-vanilla-js.md).
 - **One templated surface remains:** the MkDocs docs site
-  ([ADR 020](020-mkdocs-for-documentation.md)). That's a build-time
+  ([ADR 020](020-mkdocs-documentation-stack.md)). That's a build-time
   generator, not a runtime concern.
 
 ## Consequences (still applicable)
@@ -103,5 +103,5 @@ runtime-frontend one:
 
 - [ADR 051](051-static-html-vanilla-js.md) — the live runtime-frontend
   decision
-- [ADR 020](020-mkdocs-for-documentation.md) — MkDocs Material as the
+- [ADR 020](020-mkdocs-documentation-stack.md) — MkDocs Material as the
   one templated surface

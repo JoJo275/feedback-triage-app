@@ -40,6 +40,35 @@ https?://0\.0\.0\.0[:/].*
 https?://\[::1\][:/].*
 
 # ──────────────────────────────────────────────────────────────
+# Inherited template paths that don't exist in this project
+# ──────────────────────────────────────────────────────────────
+# The fork-bring-up retains many template-grade docs as reference
+# (see fork policy in `.github/copilot-instructions.md`). These
+# references survive in inherited content scheduled for rewrite;
+# matching them here keeps the link-checker hard-failing on real
+# regressions without forcing a doc-wide rewrite mid-Phase.
+file://.*/simple_python_boilerplate(/.*)?$
+file://.*/simple-python-boilerplate\.code-workspace
+file://.*/git-config-reference\.md.*
+file://.*/requirements(-dev)?\.txt
+file://.*/db(/.*)?$
+file://.*/var/?$
+file://.*/docs/notes/learning(-web-apps)?\.md.*
+file://.*/docs/guide/getting-started\.md
+file://.*/tests/unit/test_example\.py
+file://.*/tests/integration/sql/?$
+file://.*/docs/templates/.*
+file://.*/docs/reference/template-inventory\.md
+# ADRs that reference removed template tooling and are slated for
+# rewrite per the fork policy (see spec § "ADRs to Write").
+file://.*/docs/adr/011-repository-guard-pattern\.md
+file://.*/docs/adr/036-diagnostic-tooling-strategy\.md
+file://.*/docs/adr/040-v1-release-readiness\.md
+file://.*/docs/adr/041-env-inspect-web-dashboard\.md
+file://.*/docs/adr/042-script-smoke-testing\.md
+file://.*/docs/adr/043-collector-plugin-architecture\.md
+
+# ──────────────────────────────────────────────────────────────
 # External URLs with intermittent availability
 # ──────────────────────────────────────────────────────────────
 # These are valid URLs but sometimes fail in CI due to
