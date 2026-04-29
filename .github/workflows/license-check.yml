@@ -149,7 +149,7 @@ jobs:
           #   - Run `uv run pip-licenses --format=plain` to see what
           #     your current deps actually use, then allow those.
           uv run pip-licenses \
-          --ignore-packages psycopg psycopg-binary psycopg-pool \
+          --ignore-packages psycopg psycopg-binary psycopg-pool greenlet \
           --allow-only="\
           Apache Software License;\
           Apache License 2.0;\
