@@ -57,7 +57,15 @@ file://.*/docs/notes/learning(-web-apps)?\.md.*
 file://.*/docs/guide/getting-started\.md
 file://.*/tests/unit/test_example\.py
 file://.*/tests/integration/sql/?$
-file://.*/docs/templates/.*
+# ──────────────────────────────────────────────────────────────
+# External hosts intermittently unreachable from GitHub-hosted runners
+# ──────────────────────────────────────────────────────────────
+# OpenSSF Scorecard's marketing site refuses connections from a subset
+# of GitHub Actions egress IPs. The repo's actual scorecard report is
+# fetched via the GitHub Action, not this URL.
+https://scorecard\.dev/?$
+
+
 file://.*/docs/reference/template-inventory\.md
 # ADRs that reference removed template tooling and are slated for
 # rewrite per the fork policy (see spec § "ADRs to Write").

@@ -12,13 +12,14 @@
   "image": "mcr.microsoft.com/devcontainers/python:1-3.13-bookworm",
   "features": {
     // Pin the major version of every feature; the underlying images
-    // refresh on rebuild without forcing a config edit. ``uv`` is
-    // installed via ``pip`` in postCreateCommand because the prior
-    // ``ghcr.io/astral-sh/uv/uv:1`` feature reference is not publicly
-    // resolvable from CI (anonymous ghcr.io requests return 403).
+    // refresh on rebuild without forcing a config edit. ``uv`` and
+    // ``task`` are installed via the postCreateCommand because the
+    // ``ghcr.io/astral-sh/uv/uv:1`` and
+    // ``ghcr.io/devcontainers-contrib/features/task:1`` feature
+    // references are not publicly resolvable from CI (anonymous
+    // ghcr.io requests return 403).
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers-contrib/features/task:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "remoteUser": "vscode",
   "containerEnv": {
@@ -30,7 +31,7 @@
   // makes ``feedback_triage`` importable. ``pre-commit install`` wires
   // the local hooks so commits made inside the container go through
   // the same gates as local dev.
-  "postCreateCommand": "pipx install uv && uv sync --frozen --extra dev && uv run pre-commit install --install-hooks",
+  "postCreateCommand": "sh -c 'curl -fsSL https://taskfile.dev/install.sh | sh -s -- -d -b /usr/local/bin' && pipx install uv && uv sync --frozen --extra dev && uv run pre-commit install --install-hooks",
   "customizations": {
     "vscode": {
       "extensions": [
