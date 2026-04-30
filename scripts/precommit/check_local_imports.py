@@ -34,8 +34,10 @@ SCRIPT_VERSION = "1.0.0"
 # The comment that must appear before local imports
 _MARKER = "# -- Local script modules"
 
-# Pattern matching local module imports (from _foo import ...)
-_LOCAL_IMPORT_RE = re.compile(r"^from\s+_\w+\s+import\s|^import\s+_\w+\b")
+# Pattern matching local module imports (from _foo import ...).
+# Single leading underscore only — ``__future__`` and other dunder modules
+# are stdlib, not local script modules, and must not trigger this hook.
+_LOCAL_IMPORT_RE = re.compile(r"^from\s+_(?!_)\w+\s+import\s|^import\s+_(?!_)\w+\b")
 
 
 def _build_parser() -> argparse.ArgumentParser:
