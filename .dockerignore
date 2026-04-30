@@ -1,9 +1,10 @@
 # ──────────────────────────────────────────────────────────────
 # .dockerignore
 # ──────────────────────────────────────────────────────────────
-# Mirror of .containerignore for Docker compatibility.
-# Podman reads .containerignore; Docker reads .dockerignore.
-# Keep both files in sync.
+# Files and directories excluded from the container build
+# context. Keeps images small and avoids leaking secrets.
+# Works with both Podman (.containerignore) and Docker
+# (.dockerignore) — keep both files in sync.
 # ──────────────────────────────────────────────────────────────
 
 # Version control
@@ -67,12 +68,13 @@ labels/
 # Container / orchestration files (not needed inside the image).
 #
 # Do NOT exclude `Containerfile` itself: Railway/Railpack snapshots the
-# repo and applies `.dockerignore` *before* handing the archive to
-# BuildKit, so excluding it makes the platform fail with
-# "couldn't locate the dockerfile at path Containerfile in code archive".
-# Local `docker build -f Containerfile .` is unaffected because the
-# daemon reads the Dockerfile out-of-band; the runtime stage never does
-# `COPY . .`, so leaving the file in the context costs nothing.
+# repo and applies `.containerignore` (and `.dockerignore`) *before*
+# handing the archive to BuildKit, so excluding it makes the platform
+# fail with "couldn't locate the dockerfile at path Containerfile in
+# code archive". Local `docker build -f Containerfile .` is unaffected
+# because the daemon reads the Dockerfile out-of-band; the runtime
+# stage never does `COPY . .`, so leaving the file in the context costs
+# nothing.
 docker-compose.yml
 .containerignore
 .dockerignore
