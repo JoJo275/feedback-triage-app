@@ -15,18 +15,24 @@ A small, portfolio-grade FastAPI + PostgreSQL service for triaging
 incoming customer feedback. Create, list, view, update, and delete
 `feedback_item` rows with `source`, `status`, and `pain_level` fields.
 
-> Status: **pre-v0.1**. The Pre-Phase fork from
-> [`simple-python-boilerplate`](https://github.com/JoJo275/simple-python-boilerplate)
-> is complete; Phase 1 (project skeleton) is the next milestone. See
+> Status: **v1.0 release candidate**. Continuous deploy from `main` to
+> Railway is live; Phase 8 (polish & release) is in flight. See
 > [`docs/project/implementation.md`](docs/project/implementation.md).
 
-- **Live demo:** _added once Phase 7 deploys to Railway_
-- **API docs:** _added once Phase 3 completes — will be at_ `<deploy-url>/api/v1/docs`
+- **Live demo:** <https://feedback-triage-app-production.up.railway.app>
+- **API docs:** <https://feedback-triage-app-production.up.railway.app/api/v1/docs>
 - **Spec:** [`docs/project/spec/spec.md`](docs/project/spec/spec.md)
 
 ## Screenshots
 
-_Added once Phase 4 completes. Stored under_ `docs/screenshots/`.
+Stored under [`docs/screenshots/`](docs/screenshots/) and committed once
+captured against the live Railway deploy.
+
+| Surface | File |
+| --- | --- |
+| List page with seeded data | `docs/screenshots/01-list.png` |
+| Detail / edit page mid-edit | `docs/screenshots/02-detail.png` |
+| `/api/v1/docs` Swagger UI | `docs/screenshots/03-docs.png` |
 
 1. List page with seeded data
 2. Detail / edit page mid-edit

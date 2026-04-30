@@ -384,16 +384,16 @@ command.
       — multi-stage, non-root user, `HEALTHCHECK /health`, digest-pinned
       base, `PYTHONDONTWRITEBYTECODE=1` etc.
 - [x] Image builds locally via `docker build .` and runs.
-- [ ] Railway service created, Postgres plugin attached.
-- [ ] Railway service source set to **this GitHub repo, branch `main`**
+- [x] Railway service created, Postgres plugin attached.
+- [x] Railway service source set to **this GitHub repo, branch `main`**
       (continuous deploy on every merge — see
       [spec — Release Flow](spec/spec.md#release-flow-must)).
-- [ ] Pre-deploy command set to `alembic upgrade head`.
-- [ ] Env vars set per
+- [x] Pre-deploy command set to `alembic upgrade head`.
+- [x] Env vars set per
       [`deployment-notes.md`](deployment-notes.md#required-environment-variables).
-- [ ] Healthcheck path set to `/health`.
-- [ ] Hard usage limit set in Railway.
-- [ ] App-sleeping enabled.
+- [x] Healthcheck path set to `/health`.
+- [x] Hard usage limit set in Railway.
+- [x] App-sleeping enabled.
 
 ### Deliverables `[Should]`
 
@@ -432,16 +432,17 @@ Last-mile work: README, screenshots, demo seed, `v1.0.0` tag.
 
 ### Deliverables `[Must]`
 
-- [ ] README with all sections from
+- [x] README with all sections from
       [spec — README Sections to Include](spec/spec.md#readme-sections-to-include-must).
 - [ ] Three screenshots checked into `docs/screenshots/` and embedded
-      in the README.
-- [ ] Mermaid architecture diagram in the README.
-- [ ] Live demo URL and `/api/v1/docs` URL in the README header.
-- [ ] `task seed` produces ~20 demo items covering every `Source` and
+      in the README. _(Captured once seed runs against production.)_
+- [x] Mermaid architecture diagram in the README.
+- [x] Live demo URL and `/api/v1/docs` URL in the README header.
+- [x] `task seed` produces ~20 demo items covering every `Source` and
       `Status` value.
-- [ ] All ADRs 045–054 written and merged.
-- [ ] `CHANGELOG.md` regenerated for `v1.0.0`.
+- [x] All ADRs 045–054 written and merged.
+- [ ] `CHANGELOG.md` regenerated for `v1.0.0`. _(Cut by release-please
+      on the v1.0.0 Release PR merge.)_
 
 ### Deliverables `[Should]`
 
