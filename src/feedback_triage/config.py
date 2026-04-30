@@ -12,9 +12,12 @@ from __future__ import annotations
 
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlparse
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_LOCAL_DB_HOSTS = frozenset({"localhost", "127.0.0.1", "::1", ""})
 
 
 class Settings(BaseSettings):
@@ -77,6 +80,32 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Return True when running with production semantics."""
         return self.app_env == "production"
+
+    @model_validator(mode="after")
+    def _require_remote_db_in_production(self) -> Settings:
+        """Refuse to boot in production with a localhost ``DATABASE_URL``.
+
+        Railway's pre-deploy command (``alembic upgrade head``) and the
+        app process inherit env vars from the service. If the operator
+        forgets to link ``${{ Postgres.DATABASE_URL }}`` per
+        ``docs/project/railway-setup.md`` step 2, the default below
+        silently points at ``localhost:5432`` and psycopg fails with a
+        confusing ``Connection refused``. Fail loudly with an
+        actionable message instead.
+        """
+        if self.app_env != "production":
+            return self
+        host = urlparse(self.database_url.get_secret_value()).hostname or ""
+        if host.lower() in _LOCAL_DB_HOSTS:
+            msg = (
+                "DATABASE_URL is unset or points at localhost while "
+                "APP_ENV=production. Link the Postgres plugin in the "
+                "Railway dashboard (Variables → Reference Variable → "
+                "Postgres → DATABASE_URL). See "
+                "docs/project/railway-setup.md step 2."
+            )
+            raise ValueError(msg)
+        return self
 
 
 @lru_cache(maxsize=1)
