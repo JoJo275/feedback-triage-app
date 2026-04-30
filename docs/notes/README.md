@@ -15,6 +15,7 @@ This directory contains personal notes, learnings, and references captured while
 | [learning.md](learning.md)                   | Key concepts, gotchas, and things I keep forgetting  |
 | [resources_links.md](resources_links.md)     | Curated links to docs, tutorials, and references     |
 | [resources_written.md](resources_written.md) | Self-written references and cheat sheets (e.g., Git) |
+| [script-conventions.md](script-conventions.md) | Rationale for the rules in `scripts/.instructions.md` + recommended additions |
 | [tool-comparison.md](tool-comparison.md)     | Quick reference for choosing between similar tools   |
 | [todo.md](todo.md)                           | Ideas, things to explore, and bookmarks              |
 | [archive.md](archive.md)                     | Completed items from todo.md                         |

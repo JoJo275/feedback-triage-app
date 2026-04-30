@@ -46,6 +46,10 @@ file directly: `#file:.github/SKILL.md` then describe what you need.
 
 ## Add a New Script
 
+> Read [`scripts/.instructions.md`](../scripts/.instructions.md) (rules)
+> and [`docs/notes/script-conventions.md`](../docs/notes/script-conventions.md)
+> (rationale + recommended skeleton) before starting.
+
 1. Create `scripts/<name>.py` with shebang (`#!/usr/bin/env python3`), argparse CLI (`--help`, `--version`, optionally `--dry-run`), and `logging` for status messages.
 2. Mark executable: `git add --chmod=+x scripts/<name>.py`.
 3. Update `scripts/README.md` — add to the inventory table.
