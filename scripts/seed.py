@@ -20,12 +20,27 @@ from dataclasses import dataclass
 
 from sqlalchemy import text
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
+from _imports import import_sibling
+from _ui import UI
 from feedback_triage.crud import create_item
 from feedback_triage.database import SessionLocal
 from feedback_triage.enums import Source, Status
 from feedback_triage.schemas import FeedbackCreate
 
+_progress = import_sibling("_progress")
+ProgressBar = _progress.ProgressBar
+
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+SCRIPT_VERSION = "1.0.0"
+
+# Theme color for this script's dashboard output.
+THEME = "green"
 
 
 @dataclass(frozen=True)
@@ -196,15 +211,21 @@ def _truncate(session: object) -> None:
 
 def _insert_all(session: object) -> int:
     """Insert every demo row; return the count inserted."""
-    for demo in DEMO_ITEMS:
-        payload = FeedbackCreate(
-            title=demo.title,
-            description=demo.description,
-            source=demo.source,
-            pain_level=demo.pain_level,
-            status=demo.status,
-        )
-        create_item(session, payload)
+    with ProgressBar(
+        total=len(DEMO_ITEMS),
+        label="Seeding feedback_item",
+        color=THEME,
+    ) as bar:
+        for demo in DEMO_ITEMS:
+            payload = FeedbackCreate(
+                title=demo.title,
+                description=demo.description,
+                source=demo.source,
+                pain_level=demo.pain_level,
+                status=demo.status,
+            )
+            create_item(session, payload)
+            bar.update()
     return len(DEMO_ITEMS)
 
 
@@ -228,6 +249,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Connect to the DB and report what would happen, but do not write.",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Run a self-check (no DB access) and exit.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
+    )
     args = parser.parse_args(argv)
 
     if args.force and args.reset:
@@ -238,13 +269,29 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(message)s",
     )
 
+    if args.smoke:
+        # No DB access: validate that the demo set is well-formed.
+        assert len(DEMO_ITEMS) >= 1
+        sources = {d.source for d in DEMO_ITEMS}
+        statuses = {d.status for d in DEMO_ITEMS}
+        assert sources == set(Source), "demo set missing a Source value"
+        assert statuses == set(Status), "demo set missing a Status value"
+        print(f"seed {SCRIPT_VERSION}: smoke ok ({len(DEMO_ITEMS)} rows)")
+        return 0
+
+    ui = UI(title="Seed Demo Data", version=SCRIPT_VERSION, theme=THEME)
+    ui.header()
+
     session = SessionLocal()
     try:
         existing = _row_count(session)
-        logger.info("feedback_item currently has %d row(s)", existing)
+        ui.section("Status")
+        ui.kv("feedback_item rows", str(existing))
+        ui.kv("demo rows available", str(len(DEMO_ITEMS)))
 
         if args.dry_run:
-            logger.info("dry-run: would insert %d rows", len(DEMO_ITEMS))
+            ui.kv("mode", "dry-run (no writes)")
+            ui.footer(passed=1, failed=0)
             return 0
 
         if existing > 0 and not (args.force or args.reset):
@@ -252,6 +299,7 @@ def main(argv: list[str] | None = None) -> int:
                 "feedback_item is non-empty; refusing to seed. "
                 "Pass --force to insert anyway, or --reset to truncate first.",
             )
+            ui.footer(passed=0, failed=0, warned=1)
             return 1
 
         if args.reset and existing > 0:
@@ -260,7 +308,9 @@ def main(argv: list[str] | None = None) -> int:
 
         inserted = _insert_all(session)
         session.commit()
-        logger.info("seeded %d feedback items", inserted)
+        ui.section("Result")
+        ui.kv("rows inserted", str(inserted))
+        ui.footer(passed=inserted, failed=0)
     except Exception:
         session.rollback()
         raise

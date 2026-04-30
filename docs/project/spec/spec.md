@@ -471,7 +471,6 @@ are easy.
 ### FeedbackResponse
 
 Used when returning data to the frontend.
-
 Includes:
 
 - id
