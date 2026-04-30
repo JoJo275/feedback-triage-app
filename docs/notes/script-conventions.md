@@ -166,6 +166,102 @@ Steps that may block for >2s without calling `bar.update()` should set
 Env-var reads belong in one helper per script, near the top, with
 explicit defaults and types. Easier to mock in `--smoke`.
 
+### 9. One CLI surface per script — no hidden subcommands
+
+If a script grows a second mode that needs more than one or two flags,
+split it into a second script rather than adding `argparse` subparsers.
+Subcommands hide capabilities behind `--help` digging and complicate
+the recommended-scripts registry. Two scripts named for what they do
+beat one script with `foo serve` / `foo migrate` / `foo seed`.
+
+### 10. Idempotency by default, destructiveness behind a flag
+
+Running a script twice should leave the system in the same state as
+running it once. Anything that destroys data (truncate, force-push,
+delete file) must require an explicit flag (`--reset`, `--force`)
+*and* refuse to act if the destructive flag is the only signal of
+intent. `seed.py`'s "refuse if non-empty unless `--force` or
+`--reset`" is the pattern.
+
+### 11. `task` shortcut for every user-facing script
+
+If a human is expected to run it more than once, it gets a Taskfile
+entry. Internal scripts (called by other scripts or by CI only) stay
+out of `Taskfile.yml` to keep `task --list` short. The litmus test:
+"would a new contributor look for this in `task --list`?"
+
+### 12. Shared modules stay shared — don't fork
+
+When two scripts grow the same helper, extract to `_<name>.py` instead
+of copy-pasting. The `_`-prefix convention already excludes them from
+the command-reference generator. Keep helpers small and single-purpose;
+when one starts hosting a class hierarchy, that's a sign it should
+move into `src/feedback_triage/` or its own package.
+
+### 13. Output is line-oriented and grep-friendly
+
+Even with `UI` chrome, the load-bearing lines (`PASS`, `FAIL`, the
+JSON blob, the file paths) should be on their own lines, prefixable,
+and contain no Unicode characters that ASCII grep won't match. Pretty
+boxes are *around* the data, not woven into it.
+
+### 14. Errors include the next action
+
+When a script exits non-zero, the last line should tell the caller
+what to do — not just what's wrong. "DATABASE_URL not set; export it
+or copy `.env.example` to `.env`" beats "DATABASE_URL not set." This
+is what turns a script from "tool I run" into "tool that teaches."
+
+### 15. Every script's `--help` shows real examples
+
+`argparse`'s `epilog=` is underused. Two or three concrete invocations
+at the bottom of `--help` save more time than a paragraph of prose.
+
+```python
+parser = argparse.ArgumentParser(
+    description="Seed feedback_item with demo rows.",
+    epilog=(
+        "Examples:\n"
+        "  python scripts/seed.py --dry-run\n"
+        "  python scripts/seed.py --reset\n"
+        "  python scripts/seed.py --force   # adds duplicates\n"
+    ),
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
+```
+
+### 16. Color is decoration, never the only signal
+
+`Colors` and `status_icon()` already respect `NO_COLOR`. Make sure the
+*meaning* is in the text too — never rely on red-vs-green alone, since
+a CI log viewer or color-blind reader sees neither. `status_icon()`
+gives you the icon; the icon plus the word ("FAIL: …") is the rule.
+
+### 17. Name boolean flags for the action, not the state
+
+`--no-color` (action) is clearer than `--monochrome` (state).
+`--force` (action) beats `--unsafe` (state). Verbs in the flag name
+let `--help` read as a list of things the script can do.
+
+---
+
+## Quality-of-life upgrades worth a half-day each
+
+Sized to a single afternoon's work. Pick the one most likely to fail
+in production and start there.
+
+| Upgrade | Effort | Payoff |
+| --- | --- | --- |
+| `scripts/smoke_all.py` runner | S | Catches dead imports and broken constants in every script in one CI step. |
+| `ExitCode` enum + adoption pass | S | CI gates can distinguish warnings from failures. |
+| `--format json` standardization | M | Lets the dashboard / future tooling consume any script as data. |
+| Pre-commit hook: bump-script-version | S | Removes the "I forgot to bump SCRIPT_VERSION" footgun. |
+| `_env.py` helper for env-var loading | S | One place to mock for tests; one place to document defaults. |
+| `_cli.py` with `make_parser(name, version, description)` factory | M | Eliminates the boilerplate ten lines at the top of every script's `main()`. |
+| Type-hint `Session` properly in scripts | S | Removes the `session: object` workaround in `seed.py` once mypy config is relaxed for `scripts/`. |
+| Single `--config` flag honoring `pyproject.toml` `[tool.scripts.*]` | M | Per-script defaults without env-var sprawl. |
+| Coverage on `scripts/` (currently excluded) | M | Surfaces dead code in scripts the same way it does in `src/`. |
+
 ---
 
 ## Why this lives in two files

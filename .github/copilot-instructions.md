@@ -270,8 +270,13 @@ is broken, say so.
 
 - Static HTML files served via `StaticFiles`; **no Jinja, no bundler, no SPA framework**
 - Vanilla JS + Fetch API for dynamic behavior
-- Semantic HTML, every input has a `<label>`, buttons are `<button>`
-- Same-origin delivery; CSRF is N/A in v1.0 (no cookie auth)
+- **Semantic HTML.** Use the right tag for what an element *is* (`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<button>`, `<a>`, `<form>`, `<label>`, `<table>`, `<dialog>`, `<details>`). `<div>` means: generic block container with no semantic meaning — use it only when you need a wrapper for layout/styling and no better tag applies. `<span>` is the same rule inline.
+- **Tags carry meaning, classes carry style.** Never style by `id` or `data-*`. Never put `role="button"` on a `<div>` — use `<button>`. ARIA roles are only for cases where no native tag exists.
+- Every `<input>` has a paired `<label for="…">`; actions that *do* something are `<button>`, actions that *navigate* are `<a>`.
+- Heading levels are sequential (one `<h1>` per page, no skipping levels). Every page has a skip-link to `#main`.
+- CSS: tokens (custom properties) for color/spacing/radius; no `!important` outside `prefers-reduced-motion`; `:focus-visible` for focus styles; `rem`/`ch` for sizing. No CSS preprocessor, no Tailwind/Bootstrap import — needs an ADR.
+- Same-origin delivery; CSRF is N/A in v1.0 (no cookie auth).
+- See [`docs/notes/frontend-conventions.md`](../docs/notes/frontend-conventions.md) for rationale, the full tag-selection table, and the accessibility checklist.
 
 ### Testing
 
