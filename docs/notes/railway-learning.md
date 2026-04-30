@@ -103,6 +103,113 @@ retroactively if a runaway loop already burned the credit.
 
 ---
 
+## 4a. Egress and the `DATABASE_PUBLIC_URL` Trap
+
+The Postgres plugin exposes **two** connection strings, side by side in
+the Variables tab:
+
+| Variable | Goes through | Egress billed? | Use it for |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | `*.railway.internal` (private network) | **No** | The web service connecting to its own DB. Default. |
+| `DATABASE_PUBLIC_URL` | `RAILWAY_TCP_PROXY_DOMAIN` (public TCP proxy) | **Yes** | Your laptop running `psql` / one-off Alembic / a backup script. |
+
+Railway warns about this with a yellow icon on `DATABASE_PUBLIC_URL`
+("Connecting to a public endpoint will incur egress fees"). The fee is
+real but small — egress is metered in GB and Hobby includes 100 GB/mo,
+which this app will not approach unless it streams something.
+
+**What to verify on the web service:**
+
+1. Open the **web** service → Variables tab.
+2. Find its `DATABASE_URL` reference.
+3. It should resolve to `${{ Postgres.DATABASE_URL }}` (private), **not**
+   `${{ Postgres.DATABASE_PUBLIC_URL }}`. Railway's reference picker
+   defaults to the private one, but it's worth confirming.
+4. Inside the container, `psql $DATABASE_URL -c '\conninfo'` should
+   show a `*.railway.internal` host.
+
+**Where egress actually accrues for this project:**
+
+- `task migrate` against prod from your laptop — uses the public proxy,
+  costs egress. Keep these rare; prefer the Railway pre-deploy command.
+- Manual `psql`/`pg_dump` from your laptop — same.
+- Anything the *web service* does to the DB — free, traverses private
+  network only.
+
+You don't need to delete `DATABASE_PUBLIC_URL`. It's there so you *can*
+connect from outside; just don't reference it from the web service.
+
+---
+
+## 4b. "Should I make Postgres serverless / sleep when idle?"
+
+**Short answer: no.** Database sleep on Railway is not the same shape as
+serverless on Neon / PlanetScale / Aurora Serverless.
+
+### What database "sleep" actually means on Railway
+
+Railway lets you mark a service as *removable when idle* (the same App
+Sleeping toggle you used on the web service). Applied to Postgres, this
+means:
+
+- After N minutes with no active connections, Railway stops the
+  Postgres container.
+- The volume (your data) is preserved — sleep ≠ deletion.
+- The first connection after sleep has to wait for the container to
+  cold-start. That's roughly 10–30s of "connection refused" / TCP
+  timeouts before Postgres is accepting traffic again.
+- Storage is billed the same whether running or stopped (volume cost,
+  not compute cost). On Hobby this is negligible for a single small DB.
+
+### Why it's a bad idea here specifically
+
+Your **web** service is already serverless / app-sleep. So the request
+flow on a cold start currently looks like:
+
+```
+request → wake web (5–15s) → web connects to DB (fast) → response
+```
+
+Add DB sleep on top and it becomes:
+
+```
+request → wake web (5–15s) → web tries DB (refused) → web crashes or 502
+                                                    ↘ wake DB (10–30s)
+                                                    ↘ retry connect
+```
+
+FastAPI's connection pool will surface the cold DB as `OperationalError`
+on the first request, which trips the healthcheck and may flap the
+deploy. Even with retries, you've stacked two cold starts on a single
+user request.
+
+The right shape: **stateless tier sleeps, stateful tier stays warm.**
+Keep Postgres always-on; let the web service idle.
+
+### Is this true of databases in general?
+
+Mostly yes, with one big exception. The pattern is:
+
+- **Traditional managed Postgres / MySQL** (Railway plugin, RDS without
+  Aurora Serverless, DigitalOcean Managed DB, Supabase free): "sleep"
+  means stop the container/VM. Cold start is dominated by Postgres's
+  own startup (WAL replay, shared buffer warmup) and is 5–60s. Worth it
+  only if you literally never use the DB outside known windows.
+- **Genuinely serverless databases** (Neon, PlanetScale, Aurora
+  Serverless v2, Cloudflare D1, Turso): cold-start is sub-second
+  because the architecture separates compute from storage and keeps a
+  hot pool of compute units. *These* are safe to scale to zero.
+- **Embedded / file-backed** (SQLite, DuckDB): no concept of sleep —
+  there's no server to stop. The "cost" is just disk.
+
+So for a vanilla Postgres plugin on a PaaS, the trade is: save a few
+cents of compute, pay it back in latency and flaky cold-start
+behavior. Not worth it. If cold-start scale-to-zero matters for your
+DB, the answer is to switch to a serverless-native DB (Neon is the
+drop-in for Postgres), not to bolt sleep onto a non-serverless one.
+
+---
+
 ## 5. Deployment Lifecycle Reference
 
 Every push to `main` triggers this sequence. If any step fails, traffic

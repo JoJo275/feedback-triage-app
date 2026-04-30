@@ -146,7 +146,7 @@ Serve: `uv run mkdocs serve`.
 | File | Scope |
 | --- | --- |
 | `.github/workflows/.instructions.md` | Workflow YAML conventions |
-| `scripts/.instructions.md` | Script conventions |
+| `scripts/.instructions.md` | Script conventions (rules) — see also [`docs/notes/script-conventions.md`](../docs/notes/script-conventions.md) for rationale and recommended additions |
 | `docs/.instructions.md` | Documentation conventions |
 | `docs/adr/.instructions.md` | ADR creation procedure |
 | `tests/.instructions.md` | Test conventions |

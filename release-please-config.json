@@ -11,6 +11,7 @@
       "bump-patch-for-minor-pre-major": false,
       "draft": false,
       "prerelease": false,
+      "release-as": "1.0.0",
       "extra-files": [
         {
           "type": "generic",
