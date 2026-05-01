@@ -186,3 +186,6 @@ scripts/sql/scratch.sql
 # =========================================
 # Generated static site — rebuilt from source with `mkdocs build`
 site/
+
+# Local DB dumps (task db:dump)
+backups/

@@ -81,6 +81,22 @@ tasks:
     cmds:
       - uv run alembic downgrade {{.CLI_ARGS | default "-1"}}
 
+  # ── DB Backup / Restore (local dev only) ───────────────────
+  # Production backups are handled by Railway. These tasks target the
+  # docker-compose `db` service for local demo-data preservation.
+  # Implementation lives in scripts/db_dump.py and scripts/db_restore.py
+  # (cross-platform; replaces the prior PowerShell one-liners).
+  db:dump:
+    desc: "Dump local Postgres to ./backups/feedback-<timestamp>.sql"
+    cmds:
+      - uv run python scripts/db_dump.py {{.CLI_ARGS}}
+
+  db:restore:
+    desc: "Restore from a dump: task db:restore -- backups/feedback-<timestamp>.sql"
+    prompt: This drops and recreates schema in the local Postgres. Continue?
+    cmds:
+      - uv run python scripts/db_restore.py {{.CLI_ARGS}} --yes
+
   # ── Seed ────────────────────────────────────────────────────
   seed:
     desc: Populate demo data (scripts/seed.py — added in Phase 2)
@@ -232,7 +248,11 @@ tasks:
 
   branch:
     desc: Switch to main, clean up stale branches, then create a new branch
+    silent: false
     cmds:
+      # Pre-flight: refuse to proceed (with actionable hints) when the
+      # working tree has changes that would block `git switch main`.
+      - uv run python scripts/branch_preflight.py
       - git switch main
       - uv run python scripts/git_doctor.py --cleanup
       - uv run python scripts/git_doctor.py --new-branch

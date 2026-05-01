@@ -299,6 +299,20 @@ repos:
         files: ^scripts/[^/]+\.py$
         exclude: ^scripts/_
 
+      # -----------------------------------------------------------------------
+      # bump-script-version — SCRIPT_VERSION freshness
+      # -----------------------------------------------------------------------
+      # Fails when a versioned script's body changes but SCRIPT_VERSION
+      # stays the same. Compares against HEAD; ignores comment/docstring/
+      # whitespace-only diffs. Skip with `[skip script-version]` in the
+      # commit message or `# bump-script-version: skip` in the file.
+      - id: bump-script-version
+        name: bump-script-version (SCRIPT_VERSION freshness)
+        entry: python scripts/precommit/bump_script_version.py
+        language: python
+        files: ^scripts/[^/]+\.py$
+        exclude: ^scripts/_
+
   # ===========================================================================
   # STAGE: commit-msg  (validates the commit message)
   # Install: pre-commit install --hook-type commit-msg
