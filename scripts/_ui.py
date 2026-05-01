@@ -33,14 +33,37 @@ import shutil
 import textwrap
 import tomllib
 from collections.abc import Callable
+from enum import IntEnum
 from typing import ClassVar
 
 from _colors import Colors, strip_ansi, supports_unicode, unicode_symbols
 from _imports import find_repo_root
 
-__all__ = ["RECOMMENDED_SCRIPTS", "UI", "Spacing"]
+__all__ = ["RECOMMENDED_SCRIPTS", "UI", "ExitCode", "Spacing"]
 
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
+
+
+# ---------------------------------------------------------------------------
+# Standard exit codes
+# ---------------------------------------------------------------------------
+# Scripts return one of these from ``main()`` so CI gates can distinguish
+# warnings from failures.  ``USAGE`` and ``INTERNAL`` follow ``sysexits.h``.
+
+
+class ExitCode(IntEnum):
+    """Standard exit codes for scripts.
+
+    Values match BSD ``sysexits.h`` where applicable so shell tooling can
+    interpret them without the script having to document its own scheme.
+    """
+
+    OK = 0
+    WARN = 1  # ran successfully but surfaced warnings
+    FAIL = 2  # logical failure
+    USAGE = 64  # bad CLI arguments
+    INTERNAL = 70  # internal/unexpected error
+
 
 # ---------------------------------------------------------------------------
 # Shared recommended-scripts registry

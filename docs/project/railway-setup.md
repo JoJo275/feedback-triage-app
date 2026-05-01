@@ -271,6 +271,12 @@ and start Phase 8, hand back **all** of the following in one batch:
 
 - [ ] **A custom domain** if you want one (e.g. `feedback.<yourname>.dev`).
       Adds a CNAME setup step but makes the README link nicer.
+      **Status (May 2026):** `signalnest.app` is the chosen custom
+      domain (Cloudflare Registrar). Wiring procedure and Cloudflare
+      configuration live in
+      [`docs/notes/domain-and-cloudflare.md`](../notes/domain-and-cloudflare.md);
+      purchase notes in
+      [`docs/notes/buying-a-domain.md`](../notes/buying-a-domain.md).
 - [ ] **Railway project ID** — for the `docs/known-issues.md` runbook,
       so future-me has a stable identifier to reference without leaking
       the URL.

@@ -9,7 +9,7 @@ def test_index_page_serves_html(client: TestClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
-    assert "<title>Feedback Triage</title>" in response.text
+    assert "<title>SignalNest</title>" in response.text
     assert "/static/js/index.js" in response.text
 
 

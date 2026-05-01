@@ -59,6 +59,14 @@ were starting from scratch.
 These are recommendations, not yet enforced. If we adopt one, move
 the line to `scripts/.instructions.md`.
 
+> **Status (May 2026):** all 17 conventions below are now adopted as
+> enforced rules in [`scripts/.instructions.md`](../../scripts/.instructions.md)
+> under "Required Script Conventions." This section is preserved for
+> rationale; the rule wording in the instructions file is authoritative.
+> The exit-code enum lives in [`scripts/_ui.py`](../../scripts/_ui.py)
+> as `ExitCode`. Existing scripts are retrofitted opportunistically when
+> touched — new scripts must comply on first commit.
+
 ### 1. A standard module skeleton
 
 Every CLI script should open in this order so navigation is muscle
@@ -72,6 +80,12 @@ Longer description.
 
 Usage::
     python scripts/foo.py [--flags]
+
+Exit codes:
+    0 = success
+    1 = logical failure
+    2 = environment failure (missing tool, missing file)
+    64 = bad CLI usage
 """
 
 from __future__ import annotations
@@ -79,6 +93,7 @@ from __future__ import annotations
 # 1. stdlib
 import argparse
 import logging
+import sys
 ...
 
 # 2. third-party
@@ -91,6 +106,11 @@ from feedback_triage.x import y
 from _imports import find_repo_root, import_sibling
 from _ui import UI
 
+# 5. typing-only imports (avoid runtime cost / circular imports)
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
@@ -102,11 +122,68 @@ ROOT = find_repo_root()
 def _do_thing(...) -> ...: ...
 
 # --- CLI ---
-def main(argv: list[str] | None = None) -> int: ...
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the parser as a separate function so tests can introspect it."""
+    parser = argparse.ArgumentParser(
+        prog="foo",
+        description="...",
+        epilog="Examples:\n  python scripts/foo.py --dry-run\n",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {SCRIPT_VERSION}"
+    )
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--smoke", action="store_true")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point. Always returns an int; never calls ``sys.exit`` itself."""
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    logging.basicConfig(format="%(message)s", level=logging.INFO)
+    ...
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
 ```
+
+A few rules baked into that skeleton that aren't obvious from glancing
+at it:
+
+- **`main(argv=None)` accepts an explicit argv** so tests can invoke
+  it without poking `sys.argv`. Never call `sys.argv` from inside
+  `main()` — let argparse read from `argv`.
+- **`main()` returns an int and only `if __name__ == "__main__"`
+  calls `sys.exit`.** Splitting the two lets a script be imported
+  (e.g. by a smoke-runner) without exiting the interpreter.
+- **`_build_parser()` is its own function**, separate from `main()`.
+  Tests can introspect flags, generate completions, or render `--help`
+  without running side effects.
+- **Exit codes are documented in the module docstring**, not just
+  passed back as magic integers. Aligns with convention #3's
+  `ExitCode` enum once adopted.
+- **`TYPE_CHECKING` block goes after the runtime imports**, not
+  scattered. Anything imported there must be referenced as a string
+  forward-ref or via `from __future__ import annotations` (which the
+  skeleton already enforces).
+- **No `__all__`.** Scripts are CLI entry points, not libraries; an
+  `__all__` list misleads readers into thinking the module is meant to
+  be imported and re-exported.
+- **Constants block lives between imports and helpers**, in this order:
+  `SCRIPT_VERSION`, `THEME`, `ROOT`, then domain-specific constants.
+  Predictable placement makes "what version is this?" a one-glance
+  question.
+- **Helpers are underscore-prefixed (`_do_thing`) when private to
+  the script.** Public-shaped names (`do_thing`) signal "yes, you may
+  import this from another script via `import_sibling`."
+- **The shebang (`#!/usr/bin/env python3`) is real**, not decorative —
+  the `check-shebang-scripts-are-executable` pre-commit hook will fail
+  the commit if a shebanged script lacks the executable bit. Set it
+  with `git add --chmod=+x scripts/foo.py` on first commit.
 
 ### 2. `--format {text,json}` instead of `--json`
 
@@ -255,7 +332,6 @@ in production and start there.
 | `scripts/smoke_all.py` runner | S | Catches dead imports and broken constants in every script in one CI step. |
 | `ExitCode` enum + adoption pass | S | CI gates can distinguish warnings from failures. |
 | `--format json` standardization | M | Lets the dashboard / future tooling consume any script as data. |
-| Pre-commit hook: bump-script-version | S | Removes the "I forgot to bump SCRIPT_VERSION" footgun. |
 | `_env.py` helper for env-var loading | S | One place to mock for tests; one place to document defaults. |
 | `_cli.py` with `make_parser(name, version, description)` factory | M | Eliminates the boilerplate ten lines at the top of every script's `main()`. |
 | Type-hint `Session` properly in scripts | S | Removes the `session: object` workaround in `seed.py` once mypy config is relaxed for `scripts/`. |

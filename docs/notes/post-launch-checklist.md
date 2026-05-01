@@ -138,6 +138,9 @@ Things that don't matter on day 0 but matter by day 7:
 
 - [ ] **Custom domain** (optional). If you own one, point a CNAME at
       Railway and let Railway provision the cert. Updates `README.md`.
+      **Planned:** `signalnest.app` (Cloudflare Registrar). See
+      [`domain-and-cloudflare.md`](domain-and-cloudflare.md) for the
+      Cloudflare-side configuration.
 - [ ] **Status page or uptime monitor.**
       [UptimeRobot](https://uptimerobot.com/) free tier checks `/health`
       every 5 min and emails on failure. Catches "Railway region went

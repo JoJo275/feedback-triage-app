@@ -13,8 +13,8 @@
 #      module references in docs/reference/api.md with your package name.
 #   6. Update not_in_nav if you add or remove files from docs/.
 
-site_name: feedback-triage-app
-site_description: Simple Python boilerplate using src/ layout
+site_name: SignalNest
+site_description: "SignalNest — a small FastAPI + Postgres feedback-triage app (repo: feedback-triage-app)"
 docs_dir: docs
 site_url: https://jojo275.github.io/feedback-triage-app/
 repo_url: https://github.com/JoJo275/feedback-triage-app
@@ -92,6 +92,7 @@ nav:
   - Project:
       - Spec (v1.0): project/spec/spec-v1.md
       - Spec (v2.0 draft): project/spec/spec-v2.md
+      - Spec (v2.0 reviewer feedback): project/spec/spec-v2-feedback.md
       - Implementation Plan: project/implementation.md
       - Open Questions: project/questions.md
       - Deployment Notes: project/deployment-notes.md
