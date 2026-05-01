@@ -71,7 +71,7 @@ end so you can tell whether it actually took.
    without this config Railway falls back to Python autodetect and
    fails with `No start command detected`. The spec mandates the
    multi-stage Containerfile per
-   [Container Hardening](spec/spec.md#container-hardening-must).
+   [Container Hardening](spec/spec-v1.md#container-hardening-must).
 
 ✅ **Check:** the project dashboard shows one service whose source is
 `JoJo275/feedback-triage-app @ main` and whose builder is `Dockerfile`
@@ -147,7 +147,7 @@ The values that `railway.toml` actually sets:
 > **Why `/health`, not `/ready`:** liveness probes restart the
 > container on failure; readiness probes just stop traffic. A DB blip
 > against `/ready` would cause restart loops. See
-> [spec — Health and readiness](spec/spec.md#health-and-readiness).
+> [spec — Health and readiness](spec/spec-v1.md#health-and-readiness).
 
 ✅ **Check:** the next deploy log shows a "Pre-deploy" step running
 `alembic upgrade head` *before* the "Healthcheck" step. If you ever
@@ -242,7 +242,7 @@ and start Phase 8, hand back **all** of the following in one batch:
 
 - [ ] **Public service URL** — the `https://<...>.up.railway.app` (or
       custom domain). Goes in the README header per
-      [spec — README Sections to Include](spec/spec.md#readme-sections-to-include-must).
+      [spec — README Sections to Include](spec/spec-v1.md#readme-sections-to-include-must).
 - [ ] **Confirmation each step 1–7 above is green**, ideally as a
       copy-paste of the seven `✅ Check` lines with "done" or the actual
       observed value.
@@ -357,7 +357,7 @@ state.
 
 ## Related Docs
 
-- [`spec/spec.md`](spec/spec.md) — canonical spec; Container Hardening,
+- [`spec/spec-v1.md`](spec/spec-v1.md) — canonical spec; Container Hardening,
   Health and Readiness, Release Flow live here.
 - [`deployment-notes.md`](deployment-notes.md) — *why* of every choice
   in this runbook (cost math, pool sizing, sleep tradeoffs).

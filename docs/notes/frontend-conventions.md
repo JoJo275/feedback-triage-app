@@ -391,7 +391,7 @@ delightful feature at a time.
   and a feature flag, both wired before the first call. Otherwise a
   bug in a loop costs real money.
 - **Feature creep silently breaks the spec.** Every new feature must
-  update [`docs/project/spec/spec.md`](../project/spec/spec.md) or
+  update [`docs/project/spec/spec-v1.md`](../project/spec/spec-v1.md) or
   it's de-facto undocumented. The spec stays the canonical
   description of the system; v2 doesn't get to skip that rule.
 

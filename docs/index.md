@@ -3,7 +3,7 @@
 Portfolio-grade FastAPI + PostgreSQL app for triaging customer feedback.
 
 The single source of truth for **what** to build is the
-[Project Spec](project/spec/spec.md). The companion
+[Project Spec v1.0](project/spec/spec-v1.md). The companion
 [Implementation Plan](project/implementation.md) sequences the work into
 phases with explicit definitions of done.
 
@@ -11,7 +11,7 @@ phases with explicit definitions of done.
 
 | Resource                                              | Description                                |
 | ----------------------------------------------------- | ------------------------------------------ |
-| [Project Spec](project/spec/spec.md)                  | Canonical product, schema, and API spec    |
+| [Project Spec v1.0](project/spec/spec-v1.md)         | Canonical product, schema, and API spec    |
 | [Implementation Plan](project/implementation.md)      | Phase-by-phase build plan                  |
 | [Open Questions](project/questions.md)                | Tracked open questions & decisions         |
 | [Deployment Notes](project/deployment-notes.md)       | Railway operational notes                  |

@@ -4,7 +4,7 @@ Practical notes on deploying the **Feedback Triage App** to Railway. This
 doc covers the *operational* side of deployment (cost, config, sleep,
 limits). For the *what to deploy* side — multi-stage `Containerfile`,
 non-root user, `HEALTHCHECK`, image hardening — see the
-[Container Hardening section in the spec](spec/spec.md#container-hardening-must).
+[Container Hardening section in the spec](spec/spec-v1.md#container-hardening-must).
 
 ---
 
@@ -40,7 +40,7 @@ For this app:
 
 Use Postgres for persistent feedback data. Do not use local SQLite for the
 deployed version; SQLite is also explicitly banned for tests
-([spec — Test Database Strategy](spec/spec.md#test-database-strategy)).
+([spec — Test Database Strategy](spec/spec-v1.md#test-database-strategy)).
 
 ---
 
@@ -89,7 +89,7 @@ Railway runs the pre-deploy command in a one-off container against the
 new image, then swaps traffic to the new release only if it succeeds. If
 migrations fail, the old version keeps serving traffic.
 
-Alternatives (see [spec — Running migrations on Railway](spec/spec.md#running-migrations-on-railway)):
+Alternatives (see [spec — Running migrations on Railway](spec/spec-v1.md#running-migrations-on-railway)):
 
 1. `railway run -- alembic upgrade head` from a developer machine, gated
    behind a release runbook checklist. Acceptable for a portfolio
@@ -109,7 +109,7 @@ uvicorn feedback_triage.main:app --host 0.0.0.0 --port $PORT --workers 2
 ```
 
 `--workers 2` is the v1.0 default per
-[spec — Concurrency model](spec/spec.md#concurrency-model). Two workers
+[spec — Concurrency model](spec/spec-v1.md#concurrency-model). Two workers
 survive a single slow request without dropping the next; one worker
 queues every request behind the slowest. If you are running on Railway
 Hobby with tight memory limits and the demo is purely portfolio-grade
@@ -137,13 +137,82 @@ Railway healthchecks should hit `/health`, **not** `/ready`.
   means "stop sending traffic for now" but the process itself is fine.
 
 Conflating them causes restart loops on transient DB blips. See
-[spec — Health and readiness](spec/spec.md#health-and-readiness).
+[spec — Health and readiness](spec/spec-v1.md#health-and-readiness).
 
 Configure Railway:
 
 - **Healthcheck path:** `/health`
 - **Healthcheck timeout:** 5s (well above the 2s readiness budget, since
   liveness should be effectively instant)
+
+---
+
+## Custom Domain
+
+Railway gives every service a default URL like
+`feedback-triage-app-production.up.railway.app`. To serve the app from a
+custom domain (e.g. `feedback.example.com`), the work is split between
+Railway and the DNS registrar that owns the domain.
+
+### 1. Add the domain in Railway
+
+1. Open the Railway project → web service → **Settings → Networking →
+   Domains → Custom Domain**.
+2. Enter the hostname you want (apex `example.com` or a subdomain such as
+   `feedback.example.com`). **Subdomains are recommended** — apex domains
+   require an `ALIAS`/`ANAME`/flattened-`CNAME` record that not every
+   registrar supports.
+3. Railway returns a target hostname (e.g.
+   `xxxx.up.railway.app`). Copy it; the next step needs it.
+
+### 2. Configure DNS at the registrar
+
+At whichever registrar holds the zone (Cloudflare, Namecheap, Route 53,
+etc.), create one of:
+
+| Hostname type        | Record  | Value                                     |
+| -------------------- | ------- | ----------------------------------------- |
+| Subdomain (recommended) | `CNAME` | the Railway target from step 1         |
+| Apex (`example.com`) | `ALIAS` / `ANAME` / flattened `CNAME` | the Railway target from step 1 |
+
+Notes:
+
+- If using Cloudflare, set the proxy status to **DNS only** (grey cloud)
+  during initial validation. Re-enable the orange cloud only after
+  Railway shows the domain as **Active**. Cloudflare's proxy mode
+  interferes with Railway's automatic Let's Encrypt issuance.
+- TTL: leave at the registrar default (usually 5 min – 1 h) until the
+  domain is live, then raise it.
+
+### 3. Wait for verification + TLS
+
+Railway automatically issues a Let's Encrypt certificate once the DNS
+record resolves. The dashboard moves the domain through
+`Pending DNS → Issuing Certificate → Active`. Typical end-to-end time is
+a few minutes; allow up to an hour for stubborn DNS propagation.
+
+### 4. Update project references
+
+Once the domain is `Active`:
+
+- Update the live-demo link in `README.md` and any docs that reference
+  the old `*.up.railway.app` URL.
+- If `BASE_URL` (or any equivalent env var) is set on the Railway service,
+  point it at the new hostname.
+- Re-run `task test:e2e` against the new URL if the smoke suite is
+  configured with an explicit base URL.
+
+### Troubleshooting
+
+- **"Domain not verified"** — DNS hasn't propagated yet. Check with
+  `nslookup feedback.example.com` (or `dig`); it should resolve to the
+  Railway target. Cloudflare proxy mode is the most common culprit.
+- **Certificate stuck in "Issuing"** — Let's Encrypt's HTTP-01 challenge
+  needs the domain to point at Railway *and* not be intercepted by a
+  proxy. Disable Cloudflare proxy, wait, re-trigger from the Railway UI.
+- **Mixed-content errors after switchover** — only an issue if the app
+  hardcodes `http://` URLs anywhere; this project doesn't, but check
+  `BASE_URL` and any seeded fixtures.
 
 ---
 
@@ -289,7 +358,7 @@ not for production DR.
 
 ## Release Flow Summary
 
-Per [spec — Release Flow](spec/spec.md#release-flow-must), this project
+Per [spec — Release Flow](spec/spec-v1.md#release-flow-must), this project
 separates **Deploy** (continuous, every merge to `main`) from **Release**
 (tag-driven via release-please).
 
@@ -354,12 +423,12 @@ Configure:
 - Set a hard usage limit before the first deploy, not after.
 - Keep everything in one FastAPI service plus Postgres.
 - Treat Railway as the demo target, not the source of truth — the
-  source of truth is `docs/project/spec/spec.md`.
+  source of truth is `docs/project/spec/spec-v1.md`.
 
 ---
 
 ## Related docs
 
-- [`spec/spec.md`](spec/spec.md) — canonical project spec
+- [`spec/spec-v1.md`](spec/spec-v1.md) — canonical project spec
 - [`questions.md`](questions.md) — open questions and their answers
 - [`implementation.md`](implementation.md) — phase-by-phase build plan

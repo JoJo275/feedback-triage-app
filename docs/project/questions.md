@@ -2,7 +2,7 @@
 
 Open questions about the **Feedback Triage App** and their current
 answers. The canonical answer is always
-[`spec/spec.md`](spec/spec.md); this file collects the *why* behind the
+[`spec/spec-v1.md`](spec/spec-v1.md); this file collects the *why* behind the
 decisions a reader is most likely to ask about.
 
 ---
@@ -19,7 +19,7 @@ PostgreSQL 16:
 - Real-world skill: most production Python web apps run on Postgres.
 - SQLModel + Alembic are well-documented against Postgres.
 - It is the dialect used in tests too — see
-  [spec — Test Database Strategy](spec/spec.md#test-database-strategy).
+  [spec — Test Database Strategy](spec/spec-v1.md#test-database-strategy).
   SQLite is explicitly banned, even for tests, because it lacks `ENUM`
   and behaves differently from Postgres in enough places to let bugs
   through.
@@ -122,7 +122,7 @@ options exist but are not recommended:
 ### 3. SQLite (banned)
 
 - Banned by the spec for both runtime and tests
-  ([Test Database Strategy](spec/spec.md#test-database-strategy)).
+  ([Test Database Strategy](spec/spec-v1.md#test-database-strategy)).
 - SQLite lacks native enums, behaves differently around `JSON`, and is
   case-insensitive by default. Tests that pass on SQLite can fail on
   Postgres in production.
@@ -141,7 +141,7 @@ The frontend is plain static HTML files served by `StaticFiles`, with
 JavaScript calling the JSON API via `fetch()`. No Jinja, no SPA
 toolchain. Justifications and the rejected alternatives (progressive
 enhancement, server-rendered initial paint, HTMX) are recorded in
-[spec — Frontend Delivery Model](spec/spec.md#frontend-delivery-model)
+[spec — Frontend Delivery Model](spec/spec-v1.md#frontend-delivery-model)
 and will be promoted to ADR 051 on fork.
 
 Short version: with three pages and a JS-driven UI, server-side
@@ -171,12 +171,12 @@ insert) are documented as the upgrade path: switch to keyset
 pagination on `(created_at DESC, id DESC)` if either becomes a real
 problem.
 
-See [spec — List](spec/spec.md#list).
+See [spec — List](spec/spec-v1.md#list).
 
 ---
 
 ## Related docs
 
-- [`spec/spec.md`](spec/spec.md) — full project spec (canonical)
+- [`spec/spec-v1.md`](spec/spec-v1.md) — full project spec (canonical)
 - [`deployment-notes.md`](deployment-notes.md) — Railway cost and config
 - [`implementation.md`](implementation.md) — phase-by-phase build plan

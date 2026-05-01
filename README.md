@@ -21,7 +21,7 @@ incoming customer feedback. Create, list, view, update, and delete
 
 - **Live demo:** <https://feedback-triage-app-production.up.railway.app>
 - **API docs:** <https://feedback-triage-app-production.up.railway.app/api/v1/docs>
-- **Spec:** [`docs/project/spec/spec.md`](docs/project/spec/spec.md)
+- **Spec:** [`docs/project/spec/spec-v1.md`](docs/project/spec/spec-v1.md)
 
 ## Screenshots
 
@@ -116,7 +116,7 @@ the schema in this README.
 ## Future Improvements
 
 A trimmed list — the full set lives in
-[`docs/project/spec/spec.md#future-improvements`](docs/project/spec/spec.md#future-improvements).
+[`docs/project/spec/spec-v1.md#future-improvements`](docs/project/spec/spec-v1.md#future-improvements).
 
 - Authentication and per-user feedback ownership
 - Cursor / keyset pagination for large datasets

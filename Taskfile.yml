@@ -230,6 +230,13 @@ tasks:
     cmds:
       - uv run python scripts/git_doctor.py {{.CLI_ARGS}}
 
+  branch:
+    desc: Switch to main, clean up stale branches, then create a new branch
+    cmds:
+      - git switch main
+      - uv run python scripts/git_doctor.py --cleanup
+      - uv run python scripts/git_doctor.py --new-branch
+
   clean:todo:
     desc: Archive completed TODO items
     cmds:

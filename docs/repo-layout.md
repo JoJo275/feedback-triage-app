@@ -471,7 +471,7 @@ User → main.py → cli.py → engine.py → result
 
 > Logic lives in `engine.py`. Interfaces (`cli.py`, `api.py`) adapt it.
 
-See the project spec at [docs/project/spec/spec.md](project/spec/spec.md)
+See the project spec v1.0 at [docs/project/spec/spec-v1.md](project/spec/spec-v1.md)
 for authoritative architecture notes.
 
 ---
