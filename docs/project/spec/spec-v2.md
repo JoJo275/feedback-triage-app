@@ -13,8 +13,10 @@
 > here inherits from v1.0 unchanged.
 >
 > **Reviewer feedback:** see [`spec-v2-feedback.md`](spec-v2-feedback.md)
-> for open critiques and decisions the author still needs to make. Fold
-> answers into this file, then delete the feedback doc.
+> for open critiques on this doc. The brand / visual direction lives in
+> [`core-idea.md`](core-idea.md), with pushback in
+> [`core-idea-feedback.md`](core-idea-feedback.md). Fold answers from
+> all three back into this file, then archive the feedback docs.
 
 ---
 
@@ -82,17 +84,87 @@ for the full list.
 
 ## v2.0 Theme
 
-> _One-paragraph summary of what v2.0 is **for**. Examples: "Make the
-> tool usable for a small team — add accounts, multi-user feedback
-> ownership, and basic auditing." Or: "Improve triage UX — add labels,
-> bulk actions, and full-text search." Without a stated theme, scope
-> creep is guaranteed._
+**SignalNest is a calm, multi-user feedback-triage tool. v2.0 turns
+v1.0's single-resource CRUD into a workflow:** Intake → Triage →
+Prioritize → Act → Close the loop. Visually it ships as a light SaaS
+dashboard (slate / white base, teal primary accent, amber warning).
 
-**Working draft (needs author confirmation):** Make the app usable for
-a small multi-user team by adding email-based accounts, per-user
-feedback ownership, and a richer triage workflow (notes, tags, statuses).
-Stretch goal: a more polished, dashboard-style UI. See feedback doc
-item #1 — the Theme has to land before any feature work starts.
+The Theme is sourced from [`core-idea.md`](core-idea.md). Pushback
+and open decisions on the brand brief itself are in
+[`core-idea-feedback.md`](core-idea-feedback.md). v2.0 ships the
+**smallest subset** of the workflow that tells the story end-to-end
+(Intake → Triage → Prioritize); _Act_ and _Close the loop_ are v3.0.
+
+---
+
+## Workflow
+
+The SignalNest workflow is the organizing principle of every v2.0
+feature. Each phase maps to feature surfaces and a release.
+
+| Phase             | Maps to (v2.0)                                  | Maps to (v3.0)              |
+| ----------------- | ----------------------------------------------- | --------------------------- |
+| Intake            | `POST /api/v1/feedback` + signup / login        | Public submission portal    |
+| Triage            | Inbox page, status pills, filters               | Bulk actions, side drawer   |
+| Prioritize        | Tags, priority badges, status workflow          | Voting, severity / impact   |
+| Act               | Notes (Feature 3)                               | Roadmap, linked tasks       |
+| Close the loop    | (deferred)                                      | Changelog, status-change emails |
+
+Every proposed feature below is justified against this table. If a
+feature doesn't slot into a workflow phase, it shouldn't be in v2.0.
+
+---
+
+## Feature Prioritization (Portfolio × Product Value)
+
+Features are scored on two axes:
+
+- **Portfolio value (PV-port):** how much a feature improves the
+  story a reviewer sees in 60 seconds. Auth flows, polished UI,
+  and the styleguide weigh heavily here.
+- **Product value (PV-prod):** how much a feature moves the actual
+  triage workflow forward. Notes, tags, statuses weigh heavily
+  here.
+
+Scale: **High / Medium / Low.** The Tier column (Must / Should /
+Nice) is retained as a secondary axis for v1.0-style requirement
+tracking — both lenses matter.
+
+| #  | Feature                              | PV-port | PV-prod | Tier   | Effort | Build order |
+| -- | ------------------------------------ | ------- | ------- | ------ | ------ | ----------- |
+| F1 | User accounts + email auth           | High    | High    | Should | L      | 1 (alpha)   |
+| F4 | Style guide page with theme demos    | High    | Medium  | Should | S      | 2 (alpha)   |
+| FX | Inbox rebrand + status workflow      | High    | High    | Should | M      | 3 (beta)    |
+| F3 | Triage extensions — tags, notes      | Medium  | High    | Should | M      | 4 (beta)    |
+| FY | Dashboard summary cards              | High    | Medium  | Nice   | S      | 5 (final)   |
+| F2 | Frontend rewrite (React/Vite/TS/TW)  | High    | Low     | TBD    | XL     | **Defer**   |
+
+**Reading the table:**
+
+- **F1 + F4 ship first** because together they deliver the largest
+  portfolio jump per unit of effort: a logged-in user state that a
+  reviewer recognizes as "a real product" plus a single URL
+  (`/styleguide`) that demonstrates the design system. F4 is
+  intentionally cheap (S effort) and runs in parallel with F1's
+  backend.
+- **FX (Inbox rebrand)** turns the existing list page into the
+  triage command center described in `core-idea.md`. Same data as
+  v1.0; new layout, new status pills, new filters. Pure
+  frontend / template work — no schema churn beyond the status
+  enum decision (see
+  [`core-idea-feedback.md` item #3](core-idea-feedback.md#3-status-enum-is-being-expanded-silently)).
+- **F3 (tags + notes)** lands next because it's where _Triage_
+  becomes _Prioritize_. Schema-additive; no v1.0 row churn.
+- **FY (Dashboard)** is the smallest possible "signal overview":
+  four summary cards on the home page (`New`, `Reviewing`,
+  `High Priority`, `Stale`). Stretch.
+- **F2 (React rewrite)** stays deferred. Portfolio value is high
+  but redundant with F4 + FX, and product value is low (the workflow
+  doesn't need a SPA). XL effort with no story gain. See
+  [`spec-v2-feedback.md` item #2](spec-v2-feedback.md#2-frontend-rewrite-is-a-separate-concern-from-auth).
+
+**FX and FY are new — added in this prioritization pass.** Their
+full feature blocks are sketched at the end of Proposed Features.
 
 ---
 
@@ -106,8 +178,9 @@ the model.
 The draft features below are **sketches**. Each needs to be fleshed out
 to v1.0-spec rigor before this document ratifies.
 
-### Feature 1: User accounts and email-based authentication
+### Feature 1 (F1): User accounts and email-based authentication
 
+- **Portfolio value:** High. **Product value:** High. **Effort:** L.
 - **Tier:** Should (core to the v2.0 Theme)
 - **Why now:** v1.0 has no concept of a user; every feedback item is
   anonymous and editable by anyone. Multi-user use requires accounts.
@@ -126,8 +199,11 @@ to v1.0-spec rigor before this document ratifies.
 - **Rollout:** TBD. Likely needs a feature flag so the auth layer can
   ship behind a redirect before the UI lands.
 
-### Feature 2: Frontend rewrite (React + Vite + TypeScript + Tailwind)
+### Feature 2 (F2): Frontend rewrite (React + Vite + TypeScript + Tailwind)
 
+- **Portfolio value:** High. **Product value:** Low. **Effort:** XL.
+- **Recommendation:** **Defer to v3.0.** Redundant with F4 + FX for
+  portfolio purposes; workflow doesn't need a SPA.
 - **Tier:** TBD — **needs an ADR before being committed to v2.0.**
 - **Why now:** the author wants a "polished product-style dashboard"
   beyond what static HTML + vanilla JS supports. Counter-argument in
@@ -144,9 +220,10 @@ to v1.0-spec rigor before this document ratifies.
   during cutover; remove old HTML after smoke is green.
 - **Rollout:** TBD.
 
-### Feature 3: Triage extensions — notes, tags, statuses
+### Feature 3 (F3): Triage extensions — notes, tags, statuses
 
-- **Tier:** Nice (depends on Theme — see feedback doc item #8)
+- **Portfolio value:** Medium. **Product value:** High. **Effort:** M.
+- **Tier:** Should — _Prioritize_ phase of the workflow.
 - **Why now:** triagers want to annotate feedback ("worked around in
   v1.2") and group it ("UX bugs").
 - **Schema impact:** new `feedback_notes`, `feedback_tags`,
@@ -161,8 +238,9 @@ to v1.0-spec rigor before this document ratifies.
 - **Migration plan:** purely additive; no v1.0 data churn.
 - **Rollout:** straightforward after Feature 1.
 
-### Feature 4: Style guide page with theme demos
+### Feature 4 (F4): Style guide page with theme demos
 
+- **Portfolio value:** High. **Product value:** Medium. **Effort:** S.
 - **Tier:** Should (portfolio surface; doubles as a regression check
   for token edits)
 - **Why now:** as the component surface grows (auth pages, triage
@@ -188,6 +266,54 @@ to v1.0-spec rigor before this document ratifies.
 - **Migration plan:** purely additive; no schema or API churn.
 - **Rollout:** ship in v2.0-alpha alongside the auth backend; the page
   has no auth requirement.
+
+### Feature FX: Inbox rebrand + status workflow
+
+- **Portfolio value:** High. **Product value:** High. **Effort:** M.
+- **Tier:** Should — anchors the _Triage_ phase of the workflow.
+- **Why now:** v1.0's home page is a generic list. The brand brief in
+  [`core-idea.md`](core-idea.md) describes a triage command center
+  with summary cards, filter bar, status pills, and priority badges
+  on every row. Same data, much higher signal-to-noise for the
+  reviewer.
+- **Schema impact:** depends on the status-workflow decision in
+  [`core-idea-feedback.md` item #3](core-idea-feedback.md#3-status-enum-is-being-expanded-silently).
+  Either extend `status_enum` or move to a `feedback_statuses` lookup
+  table. **Decision pending — must land before FX implementation.**
+- **API surface:** `GET /api/v1/feedback` gains `status`, `priority`,
+  `q` (search) filter params. Response envelope unchanged.
+- **UI surface:** rebuild `/` (Inbox) using the layout from
+  `core-idea.md` — top summary strip, filter bar, table rows with
+  status pills and priority badges. Drop the old plain-list view.
+- **Tests:** API tests for new filter params; Playwright smoke for
+  inbox load + at least one filter interaction.
+- **Migration plan:** schema change only if the status decision is B
+  (lookup table); otherwise pure UI work. Plus a hand-reviewed
+  Alembic migration for any new status enum values.
+- **Rollout:** ships in v2.0-beta. Old inbox can stay reachable at
+  `/legacy` for one release if cutover risk is real.
+
+### Feature FY: Dashboard summary (signal overview)
+
+- **Portfolio value:** High. **Product value:** Medium. **Effort:** S.
+- **Tier:** Nice — **stretch for v2.0-final.**
+- **Why now:** the brief calls out a Dashboard page with "signal
+  overview" cards. Cheapest possible version: four count cards
+  (`New`, `Reviewing`, `High Priority`, `Stale`) plus a 30-day
+  sparkline of intake volume. No new data; just aggregate queries
+  over `feedback_item`.
+- **Schema impact:** none.
+- **API surface:** one new read-only endpoint —
+  `GET /api/v1/dashboard/summary` returning the four counts and the
+  intake series. Cached per-process for 60s.
+- **UI surface:** new page `/dashboard` rendered as the default
+  landing page for logged-in users; `/` (public) shows the
+  marketing landing page from `core-idea.md`.
+- **Tests:** API test for the summary endpoint; Playwright smoke for
+  the page load.
+- **Migration plan:** none.
+- **Rollout:** v2.0-final. Skip if effort overruns the alpha+beta
+  budget.
 
 ---
 
@@ -291,17 +417,26 @@ If the rewrite is deferred (recommended in feedback doc item #2):
 
 ## Migration & Rollout Plan
 
-> How v2.0 ships. Single big-bang release? Phased rollout? Feature
-> flags? Backwards compatibility window for the API?
+> How v2.0 ships. Phased rollout, ordered by the Feature
+> Prioritization table above.
 
 **Proposed phased rollout:**
 
-1. **v2.0-alpha:** auth backend (Feature 1) ships behind a
-   `FEATURE_AUTH=false` env flag. Schema migrations run; new endpoints
-   exist but the UI is unchanged.
-2. **v2.0-beta:** UI for auth ships (login/signup pages or React SPA
-   per Feature 2 decision). `FEATURE_AUTH=true` in production.
-3. **v2.0:** triage extensions (Feature 3) ship.
+1. **v2.0-alpha — Identity + Style:**
+   - F1 (auth backend) ships behind a `FEATURE_AUTH=false` env flag.
+     Schema migrations run; new endpoints exist but the public UI is
+     unchanged.
+   - F4 (`/styleguide`) ships in parallel — pure static, no auth
+     dependency.
+2. **v2.0-beta — Triage workflow:**
+   - F1 UI lands (`/auth/login`, `/auth/signup`).
+     `FEATURE_AUTH=true` in production.
+   - FX (Inbox rebrand + status workflow) replaces the v1.0 plain
+     list.
+   - F3 (tags + notes) ships nested under `/feedback/{id}`.
+3. **v2.0-final — Polish:**
+   - FY (Dashboard summary) lands as the default authenticated
+     landing page. Stretch — drop if effort overruns.
 
 **Backwards compatibility:** v1.0 API remains under `/api/v1/`. v2.0 is
 additive — no existing endpoints change shape.
@@ -428,6 +563,15 @@ Each of those is its own ADR if it ever ships.
 
 > Items considered and explicitly punted to v3.0+.
 
+- **F2 (React/Vite/TS/Tailwind frontend rewrite)** — deferred from
+  v2.0; portfolio value covered by F4 + FX, no product-value gain.
+- **Roadmap page** — _Act_ phase of the workflow.
+- **Changelog page** — _Close the loop_ phase of the workflow.
+- **Status-change emails** — depends on Resend dependency hardening;
+  see [`core-idea-feedback.md` item #5](core-idea-feedback.md#5-status-emails-pulls-resend-deeper-into-the-critical-path).
+- **Dark mode switch on the live app** — tokens defined in v2.0
+  (styleguide), shipping deferred to v3.0.
+- **Bulk actions, side drawer, voting, severity / impact scoring.**
 - WebSockets / live updates.
 - AI summarization or clustering of feedback.
 - File attachments on feedback items.
@@ -440,7 +584,9 @@ Each of those is its own ADR if it ever ships.
 ## Related Docs
 
 - [`spec-v1.md`](spec-v1.md) — shipped v1.0 spec (canonical until v2.0 ratifies)
-- [`spec-v2-feedback.md`](spec-v2-feedback.md) — open critiques and unresolved decisions
+- [`core-idea.md`](core-idea.md) — SignalNest brand and visual brief (Theme source)
+- [`core-idea-feedback.md`](core-idea-feedback.md) — pushback / actionables on the brief
+- [`spec-v2-feedback.md`](spec-v2-feedback.md) — open critiques on this doc
 - [`../implementation.md`](../implementation.md) — phase plan; needs a v2.0 phase appendix
 - [`../questions.md`](../questions.md) — open questions and decisions
 - [`../../adr/`](../../adr/) — ADRs governing the platform
