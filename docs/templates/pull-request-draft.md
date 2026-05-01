@@ -1,10 +1,10 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Branch: chore/fork-bring-up -->
+<!-- Branch: wip/2026-04-30-scratch -->
 <!--
   Suggested PR title (conventional commit format — type: description):
 
-    chore: fork bring-up — feedback-triage-app skeleton through Phase 6 + Railway runbook
+    feat: v1.0 release candidate — config hardening, seed script, learning notes
 
   Available prefixes:
     feat:     — new feature or capability
@@ -19,6 +19,8 @@
     build:    — build system or dependency changes
     revert:   — reverts a previous commit
 -->
+
+<!-- Suggested labels: "feature", "documentation", "chore" -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -36,54 +38,70 @@
 
 ## Description
 
-Initial bring-up of `feedback-triage-app` after forking from
-`simple-python-boilerplate`. Lands the FastAPI + PostgreSQL skeleton
-through Phase 6 (Playwright smoke), wires up the deployment runbook for
-Railway (Phase 7), and restores the `fta-*` console scripts as
-project-bound wrappers around the retained dev tooling.
+The v1.0 release-candidate sweep: harden production config, finish the
+seed script to project script-conventions, document Railway / web-app
+tooling for future-me, and reset the version line so the next
+release-please PR ships as `v1.0.0` (not `v1.4.0` inherited from the
+template).
 
-**What changed:**
+**What changes you made:**
 
-- **Pre-Phase fork:** archived the template package to [attic/](attic/), scaffolded
-  [src/feedback_triage/](src/feedback_triage/), retargeted [pyproject.toml](pyproject.toml), [Taskfile.yml](Taskfile.yml),
-  [Containerfile](Containerfile), [docker-compose.yml](docker-compose.yml), workflows, README, ADRs, and
-  [.env.example](.env.example) for the new project.
-- **Build/env:** migrated from `pip install -e .` to `uv sync --frozen`
-  across CI and pre-commit; Hatchling + `hatch-vcs` retained as the build
-  backend (per ADR 016).
-- **Phase 1–2:** core FastAPI app factory, settings via
-  `pydantic-settings`, SQLModel/SQLAlchemy session-per-request, Alembic
-  migration `0001_create_feedback_item` with native enums + CHECK
-  constraints + `BEFORE UPDATE` trigger.
-- **Phase 3:** `/api/v1/feedback` CRUD with envelope-based list responses,
-  explicit `response_model=` on every route, ISO-8601 UTC datetimes.
-- **Phase 4:** static HTML pages (list / new / detail) served via
-  `StaticFiles` with vanilla JS + Fetch — no Jinja, no bundler.
-- **Phase 5:** global exception handlers, request-ID middleware, and
-  structured logging that propagates the request ID through every record.
-- **Phase 6:** Playwright smoke suite under `tests/e2e/`, gated behind
-  `@pytest.mark.e2e` and the `task test:e2e` runner.
-- **Phase 7 prep:** Railway runbook in [docs/](docs/) covering pre-deploy
-  migrations, env-var surface, and cost guardrails.
-- **ADRs:** drafted 045–055 (project-specific) and rewrote inherited
-  014 / 025 / 027 / 029 / 031 to reflect the FastAPI + Postgres stack.
-- **Console scripts:** restored [`src/feedback_triage/entry_points.py`](src/feedback_triage/entry_points.py)
-  with the 19 `fta-*` wrappers (script helpers + dashboard) targeting
-  the editable install — the wheel still ships only the FastAPI app.
+- **Production safety net** — `Settings` now refuses to boot when
+  `APP_ENV=production` and `DATABASE_URL` is unset or points at
+  `localhost`. Includes a unit test.
+- **`scripts/seed.py`** mirrors the rest of `scripts/` —
+  `SCRIPT_VERSION`, `THEME`, `_ui.UI` header/section/kv/footer,
+  `_progress.ProgressBar` over the insert loop, `--version`,
+  `--smoke` self-check that validates every `Source` and `Status`
+  is represented.
+- **Version line reset** — removed inherited `v1.3.0` tag and GitHub
+  Release; `.release-please-manifest.json` set to `0.0.0`;
+  `release-please-config.json` pinned with `"release-as": "1.0.0"`
+  for the next release. (This pin must be removed in a follow-up PR
+  after `v1.0.0` ships, otherwise every subsequent release tries to
+  be 1.0.0 again.)
+- **CHANGELOG.md** reset to a fresh template — release-please will
+  repopulate from commit history on the next release PR.
+- **`copilot-instructions.md`** — Frontend section expanded with
+  semantic-HTML, tags-vs-classes, and CSS rules; pointer added to
+  the new `frontend-conventions.md` notes file. Targeted-instruction
+  table updated to point at the new `script-conventions.md`.
+- **`scripts/.instructions.md`** + **`.github/SKILL.md`** — pointers
+  to the new script-conventions notes.
+- **New notes files** in `docs/notes/`:
+  - `script-conventions.md` — rationale for the rules in
+    `scripts/.instructions.md` plus 17 recommended additions and a
+    half-day-each upgrade table.
+  - `frontend-conventions.md` — semantic-HTML rationale, full
+    tag-selection table, CSS conventions (tokens, `:focus-visible`,
+    no `!important`, accessibility checklist), and a tiered
+    "commercial-product features" roadmap (Tier 1 / Tier 2 / Tier 3)
+    for v2 work.
+  - `webapp-tooling.md` — field guide to web-app tools (Pico,
+    Tailwind, htmx, Alpine, React, Svelte, Django, Vite, etc.) with
+    when-to-use, pros, cons, and how each would affect this repo.
+  - Plus three notes from earlier commits in this branch:
+    `railway-learning.md`, `how-deployment-works.md`,
+    `post-launch-checklist.md`.
 
-**Why:**
+**Why you made them:**
 
-The template gave us CI, ADRs, docs scaffolding, and dev tooling for free;
-the app code, schema, and deployment story all needed to be authored from
-the spec ([docs/project/spec/spec.md](docs/project/spec/spec.md)). Landing Pre-Phase through Phase 6
-in one branch keeps the rewrite atomic — every surface (spec, ADRs,
-README, CI, Containerfile, tests) moves together so reviewers can verify
-internal consistency in a single pass.
+- The localhost-DB-in-production check exists because Railway's
+  pre-deploy command silently inherits the default `DATABASE_URL`
+  if the Postgres plugin isn't linked, leading to a confusing
+  `Connection refused` instead of an actionable error. See
+  `docs/project/railway-setup.md` step 2.
+- `seed.py` was the only script in `scripts/` not following the
+  shared conventions; bringing it in line removes the rough edge
+  before v1.0.
+- The version reset turns the inherited-template tag history into
+  a clean `v1.0.0` for the portfolio piece.
+- The notes files capture decisions and trade-offs while context is
+  fresh, and pre-write the v2 roadmap so post-1.0 work has a plan.
 
 ## Related Issue
 
-N/A — initial fork bring-up; tracked against the implementation plan in
-[docs/project/implementation.md](docs/project/implementation.md).
+N/A — pre-1.0 sweep, not tracking each item as a separate issue.
 
 ## Type of Change
 
@@ -91,86 +109,103 @@ N/A — initial fork bring-up; tracked against the implementation plan in
 - [x] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [x] 📚 Documentation update
-- [x] 🔧 Refactor (no functional changes)
+- [ ] 🔧 Refactor (no functional changes)
 - [x] 🧪 Test update
 
 ## How to Test
 
 **Steps:**
 
-1. `uv sync` — installs the project + dev/test extras into `.venv`.
-2. `task up` — boots the Postgres 16 container via Compose.
-3. `task migrate` — applies `0001_create_feedback_item`.
-4. `task dev` — FastAPI on `http://localhost:8000`; visit `/api/v1/docs`
-   and the `/`, `/new`, `/feedback/{id}` HTML pages.
-5. `task check` — runs ruff + mypy (strict) + pytest API suite.
-6. `task test:e2e` — Playwright smoke against the running app.
-7. (Optional) `fta-env-doctor`, `fta-repo-doctor`, `fta-dashboard` — sanity
-   check the restored console scripts.
+1. **Production-config guard** — confirm the new validator fails
+   loudly when misconfigured and is silent in dev:
+   ```powershell
+   $env:APP_ENV="production"; $env:DATABASE_URL="postgresql://u:p@localhost/db"
+   uv run python -c "from feedback_triage.config import Settings; Settings()"
+   # Expect: ValidationError mentioning 'localhost' and railway-setup.md
+   Remove-Item Env:\APP_ENV; Remove-Item Env:\DATABASE_URL
+   ```
+2. **Seed script smoke** — no DB required:
+   ```powershell
+   uv run python scripts/seed.py --smoke
+   # Expect: "seed 1.0.0: smoke ok (20 rows)"
+   ```
+3. **Seed script end-to-end** — local Postgres up:
+   ```powershell
+   task up
+   task migrate
+   uv run python scripts/seed.py --reset
+   uv run python scripts/seed.py --version
+   ```
+4. **Release pipeline dry check** — confirm the manifest + config
+   change parses:
+   ```powershell
+   Get-Content .release-please-manifest.json
+   Get-Content release-please-config.json | Select-String release-as
+   ```
+5. **Lint / format / tests:**
+   ```powershell
+   uv run ruff check src/ scripts/ tests/
+   uv run ruff format --check src/ scripts/ tests/
+   uv run pytest tests/test_config.py -v
+   task check
+   ```
 
 **Test command(s):**
 
 ```bash
-uv sync
-task up && task migrate
+uv run python scripts/seed.py --smoke
+uv run pytest tests/test_config.py -v
 task check
-task test:e2e
 ```
 
 **Screenshots / Demo (if applicable):**
 
-N/A — UI is intentionally minimal vanilla HTML/JS; see [docs/project/spec/spec.md](docs/project/spec/spec.md)
-"Frontend" section for the rendered shape.
+N/A — no UI changes in this PR.
 
 ## Risk / Impact
 
-**Risk level:** High — first commit of the application; everything below
-the fork point is greenfield code on a still-empty `main` history.
+**Risk level:** Low
 
 **What could break:**
 
-- Railway deploy: pre-deploy `alembic upgrade head` must run before the
-  app boots (runbook documents this; Phase 7 has not yet been exercised
-  against a live Railway project).
-- Session-per-request: the canary test
-  `test_patch_then_get_returns_fresh_state` is the contract; if anyone
-  reintroduces a module-global `Session`, that test must catch it.
-- Native Postgres enums: schema changes that touch `source_enum` /
-  `status_enum` need hand-written Alembic ops — autogenerate misses them.
-- `fta-*` scripts only resolve in an editable checkout; running them from
-  a wheel install will exit with the documented error message.
+- A production deploy whose `DATABASE_URL` *is* localhost will now
+  refuse to start. This is the intended behavior — surfacing the
+  misconfiguration early instead of after a confusing `Connection
+  refused`. Verify the Railway reference variable resolves to a
+  `*.railway.internal` host (which the validator allows).
+- Release-please will produce a `v1.0.0` PR on the next run because
+  of the `release-as` pin. Reviewers should expect this and merge
+  it; the follow-up PR removing the pin must land before the next
+  release after that.
 
-**Rollback plan:** Revert this PR. The repository has no published
-release tag yet and no production deployment, so rollback is purely a
-git operation.
+**Rollback plan:** Revert this PR. Tag history is already reset on
+the remote, but re-tagging `v1.3.0` is possible from any ancestor
+commit if needed.
 
 ## Dependencies (if applicable)
 
-**Depends on:** N/A — first feature PR on the fork.
+**Depends on:** N/A
 
-**Blocked by:** N/A.
+**Blocked by:** N/A
+
+**Follow-up required:** After `v1.0.0` is tagged on `main`, open a
+PR removing `"release-as": "1.0.0"` from `release-please-config.json`
+so subsequent bumps follow Conventional Commits normally.
 
 ## Breaking Changes / Migrations (if applicable)
 
-- [x] Config changes required — copy [.env.example](.env.example) to `.env` and set
-  `POSTGRES_PASSWORD` / `DATABASE_URL` before first boot.
-- [x] Data migration needed — `alembic upgrade head` creates the
-  `feedback_item` table, native enums, CHECK constraints, and the
-  `updated_at` trigger.
-- [x] API changes — establishes `/api/v1/feedback` (no prior surface to
-  break).
-- [x] Dependency changes — replaces the template's runtime stack with
-  `fastapi[standard]`, `sqlmodel`, `psycopg[binary]`, `alembic`,
-  `pydantic-settings`. `uv.lock` is committed.
+- [ ] Config changes required
+- [ ] Data migration needed
+- [ ] API changes (document below)
+- [ ] Dependency changes
 
-**Details:**
-
-See [docs/project/spec/spec.md](docs/project/spec/spec.md) §"Configuration & Environment Variables"
-for the env-var surface and §"Data Model" for the schema.
+**Details:** No schema, no API, no dependency changes. The
+`release-as` pin is a one-shot release-please instruction, not a
+breaking change to consumers.
 
 ## Checklist
 
-- [x] My code follows the project's style guidelines (ruff + mypy strict)
+- [x] My code follows the project's style guidelines
 - [x] I have performed a self-review of my code
 - [x] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
@@ -182,26 +217,30 @@ for the env-var surface and §"Data Model" for the schema.
 
 ## Reviewer Focus (Optional)
 
-Please pay close attention to:
-
-1. **[alembic/versions/0001_create_feedback_item.py](alembic/versions/0001_create_feedback_item.py)** — the autogenerated
-   diff was hand-edited to add the native enum types, CHECK constraints,
-   and `BEFORE UPDATE` trigger. Verify those weren't lost on rebase.
-2. **[src/feedback_triage/database.py](src/feedback_triage/database.py)** — `get_db` is the only place
-   commit/rollback lives; no sessions on `app.state` or module globals.
-3. **[src/feedback_triage/routes/feedback.py](src/feedback_triage/routes/feedback.py)** — every route declares an
-   explicit `response_model=`; list endpoint returns the
-   `{items, total, skip, limit}` envelope, not a bare array.
-4. **ADR rewrites** (014, 025, 027, 029, 031) — confirm they reflect the
-   FastAPI + Postgres stack rather than the template's defaults.
+- **`src/feedback_triage/config.py`** — the new
+  `_require_remote_db_in_production` validator. Confirm the host
+  parsing covers what you'd expect (the `_LOCAL_DB_HOSTS` set
+  matches `localhost`, `127.0.0.1`, `::1`, and empty host) and that
+  the error message points at the right runbook step.
+- **`scripts/seed.py`** — `--smoke` should remain side-effect-free.
+  Verify no DB import path runs during smoke.
+- **`release-please-config.json`** — the `release-as` line is the
+  one-shot pin to `1.0.0`. Track the follow-up issue to remove it
+  after the release lands.
 
 ## Additional Notes
 
-- The template's `spb` / `spb-version` / `spb-doctor` core entry points
-  were intentionally **not** ported: they delegated to `cli.py` and
-  `engine.py` modules that don't exist in `feedback_triage`. The app is
-  launched via `uvicorn feedback_triage.main:app` or `task dev`.
-- [attic/](attic/) is read-only reference material; nothing in the live tree
-  imports from it.
-- `uv.lock` is committed and CI uses `uv sync --frozen`; lock drift will
-  fail the build.
+- Inherited `v1.3.0` tag and GitHub Release have already been
+  deleted from the remote (`gh release delete v1.3.0 --yes
+  --cleanup-tag`). The `CHANGELOG.md` was reset accordingly so
+  release-please regenerates it from commit history.
+- The three new `docs/notes/*.md` files are intentionally
+  long-form. They are companions to short, rule-shaped instruction
+  files (`scripts/.instructions.md`, the Frontend section in
+  `copilot-instructions.md`) — instruction files stay terse for
+  Copilot's `applyTo` scoping; notes files hold the rationale and
+  the v2 roadmap thinking.
+- After this PR merges, the planned sequence is: release-please
+  opens "release v1.0.0" → merge → tag created → follow-up PR
+  removes the `release-as` pin → start v2 work on feature
+  branches per `docs/notes/frontend-conventions.md` § 5.
