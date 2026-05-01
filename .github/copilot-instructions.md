@@ -6,7 +6,11 @@ Guidelines for GitHub Copilot when working in this repository.
 > `simple-python-boilerplate` is complete. The active package is
 > `src/feedback_triage/`; the original template lives under `attic/`
 > as read-only reference material and is not imported by the live tree.
-> The authoritative spec is [`docs/project/spec/spec.md`](../docs/project/spec/spec.md);
+> The authoritative spec is [`docs/project/spec/spec-v1.md`](../docs/project/spec/spec-v1.md);
+> a v2.0 spec is being scaffolded at
+> [`docs/project/spec/spec-v2.md`](../docs/project/spec/spec-v2.md) but is
+> **draft** and not yet authoritative — keep treating v1.0 as the source of
+> truth until v2.0 is ratified.
 > phase order is in [`docs/project/implementation.md`](../docs/project/implementation.md).
 > `scripts/`, `tools/`, `mkdocs-hooks/`, and `.github/workflows/` are
 > retained as general-purpose dev tooling; trim only when something
@@ -22,7 +26,7 @@ Guidelines for GitHub Copilot when working in this repository.
 backend exposing a JSON API under `/api/v1/`, backed by PostgreSQL 16, with
 a frontend of static HTML + vanilla JS served from the same FastAPI process.
 The single source of truth for tool configuration is `pyproject.toml`. The
-canonical spec is [`docs/project/spec/spec.md`](../docs/project/spec/spec.md).
+canonical spec is [`docs/project/spec/spec-v1.md`](../docs/project/spec/spec-v1.md).
 
 ### Domain / Business Context
 
@@ -163,7 +167,7 @@ file for file-type-specific details.
 ### Spec Is Source of Truth
 
 When in doubt about scope, schema, or a decision, read
-[`docs/project/spec/spec.md`](../docs/project/spec/spec.md) before asking.
+[`docs/project/spec/spec-v1.md`](../docs/project/spec/spec-v1.md) before asking.
 The spec uses **Must / Should / Nice / Defer** tiers — respect them. Do not
 implement Should items before Must is green.
 
@@ -219,7 +223,7 @@ is broken, say so.
 
 ## Review Priorities
 
-1. **Spec alignment** — Changes should match `docs/project/spec/spec.md`. If they don't, either update the spec first or push back.
+1. **Spec alignment** — Changes should match `docs/project/spec/spec-v1.md`. If they don't, either update the spec first or push back.
 2. **Type hints** — Public functions in `src/feedback_triage/` must be annotated; mypy strict.
 3. **Tests** — Changes include or update API tests; UI changes update the Playwright smoke suite if a smoke path is affected.
 4. **Security** — Flag hardcoded secrets, `shell=True`, raw SQL string concatenation, `yaml.load()` without `safe_load`, unbounded payloads.
@@ -316,7 +320,7 @@ not `yaml.load()`, parameterized SQL queries.
 - Source: `src/feedback_triage/`
 - Tests: `tests/` (API) and `tests/e2e/` (Playwright)
 - Scripts: `scripts/`
-- Docs: `docs/` · Spec: `docs/project/spec/spec.md` · ADRs: `docs/adr/`
+- Docs: `docs/` · Spec: `docs/project/spec/spec-v1.md` · ADRs: `docs/adr/`
 
 ### Git & PRs
 
@@ -335,7 +339,7 @@ not `yaml.load()`, parameterized SQL queries.
 
 ## Architecture References
 
-- **Spec:** `docs/project/spec/spec.md` (canonical; everything below is cross-reference)
+- **Spec:** `docs/project/spec/spec-v1.md` (canonical; everything below is cross-reference)
 - **ADRs:** `docs/adr/` — stack and process decisions inherited from the template plus project-specific ADRs (045–054, see spec's "ADRs to Write" table)
 - **Workflows:** `docs/workflows.md`
 

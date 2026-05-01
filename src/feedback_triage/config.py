@@ -4,7 +4,7 @@ Loads configuration from process env vars (and optionally a `.env` file
 in development). Values here are the single source of truth for runtime
 configuration; nothing else should read `os.environ` directly.
 
-See `docs/project/spec/spec.md` for the full env-var surface and
+See `docs/project/spec/spec-v1.md` for the full env-var surface and
 `.env.example` for documented defaults.
 """
 

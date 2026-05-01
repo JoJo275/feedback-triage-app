@@ -149,7 +149,7 @@ lives in `src/feedback_triage/models.py` and `alembic/versions/*.py`.
 
 ## See also
 
-- [`docs/project/spec/spec.md`](../project/spec/spec.md) — schema
+- [`docs/project/spec/spec-v1.md`](../project/spec/spec-v1.md) — schema
   contract
 - [Alembic configuration](../../alembic.ini) — once Phase 2 lands
 - All six successor ADRs listed in the redirect table above

@@ -6,7 +6,7 @@
 
 This ADR enumerated the v1.0 readiness criteria for the
 `simple-python-boilerplate` template. The `feedback-triage-app` has its
-own readiness criteria captured in `docs/project/spec/spec.md` (see the
+own readiness criteria captured in `docs/project/spec/spec-v1.md` (see the
 release-readiness sections and the Implementation Plan). Archived to
 avoid two competing definitions of "v1.0 ready".
 

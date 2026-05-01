@@ -1,7 +1,7 @@
 # Implementation Plan — Feedback Triage App
 
 Phase-by-phase build plan for delivering v1.0 of the Feedback Triage App.
-This is the operational companion to [`spec/spec.md`](spec/spec.md): the
+This is the operational companion to [`spec/spec-v1.md`](spec/spec-v1.md): the
 spec says **what** to build, this doc says **in what order** and **how to
 know each step is done**.
 
@@ -54,9 +54,9 @@ Before Phase 1 can start, the surrounding template must be repurposed.
 - [x] `.pre-commit-config.yaml` trimmed to hooks this project actually
       uses.
 - [x] `Taskfile.yml` rewritten to the task list in
-      [spec — Task Runner](spec/spec.md#task-runner--taskfile).
+      [spec — Task Runner](spec/spec-v1.md#task-runner--taskfile).
 - [x] `Containerfile` rewritten per
-      [spec — Container Hardening](spec/spec.md#container-hardening-must).
+      [spec — Container Hardening](spec/spec-v1.md#container-hardening-must).
 - [ ] ADRs cleaned up:
   - [x] Template-only ADRs already moved to `docs/adr/archive/`
         (011, 015, 036, 039, 040, 041, 042, 043) with `Deprecated`
@@ -66,7 +66,7 @@ Before Phase 1 can start, the surrounding template must be repurposed.
         (currently flagged with "Needs rewrite" banners; rewrites are
         a follow-up before v0.1.0)
   - [x] New ADRs 045–055 drafted (see
-        [spec — ADRs to Write](spec/spec.md#adrs-to-write)). ADR 055
+        [spec — ADRs to Write](spec/spec-v1.md#adrs-to-write)). ADR 055
         partially supersedes ADR 016 (uv replaces Hatch as the env
         manager; `hatchling` + `hatch-vcs` stay as the build backend).
 - [x] `docs/` cleaned: fresh `index.md` now points at the spec, ADRs,
@@ -75,7 +75,7 @@ Before Phase 1 can start, the surrounding template must be repurposed.
       `docs/notes/`, etc.) is deferred until they prove wrong for this
       project after first green CI run, per the fork policy.
 - [x] `README.md` replaced with the structure in
-      [spec — README Sections to Include](spec/spec.md#readme-sections-to-include-must).
+      [spec — README Sections to Include](spec/spec-v1.md#readme-sections-to-include-must).
 
 ### Definition of Done
 
@@ -121,7 +121,7 @@ endpoint serves over HTTP and can talk to a running database.
       request-logging middleware.
 - [x] `src/feedback_triage/routes/health.py` — `/health` and `/ready`
       with the 2s readiness timeout per
-      [spec](spec/spec.md#health-and-readiness).
+      [spec](spec/spec-v1.md#health-and-readiness).
 - [x] `docker-compose.yml` — Postgres 16, named `pgdata` volume, healthy
       `depends_on`.
 - [x] `.env.example` matches the spec's env-var surface.
@@ -165,7 +165,7 @@ autogenerate, and bring up an empty schema.
       defaults on `created_at` / `updated_at`.
 - [x] `src/feedback_triage/database.py` — engine, `SessionLocal`,
       `get_db` dependency with commit/rollback wired in (see
-      [spec sketch](spec/spec.md#database-session-lifecycle)).
+      [spec sketch](spec/spec-v1.md#database-session-lifecycle)).
 - [x] `alembic.ini` reading `DATABASE_URL` from env.
 - [x] `alembic/env.py` with `target_metadata = SQLModel.metadata`,
       `compare_type=True`, `compare_server_default=True`.
@@ -218,7 +218,7 @@ pagination, filtering, sorting, and the canary stale-read test.
       and `tags=["feedback"]`.
 - [x] `POST /api/v1/feedback` returns `201` and a `Location` header.
 - [x] `GET /api/v1/feedback` returns the envelope shape exactly as
-      [specified](spec/spec.md#list).
+      [specified](spec/spec-v1.md#list).
 - [x] `sort_by` allow-list enforced; invalid value → `422`.
 - [x] `PATCH` performs partial updates only.
 - [x] `DELETE` returns `204`.
@@ -231,7 +231,7 @@ pagination, filtering, sorting, and the canary stale-read test.
 
 ### Definition of Done
 
-- All API tests in [spec — API Tests](spec/spec.md#api-tests-must) pass,
+- All API tests in [spec — API Tests](spec/spec-v1.md#api-tests-must) pass,
   including `test_patch_then_get_returns_fresh_state`.
 - `/api/v1/docs` renders with grouped tags and concrete request/response
   schemas (no `Any` placeholders).
@@ -306,7 +306,7 @@ behavior.
 ### Deliverables `[Must]`
 
 - [x] Pydantic validators for all rules in
-      [spec — Validation Rules](spec/spec.md#validation-rules).
+      [spec — Validation Rules](spec/spec-v1.md#validation-rules).
 - [x] Global exception handler returning the documented 404 / 422 / 500
       shapes.
 - [x] `debug=False` in production; stack traces never leak.
@@ -342,7 +342,7 @@ Fill out the API test matrix and bring up the Playwright smoke suite.
 - [x] `tests/conftest.py` — TestClient fixture, isolated Postgres test
       database, per-test `truncate_all_tables()` fixture.
 - [x] `tests/test_feedback_api.py` — full coverage of
-      [spec — API Tests](spec/spec.md#api-tests-must).
+      [spec — API Tests](spec/spec-v1.md#api-tests-must).
 - [x] `tests/e2e/conftest.py` — Playwright fixtures, app + Postgres
       lifecycle, `chromium` only.
 - [x] `tests/e2e/test_feedback_smoke.py` — three smoke specs (create,
@@ -380,14 +380,14 @@ command.
 ### Deliverables `[Must]`
 
 - [x] `Containerfile` per
-      [spec — Container Hardening](spec/spec.md#container-hardening-must)
+      [spec — Container Hardening](spec/spec-v1.md#container-hardening-must)
       — multi-stage, non-root user, `HEALTHCHECK /health`, digest-pinned
       base, `PYTHONDONTWRITEBYTECODE=1` etc.
 - [x] Image builds locally via `docker build .` and runs.
 - [x] Railway service created, Postgres plugin attached.
 - [x] Railway service source set to **this GitHub repo, branch `main`**
       (continuous deploy on every merge — see
-      [spec — Release Flow](spec/spec.md#release-flow-must)).
+      [spec — Release Flow](spec/spec-v1.md#release-flow-must)).
 - [x] Pre-deploy command set to `alembic upgrade head`.
 - [x] Env vars set per
       [`deployment-notes.md`](deployment-notes.md#required-environment-variables).
@@ -433,7 +433,7 @@ Last-mile work: README, screenshots, demo seed, `v1.0.0` tag.
 ### Deliverables `[Must]`
 
 - [x] README with all sections from
-      [spec — README Sections to Include](spec/spec.md#readme-sections-to-include-must).
+      [spec — README Sections to Include](spec/spec-v1.md#readme-sections-to-include-must).
 - [ ] Three screenshots checked into `docs/screenshots/` and embedded
       in the README. _(Captured once seed runs against production.)_
 - [x] Mermaid architecture diagram in the README.
@@ -465,7 +465,7 @@ Last-mile work: README, screenshots, demo seed, `v1.0.0` tag.
   the demo URL, and understand both *what it does* and *how it is
   built* in under 5 minutes.
 
-See [spec — Release Flow](spec/spec.md#release-flow-must) for the full
+See [spec — Release Flow](spec/spec-v1.md#release-flow-must) for the full
 deploy-vs-release model.
 
 ### Verification
@@ -509,12 +509,12 @@ The project is v1.0-shippable when **all** of the following are true:
    project without asking questions.
 
 Anything beyond that point belongs in
-[spec — Future Improvements After v1.0](spec/spec.md#future-improvements-after-v10).
+[spec — Future Improvements After v1.0](spec/spec-v1.md#future-improvements-after-v10).
 
 ---
 
 ## Related docs
 
-- [`spec/spec.md`](spec/spec.md) — canonical spec
+- [`spec/spec-v1.md`](spec/spec-v1.md) — canonical spec
 - [`questions.md`](questions.md) — open questions and answers
 - [`deployment-notes.md`](deployment-notes.md) — Railway operational notes

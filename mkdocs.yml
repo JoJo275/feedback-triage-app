@@ -90,7 +90,8 @@ nav:
       - Tool Comparisons: tool-comparisons.md
       - Labels: labels.md
   - Project:
-      - Spec: project/spec/spec.md
+      - Spec (v1.0): project/spec/spec-v1.md
+      - Spec (v2.0 draft): project/spec/spec-v2.md
       - Implementation Plan: project/implementation.md
       - Open Questions: project/questions.md
       - Deployment Notes: project/deployment-notes.md

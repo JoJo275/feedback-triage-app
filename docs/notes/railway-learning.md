@@ -8,7 +8,7 @@ read the dashboard, what to do when things break, and — critically —
 **what never to put on screen, in screenshots, or in commits**.
 
 > Companion file. The spec and runbooks are still authoritative:
-> - [docs/project/spec/spec.md](../project/spec/spec.md)
+> - [docs/project/spec/spec-v1.md](../project/spec/spec-v1.md)
 > - [docs/project/railway-setup.md](../project/railway-setup.md)
 > - [docs/project/deployment-notes.md](../project/deployment-notes.md)
 
