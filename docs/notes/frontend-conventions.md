@@ -117,9 +117,13 @@ Aim for:
   (`button button-primary`, `filter-form`, `field`). Block-Element
   with single dashes (`card__title` is also fine if you prefer the
   full BEM split). **Pick one and stick to it.**
-- Utility classes are okay sparingly (`.visually-hidden`, `.sr-only`,
-  `.text-right`). Don't grow this into Tailwind unless an ADR says so —
-  the spec explicitly forbids a CSS bundler.
+- Utility classes are the standard style layer in v2.0+ via
+  Tailwind CSS (Standalone CLI, no Node toolchain) — see
+  [ADR 058](../adr/058-tailwind-via-standalone-cli.md). The
+  `tags carry meaning, classes carry style` rule is unchanged:
+  semantic HTML still drives accessibility; Tailwind drives
+  appearance. Hand-rolled component CSS is permitted only when a
+  utility composition would be unreadable.
 - State classes go in their own namespace: `is-open`, `is-loading`,
   `has-error`. Read aloud, they say what they mean.
 
@@ -254,7 +258,9 @@ keyboard tabbing does — which is what users actually want.
   empty href clutters history and breaks middle-click.
 - **`onclick=` attributes** in HTML when an `addEventListener` in JS
   is just as easy. Keeps logic in one place.
-- **Tailwind / Bootstrap import** — the spec forbids it. If a
+- **Bootstrap or another component framework** — the spec forbids
+  it. (Tailwind, by contrast, is now adopted as the utility layer
+  per [ADR 058](../adr/058-tailwind-via-standalone-cli.md).) If a
   utility-first approach is genuinely needed, write an ADR.
 
 ---
