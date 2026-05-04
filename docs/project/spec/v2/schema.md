@@ -226,6 +226,24 @@ CREATE INDEX feedback_submitter_idx ON feedback_item (submitter_id) WHERE submit
 - **`tag.color` palette.** Eight named tones map to Tailwind palette
   shades in the frontend. Storing the name rather than the hex keeps
   the dark-mode mapping in CSS, not in DB rows.
+- **`email_log` table — pending ADR 061.** [`core-idea.md`](core-idea.md),
+  [`business.md`](business.md), [`risks.md`](risks.md), and
+  [`implementation.md`](implementation.md) all reference an
+  `email_log` table (best-effort send status, error code, retried
+  flag, recipient domain). The DDL is **not yet in this file** — it
+  lands with [ADR 061](adrs.md#adr-061--email-provider-resend--fail-soft-semantics)
+  ("Email provider (Resend) + fail-soft semantics"), which owns the
+  table's exact shape. Add the `CREATE TABLE email_log (…)` block
+  to this file in the same PR that ratifies ADR 061. Until then,
+  treat `email_log` references in sibling docs as **forward
+  references**, not contradictions.
+
+> **Cross-doc check (next sweep):** the per-IP rate limit referenced
+> in `core-idea.md` and `business.md` is **already covered** in
+> [`security.md`](security.md#public-submission-abuse) and
+> [`auth.md`](auth.md#rate-limits), and the supporting
+> `auth_rate_limits` table is already in this file. No action there
+> — only `email_log` is the genuine gap.
 
 ---
 

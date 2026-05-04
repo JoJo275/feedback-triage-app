@@ -3,7 +3,7 @@
 > Topical detail file. Entry point: [`../spec-v2.md`](../spec-v2.md).
 > Cross-cutting UI rules live in [`ui.md`](ui.md). CSS plumbing
 > lives in [`css.md`](css.md). Brand brief is
-> [`../core-idea.md`](../core-idea.md).
+> [`core-idea.md`](core-idea.md).
 
 This file is the **per-screen catalog**. For every page that exists
 in v2.0 it lists: the route, who can access it, the document
@@ -423,4 +423,4 @@ displayed (for support correspondence) and logged.
 - [`api.md`](api.md) — endpoints each page calls.
 - [`auth.md`](auth.md) — auth state behind login / signup / reset.
 - [`security.md`](security.md) — public-form honeypot & CSP.
-- [`../core-idea.md`](../core-idea.md) — voice & visual rules.
+- [`core-idea.md`](core-idea.md) — voice & visual rules.

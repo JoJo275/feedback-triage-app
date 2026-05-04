@@ -52,6 +52,7 @@ single source of cross-references is [`../spec-v2.md`](../spec-v2.md).
 | ------------------------------------------ | -------------------------------------------------------------------- |
 | [`glossary.md`](glossary.md)               | Term definitions used across all v2 files                            |
 
-The full SignalNest brand brief lives one level up at
-[`../core-idea.md`](../core-idea.md). The v2 entry point is
-[`../spec-v2.md`](../spec-v2.md).
+The canonical SignalNest brand brief lives in this directory at
+[`core-idea.md`](core-idea.md). The v2 entry point is
+[`../spec-v2.md`](../spec-v2.md). A short redirect stub lives at
+[`core-idea.md`](core-idea.md) for legacy links only.

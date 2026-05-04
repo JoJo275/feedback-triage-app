@@ -11,7 +11,7 @@
 > unchanged.
 >
 > **Companion docs:** brand and visual brief live in
-> [`core-idea.md`](core-idea.md). Topical detail (schema, API,
+> [`v2/core-idea.md`](v2/core-idea.md). Topical detail (schema, API,
 > auth, multi-tenancy, UI, email, security, rollout, tooling) lives
 > in [`v2/`](v2/). This file is the entry point and tracks status,
 > theme, headline changes, the feature catalog, ADRs to write, and
@@ -51,7 +51,7 @@ changelogs, and an insights surface. Visually it ships as a light
 SaaS dashboard (slate / white base, teal primary accent, amber
 warning), built with Tailwind utility classes via the Standalone
 CLI. Brand details and component shorthand live in
-[`core-idea.md`](core-idea.md).
+[`v2/core-idea.md`](v2/core-idea.md).
 
 ---
 
@@ -224,7 +224,7 @@ Items considered and explicitly punted to v3.0+:
 
 - [`spec-v1.md`](spec-v1.md) — shipped v1.0 spec (canonical until
   v2.0 ratifies)
-- [`core-idea.md`](core-idea.md) — SignalNest brand and visual brief
+- [`v2/core-idea.md`](v2/core-idea.md) — SignalNest brand and visual brief (canonical)
 - [`v2/`](v2/) — topical detail files
 - [`_archive/`](_archive/) — feedback / pushback / answers from the
   v2.0 design phase (read-only)
