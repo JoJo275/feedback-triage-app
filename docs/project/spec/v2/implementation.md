@@ -70,9 +70,11 @@ an empty inbox in their browser."*
 ### Deliverables — Must
 
 - [ ] **Tailwind plumbing.** `tailwind.config.cjs`,
-      `static/css/input.css`, `scripts/build_css.py`,
-      `task setup:css`, `task build:css`, `task watch:css`. CI step
-      added to `task check`. ([`css.md`](css.md))
+      `static/css/input.css` (orchestrator) plus `tokens.css`,
+      `base.css`, `layout.css`, `components.css`, `effects.css`;
+      `scripts/build_css.py`, `task setup:css`, `task build:css`,
+      `task watch:css`. CI step added to `task check`.
+      ([`css.md`](css.md))
 - [ ] **Schema migration #1 (auth + tenancy).** Tables: `users`,
       `sessions`, `email_tokens`, `workspaces`,
       `workspace_memberships`, `workspace_invitations`. Native

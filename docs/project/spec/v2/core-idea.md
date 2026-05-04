@@ -261,7 +261,7 @@ Authenticated users hitting `/` are redirected to
 
 ### Color tokens — light (default)
 
-Tokens are CSS custom properties defined in `static/css/input.css`
+Tokens are CSS custom properties defined in `static/css/tokens.css`
 and consumed by Tailwind utility classes through the
 `tailwind.config.cjs` theme map (see
 [ADR 058](../../../adr/058-tailwind-via-standalone-cli.md) and
@@ -492,9 +492,10 @@ need ever justifies it.
 | Empty state      | Icon (h-10 w-10 text-slate-400) + `text-base font-medium` + `text-sm text-slate-500` + primary button |
 
 The repeating compositions above are promoted to bespoke
-`sn-*` component classes in `input.css` once they appear verbatim
-in three or more templates — see [`css.md`](css.md#component-vocabulary)
-for the canonical class list and the `@apply` rules.
+`sn-*` component classes in `static/css/components.css` once they
+appear verbatim in three or more templates — see
+[`css.md`](css.md#component-vocabulary) for the canonical class
+list and the `@apply` rules.
 
 ---
 

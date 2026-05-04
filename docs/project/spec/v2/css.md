@@ -14,7 +14,7 @@ v2.0?"*. It supersedes any earlier guidance for the v2.0 codebase.
 
 | Step | Input                          | Tool                          | Output                       |
 | ---- | ------------------------------ | ----------------------------- | ---------------------------- |
-| 1    | `static/css/input.css` + `tailwind.config.cjs` | Tailwind Standalone CLI binary | `static/css/app.css`         |
+| 1    | `static/css/input.css` (which `@import`s the rest) + `tailwind.config.cjs` | Tailwind Standalone CLI binary | `static/css/app.css`         |
 | 2    | `static/css/app.css`           | served by FastAPI `StaticFiles` | browser                      |
 
 - **Standalone CLI only.** No Node.js, no `npm`, no PostCSS plugin
@@ -33,91 +33,221 @@ v2.0?"*. It supersedes any earlier guidance for the v2.0 codebase.
 
 ## File organization
 
+v2.0 ships ~22 distinct pages ([`pages.md`](pages.md)) and a
+deliberate visual identity. Putting all CSS source in one file
+makes diffs noisy and hides the *kind* of change behind
+line-level edits. v2.0 therefore splits CSS source into five
+small files with strict charters, all `@import`-ed from
+`input.css`:
+
 ```text
 src/feedback_triage/static/css/
-├── input.css       # source — tokens, @layer base/components/utilities, @apply
-└── app.css         # generated — DO NOT EDIT
+├── input.css       # entry; only @tailwind + @import statements
+├── tokens.css      # design tokens (CSS custom properties); no selectors below :root
+├── base.css        # element resets + a11y floors; no class selectors
+├── layout.css      # layout primitives (page shell, dashboard grid, stack)
+├── components.css  # the .sn-* component vocabulary (@apply lives here)
+├── effects.css     # transitions, animations, hover/focus polish, gradients
+└── app.css         # generated — DO NOT EDIT, NOT COMMITTED
 ```
 
-`input.css` is the **only** CSS source file in v2.0. It is short by
-design: every screen is built from Tailwind utilities, and the
-file's job is to define the design tokens, the resets that Tailwind's
-`preflight` does not cover, and a tiny set of bespoke component
-classes for things that would otherwise repeat 30+ times.
+Load order is **significant** and corresponds to specificity
+intent: tokens → base → layout → components → effects. Don't
+reorder.
 
-### Layered structure of `input.css`
+### File charters
+
+Each file declares its charter at the top in a comment. PRs that
+put content in the wrong file are rejected on review.
+
+| File             | May contain                                                                           | Must not contain                              |
+| ---------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `input.css`      | `@tailwind` directives, `@import` of the other files, nothing else                    | rules, tokens, `@apply`                       |
+| `tokens.css`     | `:root { --… }`, `[data-theme="…"] :root { --… }`, `@custom-media` declarations       | class selectors, `@apply`, element rules      |
+| `base.css`       | element resets (`html`, `body`, `*`), `:focus-visible` ring, reduced-motion           | class selectors                               |
+| `layout.css`     | `.sn-page-shell`, `.sn-dashboard-grid`, `.sn-stack`, `.sn-cluster`, container queries | component-level styling, decorative effects  |
+| `components.css` | `.sn-<component>` rules with `@apply`; element + state classes                        | tokens, layout primitives, decorative effects |
+| `effects.css`    | transitions, keyframes, gradient surfaces, decorative `:hover` polish                 | structural rules; anything required for a11y |
+
+`input.css` is a thin orchestrator:
 
 ```css
 @tailwind base;
+@import "./tokens.css";
+@import "./base.css";
+
 @tailwind components;
+@import "./layout.css";
+@import "./components.css";
+
 @tailwind utilities;
+@import "./effects.css";
+```
 
-@layer base {
-  /* design tokens — CSS custom properties */
-  :root {
-    --color-bg: #f8fafc;          /* slate-50 */
-    --color-surface: #ffffff;
-    --color-surface-alt: #f1f5f9; /* slate-100 */
-    --color-text: #0f172a;        /* slate-900 */
-    --color-text-muted: #64748b;  /* slate-500 */
-    --color-primary: #0d9488;     /* teal-600 */
-    --color-primary-hover: #0f766e; /* teal-700 */
-    --color-warning: #f59e0b;     /* amber-500 */
-    --color-danger: #e11d48;      /* rose-600 */
-    --color-border: #e2e8f0;      /* slate-200 */
-    --color-focus: #14b8a6;       /* teal-500 */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-  }
+`app.css` is the only file the browser sees. It is generated
+by the Tailwind Standalone CLI, baked into the container image,
+and **not committed**. Missing locally → run `task build:css`.
 
-  [data-theme="dark"] :root,
-  :root[data-theme="dark"] {
-    --color-bg: #020617;          /* slate-950 */
-    --color-surface: #0f172a;     /* slate-900 */
-    --color-surface-alt: #1e293b; /* slate-800 */
-    --color-text: #f1f5f9;        /* slate-100 */
-    --color-text-muted: #94a3b8;  /* slate-400 */
-    --color-primary: #2dd4bf;     /* teal-400 */
-    --color-primary-hover: #5eead4; /* teal-300 */
-    --color-warning: #fbbf24;     /* amber-400 */
-    --color-danger: #fb7185;      /* rose-400 */
-    --color-border: #334155;      /* slate-700 */
-    --color-focus: #2dd4bf;
-  }
+### Contents of each file
 
-  /* minimal resets Tailwind preflight does not cover */
-  html { color-scheme: light dark; }
-  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+#### `tokens.css`
 
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
+```css
+/* tokens.css — charter: only :root + [data-theme] custom-property
+   declarations and @custom-media. No selectors, no @apply. */
+
+:root {
+  --color-bg: #f8fafc;          /* slate-50 */
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9; /* slate-100 */
+  --color-text: #0f172a;        /* slate-900 */
+  --color-text-muted: #64748b;  /* slate-500 */
+  --color-primary: #0d9488;     /* teal-600 */
+  --color-primary-hover: #0f766e; /* teal-700 */
+  --color-warning: #f59e0b;     /* amber-500 */
+  --color-danger: #e11d48;      /* rose-600 */
+  --color-border: #e2e8f0;      /* slate-200 */
+  --color-focus: #14b8a6;       /* teal-500 */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.08);
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --z-sticky: 10;
+  --z-overlay: 50;
 }
 
-@layer components {
-  /* bespoke classes — sn- prefix; only when @apply repeats > 30x */
-  .sn-card        { @apply bg-white border border-slate-200 rounded-2xl shadow-sm p-4; }
-  .sn-btn-primary { @apply bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-4 py-2 font-medium; }
-  .sn-btn-secondary { @apply bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl px-4 py-2; }
-  .sn-pill-status { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium; }
-  .sn-pill-priority { @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold; }
-  .sn-input       { @apply block w-full rounded-xl border border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20; }
-  .sn-label       { @apply block text-sm font-medium text-slate-700 mb-1; }
-  .sn-toast       { @apply fixed bottom-4 right-4 rounded-xl bg-slate-900 text-white px-4 py-2; }
-  .sn-skip-link   { @apply sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-slate-900 focus:rounded focus:px-3 focus:py-2; }
+:root[data-theme="dark"] {
+  --color-bg: #020617;          /* slate-950 */
+  --color-surface: #0f172a;     /* slate-900 */
+  --color-surface-alt: #1e293b; /* slate-800 */
+  --color-text: #f1f5f9;        /* slate-100 */
+  --color-text-muted: #94a3b8;  /* slate-400 */
+  --color-primary: #2dd4bf;     /* teal-400 */
+  --color-primary-hover: #5eead4; /* teal-300 */
+  --color-warning: #fbbf24;     /* amber-400 */
+  --color-danger: #fb7185;      /* rose-400 */
+  --color-border: #334155;      /* slate-700 */
+  --color-focus: #2dd4bf;
 }
 
-@layer utilities {
-  /* bespoke utilities — only when no Tailwind utility exists */
-  .sn-grid-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; }
+@custom-media --md (min-width: 768px);
+@custom-media --lg (min-width: 1024px);
+```
+
+#### `base.css`
+
+```css
+/* base.css — charter: element-level rules only. No class selectors. */
+
+html { color-scheme: light dark; }
+body { background: var(--color-bg); color: var(--color-text); }
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+```
+
+#### `layout.css`
+
+```css
+/* layout.css — charter: structural primitives. No decorative styling. */
+
+.sn-page-shell     { @apply min-h-screen bg-bg text-ink flex flex-col; }
+.sn-dashboard-grid { display: grid; grid-template-columns: 16rem 1fr;
+                     min-height: 100vh; }
+.sn-content-gutter { @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8; }
+.sn-stack          { display: flex; flex-direction: column; gap: 1rem; }
+.sn-cluster        { display: flex; flex-wrap: wrap; align-items: center;
+                     gap: 0.5rem; }
+.sn-grid-12        { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+                     gap: 1rem; }
+```
+
+#### `components.css`
+
+```css
+/* components.css — charter: .sn-<component> rules + their states.
+   @apply is only legal here and in layout.css. */
+
+.sn-card        { @apply bg-surface border border-line rounded-2xl shadow-sm p-4; }
+.sn-card-header { @apply flex items-center justify-between mb-3; }
+.sn-card-body   { @apply space-y-2; }
+.sn-card-footer { @apply mt-3 flex items-center justify-end gap-2; }
+
+.sn-button             { @apply inline-flex items-center gap-2 rounded-xl px-4 py-2
+                                  font-medium transition-colors; }
+.sn-button-primary     { @apply bg-brand text-white hover:bg-brand-hover; }
+.sn-button-secondary   { @apply bg-surface border border-line text-ink
+                                  hover:bg-surface-alt; }
+.sn-button-ghost       { @apply bg-transparent text-ink hover:bg-surface-alt; }
+.sn-button-danger      { @apply bg-danger text-white hover:opacity-90; }
+.sn-button:disabled,
+.sn-button.is-disabled { @apply opacity-50 cursor-not-allowed; }
+.sn-button.is-loading  { @apply cursor-progress; }
+.sn-button.is-loading::after { /* spinner */ }
+
+.sn-pill-status   { @apply inline-flex items-center gap-1 rounded-full
+                            px-2.5 py-1 text-xs font-medium; }
+.sn-pill-priority { @apply inline-flex items-center rounded-md
+                            px-2 py-0.5 text-xs font-semibold; }
+
+.sn-form-field        { @apply block; }
+.sn-form-field-label  { @apply block text-sm font-medium text-ink mb-1; }
+.sn-form-field-input  { @apply block w-full rounded-xl border border-line
+                                  focus:border-brand focus:ring-2
+                                  focus:ring-brand/20; }
+.sn-form-field-help   { @apply mt-1 text-xs text-ink-muted; }
+.sn-form-field.has-error .sn-form-field-input { @apply border-danger; }
+.sn-form-field.has-error .sn-form-field-help  { @apply text-danger; }
+
+.sn-feedback-item { @apply sn-card cursor-pointer hover:shadow-md
+                            transition-shadow; }
+
+.sn-modal       { @apply rounded-2xl bg-surface text-ink shadow-md
+                          p-6 max-w-lg w-full; }
+.sn-modal::backdrop { background: rgb(0 0 0 / 0.4); }
+
+.sn-empty-state { @apply flex flex-col items-center text-center py-12
+                          gap-3 text-ink-muted; }
+
+.sn-toast       { @apply fixed bottom-4 right-4 rounded-xl bg-slate-900
+                          text-white px-4 py-2 z-50; }
+
+.sn-skip-link   { @apply sr-only focus:not-sr-only focus:absolute
+                          focus:top-2 focus:left-2 focus:bg-surface
+                          focus:text-ink focus:rounded focus:px-3
+                          focus:py-2; }
+```
+
+#### `effects.css`
+
+```css
+/* effects.css — charter: decorative-only. Removable for print. */
+
+.sn-card   { transition: box-shadow var(--motion-base) var(--easing-standard); }
+.sn-button { transition: background-color var(--motion-fast) var(--easing-standard),
+                          color            var(--motion-fast) var(--easing-standard); }
+
+@keyframes sn-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sn-toast { animation: sn-fade-in var(--motion-base) var(--easing-standard); }
 ```
 
 The `[data-theme="dark"]` selector is paired with the `darkMode:
@@ -199,26 +329,46 @@ These are tested by code review, not tooling.
 - **Never** put `role="button"` on a `<div>`. Use `<button>`.
   ARIA roles are reserved for cases where no native element exists.
 
-### 2. Compose with utilities first; promote to a class only on repeat
+### 2. Compose with utilities first; promote to a class on repeat
 
 - First implementation of any pattern: inline Tailwind utilities.
 - When the same `class="..."` string appears verbatim in **three
-  or more** templates, promote to `sn-<thing>` in `input.css` via
+  or more** templates, promote to `sn-<thing>` in
+  `components.css` (or `layout.css` if it's structural) via
   `@apply`.
-- Don't pre-promote. Don't keep two parallel ways to render a card.
+- Don't pre-promote. Don't keep two parallel ways to render a
+  card.
+- `@apply` is **only** legal inside `components.css` and
+  `layout.css`. Never in HTML, never in `tokens.css` or
+  `base.css`.
 
 ### 3. Tokens drive everything
 
-- Color, radius, shadow values come from CSS custom properties
-  defined in the `@layer base` block above.
+- Color, radius, shadow, motion, and z-layer values come from CSS
+  custom properties defined in `tokens.css`.
 - Tailwind's palette (`teal-600`, `slate-200`) is allowed in
   templates because the config maps it through CSS variables, but
   the **theme presets** (light, dark, plus the four
   [ADR 056](../../../adr/056-style-guide-page.md) presets) all
   override the same custom-property names and nothing else.
-- A new design token requires updating `input.css`,
+- A new design token requires updating `tokens.css`,
   `tailwind.config.cjs`, the styleguide, and `core-idea.md` in
   one PR.
+
+### 3a. Specificity budget
+
+Class-only selectors. Hard ceiling **0,2,1**:
+
+- `0,1,0` — single class. The default.
+- `0,2,0` — class + state class (`.sn-button.is-loading`).
+- `0,2,1` — class + pseudo (`:hover`, `:focus-visible`,
+  `::before`, `::backdrop`).
+- Anything higher is a smell. Reach for a modifier class before a
+  deeper selector.
+- No `#id` selectors. No tag-only style overrides below `base.css`.
+- Element-tag rules below `base.css` are forbidden — if you need
+  to style every `<button>` inside a card, give the card's
+  buttons a class.
 
 ### 4. No `!important`
 
@@ -268,33 +418,71 @@ Anything claiming a fourth layer needs review.
 
 ## Component vocabulary
 
-Every screen is built from this list. Adding a ninth component
-needs review.
+Every screen is built from this list. Adding a new component
+needs a row on `/styleguide` and a brief mention in this table
+in the same PR. Modifiers (`-primary`, `-secondary`, etc.) use
+single dashes — not BEM `--` — because the `sn-` prefix already
+namespaces.
 
-| Class             | What it is                                            |
-| ----------------- | ----------------------------------------------------- |
-| `sn-card`         | white surface block, the most-used container         |
-| `sn-btn-primary`  | filled teal call-to-action                            |
-| `sn-btn-secondary`| outlined neutral action                               |
-| `sn-pill-status`  | rounded-full status indicator (color + icon + label)  |
-| `sn-pill-priority`| rounded-md priority indicator                         |
-| `sn-input`        | text / email / password / textarea wrapper            |
-| `sn-label`        | label paired with `sn-input`                          |
-| `sn-toast`        | transient bottom-right status message                 |
+| Class                | Modifiers                                          | What it is                                                 |
+| -------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
+| `sn-card`            | (`-header`, `-body`, `-footer` parts)              | the most-used surface block                                |
+| `sn-button`          | `-primary`, `-secondary`, `-ghost`, `-danger`      | base button; states `is-loading`, `is-disabled`, `has-error` |
+| `sn-pill-status`     | (color via state class: `is-open`, `is-resolved`…) | rounded-full status indicator (icon + text + color)        |
+| `sn-pill-priority`   | (`-low`, `-med`, `-high`)                          | rounded-md priority indicator                              |
+| `sn-form-field`      | (`-label`, `-input`, `-help` parts)                | label + input + help + error composition                   |
+| `sn-feedback-item`   | —                                                  | the canonical row/card for one feedback record             |
+| `sn-modal`           | (`-header`, `-body`, `-footer` parts)              | `<dialog>`-based modal; `::backdrop` styled                |
+| `sn-empty-state`     | —                                                  | illustrated "nothing here yet" block                       |
+| `sn-toast`           | `-info`, `-success`, `-warn`, `-danger`            | transient bottom-right status message                      |
+| `sn-skip-link`       | —                                                  | a11y skip-to-main link                                     |
 
-Layout primitives — provided by Tailwind utilities directly, not
-promoted to classes:
+Layout primitives live in `layout.css`, not in templates as
+utility strings:
 
-| Pattern              | Tailwind composition                              |
-| -------------------- | ------------------------------------------------- |
-| Page shell           | `min-h-screen bg-bg text-ink`                     |
-| Two-pane (sidebar+main) | `grid grid-cols-[16rem_1fr] min-h-screen`     |
-| Content gutter       | `mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8`     |
-| Section heading row  | `flex items-center justify-between gap-4 mb-4`    |
-| Table wrapper        | `overflow-x-auto rounded-2xl border border-line`  |
-| Form row             | `space-y-1`                                       |
-| Stack                | `space-y-4` / `space-y-6`                         |
-| Inline cluster       | `inline-flex items-center gap-2`                  |
+| Class                | What it is                                              |
+| -------------------- | ------------------------------------------------------- |
+| `sn-page-shell`      | full-page chrome (header / main / footer)               |
+| `sn-dashboard-grid`  | sidebar + main two-pane (collapses on mobile)           |
+| `sn-content-gutter`  | `mx-auto max-w-6xl px-4 … py-8` wrapper                 |
+| `sn-stack`           | vertical flex with gap                                  |
+| `sn-cluster`         | inline-flex with wrap + gap                             |
+| `sn-grid-12`         | 12-column CSS grid                                      |
+
+Why these are promoted now: the v2.0 page surface is ~22
+distinct screens ([`pages.md`](pages.md)). Composing each from
+raw utility strings at the call site duplicates the same
+six-utility shells dozens of times. Layout primitives in
+`layout.css` make page templates read as structure
+(`<div class="sn-dashboard-grid">…`) rather than as decoration.
+
+### State classes (cross-component vocabulary)
+
+State classes are reused across components and mean the same
+thing everywhere. Defined in `components.css` next to their
+first owner; reused without redefinition.
+
+| Class           | Means                                                  |
+| --------------- | ------------------------------------------------------ |
+| `is-open`       | disclosure-style component is expanded                 |
+| `is-active`     | currently-selected nav item, tab, or filter            |
+| `is-loading`    | async work in flight; pair with `aria-busy="true"`     |
+| `is-disabled`   | action unavailable; pair with `aria-disabled="true"`   |
+| `has-error`     | server validation failed                               |
+| `has-warning`   | non-fatal advisory                                     |
+
+Loading and disabled are **not** the same: loading keeps the
+user's intent ("working on it"), disabled denies it ("can't
+click this yet"). Different visuals, different ARIA, different
+recovery paths.
+
+### Required state coverage
+
+Every interactive component declares **all five** of: default,
+hover, focus-visible, disabled, loading. Error is required
+where the component participates in form validation. The
+styleguide page is ship-blocking: a component without all
+required states rendered on `/styleguide` is incomplete.
 
 ---
 
@@ -316,7 +504,7 @@ real product.
 | Task                | What it does                                                        |
 | ------------------- | ------------------------------------------------------------------- |
 | `task setup:css`    | Downloads the Tailwind Standalone CLI binary into `.tools/`.        |
-| `task build:css`    | One-shot build: `input.css` → `app.css`, minified.                  |
+| `task build:css`    | One-shot build: `input.css` (with its `@import`s) → `app.css`, minified. |
 | `task watch:css`    | Watcher: re-builds on save while `task dev` is running.             |
 | `task dev`          | FastAPI auto-reload + (optional) parallel `watch:css`.              |
 | `task check`        | CI gate; includes `task build:css` so missing classes fail the build. |
@@ -337,7 +525,9 @@ does not contain the CLI binary.
 | A web font                          | Zero FOIT, zero licensing surface in v2.0.              |
 | `!important` outside reduced-motion | Cascade games are a leak indicator.                     |
 | Inline `style="..."`                | Defeats the cascade and the styleguide.                 |
-| `@apply` in HTML / page shells      | `@apply` is only legal inside `input.css`'s `@layer components`. |
+| `@apply` in HTML / page shells      | `@apply` is only legal inside `components.css` and `layout.css`. |
+| `@apply` in `tokens.css` or `base.css` | Tokens are declarations only; base is element-level only.      |
+| Page-scoped CSS files               | A pattern needed by one page is composed inline; a pattern needed by many is promoted to `components.css`. |
 
 ---
 
