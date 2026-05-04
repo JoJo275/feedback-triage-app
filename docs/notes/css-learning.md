@@ -14,6 +14,74 @@
 
 ---
 
+## Quick reference — the CSS facets, what each is, real-world examples
+
+A glossary-style overview of every "kind of thing" the CSS world
+contains. Read this first; the rest of the document drills into
+each row. The **SignalNest v2.0** column shows what this project
+actually picks for that facet — useful when you're trying to
+locate "where does X live for us?".
+
+| Facet | What it is | What it does | Real-world examples | SignalNest v2.0 |
+| ----- | ---------- | ------------ | ------------------- | --------------- |
+| **The language itself** | The CSS spec — selectors, properties, the cascade, inheritance, layout primitives | Tells the browser how to paint and lay out a tree of elements | CSS3, Selectors L4, CSS Color L4, Container Queries, `@layer`, `@scope`, `:has()` | Plain modern CSS, no preprocessor |
+| **Selector** | A pattern that picks elements in the DOM | Targets *which* elements a rule applies to | `.sn-button`, `button[type="submit"]`, `:focus-visible`, `:has(> .sn-card-footer)`, `nav a:not(.is-current)` | Class-only, ceiling `0,2,1` (see [`v2/css.md`](../project/spec/v2/css.md)) |
+| **Property / value** | The actual styling instructions | Sets color, size, layout, motion, etc. on matched elements | `color`, `padding`, `display: grid`, `transform`, `transition`, `aspect-ratio` | Standard properties; tokens via CSS custom properties |
+| **Variables (custom properties)** | Author-defined CSS values stored in `--name` slots | Reuse and theme values across the stylesheet at runtime | `--color-bg: #fff;`, `var(--radius-md)`, `[data-theme="dark"]` overrides | All design tokens in `tokens.css` |
+| **Design token** | A *named* primitive (color, radius, motion, z-layer) that downstream layers reference instead of raw values | Single source of truth for the design's values; switching themes only changes tokens | Material Tokens, Adobe Spectrum tokens, Tailwind theme keys, GitHub Primer Primitives | `tokens.css` — color, radius, shadow, motion, z-layer |
+| **Design system** | Tokens + components + usage rules + docs, treated as a product | Lets a team build consistent UI across many pages | Material 3, Apple HIG, IBM Carbon, GitHub Primer, Atlassian Design System, Shopify Polaris | Custom in-house system, four-layer (tokens → base → layout → components → effects) |
+| **Component library** | Pre-built UI atoms a design system ships | Gives you `<Button>`, `<Modal>`, `<Tabs>` ready-made | Radix UI, shadcn/ui, Headless UI, Material UI, Chakra UI, daisyUI | The `sn-*` vocabulary in `components.css` (button, card, pill, modal, etc.) |
+| **CSS framework** | A pre-written stylesheet you load to get a baseline look | Saves writing CSS from scratch; opinionated visual identity | Bootstrap, Bulma, Pico, Foundation, Materialize, Spectre | None — explicitly forbidden without ADR |
+| **Utility-first framework** | A framework whose "vocabulary" is single-purpose classes you compose in HTML | Skips naming things; lets layout emerge from class strings | Tailwind CSS, UnoCSS, Tachyons, WindiCSS | **Tailwind (Standalone CLI)** — no Node, no PostCSS plugins ([ADR 058](../adr/058-tailwind-via-standalone-cli.md)) |
+| **Custom framework** | A framework you write yourself for one app or company | Fits the domain exactly; you own all the trade-offs | The `sn-*` system here; Stripe's internal CSS; any in-house "design language" | This project's `sn-*` layered files |
+| **Component (in your codebase)** | One UI atom — a button, card, modal — defined once and reused | Encapsulates look + states + variants behind one name | `sn-button`, `sn-card`, `sn-pill-status`, `sn-modal`, `sn-empty-state` | Defined in `components.css`, demoed on `/styleguide` |
+| **Layout primitive** | A reusable structural shape (page shell, grid, stack, cluster) | Owns *where* things go, not *how they look* | "Every Layout" patterns (Stack, Cluster, Sidebar, Switcher); Tailwind's grid utilities | `sn-page-shell`, `sn-dashboard-grid`, `sn-stack`, `sn-cluster`, `sn-grid-12` in `layout.css` |
+| **Effect** | Decorative-only styling: transitions, animations, gradient surfaces, hover polish | Adds motion and depth without changing meaning | `transition: opacity .2s`, keyframe `fade-in`, `box-shadow`, gradient backgrounds | `effects.css` — removable for print or low-motion |
+| **Reset / base layer** | Element-level rules that normalize browser defaults and set a11y floors | Makes `<button>`, `<input>`, headings start in a known state | `normalize.css`, `reset.css`, modern resets like Andy Bell's, Tailwind `@tailwind base` | `base.css` — `:focus-visible`, `prefers-reduced-motion`, body bg |
+| **Architecture / methodology** | Rules for *how to organize* selectors and files | Stops a stylesheet from rotting into one giant mess | BEM, OOCSS, SMACSS, ITCSS, atomic CSS, utility-first, CUBE CSS | Custom four-layer (tokens → base → layout → components → effects) + utility-first composition |
+| **Theme / theme preset** | A swap-in set of token values that retargets the look | Light/dark mode, brand variants, accessibility themes | `prefers-color-scheme`, `data-theme="dark"`, Stripe's "elements" appearance API | `[data-theme="dark"]` in `tokens.css`; four named presets planned ([ADR 056](../adr/056-style-guide-page.md)) |
+| **CSS-in-JS** | Writing styles inside JavaScript files at build or runtime | Co-locates styles with components; scope by import | styled-components, Emotion, vanilla-extract, Stitches | None — forbidden in v2.0 |
+| **Preprocessor** | A language compiled to CSS, with variables / nesting / mixins | Used to add features CSS lacked (now mostly built in) | Sass/SCSS, LESS, Stylus | None — forbidden in v2.0 |
+| **Postprocessor** | A pipeline that transforms CSS after authoring | Auto-prefix, purge, minify, future-syntax polyfill | PostCSS, autoprefixer, cssnano, Lightning CSS | None as a separate step — Tailwind Standalone CLI handles it |
+| **Build tool / pipeline** | The thing that turns source files into the `app.css` the browser loads | Bundling, tree-shaking, minification, dev watch | webpack, Vite, esbuild, Parcel, Rollup, Tailwind CLI, Hugo Pipes | **Tailwind Standalone CLI binary** → `static/css/app.css` |
+| **Methodology for naming** | A convention for what to call your classes | Keeps class names predictable across a team | BEM (`block__element--modifier`), single-class (`.button-primary`), utility (`.flex`) | `sn-<component>-<variant>` (single dash, since `sn-` already namespaces) |
+| **State class** | A class that toggles a runtime state on a component | Replaces JS-only style mutation with CSS that follows class changes | `.is-loading`, `.is-active`, `.has-error`, `aria-expanded="true"` | `.is-loading`, `.is-disabled`, `.has-error` on `sn-*` components |
+| **Pseudo-class / pseudo-element** | A built-in selector that matches state or a virtual sub-element | Targets `:hover`, `:focus`, `::before`, `::backdrop` without extra markup | `:focus-visible`, `:has()`, `::placeholder`, `::backdrop`, `::marker` | Used freely; `:focus-visible` is mandatory |
+| **Media / container query** | A rule wrapper that activates only when a viewport or container condition holds | Responsive design — adapt to screen *or* component context | `@media (min-width: 768px)`, `@container (inline-size > 40ch)` | Mobile-first; Tailwind `sm/md/lg`; `@custom-media` aliases in `tokens.css` |
+| **Cascade layer (`@layer`)** | A named bucket that controls source-order independent of file order | Lets a framework's rules sit *below* yours by design, no specificity wars | `@layer reset, base, components, utilities;` | Implicit via Tailwind's `base/components/utilities` stages |
+| **Scope (`@scope`)** | A new spec primitive that bounds a selector to a subtree | Like Shadow DOM-lite without web components | `@scope (.card) to (.card-footer) { ... }` | Not used yet; available for component isolation if needed |
+| **Accessibility layer** | Rules that exist for assistive-tech users, not visual ones | Focus rings, reduced motion, prefers-contrast, sr-only utilities | `:focus-visible`, `prefers-reduced-motion`, `sr-only`, skip-links, color-contrast | Mandatory floor in `base.css` + skip-link `sn-skip-link` |
+| **Tooling around CSS** | Linters, formatters, visual-regression, a11y, perf | Catches mistakes before review and after deploy | Stylelint, Prettier, Percy, Chromatic, axe-core, Lighthouse, BackstopJS | axe-core in CI ([`v2/risks.md`](../project/spec/v2/risks.md), `tests/e2e/`) |
+| **Documentation surface** | Where the system is shown and explained | Onboarding, design review, regression catch | Storybook, Histoire, Pattern Lab, Zeroheight, in-house styleguide pages | `/styleguide` page ([ADR 056](../adr/056-style-guide-page.md)) — every component, every state |
+
+### Yes — adding effects, themes, and components is meant to be cheap
+
+The four-layer split is specifically designed so that the four
+common asks are **one-file changes**:
+
+| You want to … | Touch this file | Risk |
+| ------------- | ---------------- | ---- |
+| Add a hover polish, gradient, or animation | `effects.css` only | Low — file is removable |
+| Swap or add a theme (e.g. high-contrast, sepia, brand variant) | `tokens.css` only — add a `[data-theme="…"]` block overriding the same custom-property names | Low — components reference tokens, not raw values |
+| Add a new component (e.g. `sn-tag-chip`) | `components.css` + a row on `/styleguide` | Low — new vocabulary, no churn to existing components |
+| Restyle every button | `components.css`'s `.sn-button-*` block | Medium — visual diff is everywhere |
+| Add a new layout primitive | `layout.css` + a `/styleguide` example | Low |
+| Add a new design token | `tokens.css` + `tailwind.config.cjs` + `/styleguide` + `core-idea.md` (one PR) | Medium — touches four files by design |
+| Replace the entire framework (e.g. Tailwind → vanilla) | All of the above, plus an ADR | High — needs a new ADR |
+
+The contract that makes this cheap is **layer discipline**:
+components reference tokens, never raw values; effects are
+decorative-only; tokens are the only place values exist. As long
+as new code respects layer charters, themes and effects compose
+without touching the rest of the system.
+
+> Project rule, not a textbook claim: any new design token
+> requires updating `tokens.css`, `tailwind.config.cjs`, the
+> styleguide, and `core-idea.md` in one PR. See
+> [`v2/css.md`](../project/spec/v2/css.md) §"Authoring rules".
+
+---
+
 ## Part 0 — How to read this file
 
 Each part is independently useful. Skim for the heading you
