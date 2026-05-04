@@ -62,6 +62,10 @@ surface. Edits require an ADR.
 | Repo slug   | `feedback-triage-app` ([ADR 057](../../../adr/057-brand-vs-repo-naming.md))                        |
 | Tagline     | *Capture the noise. Find the signal.*                                                              |
 | Description | *A feedback triage app for turning user requests, bugs, and product ideas into clear next steps.*  |
+| Public-form thank-you (heading) | *Thanks — we got it.*                                                                  |
+| Public-form thank-you (body)    | *We read every signal. If you left an email, we'll let you know if your feedback ships.* |
+| Demo write-blocked toast        | *Demo workspaces are read-only. Sign up to make changes.*                              |
+| Verification-already email subject | *You already have a SignalNest account*                                             |
 
 Forbidden spellings: `Signal Nest`, `Signalnest`, `signalnest` (in
 prose).

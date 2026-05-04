@@ -112,6 +112,14 @@ nav:
           - Implementation: project/spec/v2/implementation.md
           - ADRs: project/spec/v2/adrs.md
           - Glossary: project/spec/v2/glossary.md
+          - Accessibility: project/spec/v2/accessibility.md
+          - Error catalog: project/spec/v2/error-catalog.md
+          - Observability: project/spec/v2/observability.md
+          - Performance budgets: project/spec/v2/performance-budgets.md
+          - Testing strategy: project/spec/v2/testing-strategy.md
+          - Copy style guide: project/spec/v2/copy-style-guide.md
+          - Migration from v1: project/spec/v2/migration-from-v1.md
+          - Railway optimization: project/spec/v2/railway-optimization.md
       - Implementation Plan: project/implementation.md
       - Open Questions: project/questions.md
       - Deployment Notes: project/deployment-notes.md

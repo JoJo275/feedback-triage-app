@@ -10,6 +10,7 @@
 ```
 [anon] --signup--> [unverified] --verify-email--> [verified]
 [verified] --login--> [authed] --logout--> [anon]
+[authed] --logout-everywhere--> [anon] (every session for user revoked)
 [authed] --change-password--> [authed] (siblings revoked)
 [anon] --forgot-password--> [reset-pending] --reset-password--> [verified]
        (all sessions for user revoked)
@@ -87,6 +88,42 @@ Best-effort, not a distributed lock. Bucket keys:
 | Public submission (per ws)      | `pubsubmit:ws:<workspace_id>`             | 30 / hour              |
 
 Above limits → `429 Too Many Requests` with a `Retry-After` header.
+
+---
+
+## `last_seen_at` write cadence
+
+The `sessions.last_seen_at` and `expires_at` columns are updated on
+authenticated requests, but **not on every request** (a write per
+request is wasteful and produces unnecessary WAL).
+
+- Cadence: at most once per **5 minutes** per session.
+- Mechanism: `auth/sessions.py` checks `now() - last_seen_at > 5 min`
+  before issuing the `UPDATE sessions SET last_seen_at = now(),
+  expires_at = now() + interval '7 days' WHERE id = :sid`.
+- The session is treated as expired purely against `expires_at`;
+  the 5-minute lag is a write-batching optimization, not a
+  security-sensitive value.
+- Logout, logout-everywhere, and password change still write
+  immediately (they revoke).
+
+---
+
+## Feature flag — `FEATURE_AUTH`
+
+During the v2.0-alpha → v2.0-beta transition, the auth surface ships
+behind an env flag so that schema migrations and routes can land
+before the UI is opened to users.
+
+| Flag value | `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email` | `/api/v1/auth/*` |
+| ---------- | ----------------------------------------------------------------------------- | ---------------- |
+| `false`    | All return `503 Service Unavailable` with the static message *"Sign-in is launching soon."* | All return `503` |
+| `true`     | Open as documented above                                                      | Open             |
+
+The flag is read once at startup; flipping it requires a redeploy.
+In local development the default is `true`. In production the flag
+flips from `false` → `true` at the v2.0-alpha → v2.0-beta boundary
+per [`rollout.md`](rollout.md).
 
 ---
 

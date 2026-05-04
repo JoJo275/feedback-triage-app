@@ -143,7 +143,7 @@ Tier is the v1.0 Must / Should / Nice axis. Build order matches the
 | FR  | Roadmap page + publish flag                   | High    | Medium  | Should | M      | 3 (final)   |
 | FC  | Changelog page + publish flag                 | High    | Medium  | Should | S      | 3 (final)   |
 | FI  | Insights page (top tags, trends, pain heat)   | High    | Medium  | Nice   | M      | 3 (final)   |
-| FE  | Status-change emails (Resend)                 | Medium  | Medium  | Nice   | S      | 3 (final)   |
+| FE  | Status-change emails (Resend) — close-the-loop      | Medium  | High    | Must   | S      | 3 (final)   |
 | FD  | Dark-mode toggle                              | Medium  | Low     | Nice   | S      | 3 (final)   |
 | FU1 | Mini demo on landing (client-side, vanilla)   | High    | Low     | Should | S      | 3 (final)   |
 
@@ -159,34 +159,84 @@ Deferred (with rationale in [Future Improvements](#future-improvements-after-v20
 
 ## Topical Detail (split files in [`v2/`](v2/))
 
+**Brand & product:**
+
+| File                                            | Topic                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------- |
+| [`v2/core-idea.md`](v2/core-idea.md)            | Brand brief — locked strings, voice, surfaces                  |
+| [`v2/business.md`](v2/business.md)              | Target user, value prop, pricing, growth, retention            |
+
+**Architecture & contract:**
+
 | File                                            | Topic                                                          |
 | ----------------------------------------------- | -------------------------------------------------------------- |
 | [`v2/schema.md`](v2/schema.md)                  | Full DDL: enums, auth tables, tenancy tables, workspace data, `feedback_item` changes |
-| [`v2/api.md`](v2/api.md)                        | All endpoints                                                  |
-| [`v2/auth.md`](v2/auth.md)                      | Auth state machine, sessions, tokens, password hashing         |
-| [`v2/multi-tenancy.md`](v2/multi-tenancy.md)    | Workspace scoping, roles                                       |
-| [`v2/ui.md`](v2/ui.md)                          | Pages, JS conventions, accessibility, public submission form   |
+| [`v2/api.md`](v2/api.md)                        | All endpoints + error envelope                                 |
+| [`v2/auth.md`](v2/auth.md)                      | Auth state machine, sessions, tokens, password hashing, `FEATURE_AUTH` |
+| [`v2/multi-tenancy.md`](v2/multi-tenancy.md)    | Workspace scoping, roles, `WorkspaceContext`                   |
+| [`v2/repo-structure.md`](v2/repo-structure.md)  | Directory layout, module boundaries, naming                    |
+
+**Frontend:**
+
+| File                                            | Topic                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------- |
+| [`v2/ui.md`](v2/ui.md)                          | Page routes, JS conventions, sidebar order, public submission, JS XSS contract |
+| [`v2/pages.md`](v2/pages.md)                    | Per-page catalog: sections, components, copy strings, empty states |
+| [`v2/css.md`](v2/css.md)                        | CSS conventions, design tokens, Tailwind config, component vocabulary |
+
+**Cross-cutting:**
+
+| File                                            | Topic                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------- |
 | [`v2/email.md`](v2/email.md)                    | Resend integration, fail-soft semantics, templates             |
-| [`v2/security.md`](v2/security.md)              | Cross-cutting security: rate limits, isolation invariants, CSP, CSRF posture, content limits, secrets |
-| [`v2/rollout.md`](v2/rollout.md)                | Phased rollout, v1.0 → v2.0 cut-over, deployment, observability, background cron |
+| [`v2/security.md`](v2/security.md)              | Cross-cutting security: rate limits, isolation invariants, CSP, CSRF |
+| [`v2/risks.md`](v2/risks.md)                    | Risk register with severity scores and canaries                |
+| [`v2/accessibility.md`](v2/accessibility.md)    | a11y floor + axe-core ruleset                                  |
+| [`v2/error-catalog.md`](v2/error-catalog.md)    | Error envelope + canonical error codes                         |
+| [`v2/observability.md`](v2/observability.md)    | Log fields, request-id, metrics                                |
+| [`v2/performance-budgets.md`](v2/performance-budgets.md) | Latency, page weight, JS, cache TTLs                  |
+| [`v2/testing-strategy.md`](v2/testing-strategy.md) | Unit / API / e2e matrix, canaries, fixtures                 |
+| [`v2/copy-style-guide.md`](v2/copy-style-guide.md) | Locked strings, voice rules, error tone                     |
+
+**Operations:**
+
+| File                                            | Topic                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------- |
 | [`v2/tooling.md`](v2/tooling.md)                | Backend / frontend / build / test stack                        |
+| [`v2/rollout.md`](v2/rollout.md)                | Phased rollout, v1.0 → v2.0 cut-over, deployment, observability, cron |
+| [`v2/migration-from-v1.md`](v2/migration-from-v1.md) | User-facing v1 → v2 cut-over notes                        |
+| [`v2/railway-optimization.md`](v2/railway-optimization.md) | Railway cost & resource posture                       |
+| [`v2/implementation.md`](v2/implementation.md)  | Phase 0–4 build plan with deliverables, DoD, verification     |
+| [`v2/adrs.md`](v2/adrs.md)                      | Accepted ADRs and the TBD list with phase gates                |
+
+**Reference:**
+
+| File                                            | Topic                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------- |
+| [`v2/glossary.md`](v2/glossary.md)              | Term definitions used across all v2 files                      |
 
 ---
 
 ## ADRs
 
-Three are accepted; four are still to write. The TBD ADRs can land
-in the same PR as the code that needs them.
+Five are accepted; four are still to write. The TBD ADRs land in
+the same PR as the code that needs them. The numbering scheme used
+throughout v2 docs is **Phase 0–4** ([`v2/implementation.md`](v2/implementation.md));
+*Alpha / Beta / Final / Polish* in [`v2/rollout.md`](v2/rollout.md)
+and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
+([`v2/glossary.md`](v2/glossary.md)).
 
-| #   | Title                                                         | Status      | Drives           |
-| --- | ------------------------------------------------------------- | ----------- | ---------------- |
-| 058 | Tailwind via Standalone CLI                                   | ✅ Accepted | FT, all UI work  |
-| 059 | Auth model — cookie sessions + Argon2id                       | ✅ Accepted | F1               |
-| 060 | Multi-tenancy / workspace scoping                             | ✅ Accepted | F1b              |
-| 061 | Email provider (Resend) + fail-soft semantics                 | TBD         | FE, F1, F1b      |
-| 062 | v1.0 → v2.0 data migration (legacy workspace + status rename) | TBD         | cut-over         |
-| 063 | Status enum extension + `rejected` deprecation                | TBD         | FX               |
-| 064 | Pain vs. Priority dual-field rationale                        | TBD         | FX               |
+| #   | Title                                                         | Status      | Phase gate       | Drives           |
+| --- | ------------------------------------------------------------- | ----------- | ---------------- | ---------------- |
+| 056 | Style guide page (`/styleguide`)                              | ✅ Accepted | 1 (Alpha)        | F4, all UI       |
+| 057 | Brand vs. repo naming (SignalNest / `feedback-triage-app`)    | ✅ Accepted | 1 (Alpha)        | branding         |
+| 058 | Tailwind via Standalone CLI                                   | ✅ Accepted | 1 (Alpha)        | FT, all UI work  |
+| 059 | Auth model — cookie sessions + Argon2id                       | ✅ Accepted | 1 (Alpha)        | F1               |
+| 060 | Multi-tenancy / workspace scoping                             | ✅ Accepted | 1 (Alpha)        | F1b              |
+| 061 | Email provider (Resend) + fail-soft semantics                 | TBD         | **1 (Alpha)** — gates `email_log` DDL in Migration A | FE, F1, F1b |
+| 062 | v1.0 → v2.0 data migration (legacy workspace + status rename) | TBD         | 2 (Beta)         | cut-over         |
+| 063 | Status enum extension + `rejected` deprecation                | TBD         | 2 (Beta)         | FX               |
+| 064 | Pain vs. Priority dual-field rationale                        | TBD         | 2 (Beta)         | FX               |
 
 ---
 

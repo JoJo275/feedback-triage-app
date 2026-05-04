@@ -36,7 +36,7 @@ isolation is the **#1 v2.0 risk**:
 - Every CRUD route depends on `WorkspaceContext`.
 - Every `select(...)` against a tenant-scoped table includes
   `Model.workspace_id == ctx.id`.
-- A canary test (`tests/test_tenant_isolation.py`) attempts cross-
+- A canary test (`tests/api/test_isolation.py`) attempts cross-
   tenant reads and asserts 404. **Failing this test fails the
   build.**
 

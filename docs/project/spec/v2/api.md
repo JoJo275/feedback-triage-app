@@ -44,7 +44,7 @@ State machine + TTLs + rate limits live in [`auth.md`](auth.md).
 | ------ | ---------------------------------------------- | ------------------- | ------- |
 | GET    | `/api/v1/workspaces`                           | session             | list of workspaces the user belongs to |
 | GET    | `/api/v1/workspaces/{slug}`                    | session + membership | one workspace |
-| PATCH  | `/api/v1/workspaces/{slug}`                    | owner only          | rename, change slug |
+| PATCH  | `/api/v1/workspaces/{slug}`                    | owner only          | rename only — **`slug` is immutable in v2.0** ([`glossary.md`](glossary.md)) |
 | GET    | `/api/v1/workspaces/{slug}/members`            | session + membership | list members |
 | POST   | `/api/v1/workspaces/{slug}/invitations`        | owner only          | `{ email, role }` → invitation id, sends email |
 | GET    | `/api/v1/workspaces/{slug}/invitations`        | owner only          | open invitations |
@@ -56,8 +56,11 @@ State machine + TTLs + rate limits live in [`auth.md`](auth.md).
 
 ## Feedback (workspace-scoped)
 
-All require session + membership (or `admin`) and the
-`X-Workspace-Slug` header.
+All require session + membership (or platform `admin`) and the
+`X-Workspace-Slug` header. **Demo users are read-only**: every
+write endpoint (`POST`, `PATCH`, `DELETE`) below returns `403 Forbidden`
+with `code=demo_read_only` when the active `WorkspaceContext.is_read_only`
+is `true` (see [`multi-tenancy.md`](multi-tenancy.md)).
 
 | Method | Path                                    | Notes |
 | ------ | --------------------------------------- | ----- |
@@ -69,7 +72,7 @@ All require session + membership (or `admin`) and the
 | POST   | `/api/v1/feedback/{id}/tags`            | `{ tag_ids: [...] }` — replaces tag set |
 | GET    | `/api/v1/feedback/{id}/notes`           | list notes |
 | POST   | `/api/v1/feedback/{id}/notes`           | `{ body }` |
-| PATCH  | `/api/v1/feedback/{id}/notes/{note_id}` | author only, within 15 min |
+| PATCH  | `/api/v1/feedback/{id}/notes/{note_id}` | author only, within 15 min of `created_at`; otherwise `409` |
 | DELETE | `/api/v1/feedback/{id}/notes/{note_id}` | author or workspace owner |
 
 ---
@@ -106,10 +109,29 @@ hour, recorded in `auth_rate_limits` with `bucket_key` like
 
 | Method | Path                              | Notes |
 | ------ | --------------------------------- | ----- |
-| GET    | `/api/v1/dashboard/summary`       | `{ counts: {...}, intake_30d: [...] }`; cached per-workspace 60s |
+| GET    | `/api/v1/dashboard/summary`       | `{ counts: {...}, intake_30d: [...] }`; in-process cache, 60 s TTL per workspace ([`performance-budgets.md`](performance-budgets.md)) |
 | GET    | `/api/v1/insights/top-tags`       | top N tags by feedback count, with sparkline |
 | GET    | `/api/v1/insights/pain-by-tag`    | mean pain_level per tag |
 | GET    | `/api/v1/insights/status-mix`     | counts per status |
+
+The `counts` payload includes `stale`, defined as
+`created_at < now() - interval '14 days' AND status IN ('new', 'needs_info')`
+(see [`glossary.md`](glossary.md)).
+
+---
+
+## Error envelope
+
+All JSON error responses use a single shape, defined in
+[`error-catalog.md`](error-catalog.md):
+
+```json
+{ "error": { "code": "<machine_code>", "message": "<user_facing>", "details": { ... } } }
+```
+
+`details` is omitted unless useful (e.g. Pydantic field-level errors
+on `422`). Cross-tenant lookups always return `404` with
+`code=not_found`, never `403` (per [`multi-tenancy.md`](multi-tenancy.md)).
 
 ---
 
