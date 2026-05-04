@@ -5,10 +5,15 @@
 > [`performance-budgets.md`](performance-budgets.md),
 > [`observability.md`](observability.md).
 
-This file is the **playbook for keeping the Railway bill near
-zero** while v2.0 is in alpha/beta and the user base is single
-digits. Every choice here is reversible; we'll revisit when real
-traffic justifies more spend.
+This file is the **playbook for keeping the Railway bill at or
+under the $5 Hobby subscription's included credit** while v2.0 is
+in alpha/beta and the user base is single digits. Every choice
+here is reversible; we'll revisit when real traffic justifies
+more spend.
+
+**Cost target:** stay within the **$5/month Hobby credit**. The
+subscription pays for usage; we are aiming for usage to fit
+inside it without overage.
 
 ---
 
@@ -22,12 +27,12 @@ preview environments by default.
 
 ## Service inventory
 
-| Service                 | Plan                  | Sleep      | Notes                                                             |
-| ----------------------- | --------------------- | ---------- | ----------------------------------------------------------------- |
-| `app` (FastAPI)         | Hobby ($5 credit)     | No         | Single replica, single region. Auto-restart on crash.             |
-| `postgres`              | Postgres Hobby        | No         | Managed Postgres 16. Single node.                                 |
-| `staging` (preview env) | **Off by default**    | n/a        | Spun up only for the rare PR that needs it; torn down on merge.   |
-| Cron jobs               | Built-in scheduler    | n/a        | Free with the `app` service. See [`performance-budgets.md`](performance-budgets.md). |
+| Service                 | Plan                  | Sleep                  | Notes                                                             |
+| ----------------------- | --------------------- | ---------------------- | ----------------------------------------------------------------- |
+| `app` (FastAPI)         | Hobby ($5 credit)     | **On (serverless)**    | Single replica, single region. Auto-restart on crash. Sleep stays on while cold-start P95 is acceptable; flip off if it becomes user-visible. |
+| `postgres`              | Postgres Hobby        | n/a                    | Managed Postgres 16. Single node. **5 GB volume** — enormous headroom for v2.0 footprint (see Storage below). |
+| `staging` (preview env) | **Off by default**    | n/a                    | Spun up only for the rare PR that needs it; torn down on merge.   |
+| Cron jobs               | Built-in scheduler    | n/a                    | Free with the `app` service. **Verify cron behavior with sleep ON** — see Sleep policy. |
 
 That's it. **No Redis** (the dashboard cache is in-process —
 `cachetools.TTLCache`, see [`performance-budgets.md`](performance-budgets.md)).
@@ -43,8 +48,8 @@ bucket; see "Backups" below).
 | Knob              | Value                                                                                  |
 | ----------------- | -------------------------------------------------------------------------------------- |
 | CPU               | Shared (Hobby tier default)                                                            |
-| Memory            | **512 MB** target, 1 GB hard ceiling. OOM kills surface as a `CRITICAL` log line.       |
-| Workers           | `uvicorn --workers 1` in v2.0. Sync routes; a second worker doubles memory for no real throughput gain at our scale. |
+| Memory            | **~700 MB** target with 2 workers, 1 GB hard ceiling. OOM kills surface as a `CRITICAL` log line. Argon2id verify uses ~32 MB transient memory per hash; 2 workers comfortably absorb a small login burst. |
+| Workers           | `uvicorn --workers 2` in v2.0. Two workers cover concurrent Argon2id verifies during login bursts and give a single-tenant deploy a small amount of head-of-line resilience. Drop to 1 only if memory pressure becomes an issue. |
 | Restart policy    | `on-failure` with exponential backoff. Five failures in 5 minutes → mark unhealthy.    |
 | Healthcheck       | `GET /healthz` every 30s. Two failures → restart.                                      |
 | Image size        | < 250 MB compressed (multi-stage `Containerfile`, `python:3.12-slim` base).            |
@@ -54,9 +59,8 @@ bucket; see "Backups" below).
 | Knob              | Value                                                                                  |
 | ----------------- | -------------------------------------------------------------------------------------- |
 | Plan              | Hobby                                                                                  |
-| Storage           | Start at **1 GB**; bump in 1 GB steps as `pg_database_size` approaches 70%. Alert at 80%. |
-| Connections       | Pool size **5** in app, hard ceiling **10**. Hobby Postgres is connection-limited;     |
-|                   | one worker × 5 connections is comfortable. SQLAlchemy: `pool_size=5, max_overflow=0`.  |
+| Storage           | **5 GB volume provisioned** — huge headroom. v2.0's working set (workspaces + feedback_items + email_log + sessions) is well under 100 MB through the alpha/beta phases. Alert at 70 % only if growth ever becomes non-trivial. |
+| Connections       | Pool size **5 per worker** = 10 connections in steady state, hard ceiling **15** (room for cron + migration overlap). SQLAlchemy: `pool_size=5, max_overflow=0` per worker. Hobby Postgres connection limit is the cost trap; respect it. |
 | Backups           | Railway daily snapshot (built-in). Plus monthly off-platform export (see below).       |
 
 The connection-pool ceiling is the **single biggest cost trap**
@@ -65,20 +69,82 @@ contract in [`copilot-instructions.md`](../../../../.github/copilot-instructions
 is non-negotiable: never hold a session on `app.state` or in a
 module global.
 
+### Storage — 5 GB on $5 Hobby
+
+5 GB is comfortable for v2.0. Reference points:
+
+- v1.0 single-table footprint at hundreds of feedback rows: < 5 MB.
+- v2.0 schema (workspaces, users, sessions, tokens, memberships,
+  invitations, feedback_item, submitters, tags, notes, email_log)
+  with single-tenant alpha traffic: ~50–100 MB through year one.
+- The largest growth surface is `email_log`, which is bounded by
+  the 90-day prune ([ADR 061](../../../adr/061-resend-email-fail-soft.md)).
+
+Meaning: **storage is not what threatens the $5 ceiling**. Compute
+wall-time and egress are. Don't pre-shrink the volume — the cost
+delta is negligible and headroom matters when Migration B runs.
+
 ---
 
 ## Sleep policy
 
-We **do not** put the app to sleep on Hobby tier. Reasons:
+**Current posture: Railway serverless / sleep is ON.** Empirically
+cold-start has been imperceptible at v1.0 footprint, and sleep is
+the single biggest lever for staying inside the $5 Hobby credit.
 
-1. Cold-start adds 2–4s to the first request, which fails our
-   P95 budget ([`performance-budgets.md`](performance-budgets.md)).
-2. The cron jobs (session GC, demo reset) need a live process.
-3. The credit difference between always-on and sleep-when-idle
-   is < $1/month at our footprint.
+### Why we keep it on
 
-If we ever need to sleep, the threshold is "monthly Railway bill
-exceeds $20 and < 10 daily active users." Until then, always-on.
+1. We're targeting the $5 Hobby credit, not a P95-budget for a
+   paying customer. A 1–2 s cold-start once an hour is acceptable
+   for an alpha/beta tool with single-digit DAU.
+2. Empirical cold-start has been "barely noticeable" — keep that
+   measurement honest by re-checking after Phase 1 lands.
+3. The compute saved by sleeping overnight + weekends is the
+   majority of monthly wall-time at this scale.
+
+### What v2.0 adds to cold-start
+
+Vs v1.0, expect ~200–500 ms more first-request latency from a cold
+worker. Sources:
+
+| Adds at cold start                                          | Approx |
+| ----------------------------------------------------------- | ------ |
+| `argon2-cffi` native-lib load + first-verify self-test      | 50–200 ms |
+| `httpx` client init for Resend                              | 30–80 ms  |
+| Auth + tenancy + email module imports                       | 50–150 ms |
+| Jinja env init for email templates                          | 20–50 ms  |
+| Extra SQLModel metadata (more tables in registry)           | 30–80 ms  |
+
+The two cold-start cases that *might* become user-visible:
+
+- **First sign-in after a cold boot.** Argon2id verify is
+  intentionally slow (~150–300 ms) and pays the native-lib load
+  on its first call — so the first login of a wake cycle can feel
+  ~400–600 ms slower than the second. Mitigation if it becomes a
+  complaint: a tiny `argon2.PasswordHasher().hash("warmup")` call
+  in the FastAPI startup hook to pay the cost on boot, not on a
+  user request.
+- **Cron jobs hitting a sleeping app.** Verify Railway's behavior:
+  do scheduled crons wake the service or skip while asleep? Test
+  this once after Phase 1 deploy with the session-GC job. If it
+  skips, either (a) flip sleep off, or (b) make the cron tolerate
+  missed windows (session GC and email_log prune already do).
+
+### When to turn sleep OFF
+
+Flip serverless off if **any** of:
+
+- Cold-start P95 on the first request after wake exceeds 3 s
+  (sustained, not a one-off).
+- A real user reports the wake delay.
+- A cron job is silently missed because the app was asleep, and
+  rewriting the cron to be miss-tolerant is more work than
+  paying for always-on.
+- Monthly bill is comfortably *under* $5 with sleep on, and
+  always-on still fits the credit.
+
+Flipping sleep off is a Railway service-setting toggle, not a
+code change. Always reversible.
 
 ---
 
@@ -176,12 +242,12 @@ In addition to the operational alerts in
 [`observability.md`](observability.md), set Railway's billing
 alerts to:
 
-| Threshold                        | Action                                              |
-| -------------------------------- | --------------------------------------------------- |
-| Monthly cost > $5                | Notice — expected baseline                          |
-| Monthly cost > $10               | Investigate — anomaly or growth?                    |
-| Monthly cost > $20               | Hard review — re-run this file's choices            |
-| Estimated month-end > $30        | Consider sleep policy + reducing replica count      |
+| Threshold                                  | Action                                              |
+| ------------------------------------------ | --------------------------------------------------- |
+| Estimated month-end usage > **$5 credit**  | **Hard cap reached** — first lever: confirm sleep is on; second lever: drop to 1 worker; third lever: re-run this file's choices. |
+| Monthly cost > $10                         | Anomaly — investigate. Likely cause: sleep got disabled, or a runaway cron, or unbounded list endpoint egress. |
+| Monthly cost > $20                         | Hard review — v2.0 has outgrown Hobby; either upgrade plan deliberately or cut scope. |
+| Estimated month-end > $30                  | Stop. Identify the regression before continuing.    |
 
 ---
 
@@ -210,11 +276,15 @@ alerts to:
 
 ## When to revisit this file
 
+- The Hobby plan's $5 credit no longer fits a normal-traffic month.
 - The Hobby plan's resource limits change.
 - Daily active users exceed **20**.
-- Postgres storage exceeds **3 GB**.
-- The connection pool sees > 80% checkout utilization on a
-  rolling 24h window.
+- Postgres storage exceeds **3 GB** (still well under the 5 GB
+  volume — just a heads-up trigger to plan ahead).
+- The connection pool sees > 80 % checkout utilization on a
+  rolling 24 h window.
+- Cold-start P95 after a sleep wake exceeds 3 s sustained, **or**
+  a user reports the wake delay.
 - Any of the "explicitly does not do" items becomes a recurring
   source of pain.
 
