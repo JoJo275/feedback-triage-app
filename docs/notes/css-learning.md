@@ -26,6 +26,13 @@ locate "where does X live for us?".
 | ----- | ---------- | ------------ | ------------------- | --------------- |
 | **The language itself** | The CSS spec — selectors, properties, the cascade, inheritance, layout primitives | Tells the browser how to paint and lay out a tree of elements | CSS3, Selectors L4, CSS Color L4, Container Queries, `@layer`, `@scope`, `:has()` | Plain modern CSS, no preprocessor |
 | **Selector** | A pattern that picks elements in the DOM | Targets *which* elements a rule applies to | `.sn-button`, `button[type="submit"]`, `:focus-visible`, `:has(> .sn-card-footer)`, `nav a:not(.is-current)` | Class-only, ceiling `0,2,1` (see [`v2/css.md`](../project/spec/v2/css.md)) |
+| **Class** | The HTML attribute (`class="…"`) plus the matching CSS selector (`.foo`) — a label you stick on an element so a stylesheet can find it | The mechanism by which a rule attaches to specific elements without modifying their tag or id | `<button class="sn-button sn-button-primary is-loading">` matched by `.sn-button`, `.sn-button-primary`, `.is-loading` | Sole styling hook — no `#id` selectors, no tag-only rules below `base.css` |
+| **Component class** | A class that names a complete UI atom + its variants and states (look + behaviour as styling) | Encapsulates one component's CSS behind a single root class | `.sn-button`, `.sn-card`, `.sn-pill-status`, `.sn-modal` | Defined in `components.css`, one class per atom, modifiers via `-variant` |
+| **Modifier class** | A class added to a component to change a specific axis (variant, size, tone) | Composes onto the base class without forking the rule set | `.sn-button-primary` / `-secondary` / `-ghost` / `-danger`, `.sn-pill-status-shipped` | Single dash (`sn-button-ghost`), since `sn-` already namespaces |
+| **State class** | A class that toggles a runtime state on a component | Replaces JS-only style mutation with CSS that follows class changes | `.is-loading`, `.is-active`, `.has-error`, paired with `aria-*` attributes | `.is-loading`, `.is-disabled`, `.has-error` on `sn-*` components |
+| **Utility / utility class** | A *single-purpose* class that sets one or two declarations and nothing else | Skip the naming step for one-off layout / spacing / typography tweaks; compose them on the element | `.flex`, `.grid`, `.gap-4`, `.mt-6`, `.text-center`, `.sr-only`, `.truncate` | Provided by Tailwind; cap of ~6 utilities per element before promoting to a component |
+| **Atomic class** | Synonym for utility class, emphasizing "one declaration per class" | Same as utility class | `.mt-2 { margin-top: 0.5rem; }` | Same as above — Tailwind's vocabulary is atomic |
+| **Layout primitive** | A *named structural shape* implemented as a class (page shell, grid, stack, cluster, sidebar, switcher) | Owns *where* things go, not *how they look*; the bones a page is laid out on | "Every Layout" patterns; Tailwind's grid utilities can substitute for ad-hoc primitives | `sn-page-shell`, `sn-dashboard-grid`, `sn-stack`, `sn-cluster`, `sn-grid-12` in `layout.css` |
 | **Property** | A named CSS rule of the form `name: value` that applies *to* matched elements | Sets one specific aspect of how an element is painted or laid out | `color`, `padding`, `display`, `transform`, `transition`, `aspect-ratio`, `gap`, `z-index` | Used everywhere; we never invent properties — we only set the standard ones |
 | **Property / value** | A single declaration: a property paired with a concrete value | The atomic unit of styling — what actually changes how an element looks | `color: #0a7`, `padding: 1rem`, `display: grid`, `transform: translateY(-2px)` | Standard properties + values; tokens used for the *value* side via `var(--…)` |
 | **Custom property (CSS variable)** | An author-defined value stored in a `--name` slot, declared on a selector and read with `var(--name, fallback)` | Reuse a value across many rules; theme by overriding the slot in another scope; mutable at runtime via JS | `--color-bg: #fff;` on `:root`, `var(--radius-md)`, dark theme overrides via `[data-theme="dark"] { --color-bg: #111; }` | All design tokens defined in `tokens.css`; `[data-theme="…"]` swaps re-bind the same names |
@@ -33,24 +40,22 @@ locate "where does X live for us?".
 | **Design token** | A *named* primitive (color, radius, motion, z-layer) that downstream layers reference instead of raw values | Single source of truth for the design's values; switching themes only changes tokens | Material Tokens, Adobe Spectrum tokens, Tailwind theme keys, GitHub Primer Primitives | `tokens.css` — color, radius, shadow, motion, z-layer |
 | **Design system** | Tokens + components + usage rules + docs, treated as a product | Lets a team build consistent UI across many pages | Material 3, Apple HIG, IBM Carbon, GitHub Primer, Atlassian Design System, Shopify Polaris | Custom in-house system, four-layer (tokens → base → layout → components → effects) |
 | **Component library** | Pre-built UI atoms a design system ships | Gives you `<Button>`, `<Modal>`, `<Tabs>` ready-made | Radix UI, shadcn/ui, Headless UI, Material UI, Chakra UI, daisyUI | The `sn-*` vocabulary in `components.css` (button, card, pill, modal, etc.) |
-| **CSS framework** | A pre-written stylesheet you load to get a baseline look | Saves writing CSS from scratch; opinionated visual identity | Bootstrap, Bulma, Pico, Foundation, Materialize, Spectre | None — explicitly forbidden without ADR |
-| **Utility-first framework** | A framework whose "vocabulary" is single-purpose classes you compose in HTML | Skips naming things; lets layout emerge from class strings | Tailwind CSS, UnoCSS, Tachyons, WindiCSS | **Tailwind (Standalone CLI)** — no Node, no PostCSS plugins ([ADR 058](../adr/058-tailwind-via-standalone-cli.md)) |
-| **Custom framework** | A framework you write yourself for one app or company | Fits the domain exactly; you own all the trade-offs | The `sn-*` system here; Stripe's internal CSS; any in-house "design language" | This project's `sn-*` layered files |
+| **Framework (CSS)** | An external stylesheet (sometimes plus JS) you load to inherit a baseline look + component vocabulary | Saves writing CSS from scratch; gives you a coherent identity out of the box | Bootstrap, Bulma, Pico, Foundation, Materialize | None as a "look-and-feel" framework — explicitly forbidden without ADR |
+| **Utility-first framework** | A framework whose "vocabulary" is single-purpose utility classes you compose in HTML | Skips naming things; lets layout emerge from class strings | Tailwind CSS, UnoCSS, Tachyons, WindiCSS | **Tailwind (Standalone CLI)** — no Node, no PostCSS plugins ([ADR 058](../adr/058-tailwind-via-standalone-cli.md)) |
+| **Custom framework** | A framework you write yourself for one app or company (tokens + base + layout + components + effects, organized as code in your repo) | Fits the domain exactly; you own all the trade-offs | The `sn-*` system here; Stripe's internal CSS; any in-house "design language" | This project's `sn-*` layered files |
 | **Component (in your codebase)** | One UI atom — a button, card, modal — defined once and reused | Encapsulates look + states + variants behind one name | `sn-button`, `sn-card`, `sn-pill-status`, `sn-modal`, `sn-empty-state` | Defined in `components.css`, demoed on `/styleguide` |
-| **Layout primitive** | A reusable structural shape (page shell, grid, stack, cluster) | Owns *where* things go, not *how they look* | "Every Layout" patterns (Stack, Cluster, Sidebar, Switcher); Tailwind's grid utilities | `sn-page-shell`, `sn-dashboard-grid`, `sn-stack`, `sn-cluster`, `sn-grid-12` in `layout.css` |
 | **Effect** | Decorative-only styling: transitions, animations, gradient surfaces, hover polish | Adds motion and depth without changing meaning | `transition: opacity .2s`, keyframe `fade-in`, `box-shadow`, gradient backgrounds | `effects.css` — removable for print or low-motion |
 | **Reset / base layer** | Element-level rules that normalize browser defaults and set a11y floors | Makes `<button>`, `<input>`, headings start in a known state | `normalize.css`, `reset.css`, modern resets like Andy Bell's, Tailwind `@tailwind base` | `base.css` — `:focus-visible`, `prefers-reduced-motion`, body bg |
-| **Architecture / methodology** | Rules for *how to organize* selectors and files | Stops a stylesheet from rotting into one giant mess | BEM, OOCSS, SMACSS, ITCSS, atomic CSS, utility-first, CUBE CSS | Custom four-layer (tokens → base → layout → components → effects) + utility-first composition |
+| **Architecture / methodology** | Rules for *how to organize* selectors and files: which file owns what, what may import what, how naming is structured | Stops a stylesheet from rotting into one giant unowned mess | BEM, OOCSS, SMACSS, ITCSS, atomic CSS, utility-first, CUBE CSS | **Custom four-layer**: `tokens.css → base.css → layout.css → components.css → effects.css`, glued by `app.css`'s import order; classes are namespaced `sn-*`; specificity ceiling `0,2,1` |
 | **Theme / theme preset** | A swap-in set of token values that retargets the look | Light/dark mode, brand variants, accessibility themes | `prefers-color-scheme`, `data-theme="dark"`, Stripe's "elements" appearance API | `[data-theme="dark"]` in `tokens.css`; four named presets planned ([ADR 056](../adr/056-style-guide-page.md)) |
 | **CSS-in-JS** | Writing styles inside JavaScript files at build or runtime | Co-locates styles with components; scope by import | styled-components, Emotion, vanilla-extract, Stitches | None — forbidden in v2.0 |
 | **Preprocessor** | A language compiled to CSS, with variables / nesting / mixins | Used to add features CSS lacked (now mostly built in) | Sass/SCSS, LESS, Stylus | None — forbidden in v2.0 |
 | **Postprocessor** | A pipeline that transforms CSS after authoring | Auto-prefix, purge, minify, future-syntax polyfill | PostCSS, autoprefixer, cssnano, Lightning CSS | None as a separate step — Tailwind Standalone CLI handles it |
 | **Build tool / pipeline** | The thing that turns source files into the `app.css` the browser loads | Bundling, tree-shaking, minification, dev watch | webpack, Vite, esbuild, Parcel, Rollup, Tailwind CLI, Hugo Pipes | **Tailwind Standalone CLI binary** → `static/css/app.css` |
 | **Methodology for naming** | A convention for what to call your classes | Keeps class names predictable across a team | BEM (`block__element--modifier`), single-class (`.button-primary`), utility (`.flex`) | `sn-<component>-<variant>` (single dash, since `sn-` already namespaces) |
-| **State class** | A class that toggles a runtime state on a component | Replaces JS-only style mutation with CSS that follows class changes | `.is-loading`, `.is-active`, `.has-error`, `aria-expanded="true"` | `.is-loading`, `.is-disabled`, `.has-error` on `sn-*` components |
 | **Pseudo-class / pseudo-element** | A built-in selector that matches state or a virtual sub-element | Targets `:hover`, `:focus`, `::before`, `::backdrop` without extra markup | `:focus-visible`, `:has()`, `::placeholder`, `::backdrop`, `::marker` | Used freely; `:focus-visible` is mandatory |
 | **Media / container query** | A rule wrapper that activates only when a viewport or container condition holds | Responsive design — adapt to screen *or* component context | `@media (min-width: 768px)`, `@container (inline-size > 40ch)` | Mobile-first; Tailwind `sm/md/lg`; `@custom-media` aliases in `tokens.css` |
-| **Cascade layer (`@layer`)** | A named bucket that controls source-order independent of file order | Lets a framework's rules sit *below* yours by design, no specificity wars | `@layer reset, base, components, utilities;` | Implicit via Tailwind's `base/components/utilities` stages |
+| **Cascade layer (`@layer`)** | A *named bucket* whose order is fixed by `@layer name1, name2, …;` independent of source order — every rule inside a layer beats every rule outside it (above the layer's slot), regardless of specificity | Tames specificity wars between framework rules and your own; lets a vendor's rules sit *below* yours by design | `@layer reset, base, components, utilities;` then `@layer components { .sn-card { … } }` | **Not used in our hand-authored CSS** — the four-file architecture and class-only `0,2,1` ceiling already make specificity flat. Tailwind internally emits its own `@layer base / components / utilities`, which we accept; we don't wrap our own files in additional `@layer` blocks. Cost would be a ceremony layer that buys nothing at our scale; revisit only if a third-party stylesheet ever needs to be neutralized. |
 | **Scope (`@scope`)** | A new spec primitive that bounds a selector to a subtree | Like Shadow DOM-lite without web components | `@scope (.card) to (.card-footer) { ... }` | Not used yet; available for component isolation if needed |
 | **Accessibility layer** | Rules that exist for assistive-tech users, not visual ones | Focus rings, reduced motion, prefers-contrast, sr-only utilities | `:focus-visible`, `prefers-reduced-motion`, `sr-only`, skip-links, color-contrast | Mandatory floor in `base.css` + skip-link `sn-skip-link` |
 | **Tooling around CSS** | Linters, formatters, visual-regression, a11y, perf | Catches mistakes before review and after deploy | Stylelint, Prettier, Percy, Chromatic, axe-core, Lighthouse, BackstopJS | axe-core in CI ([`v2/risks.md`](../project/spec/v2/risks.md), `tests/e2e/`) |
@@ -367,6 +372,114 @@ term, short enough to skim.
 ### W
 
 - **Web component** — see *custom element*.
+
+---
+
+## How CSS is installed in a repo — every file you might see
+
+The "where does CSS live in a project?" question. Different
+stacks answer it differently; the table below names the files
+and folders you'll commonly see, what each one is for, and
+which ones SignalNest v2.0 actually has.
+
+The convention this project follows: **hand-authored CSS lives in
+`src/feedback_triage/static/css/` as plain `.css` files**; a
+single `app.css` imports them in a fixed order; the Tailwind
+Standalone CLI compiles `app.css` (with the Tailwind directives
+inside it) to `static/css/app.<hash>.css` at build time, which is
+what the browser actually loads.
+
+### Source-side files (what you author)
+
+| Path                                                | What it is                                                                  | What it does                                                                                       | In SignalNest v2.0 |
+| --------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------ |
+| `src/feedback_triage/static/css/`                   | The CSS source root for the app                                             | The directory the build pipeline scans; everything inside gets bundled into `app.css`              | Yes                |
+| `static/css/app.css`                                | The single entry stylesheet                                                 | Holds Tailwind directives (`@tailwind base; @tailwind components; @tailwind utilities;`) plus `@import` lines that pull the four custom layers in fixed order | Yes — the **only** file the build reads |
+| `static/css/tokens.css`                             | Design tokens                                                               | `:root { --color-*: …; --radius-*: …; --shadow-*: …; --motion-*: …; --z-*: …; }` plus `[data-theme="…"]` overrides | Yes |
+| `static/css/base.css`                               | Reset + a11y floor                                                          | `:focus-visible` rules, `prefers-reduced-motion`, `body` background, heading defaults, `sr-only`   | Yes                |
+| `static/css/layout.css`                             | Layout primitives                                                           | `.sn-page-shell`, `.sn-dashboard-grid`, `.sn-stack`, `.sn-cluster`, `.sn-grid-12`                  | Yes                |
+| `static/css/components.css`                         | Component vocabulary                                                        | `.sn-button`, `.sn-card`, `.sn-pill-status`, `.sn-tag-chip`, `.sn-modal`, etc., with all variants and states | Yes |
+| `static/css/effects.css`                            | Decorative effects                                                          | Keyframes, gradient surfaces, hover polish, removable for print                                    | Yes                |
+| `static/css/print.css` *(optional)*                 | Print-specific overrides                                                    | Hides nav, expands prose, neutralizes background colors                                            | Not yet — add when print becomes a need |
+| `tailwind.config.cjs`                               | Tailwind configuration                                                      | Where Tailwind reads tokens from CSS variables, configures content scan paths, declares any custom utilities | Yes — at repo root |
+| `postcss.config.cjs` *(absent here)*                | PostCSS configuration                                                       | Wires up plugins (autoprefixer, cssnano) when using PostCSS                                        | **Not used** — Standalone CLI replaces PostCSS |
+| `tools/tailwindcss` (binary)                        | Tailwind Standalone CLI binary                                              | The compiler that turns `app.css` + scanned templates into a single emitted stylesheet             | Yes — checked-in or downloaded by `task bootstrap` ([ADR 058](../adr/058-tailwind-via-standalone-cli.md)) |
+| `static/fonts/`                                     | Self-hosted web fonts                                                       | `.woff2` files referenced from `@font-face` rules in `tokens.css` or `base.css`                    | **Not used** — system fonts only ([`v2/css.md`](../project/spec/v2/css.md)) |
+
+### Compiled-side files (what the build emits)
+
+| Path                                                | What it is                                                                  | What it does                                                                                       | In SignalNest v2.0 |
+| --------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------ |
+| `static/css/app.<hash>.css`                         | The compiled, minified stylesheet                                           | What the browser actually loads from `<link rel="stylesheet">`                                     | Yes — emitted by `task css:build` |
+| `static/css/app.<hash>.css.map` *(dev only)*        | Source map                                                                  | Lets DevTools point CSS rules back to the source file                                              | Dev only — not shipped to production |
+| `static/css/.gitignore`                             | Ignores compiled artifacts                                                  | Keeps `app.<hash>.css` out of git so each developer / CI emits their own                           | Yes                |
+
+### Files the template emits (inside HTML)
+
+| Inside HTML                                         | What it is                                                                  | What it does                                                                                       |
+| --------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `<link rel="stylesheet" href="/static/css/app.<hash>.css">` | The single stylesheet link in `<head>` of every page                | Loads everything; one HTTP request, aggressive cache (`max-age=31536000, immutable`)                |
+| `<style>…</style>` *(forbidden in this project)*    | Inline page-level stylesheet                                                | Would be render-blocking by default and CSP-blocked under `style-src 'self'`                       |
+| `style="…"` *(forbidden in this project)*           | Inline element-level styles                                                  | Defeats the cascade and the styleguide; banned in [`v2/css.md`](../project/spec/v2/css.md)        |
+
+### Files other stacks use that we deliberately don't
+
+These appear in many CSS-heavy projects but **not** in SignalNest
+v2.0. Listed so you recognize them when you see them elsewhere
+and know why we don't have one:
+
+| File / folder                | What it would be                                              | Why not here                                                          |
+| ---------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `*.scss` / `*.sass`          | Sass source files                                             | We use plain CSS — modern CSS has nesting, variables, custom media    |
+| `*.less`                     | LESS source files                                             | Same reason                                                           |
+| `*.module.css`               | CSS Modules (scoped class names per component)                | Requires a JS bundler; we don't have one                              |
+| `*.styled.ts` / `*.styles.ts`| CSS-in-JS files                                               | Forbidden — needs a runtime, hurts caching, hurts CSP                 |
+| `*.vue` / `*.svelte` style blocks | Single-file-component scoped styles                       | We don't use a frontend framework                                     |
+| `node_modules/` CSS imports  | npm-installed component / framework stylesheets               | Tailwind Standalone CLI is the *only* third-party CSS source — no npm |
+| `tailwind.css` (separate)    | A separate Tailwind entry distinct from `app.css`             | We collapse it into `app.css` to keep one entry point                 |
+| `purgecss.config.js`         | Standalone purge config                                       | Tailwind handles unused-class removal during compilation              |
+| `stylelint.config.js`        | Stylelint config                                              | Not yet; we rely on review and the specificity ceiling. Add when team grows |
+| `prettierrc` (CSS section)   | Prettier formatting for CSS                                   | Ruff/format covers Python only; CSS formatting is by convention       |
+| `*.css.ts` (Vanilla Extract) | Type-safe CSS-in-JS                                           | Same reason as CSS-in-JS                                              |
+
+### The import order in `app.css`
+
+The single most important file. It pins the order in which the
+four custom layers cascade, and where Tailwind's own layers fit:
+
+```css
+/* src/feedback_triage/static/css/app.css */
+
+@import "./tokens.css";      /* design tokens, themes */
+
+@tailwind base;              /* Tailwind reset / preflight */
+@import "./base.css";        /* our a11y floor on top of preflight */
+
+@tailwind components;        /* (empty unless we register custom @layer components) */
+@import "./layout.css";      /* layout primitives */
+@import "./components.css";  /* sn-* component vocabulary */
+
+@tailwind utilities;         /* utility classes (last word wins) */
+
+@import "./effects.css";     /* decorative-only, after utilities */
+```
+
+**Why this order:**
+
+- Tokens first so every later layer can `var(--…)`.
+- Tailwind `base` (preflight) before our `base.css` so our
+  a11y rules override Tailwind's reset where they overlap.
+- Layout and components before utilities so utility classes
+  (`mt-4`, `text-center`) can override component defaults
+  inline in templates.
+- Effects last so decorative polish wins over earlier rules
+  but reduced-motion in `base.css` (which uses `!important`)
+  still wins over effects.
+
+Anyone adding a new file to `static/css/` must place its
+`@import` line in this file in the correct slot, document the
+choice in [`v2/css.md`](../project/spec/v2/css.md), and add a
+row to the table above.
 
 ---
 
