@@ -62,27 +62,56 @@ shared without further explanation.
 A maintenance pause at the v1.0 → v2.0-alpha boundary is acceptable
 (zero-downtime is **not** a v2.0 goal). The cut-over migration runs
 once; rollback path is a fresh restore from the pre-cutover dump.
+Full user-facing companion: [`migration-from-v1.md`](migration-from-v1.md).
 
-Steps in order, all inside the same Alembic revision:
+Per ADR 062, the cut-over is **two Alembic revisions**, not one,
+so a deploy that fails between A and B can roll forward instead
+of down (mitigates [`risks.md`](risks.md) E15).
+
+### Migration A — schema-only
 
 1. `CREATE EXTENSION IF NOT EXISTS citext`.
 2. Create `users`, `workspaces`, `workspace_memberships`,
-   `workspace_invitations`, `sessions`, token tables, `submitters`,
-   `tags`, `feedback_tags`, `feedback_notes`, `auth_rate_limits`.
-3. Insert the admin `users` row (id, email from
+   `workspace_invitations`, `sessions`, `email_verification_tokens`,
+   `password_reset_tokens`, `submitters`, `tags`, `feedback_tags`,
+   `feedback_notes`, `auth_rate_limits`, `email_log`.
+3. Insert the synthetic admin `users` row (id, email from
    `ADMIN_BOOTSTRAP_EMAIL`, password hash from
    `ADMIN_BOOTSTRAP_PASSWORD`).
-4. Insert the `signalnest-legacy` workspace owned by admin.
-5. `ALTER TABLE feedback_item ADD COLUMN workspace_id …` (NULLABLE).
-6. `UPDATE feedback_item SET workspace_id = (legacy workspace id)`.
-7. `ALTER COLUMN workspace_id SET NOT NULL`.
-8. `ALTER TYPE status_enum ADD VALUE 'needs_info' …` (six new values).
-9. `UPDATE feedback_item SET status='closed' WHERE status='rejected'`.
-10. Add `feedback_item` columns and `CHECK` constraints from
-    [`schema.md`](schema.md).
-11. Add indexes.
+4. Insert the `signalnest-legacy` workspace owned by the admin
+   user (the admin user is also the synthetic owner; the spec
+   keeps these as the same user, per ADR 062).
+5. `ALTER TABLE feedback_item ADD COLUMN workspace_id uuid NULL`
+   (nullable, no FK violations possible because no rows yet have
+   a value).
+6. `ALTER TYPE status_enum ADD VALUE 'needs_info'` ... (six new
+   values; `ALTER TYPE ADD VALUE` cannot run inside a transaction
+   that also writes data, so this lives in Migration A).
+7. Add `feedback_item` columns from [`schema.md`](schema.md)
+   (`title`, `submitter_id`, `type`, `priority`, `source_other`,
+   `type_other`, `published_to_*`, `release_note`) and CHECK
+   constraints.
+8. Add indexes.
 
-Tracked in ADR 062 (TBD).
+Deploy A. Application boots; `feedback_item.workspace_id` is
+nullable; new rows still write through (defaulting to NULL is
+fine because Migration B has not flipped NOT NULL yet, and
+v2.0-alpha keeps `FEATURE_AUTH=false` so no production write
+traffic creates new feedback through the v2 paths).
+
+### Migration B — backfill + flip
+
+9. `UPDATE feedback_item SET workspace_id = (legacy ws id)
+    WHERE workspace_id IS NULL`.
+10. Pre-flip assertion (in Python): `SELECT count(*) FROM
+    feedback_item WHERE workspace_id IS NULL` must equal 0; the
+    migration aborts otherwise.
+11. `ALTER COLUMN workspace_id SET NOT NULL`.
+12. `UPDATE feedback_item SET status='closed' WHERE status='rejected'`.
+
+Deploy B. The `release-please` PR or a manual tag bumps to
+`v2.0.0-alpha.1`. ADRs 062 + 063 cover the data-migration
+choreography and the `rejected → closed` decision.
 
 ### Backwards compatibility
 

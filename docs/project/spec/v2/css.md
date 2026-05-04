@@ -488,6 +488,28 @@ in the same PR. Modifiers (`-primary`, `-secondary`, etc.) use
 single dashes — not BEM `--` — because the `sn-` prefix already
 namespaces.
 
+| Class                              | Used on                                          |
+| ---------------------------------- | ------------------------------------------------ |
+| `sn-card` / `sn-card-header` / `sn-card-body` / `sn-card-footer` | dashboard cards, settings panels |
+| `sn-button` + `-primary` / `-secondary` / `-ghost` / `-danger`   | every action surface                  |
+| `sn-pill-status`                   | status pills (one per `status_enum` value)       |
+| `sn-pill-priority`                 | priority pills (low / medium / high / critical)  |
+| `sn-pill-type`                     | feedback-type pill (bug / feature_request / etc.) — icon + text + color |
+| `sn-tag-chip`                      | tag chips on inbox rows + detail page (workspace-tag color, removable on detail) |
+| `sn-submitter-chip`                | inline submitter avatar + name on inbox / detail / submitters list |
+| `sn-pain-dots`                     | 5-dot pain-level indicator (filled = `var(--color-primary)`) |
+| `sn-form-field` / `-label` / `-input` / `-help` + `.has-error`   | every form input                |
+| `sn-feedback-item`                 | clickable inbox / list row container             |
+| `sn-modal`                         | `<dialog>` styling                               |
+| `sn-empty-state`                   | empty-state blocks across pages                  |
+| `sn-toast`                         | bottom-right transient notification              |
+| `sn-skip-link`                     | accessibility skip-link, every page              |
+| `sn-page-shell` / `sn-dashboard-grid` / `sn-stack` / `sn-cluster` / `sn-grid-12` / `sn-content-gutter` | layout primitives ([`layout.css`](#contents-of-each-file)) |
+
+Pills (`sn-pill-*`) all carry **icon + text + color** \u2014 never
+color alone. Color is decorative; icon and text are the
+information channel ([`accessibility.md`](accessibility.md)).
+
 | Class                | Modifiers                                          | What it is                                                 |
 | -------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
 | `sn-card`            | (`-header`, `-body`, `-footer` parts)              | the most-used surface block                                |

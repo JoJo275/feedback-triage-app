@@ -10,6 +10,11 @@ each TBD must answer before its corresponding phase can close.
 When an ADR ships, **delete its row from the TBD section here** and
 move it to the Accepted section. Don't leave stale entries.
 
+> **Phase codenames.** *Alpha / Beta / Final / Polish* are aliases
+> for **Phases 1 / 2 / 3 / 4** in [`implementation.md`](implementation.md).
+> Phase 0 (foundation, no code yet) is not aliased.
+> See [`glossary.md`](glossary.md).
+
 ---
 
 ## Accepted (already merged)

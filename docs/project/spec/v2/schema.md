@@ -188,13 +188,14 @@ CREATE INDEX feedback_notes_feedback_idx ON feedback_notes (feedback_id, created
 ALTER TABLE feedback_item
     ADD COLUMN workspace_id uuid REFERENCES workspaces(id) ON DELETE CASCADE,
     ADD COLUMN submitter_id uuid REFERENCES submitters(id) ON DELETE SET NULL,
+    ADD COLUMN title text NULL CHECK (title IS NULL OR length(title) BETWEEN 1 AND 120),
     ADD COLUMN type type_enum NOT NULL DEFAULT 'other',
     ADD COLUMN priority priority_enum NULL,
     ADD COLUMN source_other text NULL CHECK (length(source_other) <= 60),
     ADD COLUMN type_other   text NULL CHECK (length(type_other)   <= 60),
     ADD COLUMN published_to_roadmap   boolean NOT NULL DEFAULT false,
     ADD COLUMN published_to_changelog boolean NOT NULL DEFAULT false,
-    ADD COLUMN target_release text NULL CHECK (length(target_release) <= 40),
+    ADD COLUMN release_note text NULL CHECK (release_note IS NULL OR length(release_note) <= 280),
 
     -- Free-text fallback only valid when its enum is 'other'.
     ADD CONSTRAINT feedback_source_other_chk
@@ -202,14 +203,24 @@ ALTER TABLE feedback_item
     ADD CONSTRAINT feedback_type_other_chk
         CHECK ((type = 'other') = (type_other IS NOT NULL));
 
--- Backfill from the v1.0 → v2.0 migration script:
---   1. INSERT a single 'signalnest-legacy' workspace owned by the admin user.
---   2. UPDATE feedback_item SET workspace_id = (that workspace).
---   3. ALTER COLUMN workspace_id SET NOT NULL.
---   4. UPDATE feedback_item SET status='closed' WHERE status='rejected'.
+-- v1.0 → v2.0 backfill choreography (see ADR 062 + rollout.md):
+--   Migration A (schema-only):
+--     1. CREATE workspaces table (and friends).
+--     2. INSERT a single 'signalnest-legacy' workspace owned by
+--        the synthetic admin user.
+--     3. ADD COLUMN workspace_id (NULLABLE).
+--   Migration B (data + flip):
+--     4. UPDATE feedback_item SET workspace_id = (legacy ws id).
+--     5. ALTER COLUMN workspace_id SET NOT NULL.
+--     6. UPDATE feedback_item SET status='closed' WHERE status='rejected'.
+-- A and B ship as separate Alembic revisions so a deploy that
+-- fails between them can roll forward, not down.
 CREATE INDEX feedback_workspace_idx ON feedback_item (workspace_id, created_at DESC);
 CREATE INDEX feedback_workspace_status_idx ON feedback_item (workspace_id, status);
 CREATE INDEX feedback_submitter_idx ON feedback_item (submitter_id) WHERE submitter_id IS NOT NULL;
+CREATE INDEX feedback_stale_idx
+    ON feedback_item (workspace_id, created_at)
+    WHERE status IN ('new', 'needs_info');
 ```
 
 ---

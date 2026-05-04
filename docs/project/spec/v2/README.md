@@ -36,6 +36,14 @@ single source of cross-references is [`../spec-v2.md`](../spec-v2.md).
 | [`email.md`](email.md)                     | Resend integration, fail-soft semantics, templates                   |
 | [`security.md`](security.md)               | Rate limits, tenant isolation invariants, content limits, secrets, CSRF posture |
 | [`risks.md`](risks.md)                     | Consolidated risk register with severity scores and canaries         |
+| [`accessibility.md`](accessibility.md)     | a11y floor, axe-core ruleset, keyboard map, reduced-motion           |
+| [`error-catalog.md`](error-catalog.md)     | JSON error envelope, canonical error codes, HTTP-status policy       |
+| [`observability.md`](observability.md)     | Log fields, request-id propagation, metrics, alerts                  |
+| [`performance-budgets.md`](performance-budgets.md) | P95 latency targets, page weight, JS budget, cache TTLs       |
+| [`testing-strategy.md`](testing-strategy.md) | Unit / API / e2e split, canaries, fixtures, axe-core, round-trip migration |
+| [`copy-style-guide.md`](copy-style-guide.md) | Locked-strings master list, voice rules, error-message tone        |
+| [`migration-from-v1.md`](migration-from-v1.md) | User-facing v1.0 → v2.0 cut-over (companion to ADR 062)          |
+| [`railway-optimization.md`](railway-optimization.md) | Railway cost & resource posture, dev / prod knobs          |
 
 ## Operations
 
@@ -54,5 +62,6 @@ single source of cross-references is [`../spec-v2.md`](../spec-v2.md).
 
 The canonical SignalNest brand brief lives in this directory at
 [`core-idea.md`](core-idea.md). The v2 entry point is
-[`../spec-v2.md`](../spec-v2.md). A short redirect stub lives at
-[`core-idea.md`](core-idea.md) for legacy links only.
+[`../spec-v2.md`](../spec-v2.md). A short redirect stub for legacy
+links lives at [`../core-idea.md`](../core-idea.md) (the parent
+directory).

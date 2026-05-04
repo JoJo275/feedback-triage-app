@@ -26,8 +26,10 @@ locate "where does X live for us?".
 | ----- | ---------- | ------------ | ------------------- | --------------- |
 | **The language itself** | The CSS spec — selectors, properties, the cascade, inheritance, layout primitives | Tells the browser how to paint and lay out a tree of elements | CSS3, Selectors L4, CSS Color L4, Container Queries, `@layer`, `@scope`, `:has()` | Plain modern CSS, no preprocessor |
 | **Selector** | A pattern that picks elements in the DOM | Targets *which* elements a rule applies to | `.sn-button`, `button[type="submit"]`, `:focus-visible`, `:has(> .sn-card-footer)`, `nav a:not(.is-current)` | Class-only, ceiling `0,2,1` (see [`v2/css.md`](../project/spec/v2/css.md)) |
-| **Property / value** | The actual styling instructions | Sets color, size, layout, motion, etc. on matched elements | `color`, `padding`, `display: grid`, `transform`, `transition`, `aspect-ratio` | Standard properties; tokens via CSS custom properties |
-| **Variables (custom properties)** | Author-defined CSS values stored in `--name` slots | Reuse and theme values across the stylesheet at runtime | `--color-bg: #fff;`, `var(--radius-md)`, `[data-theme="dark"]` overrides | All design tokens in `tokens.css` |
+| **Property** | A named CSS rule of the form `name: value` that applies *to* matched elements | Sets one specific aspect of how an element is painted or laid out | `color`, `padding`, `display`, `transform`, `transition`, `aspect-ratio`, `gap`, `z-index` | Used everywhere; we never invent properties — we only set the standard ones |
+| **Property / value** | A single declaration: a property paired with a concrete value | The atomic unit of styling — what actually changes how an element looks | `color: #0a7`, `padding: 1rem`, `display: grid`, `transform: translateY(-2px)` | Standard properties + values; tokens used for the *value* side via `var(--…)` |
+| **Custom property (CSS variable)** | An author-defined value stored in a `--name` slot, declared on a selector and read with `var(--name, fallback)` | Reuse a value across many rules; theme by overriding the slot in another scope; mutable at runtime via JS | `--color-bg: #fff;` on `:root`, `var(--radius-md)`, dark theme overrides via `[data-theme="dark"] { --color-bg: #111; }` | All design tokens defined in `tokens.css`; `[data-theme="…"]` swaps re-bind the same names |
+| **Custom property vs. property** | They are not the same thing | A *property* is a built-in CSS keyword (`color`, `padding`); a *custom property* is a user-defined variable slot (`--color-bg`). The distinction matters because custom properties can be re-bound in nested scopes (`--color-bg` means one thing on `:root`, another on `[data-theme="dark"]`) — built-in properties cannot. | — | The rule of thumb: **components reference custom properties; tokens.css defines them; nothing else hard-codes raw values.** |
 | **Design token** | A *named* primitive (color, radius, motion, z-layer) that downstream layers reference instead of raw values | Single source of truth for the design's values; switching themes only changes tokens | Material Tokens, Adobe Spectrum tokens, Tailwind theme keys, GitHub Primer Primitives | `tokens.css` — color, radius, shadow, motion, z-layer |
 | **Design system** | Tokens + components + usage rules + docs, treated as a product | Lets a team build consistent UI across many pages | Material 3, Apple HIG, IBM Carbon, GitHub Primer, Atlassian Design System, Shopify Polaris | Custom in-house system, four-layer (tokens → base → layout → components → effects) |
 | **Component library** | Pre-built UI atoms a design system ships | Gives you `<Button>`, `<Modal>`, `<Tabs>` ready-made | Radix UI, shadcn/ui, Headless UI, Material UI, Chakra UI, daisyUI | The `sn-*` vocabulary in `components.css` (button, card, pill, modal, etc.) |
@@ -79,6 +81,292 @@ without touching the rest of the system.
 > requires updating `tokens.css`, `tailwind.config.cjs`, the
 > styleguide, and `core-idea.md` in one PR. See
 > [`v2/css.md`](../project/spec/v2/css.md) §"Authoring rules".
+
+### Custom variants — what each facet lets you customize
+
+A second lens on the same facets, focused on the question "how do
+I customize this without breaking everything else?". Each row
+names the *customization handle* the facet exposes, and the
+typical scope of a change.
+
+| Facet | Customization handle | Typical scope of a change | Risk |
+| ----- | -------------------- | -------------------------- | ---- |
+| Property | None — properties are standard | n/a | n/a |
+| Custom property (variable) | Define a new `--name` or override an existing one in a nested scope | One file (`tokens.css`); one or two-line edit | Low |
+| Design token | Add or rename a token, or add a *token preset* (e.g. high-contrast palette) | `tokens.css` + `tailwind.config.cjs` + `/styleguide` row | Medium — touches multiple files by design |
+| Design system | Add a new component, a new variant of an existing component, or a new theme | One PR: tokens, components, styleguide row, copy-style-guide entry if user-facing | Medium |
+| Component | Add a *modifier* class (`sn-button-ghost`, `sn-pill-status-shipped`) | One block in `components.css` + styleguide example | Low — new vocabulary, no diff to existing |
+| Component (variant) | Add an `is-*` / `has-*` state class | Same component file + JS that toggles the class | Low |
+| CSS framework | Swap the framework | Touches every page; requires an ADR | High |
+| Utility-first framework | Add a custom utility class (one we author) or a new color/spacing scale value | `tailwind.config.cjs` extends the theme; the new utility appears in IntelliSense | Low–Medium |
+| Custom framework (this repo's `sn-*`) | Add a new file under `static/css/` (e.g. `print.css`); add a new layer in `app.css`'s import order | `app.css` + the new file; document in `v2/css.md` | Medium |
+| Layout primitive | Add a new `sn-<primitive>` class | `layout.css` + styleguide example | Low |
+| Effect | Add a new keyframe, transition, or hover polish | `effects.css` only — file is removable, so risk is bounded | Low |
+| Reset / base | Add a new element-level rule (e.g. style every `<details>`) | `base.css`; **caution** — this affects every page | Medium |
+| Architecture / methodology | Change how files are organized | An ADR — this is a structural change | High |
+| Theme / theme preset | Add a `[data-theme="<name>"]` block in `tokens.css` overriding the same custom-property names | `tokens.css` only | Low |
+| Build pipeline | Change how `app.css` is built (e.g. add PostCSS plugin) | An ADR (we currently use Tailwind Standalone CLI only) | High |
+| Naming methodology | Rename existing classes (e.g. switch from `sn-` to BEM) | Touches every template and every CSS file; needs an ADR | High |
+| State class | Add a new `is-*` / `has-*` flag | One component block + the JS that toggles it | Low |
+| Pseudo-class / pseudo-element | Use a new pseudo (e.g. `:has()`) in an existing component | One selector edit | Low |
+| Media / container query | Add a new breakpoint or container condition | Tailwind config + a comment on why; consistency matters | Medium |
+| Cascade layer (`@layer`) | Reorder layers or add a new one | `app.css` (the import / layer order) | Medium — affects specificity globally |
+| Scope (`@scope`) | Wrap a component in `@scope` to bound its rules | One component file | Low |
+| Accessibility layer | Add a new floor rule (e.g. `prefers-reduced-data`) | `base.css` | Low–Medium |
+
+The pattern: **the lower-risk facets are exactly where most
+customization should happen.** "Add a new theme" should not be
+risky, and it isn't, because it touches one file. "Replace the
+framework" *is* risky, and it requires an ADR. The architecture
+makes the cheap things easy and the expensive things explicit.
+
+---
+
+## Glossary — terms used across the web platform
+
+A reference list, alphabetized, of jargon that this document
+or any normal CSS / web-platform discussion will throw at you.
+Definitions are short on purpose — long enough to ground the
+term, short enough to skim.
+
+### A
+
+- **Accessibility tree** — the parallel representation of the
+  DOM that assistive technologies (screen readers, switch
+  control, voice control) actually consume. Built from semantic
+  HTML + ARIA. A `<button>` shows up as a button; a
+  `<div onclick>` shows up as a generic group.
+- **Accent color** — a CSS property (`accent-color`) that lets
+  you tint native form controls (checkboxes, radios, range
+  sliders) without restyling them from scratch.
+- **ARIA** — *Accessible Rich Internet Applications*. A set of
+  HTML attributes (`role`, `aria-*`) that fill gaps where no
+  native element conveys the right semantic. Rule: native
+  element first, ARIA only when no native option exists.
+- **Atomic / utility class** — a class that does one thing
+  (`.flex`, `.mt-4`, `.text-center`). Composed in HTML to build
+  components.
+- **Author / user-agent / user origin** — three "origins"
+  whose rules participate in the cascade. Author = your
+  stylesheet; user-agent = browser defaults; user = OS-level
+  user style overrides.
+
+### B
+
+- **BEM** — *Block, Element, Modifier*. A naming methodology:
+  `.card`, `.card__title`, `.card--featured`.
+- **BOM** (*Browser Object Model*) — informal name for browser-
+  global APIs that aren't part of the DOM: `window`,
+  `navigator`, `location`, `history`, `screen`. Where "is this
+  Chrome?" lives.
+- **Box model** — the rectangular layout model: every box has
+  *content*, then *padding*, then *border*, then *margin*.
+  `box-sizing: border-box` makes width/height include padding
+  and border.
+- **Breakpoint** — a viewport (or container) width at which
+  layout rules switch. Tailwind defaults: `sm` 640, `md` 768,
+  `lg` 1024, `xl` 1280.
+
+### C
+
+- **Cache-busting** — appending a hash or version to an asset
+  URL (`app.7f3a2c.css`) so a new deploy gets a fresh URL,
+  bypassing the browser cache safely.
+- **Cascade** — the algorithm that picks which rule wins when
+  multiple rules match the same element. Order: origin & importance
+  → cascade layer → specificity → source order.
+- **Cascade layer (`@layer`)** — a named bucket whose order is
+  controlled by the `@layer name1, name2, …;` declaration,
+  independent of source order or specificity within the layer.
+- **Container query** — `@container (inline-size > 40ch) { … }`;
+  a breakpoint based on a *parent container's* size, not the
+  viewport. Makes truly self-contained components possible.
+- **Critical CSS** — the small subset of CSS needed to render
+  the above-the-fold content. Sometimes inlined in `<head>` for
+  faster first paint.
+- **CSP (Content Security Policy)** — an HTTP header that
+  restricts what a page may load and execute. v2.0 ships with
+  `script-src 'self'` only; no inline scripts.
+- **Custom element / web component** — a user-defined HTML tag
+  registered via `customElements.define('my-thing', …)`. The
+  `<my-thing>` tag and its shadow DOM together form a web
+  component.
+
+### D
+
+- **Declaration** — a single `property: value` pair inside a
+  rule.
+- **Design token** — a named primitive value (color, radius,
+  spacing, motion). Decouples *what something looks like* from
+  *what it's called*.
+- **DOM** (*Document Object Model*) — the live, in-memory tree
+  the browser builds from parsed HTML. JavaScript reads and
+  mutates this tree; CSS selectors match against it.
+
+### E
+
+- **Effect** — decorative-only styling: hover polish,
+  transitions, gradients, shadows. Removable without breaking
+  function.
+- **Event delegation** — attaching one listener on a parent
+  element and inspecting `event.target` to handle clicks on
+  many children. Saves listener count.
+
+### F
+
+- **Flexbox** — `display: flex`. One-dimensional layout (row
+  or column) with growth, shrink, and gap.
+- **FOUC** (*Flash of Unstyled Content*) — the brief moment
+  before CSS loads where text renders in browser defaults.
+  Mitigated by inlining critical CSS or making CSS load early.
+- **FOIT / FOFT** (*Flash of Invisible / Fake Text*) — same
+  phenomenon for web fonts. v2.0 avoids by using only system
+  fonts.
+- **Focus ring** — the visible outline that shows which element
+  has keyboard focus. Use `:focus-visible` so it only appears
+  for keyboard users, not mouse clicks.
+- **`@font-face`** — declares a custom font for the page. v2.0
+  doesn't use it.
+
+### G
+
+- **GPU compositing** — when the browser hands off a layer to
+  the GPU for rendering. Triggered by certain properties
+  (`transform`, `opacity`, `filter`). Animating these is cheap;
+  animating layout-affecting properties (`width`, `top`) is not.
+- **Grid** — `display: grid`. Two-dimensional layout with named
+  rows and columns and a `gap`.
+
+### H
+
+- **Hash-suffixed asset** — see *cache-busting*.
+- **HTTP cache** — `Cache-Control` + `ETag` headers tell the
+  browser when to re-fetch vs. reuse. Aggressive on hashed
+  static assets, conservative on HTML.
+
+### I
+
+- **Inheritance** — the rule that some properties (`color`,
+  `font-family`) pass from parent to child by default; others
+  (`padding`, `border`) do not.
+- **Intrinsic sizing** — sizing keywords like `min-content`,
+  `max-content`, `fit-content` that size to the content rather
+  than to a fixed length.
+- **`!important`** — flags a declaration to win the cascade
+  step. Used sparingly; v2.0 only allows it inside the
+  `prefers-reduced-motion` block.
+
+### L
+
+- **Layout primitive** — a reusable structural shape (Stack,
+  Cluster, Sidebar, Switcher) that owns *where* things go.
+- **Logical properties** — direction-agnostic versions of
+  physical ones: `margin-inline-start` instead of `margin-left`.
+  Free win for future RTL support.
+
+### M
+
+- **Media query** — `@media (min-width: 768px) { … }`. The
+  oldest responsive primitive.
+- **Mode** — a coarse theme switch (`light`, `dark`).
+  Separate from finer-grained theme presets.
+
+### N
+
+- **Nesting (CSS)** — native CSS nesting, like preprocessors
+  used to provide. `& > .child { … }` inside a parent rule.
+  Modern browsers support it; we don't lean on it heavily.
+- **Normalize / reset** — element-level CSS that smooths over
+  browser default differences. Modern resets are short
+  (a few dozen lines).
+
+### P
+
+- **Paint** — the step where the browser fills pixels into
+  layers. Fast.
+- **Pixel ratio (DPR)** — `window.devicePixelRatio`. 1 on
+  typical desktop, 2 on Retina, 3 on some phones. Affects
+  whether to ship `@2x` images.
+- **Preset** — a named bundle of token values applied as a
+  whole (e.g. `data-theme="bumblebee"` flips many tokens at
+  once).
+- **Pseudo-class** — `:hover`, `:focus`, `:checked`, `:has()`,
+  `:not()`. Matches state, not new elements.
+- **Pseudo-element** — `::before`, `::after`, `::backdrop`,
+  `::placeholder`. Conjures a styleable virtual element.
+
+### R
+
+- **Reflow / layout** — the step where the browser computes
+  geometry. Triggered by changes to size, position, content.
+  Expensive.
+- **Reduced motion** — `prefers-reduced-motion: reduce`. A
+  user preference to disable non-essential animation. Honour it.
+- **Rem / em** — relative font-size units. `1rem` = root font
+  size (typically 16px); `1em` = parent's computed font size.
+- **Render-blocking** — a resource (typically `<link rel="stylesheet">`
+  in `<head>`) that prevents the browser from rendering until it
+  loads. Stylesheets in `<head>` are render-blocking by design.
+- **Render tree** — the merged DOM + CSSOM the browser actually
+  paints. Hidden elements (`display: none`) are not in it.
+
+### S
+
+- **`@scope`** — bounds a selector to a subtree without web
+  components. New, in modern browsers.
+- **Selector** — the pattern that picks elements. Class,
+  attribute, pseudo, descendant, etc.
+- **Semantic HTML** — using the right tag for what an element
+  *is* (`<button>` for actions, `<a>` for navigation, `<nav>`
+  for nav landmarks). Drives accessibility, SEO, and reader-
+  mode behaviour for free.
+- **Shadow DOM** — a separate, encapsulated tree attached to a
+  custom element. Its styles don't leak in or out. The basis
+  of web components.
+- **Shadow root** — the root node of a shadow DOM, attached
+  to a host element via `host.attachShadow({mode: 'open'})`.
+- **Source map** — a sidecar file (`app.css.map`) that maps
+  built CSS back to its source. Dev only; not shipped to
+  production by v2.0.
+- **Specificity** — a 4-tuple `(inline, ID, class+pseudo,
+  element)` that decides which selector wins when origin and
+  layer are equal. Class-only selectors keep specificity flat.
+- **`sr-only`** — a utility class that visually hides content
+  while leaving it discoverable to screen readers. Used for
+  things like icon-button labels.
+- **Stacking context** — a sub-tree whose z-index space is
+  isolated from siblings. Triggered by `position` + `z-index`,
+  `opacity < 1`, `transform`, etc.
+
+### T
+
+- **Theme** — a coordinated set of token values. v2.0 ships
+  `light`, `dark`, plus four ADR 056 presets.
+- **Token** — see *design token*.
+- **Typography scale** — a sequence of font sizes (e.g.
+  12 / 14 / 16 / 20 / 24 / 32) used consistently across the UI.
+
+### U
+
+- **Utility class** — see *atomic class*.
+- **Universal selector** — `*`. Matches every element. Useful
+  in resets, expensive in deep trees if combined with attribute
+  matchers.
+
+### V
+
+- **Variable (CSS)** — see *custom property*. They're the same
+  thing under different names; the spec calls them *custom
+  properties*, the community calls them *variables*.
+- **Viewport** — the visible area of the page in the browser
+  window. `100vw` = full viewport width.
+- **Viewport unit** — `vw`, `vh`, `vi`, `vb`, `svh`, `lvh`,
+  `dvh`. Sized to the viewport. Modern variants (`svh`, `dvh`)
+  account for mobile address bars.
+
+### W
+
+- **Web component** — see *custom element*.
 
 ---
 

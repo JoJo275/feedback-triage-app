@@ -18,9 +18,17 @@ later ADR as defense-in-depth.
 | Admin                | yes      | platform-wide          | Project author. Can switch into any workspace, see admin-only routes, run maintenance.            |
 | Workspace owner      | yes      | one workspace          | Full CRUD on their workspace's feedback, tags, submitters; invite/remove team members; settings.  |
 | Team member          | yes      | one workspace          | Full CRUD on the workspace's feedback, tags, notes; cannot manage members or change settings.     |
-| Demo user            | yes      | the demo workspace     | Read-only access to a seeded workspace. One shared login. Resets nightly.                         |
+| Demo user            | yes      | the demo workspace     | **Read-only** access to a seeded workspace via `WorkspaceContext.is_read_only=True`. One shared login. Resets nightly. |
 | Submitter / customer | no       | one workspace (linked) | Row in `submitters`. Has email known to the workspace; submitted feedback is grouped by them.     |
 | Public submitter     | no       | one workspace (open)   | Anonymous. Submits feedback through a workspace's public form. No persistent identity.            |
+
+Enum spellings (authoritative — [`schema.md`](schema.md)):
+
+- `user_role_enum` (on `users.role`): `{'admin', 'team_member', 'demo'}`
+- `workspace_role_enum` (on `workspace_memberships.role`): `{'owner', 'team_member'}`
+
+UI labels capitalize and add a space ("Team member"). Code uses
+the snake_case enum values verbatim.
 
 The platform `role` (on `users`) is **separate** from the workspace
 role (on `workspace_memberships`). See
@@ -50,13 +58,34 @@ The dependency:
 1. Resolves the slug to a `workspace_id`.
 2. Confirms the requesting user has a `workspace_memberships` row
    for that workspace (or has platform `role='admin'`).
-3. Returns a typed `WorkspaceContext` containing `id`, `slug`, and
-   the user's role within it (or a synthetic `'admin'` role).
+3. Returns a typed `WorkspaceContext` containing `id`, `slug`, the
+   user's role within it (or a synthetic `'admin'` role), and an
+   `is_read_only: bool` flag.
 
-A pytest fixture creates two workspaces and seeds rows in both;
-**every** API test that asserts data presence runs the same assertion
-with the second client and asserts absence. This is the v2.0
-equivalent of the v1.0 session-reuse canary.
+```python
+@dataclass(frozen=True, slots=True)
+class WorkspaceContext:
+    id: UUID
+    slug: str
+    role: WorkspaceRole | Literal["admin"]
+    is_read_only: bool   # True for demo users; checked by every write route
+```
+
+`is_read_only` is `True` iff `users.role == 'demo'`. Every `POST`,
+`PATCH`, `DELETE` route depends on a small
+`require_writable(ctx)` helper that raises `403` with
+`code=demo_read_only` when the flag is set. Read routes ignore the
+flag.
+
+The canary test for cross-tenant isolation lives at
+**`tests/api/test_isolation.py`** (single canonical path; older
+references to `tests/test_tenant_isolation.py` are stale).
+
+A pytest fixture (`client_w1`, `client_w2`) creates two workspaces
+and seeds rows in both; **every** API test that asserts data
+presence runs the same assertion with the second client and
+asserts absence. This is the v2.0 equivalent of the v1.0
+session-reuse canary.
 
 ---
 

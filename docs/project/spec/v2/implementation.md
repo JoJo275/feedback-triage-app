@@ -52,7 +52,15 @@ Pre-conditions for any v2 work to land.
 - [ ] All v2.0 spec files reviewed
       ([`../spec-v2.md`](../spec-v2.md), [`README.md`](README.md),
       every file in this directory).
-- [ ] ADRs 058, 059, 060 accepted (already done).
+- [ ] ADRs 056–060 accepted (already done).
+- [ ] **ADR 061 ratified** — Resend fail-soft + the `email_log`
+      table shape. Phase 1 Migration A creates `email_log`, so
+      Migration A cannot ship until 061 is merged.
+- [ ] Phase numbering reconciled across [`adrs.md`](adrs.md),
+      [`rollout.md`](rollout.md), and [`../spec-v2.md`](../spec-v2.md).
+      Canonical: **Phase 0–4**; Alpha/Beta/Final/Polish are
+      codename aliases for Phases 1–4
+      ([`glossary.md`](glossary.md)).
 - [ ] `mkdocs.yml` nav references the v2/ split.
 
 ### DoD
@@ -76,11 +84,13 @@ an empty inbox in their browser."*
       `task watch:css`. CI step added to `task check`.
       ([`css.md`](css.md))
 - [ ] **Schema migration #1 (auth + tenancy).** Tables: `users`,
-      `sessions`, `email_tokens`, `workspaces`,
-      `workspace_memberships`, `workspace_invitations`. Native
-      enums for `platform_role`, `workspace_role`, `token_kind`.
-      Indexes from [`schema.md`](schema.md). One Alembic revision,
-      hand-reviewed.
+      `sessions`, `email_verification_tokens`,
+      `password_reset_tokens`, `workspaces`,
+      `workspace_memberships`, `workspace_invitations`,
+      `auth_rate_limits`, `email_log` (per ADR 061). Native enums
+      `user_role_enum` (`{admin, team_member, demo}`) and
+      `workspace_role_enum` (`{owner, team_member}`). Indexes from
+      [`schema.md`](schema.md). Hand-reviewed.
 - [ ] **`feedback_item` retrofit (additive).** Add `workspace_id`
       with backfill into a `signalnest-legacy` workspace; not yet
       `NOT NULL`. Tracked under ADR 062.
@@ -93,7 +103,10 @@ an empty inbox in their browser."*
       `tenancy/policies.py`.
 - [ ] **Email client (fail-soft stub).** `email/client.py` with a
       Resend HTTP client and a `dry_run` mode used in tests.
-      Templates: verify-email, reset-password, accept-invitation.
+      Templates: `verification.html`, `verification_already.html`
+      (no-enumeration posture, [`auth.md`](auth.md)),
+      `password_reset.html`, `invitation.html`. (`status_change.html`
+      lands in Phase 3.)
 - [ ] **API endpoints.** All `/api/v1/auth/*`,
       `/api/v1/workspaces` (POST + GET), `/api/v1/memberships`,
       `/api/v1/invitations`. See [`api.md`](api.md).
@@ -105,8 +118,14 @@ an empty inbox in their browser."*
       `tests/api/test_isolation.py` — every read/write in another
       workspace must return 404 not 403, and must never echo
       another workspace's row.
+- [ ] **`FEATURE_AUTH` flag.** Implemented per
+      [`auth.md`](auth.md). Local dev defaults to `true`; Phase 1
+      production deploy sets `false` until the v2.0-alpha →
+      v2.0-beta cutover ([`rollout.md`](rollout.md)).
 - [ ] **ADR 061** (Resend fail-soft) merged before any path
-      depending on Resend lands.
+      depending on Resend lands. **Listed under Phase 0 deliverables
+      because Migration A creates `email_log`** — leaving here as a
+      reminder that the schema migration is gated on it.
 
 ### Deliverables — Should
 
@@ -143,13 +162,13 @@ Make a workspace useful: capture, classify, prioritize.
 
 ### Deliverables — Must
 
-- [ ] **Schema migration #2 (workflow).** `feedback_item`:
-      `ALTER COLUMN workspace_id SET NOT NULL`; extend `status_enum`
-      with `needs_info`, `accepted`, `in_progress`, `shipped`,
-      `spam`, `closed`; rename `rejected → closed` via data
-      migration; add `priority` enum + column; add columns
-      `published_to_roadmap`, `published_to_changelog`,
-      `release_note`. Tracked under ADRs 062 + 063.
+- [ ] **Schema migration #2 (workflow).** Migration B from
+      [`rollout.md`](rollout.md): backfill `workspace_id`, flip to
+      `NOT NULL`, rename `rejected → closed` via data migration.
+      Plus migration #3 covering tags / notes / submitters tables
+      and the workflow columns (`type`, `priority`,
+      `published_to_*`, `release_note`, `title`). Tracked under
+      ADRs 062 + 063.
 - [ ] **Tags + notes + submitters tables.** From
       [`schema.md`](schema.md). Native enums for any new fields.
 - [ ] **Inbox page** with summary cards, filter bar, search, table
@@ -307,8 +326,10 @@ Used at the end of every phase.
 - [ ] No secret committed; CI gitleaks pass.
 - [ ] Public form has honeypot + rate limit.
 - [ ] Cookies: `HttpOnly`, `Secure`, `SameSite=Lax`.
-- [ ] CSP header configured on every HTML response (no `unsafe-
-      inline` for scripts; nonce-based).
+- [ ] CSP header configured on every HTML response. v2.0 ships
+      with `script-src 'self'` only — no inline scripts, no nonces,
+      no `unsafe-inline`. Every page-level JS file is a separate
+      static asset under `static/js/`. ([`security.md`](security.md))
 
 ### Tests
 

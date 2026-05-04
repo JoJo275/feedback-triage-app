@@ -14,10 +14,10 @@ is the tie-breaker.
 | **Workspace**         | A tenant. Owns its feedback, tags, submitters, members. URL-prefixed `/w/<slug>/`.                       |
 | **Workspace slug**    | URL-safe, globally unique. Lowercase alphanumeric + hyphens. Cannot be changed in v2.0.                  |
 | **Membership**        | A row in `workspace_memberships` linking a `user` to a `workspace` with a `workspace_role`.              |
-| **Platform role**     | Field on `users` ∈ {`admin`, `user`, `demo`}. Cross-cutting; defaults to `user`.                          |
-| **Workspace role**    | Field on `workspace_memberships` ∈ {`owner`, `member`}.                                                  |
-| **Owner**             | A workspace member with role `owner`. Can manage members and settings.                                   |
-| **Member**            | A workspace member with role `member`. Full feedback CRUD, no settings.                                  |
+| **Platform role**     | Field on `users.role` (`user_role_enum`) ∈ {`admin`, `team_member`, `demo`}. Cross-cutting; defaults to `team_member`. |
+| **Workspace role**    | Field on `workspace_memberships.role` (`workspace_role_enum`) ∈ {`owner`, `team_member`}.                |
+| **Owner**             | A workspace member with `workspace_role = 'owner'`. Can manage members and settings.                     |
+| **Team member**       | A workspace member with `workspace_role = 'team_member'`. Full feedback CRUD, no settings. UI label: *Team member*. |
 | **Admin**             | Platform-wide; the project author. Can switch into any workspace; not a workspace role.                  |
 | **Submitter**         | Email-known person who has submitted feedback to a workspace. Row in `submitters`. Does not have a login. |
 | **Public submitter**  | Anonymous person who submits via `/w/<slug>/submit` without an email.                                    |
@@ -26,7 +26,7 @@ is the tie-breaker.
 | **Status**            | The workflow position of a feedback item ∈ {`new`, `needs_info`, `reviewing`, `accepted`, `planned`, `in_progress`, `shipped`, `closed`, `spam`}. |
 | **Priority**          | Team-set urgency ∈ {`low`, `medium`, `high`, `critical`}. Editable by members.                           |
 | **Pain level**        | Submitter-set magnitude 1–5. Editable only by the submitter (or in the public form).                     |
-| **Tag**               | Workspace-scoped label applied to feedback items. M:N via `feedback_item_tags`.                          |
+| **Tag**               | Workspace-scoped label applied to feedback items. M:N via `feedback_tags` (junction table).             |
 | **Internal note**     | Workspace-only comment on a feedback item. Never shown on public surfaces.                               |
 | **Publish**           | The act of flipping `published_to_roadmap` or `published_to_changelog`. The only way an item appears on a public page. |
 | **Public form**       | The unauthenticated submission page at `/w/<slug>/submit`.                                                |
@@ -43,8 +43,11 @@ is the tie-breaker.
 | **Phase gate**        | The condition that closes a phase. Stated in [`implementation.md`](implementation.md).                   |
 | **Locked string**     | A user-facing string that may not be edited without an ADR. Examples: tagline, description, name.        |
 | **`sn-*` class**      | Bespoke component class in `static/css/components.css` (or `layout.css` for layout primitives). The only project-defined CSS classes; everything else is a Tailwind utility. |
-| **Token**             | Email-borne, single-use string for verify-email / reset-password / accept-invitation. Distinct from session cookies. |
-| **Session**           | The cookie-backed authenticated state. Stored server-side in `sessions`. Rolling 30-day expiry.          |
+| **Token**             | Email-borne, single-use string for verify-email / reset-password / accept-invitation. Stored as separate tables (`email_verification_tokens`, `password_reset_tokens`, `workspace_invitations.token_hash`). Distinct from session cookies. |
+| **Session**           | The cookie-backed authenticated state. Stored server-side in `sessions`. **Sliding 7-day expiry** — `expires_at` is extended on every authenticated request (see [`auth.md`](auth.md)). |
+| **Sliding expiry**    | A TTL that resets to its full window every time the credential is used. Contrast with *absolute* expiry, which is fixed from issue time. |
+| **Stale item**        | A feedback item where `created_at < now() - interval '14 days' AND status IN ('new', 'needs_info')`. Surfaced on Inbox and Dashboard summary cards. |
+| **Phase**             | A numbered build stage from [`implementation.md`](implementation.md): Phase 0 (Pre-v2), Phase 1 (Alpha), Phase 2 (Beta), Phase 3 (Final), Phase 4 (Polish). The codenames Alpha/Beta/Final and the build-order numbers in [`../spec-v2.md`](../spec-v2.md) are aliases — the canonical numbering is **Phase 0–4**. |
 
 ---
 

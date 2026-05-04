@@ -44,6 +44,56 @@ layer ([ADR 058](../../../adr/058-tailwind-via-standalone-cli.md)).
 - Mini demo (`static/js/landing-demo.js`) is fully self-contained,
   no shared imports.
 
+### Client-side rendering safety (XSS)
+
+User-controlled content (feedback `title` / `description` / `release_note`,
+submitter `name`, note `body`, tag `name`) is rendered **client-side**
+from JSON. The escape contract:
+
+- **Always use `element.textContent = value`** — never `innerHTML`,
+  never `insertAdjacentHTML`, never template strings concatenated
+  into HTML.
+- For multi-line text (descriptions, notes), set `textContent` and
+  use CSS `white-space: pre-wrap` to preserve newlines. **Do not**
+  replace `\n` with `<br>` in JS.
+- For attribute values built from JSON (e.g. `href` for an email
+  link), use `setAttribute("href", "mailto:" + value)` and never
+  string-template into the HTML source.
+- The single legitimate `innerHTML` site is the inline SVG chart
+  builders, which only template *server-controlled* numbers. They
+  must never receive a value that originated in JSON.
+- No third-party sanitizer (DOMPurify, etc.) is added — forbidding
+  `innerHTML` on user data is sufficient and zero-dependency.
+
+This rule is enforced by review; a Playwright e2e test
+(`tests/e2e/test_xss_smoke.py`) submits feedback containing
+`<script>alert(1)</script>` and asserts the literal text is rendered
+on Inbox and detail pages with no script execution
+([`risks.md`](risks.md) E11).
+
+---
+
+## Sidebar order
+
+The authenticated workspace sidebar lists exactly these eight
+items, in this order:
+
+| # | Item       | Default route                  |
+| - | ---------- | ------------------------------ |
+| 1 | Dashboard  | `/w/<slug>/dashboard`          |
+| 2 | Inbox      | `/w/<slug>/inbox`              |
+| 3 | Feedback   | `/w/<slug>/feedback`           |
+| 4 | Submitters | `/w/<slug>/submitters`         |
+| 5 | Roadmap    | `/w/<slug>/roadmap`            |
+| 6 | Changelog  | `/w/<slug>/changelog`          |
+| 7 | Insights   | `/w/<slug>/insights`           |
+| 8 | Settings   | `/w/<slug>/settings`           |
+
+Under `md` (≤ 768 px), the sidebar collapses into a top-of-page
+`<details>` disclosure ([`css.md`](css.md) §"Responsive strategy").
+The shell partial is the single source of truth; reordering touches
+one template.
+
 ---
 
 ## Charts
@@ -76,6 +126,19 @@ Per workspace, at `/w/<slug>/submit`. Fields:
 | Email         | email       | no       | if provided, links/creates a `submitters` row |
 | Name          | text        | no       | only used if email provided |
 | Honeypot      | hidden text | —        | empty; non-empty submissions are silently dropped (see [`security.md`](security.md)) |
+
+**Validation:**
+
+- `Type = other` reveals an inline `type_other` text field
+  (1–60 chars, required when shown). Submitting `type=other` with
+  an empty `type_other` returns `422` with
+  `code=type_other_required` and the message
+  *"Please describe the type when choosing 'Other.'"*
+- `source` is server-set to `web_form`; clients cannot set it.
+- The same dual-field rule applies to authenticated `POST
+  /api/v1/feedback`: `(source = 'other') == (source_other IS NOT NULL)`
+  enforced by both Pydantic and DB CHECK ([`schema.md`](schema.md),
+  [`security.md`](security.md)).
 
 Submission UX: success page thanks the user, optionally offers to
 follow this feedback by email if they provided one, links back to

@@ -91,7 +91,7 @@ System:
    portfolio project, usable as a real app.*
 9. **Footer** — Privacy, Terms, GitHub, Contact.
 
-**Components:** `sn-btn-primary`, `sn-btn-secondary`, `sn-card`.
+**Components:** `sn-button-primary`, `sn-button-secondary`, `sn-card`.
 
 **Empty / error:** none — fully static.
 
@@ -192,7 +192,8 @@ drops non-empty submissions ([`security.md`](security.md)).
 2. Form — see [`ui.md`](ui.md#public-submission-form) for fields.
 3. Footer with *Powered by SignalNest* link.
 
-**Post-success:** thank-you page with the locked copy:
+**Post-success:** thank-you page with the **locked copy**
+([`copy-style-guide.md`](copy-style-guide.md)):
 
 > *Got it. Thanks for the signal. We'll let you know if we have
 > questions or when this ships.*
@@ -251,7 +252,9 @@ inline SVG charts).
    workspace name; primary action *New feedback*.
 2. Summary cards row (5 cards): *New*, *Needs Info*, *Reviewing*,
    *High priority*, *Stale (> 14 days)*. Each card shows a count
-   and links into a filtered Inbox view.
+   and links into a filtered Inbox view. *Stale* counts items where
+   `created_at < now() - interval '14 days' AND status IN ('new', 'needs_info')`
+   ([`glossary.md`](glossary.md)).
 3. Intake sparkline card — last-30-day inline-SVG bar chart of
    feedback intake.
 4. Top tags card — top 5 tags by count.
@@ -309,7 +312,8 @@ Left column (main):
    members), type pill, status pill, priority pill, pain dots.
 2. Description block — multi-line, editable inline.
 3. Internal notes — append-only thread; each note has author,
-   timestamp, edit (within 5 minutes), delete (own only).
+   timestamp, edit (within 15 minutes of creation —
+   [`api.md`](api.md)), delete (own only).
 4. Timeline — read-only system log of status changes,
    tag changes, merges.
 
@@ -390,7 +394,9 @@ items.*
 
 Tabbed page (`<details>`-based on narrow screens):
 
-1. **Workspace** — editable name + slug + public-submit toggle.
+1. **Workspace** — editable name + read-only slug (`slug` is
+   immutable in v2.0; changing it would break public form, roadmap,
+   and changelog URLs already shared) + public-submit toggle.
 2. **Members** *(owner only)* — table of members with role +
    *Invite* button + *Remove* per row.
 3. **Tags** — CRUD for the workspace's tag library.
