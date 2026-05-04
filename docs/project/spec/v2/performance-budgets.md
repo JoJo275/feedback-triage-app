@@ -37,6 +37,26 @@ hard cap is logged as WARNING and counts against the 5xx-spike
 alert. We **do not** kill the request; user-facing timeouts are
 client-side.
 
+### Cold-start carve-out
+
+Railway serverless / sleep is **on** in v2.0
+([`railway-optimization.md`](railway-optimization.md)). The very
+first request after a wake will exceed the P95 budget for that
+surface; this is **expected and excluded** from the rolling-24h
+P95 calculation. Operationally:
+
+- The first request after `process_uptime_seconds < 30` is tagged
+  `cold_start=true` in the access log
+  ([`observability.md`](observability.md)) and excluded from the
+  P95 rollup.
+- A cold-start that exceeds **3 s** (warm budget hard cap × ~2)
+  is logged at WARNING regardless. Sustained cold-start > 3 s is
+  the trigger to flip sleep off
+  ([`railway-optimization.md`](railway-optimization.md#when-to-turn-sleep-off)).
+- The login surface gets a startup-hook Argon2 warm-up
+  ([`auth.md`](auth.md)) so the first sign-in after wake doesn't
+  pay both the native-lib load and the verify cost in series.
+
 ---
 
 ## Dashboard cache
