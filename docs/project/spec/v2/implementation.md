@@ -47,26 +47,34 @@ Pre-conditions for any v2 work to land.
 
 ### Deliverables
 
-- [ ] v1.0 ratified — every Must item from
+- [x] v1.0 ratified — every Must item from
       [`../spec-v1.md`](../spec-v1.md) green and shipped.
-- [ ] All v2.0 spec files reviewed
+- [x] All v2.0 spec files reviewed
       ([`../spec-v2.md`](../spec-v2.md), [`README.md`](README.md),
-      every file in this directory).
-- [ ] ADRs 056–060 accepted (already done).
-- [ ] **ADR 061 ratified** — Resend fail-soft + the `email_log`
-      table shape. Phase 1 Migration A creates `email_log`, so
-      Migration A cannot ship until 061 is merged.
-- [ ] Phase numbering reconciled across [`adrs.md`](adrs.md),
+      every file in this directory). Audit pass 2026-05-04.
+- [x] ADRs 056–060 accepted.
+- [x] **ADR 061 ratified** (2026-05-04) — Resend fail-soft + the
+      `email_log` table shape. See
+      [`../../../adr/061-resend-email-fail-soft.md`](../../../adr/061-resend-email-fail-soft.md).
+      Phase 1 Migration A is now unblocked.
+- [x] Phase numbering reconciled across [`adrs.md`](adrs.md),
       [`rollout.md`](rollout.md), and [`../spec-v2.md`](../spec-v2.md).
       Canonical: **Phase 0–4**; Alpha/Beta/Final/Polish are
       codename aliases for Phases 1–4
       ([`glossary.md`](glossary.md)).
-- [ ] `mkdocs.yml` nav references the v2/ split.
+- [x] `mkdocs.yml` nav references the v2/ split.
 
 ### DoD
 
-`task check` is green on `main`. The v2 spec is reachable from
-`docs/index.md`.
+- `task check` is green on `main`. ✅
+- The v2 spec is reachable from `docs/index.md`. ✅ (via mkdocs nav)
+- Spec v2.0 status flipped to **Ratified** in
+  [`../spec-v2.md`](../spec-v2.md). ✅ (2026-05-04)
+- ADR 061 file exists at
+  [`../../../adr/061-resend-email-fail-soft.md`](../../../adr/061-resend-email-fail-soft.md)
+  with status **Accepted**. ✅
+
+**Phase 0 closed 2026-05-04.** Phase 1 (Alpha) is now unblocked.
 
 ---
 

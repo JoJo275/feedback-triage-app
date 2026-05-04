@@ -83,6 +83,23 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [037](037-git-configuration-as-code.md)               | Git configuration as code                                          | Accepted |
 | [038](038-vscode-workspace-configuration-strategy.md) | VS Code workspace configuration strategy                           | Accepted |
 | [044](044-copilot-skills-and-instructions.md)         | Copilot skills and instruction file architecture                   | Accepted |
+| [045](045-single-table-data-model.md)                 | Single-table data model for v1.0                                   | Accepted |
+| [046](046-postgres-enums-and-check-constraints.md)    | Postgres native enums + CHECK constraints                          | Accepted |
+| [047](047-sqlmodel-over-sqlalchemy.md)                | SQLModel over plain SQLAlchemy                                     | Accepted |
+| [048](048-session-per-request.md)                     | Session-per-request DB pattern                                     | Accepted |
+| [049](049-offset-pagination.md)                       | Offset pagination for list endpoints                               | Accepted |
+| [050](050-sync-db-driver-v1.md)                       | Sync DB driver in v1.0                                             | Accepted |
+| [051](051-static-html-vanilla-js.md)                  | Static HTML + vanilla JS frontend                                  | Accepted |
+| [052](052-api-versioning.md)                          | `/api/v1/` URL-prefix versioning                                   | Accepted |
+| [053](053-migrations-as-pre-deploy-command.md)        | Alembic migrations as Railway pre-deploy command                   | Accepted |
+| [054](054-postgres-for-tests.md)                      | Postgres (not SQLite) for tests                                    | Accepted |
+| [055](055-uv-as-project-manager.md)                   | uv as project / env manager (supersedes Hatch env half of 016)     | Accepted |
+| [056](056-style-guide-page.md)                        | Live `/styleguide` page (v2.0)                                     | Accepted |
+| [057](057-brand-vs-repo-naming.md)                    | Brand name (SignalNest) vs repo name                               | Accepted |
+| [058](058-tailwind-via-standalone-cli.md)             | Tailwind via Standalone CLI (no Node)                              | Accepted |
+| [059](059-auth-model.md)                              | Auth model — sessions, Argon2id, no-enumeration                    | Accepted |
+| [060](060-multi-tenancy-workspace-scoping.md)         | Multi-tenancy via workspace path scoping                           | Accepted |
+| [061](061-resend-email-fail-soft.md)                  | Resend email provider + fail-soft semantics + `email_log`          | Accepted |
 
 > ADRs 011, 015, 036, 039–043 were deprecated during the fork from
 > `simple-python-boilerplate` to `feedback-triage-app` and live in

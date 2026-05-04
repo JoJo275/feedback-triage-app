@@ -36,6 +36,8 @@ above it.
 
 ### ADR 061 — Email provider (Resend) + fail-soft semantics
 
+**Status:** Accepted (2026-05-04). See
+[`../../../adr/061-resend-email-fail-soft.md`](../../../adr/061-resend-email-fail-soft.md).
 **Phase gate:** Alpha. Anything that sends an email (verify
 account, password reset, accept invitation) blocks on this.
 
