@@ -53,4 +53,4 @@ is the tie-breaker.
 - [`schema.md`](schema.md) — tables behind these terms.
 - [`auth.md`](auth.md) — sessions, tokens, roles in motion.
 - [`multi-tenancy.md`](multi-tenancy.md) — workspace, membership, context.
-- [`../core-idea.md`](../core-idea.md) — brand-side language ("close the loop", "signal").
+- [`core-idea.md`](core-idea.md) — brand-side language ("close the loop", "signal").

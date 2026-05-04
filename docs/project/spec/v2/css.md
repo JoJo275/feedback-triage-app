@@ -1,7 +1,7 @@
 # v2.0 — CSS conventions & design system
 
 > Topical detail file. Entry point: [`../spec-v2.md`](../spec-v2.md).
-> Visual brief: [`../core-idea.md`](../core-idea.md).
+> Visual brief: [`core-idea.md`](core-idea.md).
 > Pipeline ADR: [ADR 058 — Tailwind via Standalone CLI](../../../adr/058-tailwind-via-standalone-cli.md).
 > Frontend rules: [`../../../notes/frontend-conventions.md`](../../../notes/frontend-conventions.md).
 
@@ -343,7 +343,7 @@ does not contain the CLI binary.
 
 ## Cross-references
 
-- [`../core-idea.md`](../core-idea.md) — palette, components shorthand.
+- [`core-idea.md`](core-idea.md) — palette, components shorthand.
 - [`pages.md`](pages.md) — per-page composition using these classes.
 - [`tooling.md`](tooling.md) — `task build:css` wiring.
 - [`../../../notes/frontend-conventions.md`](../../../notes/frontend-conventions.md)

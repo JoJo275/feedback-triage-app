@@ -1,14 +1,24 @@
-# Frontend Conventions — Notes (HTML, CSS, scope)
+# Frontend Conventions — Notes (HTML, CSS, Tailwind, design system)
 
-A companion to the (short) frontend rules in
-[`.github/copilot-instructions.md`](../../.github/copilot-instructions.md).
-This file expands on **why** semantic HTML matters for this project,
-the tags-vs-classes split, and a separate section on whether to grow
-this app into a "commercial-product-esque" portfolio piece.
-
-> **For Copilot / new templates:** see the **Semantic HTML and CSS**
-> section in `.github/copilot-instructions.md`. The rules there are
-> enforced; this file is the rationale and the longer recommendations.
+> **Audience:** anyone authoring HTML, CSS, or vanilla JS in this
+> project — Copilot included.
+> **Companion files:**
+> - `.github/copilot-instructions.md` — the **rules** (short, enforced).
+> - [`../project/spec/v2/css.md`](../project/spec/v2/css.md) — the
+>   **CSS implementation source of truth** for v2.0: pipeline,
+>   `input.css`, `tailwind.config.cjs`, the `sn-*` component
+>   vocabulary, the build-task wiring.
+> - [`../project/spec/v2/core-idea.md`](../project/spec/v2/core-idea.md)
+>   — palette, locked strings, voice rules, status / pill colors.
+> - [ADR 058 — Tailwind via Standalone CLI](../adr/058-tailwind-via-standalone-cli.md)
+>   — the styling-pipeline decision.
+> - [ADR 056 — Style guide page](../adr/056-style-guide-page.md)
+>   — the four named theme presets (`production`, `basic`,
+>   `unique`, `crazy`) used on `/styleguide`.
+>
+> This file is the **rationale** plus the longer-form recommendations.
+> Anything stricter or shorter — e.g. *"never style by `id`"* — is
+> the rule and lives in `copilot-instructions.md` or `v2/css.md`.
 
 ---
 
@@ -17,23 +27,23 @@ this app into a "commercial-product-esque" portfolio piece.
 No pushback on the rule. Every reason to keep it:
 
 - **Accessibility for free.** Screen readers, voice control, and
-  keyboard users navigate by landmarks (`<header>`, `<nav>`, `<main>`,
-  `<aside>`, `<footer>`) and headings. A page built from `<div>`s is
-  invisible to that whole class of users.
-- **No JavaScript needed for behavior** that comes built-in. `<button>`
-  is keyboard-activatable, focus-styled, and has a role. `<dialog>` has
-  modal focus trapping. `<details>`/`<summary>` is a free disclosure
-  widget. `<form>` does validation + submission without a single line
-  of JS.
+  keyboard users navigate by landmarks (`<header>`, `<nav>`,
+  `<main>`, `<aside>`, `<footer>`) and headings. A page built from
+  `<div>`s is invisible to that whole class of users.
+- **No JavaScript needed for behavior** that comes built-in.
+  `<button>` is keyboard-activatable, focus-styled, and has a role.
+  `<dialog>` has modal focus trapping. `<details>`/`<summary>` is a
+  free disclosure widget. `<form>` does validation + submission
+  without a single line of JS.
 - **Better defaults for SEO and link previews.** `<article>`,
-  `<time datetime="…">`, `<address>`, and Open Graph meta tags carry
-  meaning that crawlers actually use.
+  `<time datetime="…">`, `<address>`, and Open Graph meta tags
+  carry meaning that crawlers actually use.
 - **Cheaper diffs, smaller HTML.** A page with the right tags needs
-  fewer classes. One `<nav>` replaces a `<div class="nav">` plus
-  `role="navigation"` plus `aria-label`.
-- **Spec-aligned with this project.** The spec (and the existing
-  `index.html`) already use `<header>`, `<main>`, `<section>`,
-  `<form>`, `<label>`, `<button>`. Keeping the bar there is cheap.
+  fewer Tailwind utility classes. One `<nav>` replaces a
+  `<div class="flex …">` plus `role="navigation"` plus `aria-label`.
+- **Spec-aligned.** The v2.0 spec and the existing `index.html`
+  already use `<header>`, `<main>`, `<section>`, `<form>`,
+  `<label>`, `<button>`. Keeping the bar there is cheap.
 
 ### Minimum tag set for this project
 
@@ -63,351 +73,502 @@ No pushback on the rule. Every reason to keep it:
 
 The mental check before reaching for `<div>`:
 
-1. Is this a landmark? → `<header>` / `<nav>` / `<main>` / `<aside>` / `<footer>`.
-2. Is this a self-contained section? → `<section>` (with a heading) or `<article>`.
+1. Is this a landmark? → `<header>` / `<nav>` / `<main>` /
+   `<aside>` / `<footer>`.
+2. Is this a self-contained section? → `<section>` (with a heading)
+   or `<article>`.
 3. Is this a list of similar things? → `<ul>` / `<ol>` / `<dl>`.
 4. Is this navigation? → `<nav>` + `<ul>` of `<a>`.
 5. Is this a control? → `<button>` / `<a>` / `<input>`.
 6. None of the above? → `<div>` is fine. Move on.
 
 If you find yourself adding `role="button"` or `role="navigation"`,
-stop: there's a real tag for that. ARIA roles are for cases where the
-right tag genuinely doesn't exist (rare in app UIs).
+stop: there's a real tag for that. ARIA roles are for cases where
+the right tag genuinely doesn't exist (rare in app UIs).
 
 ---
 
-## 2. Tags for meaning, classes for styling
+## 2. Tags carry meaning, classes carry style
 
 The rule, stated precisely:
 
 - **Tag** = what the element *is*.
-- **Class** = how the element *looks* (or which variant of the
-  component it is).
+- **Class** = how the element *looks* (the Tailwind utilities, plus
+  the small bespoke `sn-*` component classes).
 - **`id`** = unique anchor for `<label for>`, skip-links, and
   fragment URLs. Never style by `id`.
-- **`data-*`** = hooks for JavaScript. Never style by `data-*` either,
-  unless the styling truly is state-driven (e.g. `data-state="open"`
-  on a disclosure).
+- **`data-*`** = hooks for JavaScript and for state-driven styles
+  with **explicit semantics**. Allowed selectors: `data-state`,
+  `data-theme`. Never invent ad-hoc `data-*` attributes for
+  styling.
+
+Examples of the data-attribute carve-out:
+
+- `data-theme="dark"` on `<html>` — paired with the
+  `darkMode: 'selector'` setting in `tailwind.config.cjs`. JS
+  toggles the attribute; CSS overrides the `--color-*` tokens.
+- `data-state="open"` on `<dialog>` / `<details>` wrappers when JS
+  needs to drive open/close styling that the native attribute
+  can't reach.
+
+Outside those two cases, push state into a **class**
+(`is-loading`, `has-error`) — see §3.
 
 ### Why this matters
 
 When meaning lives in the tag, you can restyle the whole site by
-swapping the stylesheet without touching HTML. When meaning lives in
-the class (`<div class="header">`), the page is locked to that
-stylesheet — you've recreated the worst part of "div soup" with extra
-steps.
+swapping the stylesheet without touching HTML. When meaning lives
+in the class (`<div class="header">`), the page is locked to that
+stylesheet — you've recreated the worst part of "div soup" with
+extra steps.
 
-### Selector budget
+---
 
-Aim for:
+## 3. CSS — Tailwind first, custom classes when they earn it
 
-- **0 `!important`** in production CSS. (`!important` is a
-  capitulation; reach for it only inside a print stylesheet or to
-  override a vendor `style=` you can't remove.)
+v2.0 uses **Tailwind via the Standalone CLI**
+([ADR 058](../adr/058-tailwind-via-standalone-cli.md)) — no Node,
+no npm, no PostCSS plugin chain. The full pipeline lives in
+[`../project/spec/v2/css.md`](../project/spec/v2/css.md). This
+section is the *why* and the conventions; that file is the *what
+runs*.
+
+### 3.1 The two-layer mental model
+
+The styling system is **utility-first with a thin component layer**:
+
+| Layer            | Where                                                      | When to use                                                                                   |
+| ---------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Design tokens    | `@layer base` in `static/css/input.css` (CSS custom props) | One source of truth for color, radius, shadow. Theme presets override the same names.        |
+| Tailwind utilities | `class="bg-white border border-slate-200 …"` directly in HTML | First reach for *every* visual choice. Most elements only ever need utilities.               |
+| `sn-*` components | `@layer components` in `input.css`, defined with `@apply` | Promoted only after the same `class="…"` string appears verbatim in **three or more** templates. |
+| `sn-*` utilities  | `@layer utilities` in `input.css`                         | Bespoke utility class only when no Tailwind utility exists (e.g. a custom 12-col grid).      |
+
+There is **no separate "components/cards.css"** file, no SCSS, no
+CSS-in-JS. `input.css` is the only CSS source file in v2.0; the
+generated `app.css` is the only CSS the browser sees and is **not
+committed**.
+
+### 3.2 File organization
+
+```text
+src/feedback_triage/static/css/
+├── input.css       # source — tokens, @layer base/components/utilities, @apply
+└── app.css         # generated by `task build:css`; DO NOT EDIT
+```
+
+The structure of `input.css`:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* design tokens — CSS custom properties */
+  :root { --color-bg: #f8fafc; /* slate-50 */ … }
+  :root[data-theme="dark"] { --color-bg: #020617; /* slate-950 */ … }
+
+  /* minimal resets Tailwind preflight does not cover */
+  html { color-scheme: light dark; }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .sn-card        { @apply bg-white border border-slate-200 rounded-2xl shadow-sm p-4; }
+  .sn-btn-primary { @apply bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-4 py-2 font-medium; }
+  /* …rest of the catalog… */
+}
+
+@layer utilities {
+  .sn-grid-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; }
+}
+```
+
+The full block lives in
+[`../project/spec/v2/css.md`](../project/spec/v2/css.md#layered-structure-of-inputcss).
+Update both files in the same PR.
+
+### 3.3 Naming conventions
+
+This is a custom design system. The naming rules are:
+
+- **Tailwind utilities** stay literal: `bg-teal-600`, `rounded-xl`,
+  `text-sm`. Never alias them away with a wrapper class for
+  cosmetic reasons.
+- **Bespoke component classes** are prefixed `sn-` (SignalNest).
+  Block-element shape, single dashes:
+  - `sn-card`, `sn-card-header`, `sn-card-footer`.
+  - `sn-btn-primary`, `sn-btn-secondary`, `sn-btn-ghost`.
+  - `sn-pill-status`, `sn-pill-priority`.
+  - `sn-input`, `sn-label`, `sn-toast`, `sn-skip-link`.
+- **State classes** use the verb-prefix convention so they read
+  aloud:
+  - `is-open`, `is-loading`, `is-active`, `is-disabled`.
+  - `has-error`, `has-warning`.
+- **No BEM `__` or `--`.** The `sn-` prefix plus single dashes
+  covers what BEM does without the underscore tax.
+- **No utility class with a `sn-` prefix** unless it lives in
+  `@layer utilities` and is genuinely a single-purpose CSS
+  declaration. The `sn-grid-12` class is the canonical example;
+  `sn-card` is *not* a utility (it's a composition).
+
+Names that are **forbidden**:
+
+- Tag-shaped class names — `header`, `nav`, `button` (use the tag).
+- Color-baked names — `red-button`, `blue-card`. Use status names
+  (`sn-btn-danger`) so a re-skin doesn't lie.
+- Layout-baked names on components — `sn-card-left`, `sn-card-grid`.
+  Layout is composed with Tailwind utilities at the call site, not
+  baked into the component.
+
+### 3.4 The "rule of three" for promoting utilities to a class
+
+The promotion rule, restated:
+
+> First implementation of any visual pattern: inline Tailwind
+> utilities. When the same `class="…"` string appears verbatim in
+> **three or more** templates, promote it to `sn-<thing>` in
+> `input.css` via `@apply`. Don't pre-promote.
+
+Why three:
+
+- Two repeats might be coincidence; three is a pattern.
+- Pre-promoted classes make the styleguide lie — they suggest a
+  vocabulary that doesn't exist yet.
+- Late promotion is cheap (one `@apply` line, search-and-replace);
+  early promotion is expensive (every change touches a class file
+  *and* every consumer).
+
+When promoting:
+
+1. Pick a name from §3.3.
+2. Add the `@apply` line in `input.css` under `@layer components`.
+3. Replace the verbatim utility string in every consumer.
+4. Run `task build:css` and visually diff.
+5. Add a row to the component vocabulary in
+   [`../project/spec/v2/css.md`](../project/spec/v2/css.md#component-vocabulary).
+
+### 3.5 Design tokens drive everything
+
+Color, radius, and shadow are CSS custom properties on `:root`
+(plus `[data-theme="dark"]`). Tailwind reads them via the
+`tailwind.config.cjs` `theme.extend` map, so `bg-bg`, `text-ink`,
+`border-line`, `rounded-md` all resolve to `var(--color-…)` or
+`var(--radius-…)` at runtime.
+
+Practical consequence: a theme switch (light/dark) or a styleguide
+preset (`production` / `basic` / `unique` / `crazy`) is *one
+attribute change* on `<html>` or `<main>`. No CSS rebuild, no class
+swap, no JS gymnastics.
+
+A **new design token** requires updating four files in one PR:
+
+1. `static/css/input.css` (the `@layer base` block).
+2. `tailwind.config.cjs` (the `theme.extend` map).
+3. `docs/project/spec/v2/css.md` (the canonical token list).
+4. `docs/project/spec/v2/core-idea.md` (the palette tables).
+
+If any of those four lag, the design system has drifted.
+
+### 3.6 Layout primitives
+
+v2.0 layouts are composed from a small Tailwind vocabulary, not
+from bespoke layout classes. The catalog:
+
+| Pattern                  | Tailwind composition                              |
+| ------------------------ | ------------------------------------------------- |
+| Page shell               | `min-h-screen bg-bg text-ink`                     |
+| Two-pane (sidebar + main)| `grid grid-cols-[16rem_1fr] min-h-screen`         |
+| Content gutter           | `mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8`     |
+| Section heading row      | `flex items-center justify-between gap-4 mb-4`    |
+| Table wrapper            | `overflow-x-auto rounded-2xl border border-line` |
+| Form row                 | `space-y-1`                                       |
+| Stack                    | `space-y-4` / `space-y-6`                         |
+| Inline cluster           | `inline-flex items-center gap-2`                  |
+| Card grid                | `grid gap-4 md:grid-cols-2 lg:grid-cols-3`        |
+
+Layout composition stays at the **call site**. A page that needs a
+two-pane shell writes the Tailwind utility string in its own
+template; promoting "two-pane shell" to `.sn-shell-two-pane` would
+hide the layout from the reader without saving any keystrokes.
+
+### 3.7 Component vocabulary (v2.0)
+
+The full eight-component list lives in
+[`../project/spec/v2/css.md`](../project/spec/v2/css.md#component-vocabulary).
+Adding a ninth needs review. Today's list:
+
+`sn-card`, `sn-btn-primary`, `sn-btn-secondary`, `sn-pill-status`,
+`sn-pill-priority`, `sn-input`, `sn-label`, `sn-toast`.
+
+Plus the one bespoke utility: `sn-grid-12`.
+
+### 3.8 Theme presets and dark mode
+
+- Dark mode is **opt-in** via `data-theme="dark"` on `<html>`,
+  paired with `darkMode: 'selector'` in `tailwind.config.cjs`. We
+  do **not** key off `prefers-color-scheme` directly — the user
+  toggle wins, OS preference is the *initial* default.
+- The four ADR-056 styleguide presets (`production`, `basic`,
+  `unique`, `crazy`) override the same `--color-*` token names on
+  the `/styleguide` page only. The product UI never sets a preset
+  attribute.
+- Production app pages: unmarked default tokens (light) **plus**
+  the `data-theme="dark"` override.
+
+### 3.9 Selector budget
+
+- **0 `!important`** in production CSS, with one exception: the
+  `prefers-reduced-motion` block, which has to override Tailwind's
+  own `transition-*` utilities.
 - **Specificity ≤ 0,2,0** for normal rules. One class, one
   pseudo-class, optionally one element. If a selector reads
   `.foo .bar .baz a:hover`, the structure is wrong, not the CSS.
 - **No tag-only style overrides** below the reset/base layer. Once
-  you've set `button { … }` in the base, override with `.button-ghost`,
-  not `header button`.
+  Tailwind preflight has set `button { … }`, override with
+  `.sn-btn-ghost`, not `header button`.
+- **No inline `style="…"`.** Defeats the cascade and the
+  styleguide. Dynamic values (a progress bar width, an inline-SVG
+  chart's `stroke-dasharray`) are the only legitimate inline
+  styles, and they should be JS-set, not authored.
 
-### Naming
+### 3.10 Z-index discipline
 
-- BEM-lite is fine and the existing CSS already uses it
-  (`button button-primary`, `filter-form`, `field`). Block-Element
-  with single dashes (`card__title` is also fine if you prefer the
-  full BEM split). **Pick one and stick to it.**
-- Utility classes are the standard style layer in v2.0+ via
-  Tailwind CSS (Standalone CLI, no Node toolchain) — see
-  [ADR 058](../adr/058-tailwind-via-standalone-cli.md). The
-  `tags carry meaning, classes carry style` rule is unchanged:
-  semantic HTML still drives accessibility; Tailwind drives
-  appearance. Hand-rolled component CSS is permitted only when a
-  utility composition would be unreadable.
-- State classes go in their own namespace: `is-open`, `is-loading`,
-  `has-error`. Read aloud, they say what they mean.
+Three values only, all expressed as Tailwind utilities:
 
----
+| Layer   | Class   | Use                                  |
+| ------- | ------- | ------------------------------------ |
+| Base    | (none)  | normal flow                          |
+| Sticky  | `z-10`  | sticky table headers, top nav        |
+| Overlay | `z-50`  | dialogs (`<dialog>`), toasts         |
 
-## 3. CSS conventions that pair well with the above
+Anything claiming a fourth layer needs review.
 
-Adopt incrementally; flag in PR review when violated.
+### 3.11 Sizing units
 
-### Layering
+- `rem` for vertical rhythm and font sizes.
+- `ch` for max-width on prose blocks (`max-w-prose` = `65ch`).
+- `px` only for hairlines (`border-1`) and shadow offsets.
+- `%` for fluid widths inside grids and flex containers.
 
-Use one base layer plus a small number of component files:
+Users with a 24px default font still get a readable layout.
 
-```
-static/css/
-  styles.css        # entry: imports the layers below in order
-  base/
-    reset.css       # modern reset (Andy Bell or new-css-reset)
-    tokens.css      # CSS custom properties (color, spacing, radius)
-    typography.css  # element-level type rules
-  components/
-    button.css
-    form.css
-    card.css
-  layouts/
-    container.css
-    list-page.css
-```
+### 3.12 Focus and keyboard
 
-Or — equally fine for this project's size — keep one `styles.css`
-internally divided by `/* === Buttons === */` banner comments. The
-*structure* matters; the file count doesn't. Don't introduce a CSS
-preprocessor; CSS custom properties + nesting (Baseline 2024) cover
-everything Sass used to.
+- Every focusable element shows a `:focus-visible` ring tied to
+  `var(--color-focus)`. **Never** `outline: none` without a
+  replacement.
+- Skip-link `.sn-skip-link` is required on every page; it links
+  to `#main`.
+- Tab order matches visual order. Don't use positive `tabindex`.
+- Modal flows use `<dialog>.showModal()` so focus trapping is
+  free.
 
-### Tokens, not magic numbers
-
-Every color, spacing step, radius, and shadow lives in a CSS custom
-property:
-
-```css
-:root {
-  --color-bg: #0e1116;
-  --color-text: #e8edf2;
-  --color-accent: #6ea8ff;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 1rem;
-  --radius-1: 0.375rem;
-  --radius-2: 0.75rem;
-  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.2);
-}
-```
-
-Components reference tokens, never raw hex. Dark mode becomes a
-`:root[data-theme="dark"]` block that overrides the same names. This
-is also how a future "themes" feature ships in one PR.
-
-### `prefers-color-scheme` from day one
-
-Two media queries cost nothing now and save a refactor later:
-
-```css
-@media (prefers-color-scheme: dark) { :root { /* dark tokens */ } }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
-```
-
-(Yes, that's the one place `!important` is justified — overriding
-animation on user request.)
-
-### Sizing in `rem`/`ch`/`%`, not `px`
-
-`px` is fine for `border` and `box-shadow`; everything that scales
-with text size (padding, gap, max-width, font-size) uses `rem` or
-`ch`. Users with a 24px default font still get a readable layout.
-
-### Layout primitives
-
-- **Flexbox** for one-axis layouts (toolbars, button rows).
-- **Grid** for two-axis layouts (forms, dashboards). `grid-template-areas`
-  is a great tool for "header / sidebar / main" shells.
-- **Container queries** (`@container`) for component responsiveness.
-  This app is small enough that a single page-level breakpoint is
-  often enough; reach for `@container` when one component genuinely
-  reflows independently.
-- **Logical properties** (`margin-block-start`, `padding-inline`)
-  rather than `margin-top` / `padding-left` once any RTL/i18n is on
-  the table.
-
-### Focus styles
-
-Never `outline: none` without a replacement. The default focus ring
-is ugly but functional; the cheap fix is:
-
-```css
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-```
-
-`focus-visible` (not `:focus`) means mouse clicks don't show the ring,
-keyboard tabbing does — which is what users actually want.
-
-### Forms
+### 3.13 Forms
 
 - Every input has a `<label for>` (already required).
 - Group related fields in `<fieldset><legend>…</legend>`.
 - Error messages live in a sibling element with
   `aria-describedby="field-id-error"` on the input.
 - Use native validation attributes (`required`, `minlength`,
-  `pattern`) before adding JS. Style with `:invalid` / `:user-invalid`
-  (the latter is what you usually actually want — only flags after
-  the user has interacted).
+  `pattern`) before adding JS. Style with `:invalid` /
+  `:user-invalid` (the latter is what you usually actually want —
+  only flags after the user has interacted).
 
-### Accessibility checklist (minimum bar)
+### 3.14 Responsive strategy
 
-- Heading levels are sequential (`<h1>` once per page, then `<h2>`s,
-  no skipping to `<h4>`).
+- **Mobile-first.** Default styles target ≤ 640px.
+- **Three breakpoints**, Tailwind defaults: `sm` 640, `md` 768,
+  `lg` 1024. No bespoke breakpoints in v2.0.
+- The dashboard sidebar collapses to a top-of-page `<details>`
+  disclosure under `md`.
+- Tables stay tables; on narrow screens, columns hide via
+  `hidden md:table-cell` rather than reflowing into cards.
+- Container queries (`@container`) are **not** used in v2.0; reach
+  for them only when one component genuinely reflows
+  independently of the page.
+
+### 3.15 Motion
+
+- Small, functional transitions only. No decorative animation.
+- `prefers-reduced-motion: reduce` zeroes all transitions and
+  animations (the one `!important` carve-out).
+- No JS-driven animation in v2.0. CSS `transition` covers what we
+  need; spring physics is a v3 problem.
+
+### 3.16 Accessibility floor
+
+- Heading levels are sequential (`<h1>` once per page, then
+  `<h2>`s, no skipping to `<h4>`).
 - Color contrast ≥ 4.5:1 for body text, 3:1 for large text and UI
   borders. Test in dev tools.
 - Every image has `alt=""` (decorative) or meaningful alt text.
 - Skip-link to `#main` as the first focusable element.
-- Tab order matches visual order. Don't use positive `tabindex`.
 - All interactive elements reachable + operable with keyboard alone.
+- Pills carry **icon + text + color** — never color alone (the
+  color-blind / monochrome-print path must remain readable).
 
-### What to avoid
+### 3.17 What v2.0 deliberately rejects
 
-- **Icon fonts** — they break for screen readers and miss in print.
-  Use inline SVG with `<title>` or `aria-label`.
-- **`<a href="#">` for buttons** — use `<button type="button">`. An
-  empty href clutters history and breaks middle-click.
-- **`onclick=` attributes** in HTML when an `addEventListener` in JS
-  is just as easy. Keeps logic in one place.
-- **Bootstrap or another component framework** — the spec forbids
-  it. (Tailwind, by contrast, is now adopted as the utility layer
-  per [ADR 058](../adr/058-tailwind-via-standalone-cli.md).) If a
-  utility-first approach is genuinely needed, write an ADR.
+| Idea                                | Why                                                       |
+| ----------------------------------- | --------------------------------------------------------- |
+| Node.js + npm + PostCSS             | Adds a second toolchain ([ADR 058](../adr/058-tailwind-via-standalone-cli.md)). |
+| BEM `__` / `--`, ITCSS, OOCSS       | The `sn-` prefix + utilities cover the same ground.       |
+| CSS-in-JS                           | No JS framework in v2.0; runtime cost on every render.    |
+| Web fonts                           | Zero FOIT, zero licensing surface in v2.0.                |
+| `!important` outside reduced-motion | Cascade games are a leak indicator.                       |
+| Inline `style="…"`                  | Defeats the cascade and the styleguide.                   |
+| `@apply` outside `input.css`        | `@apply` is only legal inside `input.css`'s `@layer components`. |
+| Icon fonts                          | Break for screen readers, miss in print. Use inline SVG with `<title>` or `aria-label`. |
+| `<a href="#">` for buttons          | Use `<button type="button">`. Empty href clutters history and breaks middle-click. |
+| `onclick=` attributes               | Use `addEventListener` in JS so logic stays in one place. |
+| Bootstrap, Bulma, Pico, Materialize | One framework is enough; a second one needs an ADR.       |
 
 ---
 
-## 4. Recommended addition to `copilot-instructions.md`
+## 4. The frontend section in `copilot-instructions.md`
 
-The current Frontend section is short. Suggested replacement (or
-expansion) — concrete and rule-shaped, with a pointer back here:
+The current Frontend section is short by design — the rule lives
+there, the rationale lives here. If the rule needs to expand, the
+shape stays:
 
 > ### Frontend
 >
 > - Static HTML files served via `StaticFiles`; **no Jinja, no
 >   bundler, no SPA framework**.
 > - Vanilla JS + Fetch API for dynamic behavior.
-> - **Semantic HTML.** Use the right tag for what an element *is*
->   (`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`,
->   `<button>`, `<a>`, `<form>`, `<label>`). `<div>` is a generic
->   block wrapper with no meaning — use only when no better tag
->   applies. `<span>` is the same rule inline.
-> - **Tags carry meaning, classes carry style.** Never use `id` or
->   `data-*` for styling. Never put `role="button"` on a `<div>`;
->   use `<button>`.
+> - **Semantic HTML.** Use the right tag for what an element *is*.
+>   `<div>` is a generic block wrapper with no meaning — use only
+>   when no better tag applies.
+> - **Tags carry meaning, classes carry style.** Classes are
+>   Tailwind utilities and the bespoke `sn-*` component vocabulary.
+>   Never style by `id`. Only `data-state` / `data-theme` are
+>   allowed style hooks; never invent ad-hoc `data-*` attributes.
 > - Every input has a `<label for>`; buttons are `<button>`.
-> - Same-origin delivery; CSRF is N/A in v1.0 (no cookie auth).
+> - Tailwind via Standalone CLI ([ADR 058](../docs/adr/058-tailwind-via-standalone-cli.md)).
+>   `app.css` is generated by `task build:css`; do not edit it.
+> - Same-origin delivery; CSRF posture in
+>   [`docs/project/spec/v2/security.md`](../docs/project/spec/v2/security.md).
 > - See [`docs/notes/frontend-conventions.md`](../docs/notes/frontend-conventions.md)
->   for the long-form rationale, CSS conventions, and accessibility
->   checklist.
-
-The pointer keeps the instructions file short while letting Copilot
-discover the deeper guidance when working in `static/`.
+>   for the long-form rationale, design tokens, the `sn-*`
+>   vocabulary, and the accessibility checklist.
 
 ---
 
-## 5. Commercial-product features — should this project grow them?
+## 5. Custom CSS characteristics worth calling out
 
-**Short answer: yes, but stage it.** The framing matters. This is
-already two projects sharing one repo:
+Things that make this design system *this* design system, beyond
+"we use Tailwind":
 
-- *Project A* — the v1.0 spec (the small, finished thing).
-- *Project B* — the portfolio piece you actually want to show.
-
-Confusing the two is the trap. The fix is to ship A first, freeze it,
-then layer B on top with each feature as its own ADR + spec
-addendum. Below is the honest take on each idea.
-
-### Tier 1 — high portfolio ROI, modest scope creep
-
-Each of these has a clean stopping point and shows skill the v1.0
-scope can't.
-
-| Feature | Why it's worth it | Realistic effort | New surface |
-| --- | --- | --- | --- |
-| **Search** (full-text on title + description) | Postgres `tsvector` + GIN index demonstrates real DB chops; visible immediately. | S–M | One column, one index, one query, one input. |
-| **Dashboard / summaries page** (`/api/v1/stats`) | Counts by status/source, avg pain, trend chart. Shows API design + viz without a framework. | S | One read-only endpoint, one page. |
-| **Saved filters / views** | URL-shareable query params already half-exist; persist as named views in `localStorage` first, DB later. | S | URL convention + small JS. |
-| **CSV / JSON export** of filtered list | One `StreamingResponse`, instantly useful, talks to "I think about real users." | S | One endpoint. |
-| **Inbox-style triage flow** (J/K to navigate, status hotkeys) | Vanilla JS, no deps. Differentiates the UI immediately. | S | Keyboard handler. |
-| **Changelog page** (`/changelog`) reading from `CHANGELOG.md` | Lampshades release-please nicely; "this app dogfoods its own automation." | XS | One route. |
-| **Real OpenAPI examples + a Try-It page** | You already have FastAPI's `/docs`; add curated examples. | XS | Pydantic `Config.json_schema_extra`. |
-| **Telemetry / structured logs viewable in-app** | `/admin/logs` reading the last 200 structured log lines. Shows ops awareness. | S | One endpoint, one page. |
-
-### Tier 2 — adds depth, but doubles the spec
-
-| Feature | What it actually pulls in |
-| --- | --- |
-| **Auth / login / users** | Sessions or JWT, password reset, email delivery, CSRF, rate limiting, lockout, audit log, GDPR delete. **At minimum a week of work and three ADRs.** |
-| **Multi-tenant (orgs / workspaces)** | Tenant column on every table, row-level security or app-layer scoping, invite flow, billing-shaped surface. Realistically only worth it *with* auth. |
-| **Settings page** (per-user prefs) | Trivial visually but presupposes auth + a `user_settings` table. Don't build until users exist. |
-| **Deduplication** | Real tsvector-based similarity or trigram (`pg_trgm`) — interesting and visible, but only meaningful once the corpus is big enough to dedupe. Pair with seed data ≥ 200 rows. |
-| **Categories / tags** | Many-to-many table, tag CRUD UI, filter chips. Honestly more interesting than a "category" enum because it shows you can model a relationship. |
-| **Comments / activity log per item** | Great showcase for a second table + ordering + pagination. |
-| **AI summaries** (LLM call to summarize description) | Trendy and visible. Costs money per request; needs a budget cap, an env-var key, an ADR on data egress. |
-| **Email / Slack notifications on status change** | Outbox pattern + a worker. Pulls in queueing — cool but a real architectural step. |
-
-### Tier 3 — likely traps for a portfolio piece
-
-| Feature | Why it backfires |
-| --- | --- |
-| **Realtime / WebSockets** | Adds a long-lived connection that fights serverless deploys. Hard to demo on a sleeping app. |
-| **Mobile app** | Out of scope; the README "live demo" is the demo. |
-| **Plugin system / extension API** | Looks impressive in a demo, but every reviewer reads it as "this person doesn't know when to stop." |
-| **Custom auth provider** (write your own OAuth) | Don't. Use a library or hosted IdP if auth ships. |
-
-### How to stage it without losing the v1.0 ship
-
-1. **Cut the v1.0 release first.** Tag, push, freeze the spec. The
-   portfolio piece needs a "1.0" milestone in the README.
-2. **Open a `v2-design/` folder under `docs/`.** Write a vision doc
-   and a roadmap. Pick the first three Tier-1 features by user
-   value, not by what's fun to build.
-3. **One ADR per Tier-2 feature** before any code. Auth alone is
-   ADRs for password storage, session vs JWT, rate limiting, and
-   email delivery. Doing them up front signals seniority more than
-   the code does.
-4. **Keep each feature its own PR + its own ADR + its own spec
-   addendum.** The PR template (under `.github/`) already nudges
-   you toward this.
-5. **Refresh the README screenshots after every Tier-1 feature.**
-   The portfolio piece *is* the screenshots; do not let them rot.
-
-### What "looks like a real product" actually means
-
-Reviewers spend ~90 seconds scanning a portfolio repo. The signal
-they pick up isn't usually feature count — it's:
-
-1. **README that gets straight to "what / why / try it."**
-2. **A live URL that loads in under 2 seconds.**
-3. **Tests that pass on push.** Green CI badges.
-4. **A meaningful CHANGELOG.** Real semver, real history.
-5. **One thing that makes you go "huh, neat."** Could be the keyboard
-   navigation, the search-as-you-type, the inline edit, the dark
-   mode toggle that respects `prefers-color-scheme`. **One**.
-6. **Code organized like an adult wrote it.** Which you already have.
-
-`simple-python-boilerplate` is a strong portfolio piece because of
-those six, not because it has more features than its peers. Apply
-the same standard here: ship the small thing well, then add **one**
-delightful feature at a time.
+1. **Single CSS source file.** `input.css` is the only file a
+   human edits. No `components/`, no `layouts/`, no `themes/`
+   directory. Everything is one file because the project is small
+   enough that file-count discipline beats folder discipline.
+2. **Tokens are CSS custom properties, not Tailwind palette
+   entries.** Tailwind classes resolve through `var(--color-*)` —
+   so a theme preset is one attribute swap, not a stylesheet swap.
+3. **`sn-` prefix, single dashes.** No BEM noise, no clashes with
+   Tailwind's own utility names.
+4. **Three-template promotion rule.** The `sn-*` vocabulary stays
+   small on purpose; nine components is the upper bound for v2.0.
+5. **Theme presets override tokens, never selectors.** ADR 056's
+   four presets each redefine the same `--color-*` names on
+   `[data-theme="…"]`; nothing else changes. This is what makes
+   `/styleguide` cheap.
+6. **No CSS preprocessor.** Modern CSS — custom properties,
+   nesting (Baseline 2024), logical properties, `:focus-visible`,
+   `:user-invalid` — covers what Sass used to.
+7. **Generated `app.css` is gitignored.** The container build
+   regenerates it; missing locally → run `task build:css`.
+8. **`task check` includes `task build:css`.** A missing class
+   name in a template → Tailwind doesn't emit the rule → CI
+   fails. The CSS pipeline is part of the test gate, not a
+   separate concern.
 
 ---
 
-## 6. Risks worth flagging up front
+## 6. Commercial-product features — the v2.0 plan
 
-- **Auth changes the threat model entirely.** The moment you have
-  user accounts, you have password hashing, session fixation, CSRF,
-  account enumeration, email-link replay, and GDPR. Not building
-  auth is a perfectly defensible portfolio choice ("read-only
-  triage demo, no PII collected"). Building it badly is worse than
-  not building it.
-- **Multi-tenant retro-fit is expensive.** If you think auth might
-  ship, design every new table with `tenant_id` from day one even
-  if it's nullable.
-- **AI features need a kill switch.** A budget cap (`MAX_LLM_CALLS_PER_DAY`)
-  and a feature flag, both wired before the first call. Otherwise a
-  bug in a loop costs real money.
-- **Feature creep silently breaks the spec.** Every new feature must
-  update [`docs/project/spec/spec-v1.md`](../project/spec/spec-v1.md) or
-  it's de-facto undocumented. The spec stays the canonical
-  description of the system; v2 doesn't get to skip that rule.
+The earlier draft of this file outlined a "ship v1.0 first, then
+layer v2 on top" plan. v2.0 is now **in flight** — multi-tenancy,
+auth, public submission forms, public roadmap and changelog, and
+insights are all in scope. The full feature catalog and ADR
+backlog live in:
+
+- [`../project/spec/v2/README.md`](../project/spec/v2/README.md)
+- [`../project/spec/v2/business.md`](../project/spec/v2/business.md)
+- [`../project/spec/v2/adrs.md`](../project/spec/v2/adrs.md)
+- [`../project/implementation.md`](../project/implementation.md)
+
+What's deliberately **out** of v2.0 (each one is a recorded
+non-goal in [`business.md`](../project/spec/v2/business.md#what-v20-deliberately-does-not-sell)):
+
+- AI / LLM auto-triage.
+- Voting / upvotes.
+- Real-time updates / WebSockets.
+- Bulk actions.
+- Slack / Discord webhooks.
+- Public API tokens.
+- File attachments.
+- Mobile app.
+- Plugin / extension API.
+- Custom auth provider (we use library-grade Argon2id sessions —
+  [ADR 059](../adr/059-auth-model.md)).
+
+If a future change request lands one of those, it gets its own
+ADR and its own spec addendum before any code.
 
 ---
 
-## 7. Where this lives
+## 7. Risks worth flagging up front
 
-- `.github/copilot-instructions.md` — the **rules** (short, enforced).
-- This file — the **rationale**, plus longer-form recommendations
-  and the v2 product roadmap thinking.
+- **Auth changes the threat model entirely.** v2.0 already accepts
+  this: see [`v2/auth.md`](../project/spec/v2/auth.md) and
+  [`v2/security.md`](../project/spec/v2/security.md). The active
+  defenses are Argon2id, SHA-256-hashed session tokens, per-IP and
+  per-email rate limits, and identical 202 responses for
+  enumeration-prone flows.
+- **Multi-tenant retro-fit is expensive.** Every new tenant-scoped
+  table carries `workspace_id uuid NOT NULL` from day one;
+  [`v2/multi-tenancy.md`](../project/spec/v2/multi-tenancy.md)
+  describes the canary test that fails the build on cross-tenant
+  reads.
+- **AI features need a kill switch.** Not in v2.0. If they ever
+  ship, a budget cap and a feature flag must land in the same PR
+  as the first call.
+- **Feature creep silently breaks the spec.** Every new feature
+  must update [`../project/spec/v2/`](../project/spec/v2/) or it's
+  de-facto undocumented. The split-file v2 spec stays the
+  canonical description of the system.
+- **CSS pipeline drift.** `tailwind.config.cjs`, `input.css`,
+  `v2/css.md`, and `v2/core-idea.md` must be kept in sync. CI
+  catches missing classes via `task build:css`; cross-doc drift
+  is caught only by review.
 
-Update both when frontend conventions change. Update this file alone
-when adding ideas to the v2 backlog.
+---
+
+## 8. Where this lives
+
+- `.github/copilot-instructions.md` — the **rules** (short,
+  enforced).
+- [`../project/spec/v2/css.md`](../project/spec/v2/css.md) — the
+  **CSS implementation source of truth** (pipeline, `input.css`
+  shape, `tailwind.config.cjs`, build tasks, component
+  vocabulary).
+- [`../project/spec/v2/core-idea.md`](../project/spec/v2/core-idea.md)
+  — the **brand brief** (palette, locked strings, voice, status
+  colors).
+- This file — the **rationale**, naming conventions, the design
+  system's custom characteristics, and the longer-form
+  recommendations.
+
+Update all four when a frontend convention changes. Update this
+file alone when adding ideas that aren't yet rules.

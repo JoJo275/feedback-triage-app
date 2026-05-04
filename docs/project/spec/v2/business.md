@@ -1,7 +1,7 @@
 # v2.0 — Business / startup characteristics
 
 > Topical detail file. Entry point: [`../spec-v2.md`](../spec-v2.md).
-> Brand brief: [`../core-idea.md`](../core-idea.md).
+> Brand brief: [`core-idea.md`](core-idea.md).
 
 This file captures SignalNest's **product / business posture** at
 v2.0 launch. It is not a financial model; it is the single place to
@@ -190,7 +190,7 @@ which is an acceptable outcome.
 ## Cross-references
 
 - [`../spec-v2.md`](../spec-v2.md) — v2.0 spec entry point.
-- [`../core-idea.md`](../core-idea.md) — brand brief.
+- [`core-idea.md`](core-idea.md) — brand brief.
 - [`rollout.md`](rollout.md) — phased technical launch.
 - [`email.md`](email.md) — Resend integration & fail-soft model.
 - [`security.md`](security.md) — engineering-shaped risks.

@@ -1,7 +1,7 @@
 # v2.0 — UI
 
 > Topical detail file. Entry point: [`../spec-v2.md`](../spec-v2.md).
-> Brand and visual direction: [`../core-idea.md`](../core-idea.md).
+> Brand and visual direction: [`core-idea.md`](core-idea.md).
 
 Static HTML + vanilla JS, served by FastAPI's `StaticFiles` and
 `HTMLResponse` page routes. Tailwind utility classes are the style
@@ -121,7 +121,7 @@ CI. (Tooling addition tracked in [`tooling.md`](tooling.md).)
 
 ## Cross-references
 
-- [`../core-idea.md`](../core-idea.md) — visual brief, component shorthand, color tokens.
+- [`core-idea.md`](core-idea.md) — visual brief, component shorthand, color tokens.
 - [ADR 058 — Tailwind via Standalone CLI](../../../adr/058-tailwind-via-standalone-cli.md)
 - [ADR 051 — Static HTML + vanilla JS](../../../adr/051-static-html-vanilla-js.md)
 - [`api.md`](api.md) — JSON endpoints the pages call.

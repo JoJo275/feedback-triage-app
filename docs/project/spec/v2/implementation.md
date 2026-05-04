@@ -37,7 +37,7 @@ phase.
 | 4     | Polish   | Dark mode, mini demo, styleguide presets   | Public launch ready.                 |
 
 Brand & visual rules apply across every phase
-([`../core-idea.md`](../core-idea.md), [`css.md`](css.md)).
+([`core-idea.md`](core-idea.md), [`css.md`](css.md)).
 
 ---
 

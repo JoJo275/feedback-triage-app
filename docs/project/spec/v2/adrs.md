@@ -99,7 +99,7 @@ Must answer:
 - Lifecycle diagram (which transitions are allowed, which are
   not). E.g. `spam` is terminal; `closed` is reversible.
 - UI mapping — the colors / icons / labels per status, mirrored
-  from [`../core-idea.md`](../core-idea.md#status-workflow).
+  from [`core-idea.md`](core-idea.md#status-workflow).
 
 Drives: FX.
 
@@ -116,7 +116,7 @@ Must answer:
 - Why pain stays 1–5 and not a freeform integer or a slider.
 - Why priority is an enum and not a numeric score.
 - UI implications already captured in
-  [`../core-idea.md`](../core-idea.md#pain-level-vs-priority) and
+  [`core-idea.md`](core-idea.md#pain-level-vs-priority) and
   [`pages.md`](pages.md#feedback-detail).
 
 Drives: FX, dashboard, insights.
