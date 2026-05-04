@@ -94,15 +94,24 @@ nav:
       - Spec (v2.0 draft):
           - Overview: project/spec/spec-v2.md
           - Index: project/spec/v2/README.md
+          - Core idea: project/spec/v2/core-idea.md
+          - Business: project/spec/v2/business.md
           - Schema: project/spec/v2/schema.md
           - API: project/spec/v2/api.md
           - Auth: project/spec/v2/auth.md
           - Multi-tenancy: project/spec/v2/multi-tenancy.md
+          - Repo structure: project/spec/v2/repo-structure.md
           - UI: project/spec/v2/ui.md
+          - Pages: project/spec/v2/pages.md
+          - CSS: project/spec/v2/css.md
           - Email: project/spec/v2/email.md
           - Security: project/spec/v2/security.md
-          - Rollout: project/spec/v2/rollout.md
+          - Risks: project/spec/v2/risks.md
           - Tooling: project/spec/v2/tooling.md
+          - Rollout: project/spec/v2/rollout.md
+          - Implementation: project/spec/v2/implementation.md
+          - ADRs: project/spec/v2/adrs.md
+          - Glossary: project/spec/v2/glossary.md
       - Implementation Plan: project/implementation.md
       - Open Questions: project/questions.md
       - Deployment Notes: project/deployment-notes.md
