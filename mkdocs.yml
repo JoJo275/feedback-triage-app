@@ -190,6 +190,12 @@ nav:
       - 053 – Migrations Pre-Deploy: adr/053-migrations-as-pre-deploy-command.md
       - 054 – Postgres for Tests: adr/054-postgres-for-tests.md
       - 055 – uv as Project Manager: adr/055-uv-as-project-manager.md
+      - 056 – Style Guide Page: adr/056-style-guide-page.md
+      - 057 – Brand vs Repo Naming: adr/057-brand-vs-repo-naming.md
+      - 058 – Tailwind via Standalone CLI: adr/058-tailwind-via-standalone-cli.md
+      - 059 – Auth Model: adr/059-auth-model.md
+      - 060 – Multi-Tenancy Workspace Scoping: adr/060-multi-tenancy-workspace-scoping.md
+      - 061 – Resend Email Fail-Soft: adr/061-resend-email-fail-soft.md
       - Archive:
           - Archive Index: adr/archive/README.md
           - 011 – Repository Guard: adr/archive/011-repository-guard-pattern.md

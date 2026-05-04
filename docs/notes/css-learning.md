@@ -389,6 +389,125 @@ Standalone CLI compiles `app.css` (with the Tailwind directives
 inside it) to `static/css/app.<hash>.css` at build time, which is
 what the browser actually loads.
 
+### Repo layout — every CSS-touching file
+
+A bird's-eye view of every file in this repo that participates in
+the CSS pipeline. Read top-down: tokens flow into base, base into
+layout, etc., and the build collapses everything into one hashed
+stylesheet.
+
+```text
+feedback-triage-app/
+│
+├── tailwind.config.cjs              ← Tailwind theme config: maps CSS-variable
+│                                      tokens to utility names; declares the
+│                                      `content` glob the compiler scans for
+│                                      class names.
+│
+├── tools/
+│   └── tailwindcss(.exe)            ← Tailwind Standalone CLI binary (single
+│                                      static binary, no Node). Downloaded by
+│                                      `task setup:css`.
+│
+├── Taskfile.yml                     ← Holds `task css:build`, `task css:watch`,
+│                                      and `task setup:css`. Build is invoked
+│                                      from `task check` and from CI.
+│
+├── Containerfile                    ← Stage `builder-frontend` runs the CLI;
+│                                      `runtime` stage copies only the compiled
+│                                      `app.<hash>.css` into the image.
+│
+├── pyproject.toml                   ← Confirms zero JS/Node build deps. CSS is
+│                                      not a Python concern; listed here only
+│                                      to make the absence visible.
+│
+├── scripts/
+│   └── build_css.py                 ← Thin Python wrapper around the CLI so the
+│                                      same command works on Windows / macOS /
+│                                      Linux without shell branches in
+│                                      Taskfile.yml.
+│
+└── src/feedback_triage/
+    │
+    ├── static/
+    │   │
+    │   ├── css/                     ← The CSS source root. Everything here is
+    │   │   │                          either an authored layer or a build
+    │   │   │                          artifact.
+    │   │   │
+    │   │   ├── app.css              ← THE entry stylesheet. Holds Tailwind's
+    │   │   │                          three directives plus `@import` lines for
+    │   │   │                          the four custom layers in fixed order.
+    │   │   │                          The CLI reads only this file.
+    │   │   │
+    │   │   ├── tokens.css           ← Design tokens. `:root { --color-*, --radius-*,
+    │   │   │                          --shadow-*, --motion-*, --z-* }` plus
+    │   │   │                          `[data-theme="dark"]` overrides. Themes
+    │   │   │                          re-bind the same custom properties; nothing
+    │   │   │                          else changes.
+    │   │   │
+    │   │   ├── base.css             ← Reset + a11y floor. `:focus-visible` rules,
+    │   │   │                          `prefers-reduced-motion`, body bg, heading
+    │   │   │                          defaults, the `.sn-sr-only` utility, the
+    │   │   │                          skip-link styles. Class-only selectors.
+    │   │   │
+    │   │   ├── layout.css           ← Layout primitives. `.sn-page-shell`,
+    │   │   │                          `.sn-stack`, `.sn-cluster`, `.sn-grid-12`,
+    │   │   │                          `.sn-dashboard-grid`. No colors, no
+    │   │   │                          decoration — only spacing and flow.
+    │   │   │
+    │   │   ├── components.css       ← Component vocabulary. `.sn-button`,
+    │   │   │                          `.sn-card`, `.sn-pill-status-*`,
+    │   │   │                          `.sn-tag-chip`, `.sn-modal`, `.sn-toast`,
+    │   │   │                          `.sn-form-field`, etc., with all variants
+    │   │   │                          (`--primary`, `--ghost`, `--danger`) and
+    │   │   │                          state classes (`.is-loading`, `.is-active`).
+    │   │   │
+    │   │   ├── effects.css          ← Decorative-only. Keyframes, gradient
+    │   │   │                          surfaces, hover polish. Last in the import
+    │   │   │                          order; safe to delete entirely without
+    │   │   │                          breaking layout or function.
+    │   │   │
+    │   │   ├── app.<hash>.css       ← BUILD ARTIFACT. The compiled, minified
+    │   │   │                          stylesheet the browser loads. Filename
+    │   │   │                          contains a content hash for cache-busting.
+    │   │   │                          Git-ignored.
+    │   │   │
+    │   │   ├── app.<hash>.css.map   ← BUILD ARTIFACT (dev only). Source map so
+    │   │   │                          DevTools points back at tokens.css /
+    │   │   │                          components.css. Not shipped to production.
+    │   │   │
+    │   │   └── .gitignore           ← Ignores `app.*.css` and `*.css.map` so
+    │   │                              build outputs never land in commits.
+    │   │
+    │   └── js/
+    │       └── <page>.js            ← Per-page vanilla JS. Toggles state classes
+    │                                  on existing elements (`.is-active`,
+    │                                  `aria-expanded="true"`); never injects
+    │                                  styles or HTML containing user data.
+    │                                  Listed because the JS-CSS contract (state
+    │                                  classes only) is part of the CSS system.
+    │
+    └── templates/
+        │
+        ├── _base.html               ← Holds the single `<link rel="stylesheet"
+        │                              href="/static/css/app.{{ css_hash }}.css">`
+        │                              tag in `<head>`. One stylesheet, one
+        │                              request.
+        │
+        └── _styleguide.html         ← The `/styleguide` page (per ADR 056).
+                                       Renders every component in every variant
+                                       and state. Acts as the visual contract
+                                       and the CSS regression target.
+```
+
+**Things deliberately NOT in this tree** (and why):
+`*.scss`/`*.sass` (we use plain CSS), `*.module.css` (no JS bundler),
+CSS-in-JS files (banned for CSP + caching reasons), `node_modules/`
+(no npm), `postcss.config.cjs` (the Standalone CLI replaces PostCSS),
+`stylelint.config.js` (not yet — relying on review and the `0,2,1`
+ceiling), `static/fonts/` (system fonts only).
+
 ### Source-side files (what you author)
 
 | Path                                                | What it is                                                                  | What it does                                                                                       | In SignalNest v2.0 |

@@ -1,9 +1,9 @@
-# SignalNest — Spec v2.0 (Draft)
+# SignalNest — Spec v2.0 (Ratified)
 
-> **Status:** Draft. Not yet authoritative.
-> **Predecessor:** [`spec-v1.md`](spec-v1.md). Until this document
-> lands at "Ratified" below, `spec-v1.md` remains the single source
-> of truth.
+> **Status:** Ratified 2026-05-04. Authoritative for all v2.0 work.
+> **Predecessor:** [`spec-v1.md`](spec-v1.md). v1.0 remains the
+> contract for the running v1.0 codebase; this document is the
+> contract for everything built under the v2.0 phases.
 >
 > **Reading order:** read `spec-v1.md` first for the platform
 > contract. This document captures *changes* and *additions* on top
@@ -24,19 +24,19 @@
 | Field             | Value                                                            |
 | ----------------- | ---------------------------------------------------------------- |
 | Version           | 2.0                                                              |
-| State             | Draft (not ratified)                                             |
+| State             | **Ratified (2026-05-04)** — authoritative for v2.0 work          |
 | Owner             | JoJo275                                                          |
 | Last reviewed     | 2026-05                                                          |
-| Ratification gate | All v1.0 Must items green + this section flipped to "Ratified"   |
+| Ratification gate | Met: v1.0 Must items green; ADR 061 accepted; Phase 0 closed.    |
 
-When ratified, update:
+Follow-on tasks (not blocking — to be picked up alongside Phase 1):
 
-- The **Status** row above to `Ratified`.
 - [`docs/index.md`](../../index.md) and
-  [`README.md`](../../../README.md) to point at v2.0 as the active
-  spec.
+  [`README.md`](../../../README.md) updated to point at v2.0 as the
+  active spec when Phase 1 lands its first PR.
 - [`.github/copilot-instructions.md`](../../../.github/copilot-instructions.md)
-  to reference v2.0 as the authoritative spec.
+  updated to reference v2.0 as the authoritative spec at the same
+  time.
 
 ---
 
@@ -233,7 +233,7 @@ and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
 | 058 | Tailwind via Standalone CLI                                   | ✅ Accepted | 1 (Alpha)        | FT, all UI work  |
 | 059 | Auth model — cookie sessions + Argon2id                       | ✅ Accepted | 1 (Alpha)        | F1               |
 | 060 | Multi-tenancy / workspace scoping                             | ✅ Accepted | 1 (Alpha)        | F1b              |
-| 061 | Email provider (Resend) + fail-soft semantics                 | TBD         | **1 (Alpha)** — gates `email_log` DDL in Migration A | FE, F1, F1b |
+| 061 | Email provider (Resend) + fail-soft semantics                 | **Accepted** | **1 (Alpha)** — gates `email_log` DDL in Migration A | FE, F1, F1b |
 | 062 | v1.0 → v2.0 data migration (legacy workspace + status rename) | TBD         | 2 (Beta)         | cut-over         |
 | 063 | Status enum extension + `rejected` deprecation                | TBD         | 2 (Beta)         | FX               |
 | 064 | Pain vs. Priority dual-field rationale                        | TBD         | 2 (Beta)         | FX               |
