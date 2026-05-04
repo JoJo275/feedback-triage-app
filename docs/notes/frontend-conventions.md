@@ -15,6 +15,11 @@
 > - [ADR 056 — Style guide page](../adr/056-style-guide-page.md)
 >   — the four named theme presets (`production`, `basic`,
 >   `unique`, `crazy`) used on `/styleguide`.
+> - [`custom-css-architecture.md`](custom-css-architecture.md) —
+>   the **future-direction sketch** for an expanded multi-file
+>   custom CSS system (tokens / base / layout / components /
+>   effects). Read that when v2.0's single-`input.css` model
+>   starts to strain.
 >
 > This file is the **rationale** plus the longer-form recommendations.
 > Anything stricter or shorter — e.g. *"never style by `id`"* — is
@@ -404,6 +409,48 @@ Users with a 24px default font still get a readable layout.
 - No JS-driven animation in v2.0. CSS `transition` covers what we
   need; spring physics is a v3 problem.
 
+### 3.15a Component states — handle all five, every time
+
+Every interactive component (button, input, card-as-link, row,
+pill that does anything on click) must declare **all five**
+states explicitly, even if some are visually no-ops:
+
+| State        | Selector                                  | What it signals                                      |
+| ------------ | ----------------------------------------- | ---------------------------------------------------- |
+| Default      | (base class)                              | resting appearance                                   |
+| Hover        | `:hover`                                  | pointer is over and the action is available         |
+| Focus        | `:focus-visible`                          | keyboard focus, ring tied to `var(--color-focus)`    |
+| Disabled     | `:disabled`, `[aria-disabled="true"]`, `.is-disabled` | action unavailable; do not also remove from tab order without reason |
+| Error / loading | `.has-error`, `.is-loading`            | server validation failed / async work in flight      |
+
+Rules:
+
+- **Disabled and loading are not the same.** Loading keeps the
+  user's intent ("I clicked save, it's working"); disabled denies
+  it ("can't click save, fix the form first"). Different visuals,
+  different accessibility — `aria-busy="true"` for loading,
+  `disabled` (or `aria-disabled`) for disabled.
+- **Empty states get the same treatment as components.** A list
+  with zero items renders an `<p>` or future `sn-empty-state`
+  with copy that tells the user *what to do next*, not just
+  "nothing here."
+- **Loading states are present from the first render of an async
+  surface.** A page that fetches data shows a skeleton or spinner
+  *immediately*, not after a 300ms delay — the delay just hides
+  the state from users on slow connections, who need it most.
+- **Error states echo what the server said**, not a generic
+  "something went wrong." The Pydantic validation message or
+  the API error envelope's `detail` string is what the user
+  sees.
+- **Promotion threshold for state classes is one.** Unlike
+  components (rule of three), state classes are reused
+  immediately — `is-loading` on a button must mean the same
+  thing as `is-loading` on a card.
+
+The styleguide page is ship-blocking for state coverage: a
+component without a hover, focus, disabled, error, **and**
+loading example on `/styleguide` is incomplete.
+
 ### 3.16 Accessibility floor
 
 - Heading levels are sequential (`<h1>` once per page, then
@@ -460,6 +507,41 @@ shape stays:
 > - See [`docs/notes/frontend-conventions.md`](../docs/notes/frontend-conventions.md)
 >   for the long-form rationale, design tokens, the `sn-*`
 >   vocabulary, and the accessibility checklist.
+
+---
+
+## 4a. Growth path — when v2.0's single file isn't enough
+
+The v2.0 model deliberately keeps everything in one `input.css`.
+That works while the surface is small. When it stops working —
+more than ~12 bespoke components, repeated 10-class utility
+strings, signature animations or layered effects, a designer
+landing with a brand guideline — the next step is a multi-file
+split:
+
+```text
+static/css/
+├── input.css       # entry; @import the rest
+├── tokens.css      # design tokens only
+├── base.css        # element resets
+├── layout.css      # page shells, grids, stacks
+├── components.css  # the .sn-* vocabulary
+└── effects.css     # transitions, animations, polish
+```
+
+That plan — including the proposed component vocabulary
+(`sn-button`, `sn-card`, `sn-page-shell`, `sn-dashboard-grid`,
+`sn-status-pill`, `sn-feedback-item`, `sn-modal`, `sn-form-field`,
+`sn-empty-state`), the hard-parts defenses (naming, dedup,
+specificity, organization, responsive consistency, hack
+prevention, visual consistency, state handling), and explicit
+trigger conditions — lives in
+[`custom-css-architecture.md`](custom-css-architecture.md). It
+is **not** the v2.0 plan; it's the parking lot for when v2.0
+ships and we ask "what comes next?"
+
+Until any two trigger conditions in that file are met, stay
+with the v2.0 single-file model. Don't pre-split.
 
 ---
 
@@ -569,6 +651,10 @@ ADR and its own spec addendum before any code.
 - This file — the **rationale**, naming conventions, the design
   system's custom characteristics, and the longer-form
   recommendations.
+- [`custom-css-architecture.md`](custom-css-architecture.md) —
+  the **future-direction sketch** for an expanded multi-file
+  custom CSS system. Not yet a decision; read when planning
+  beyond v2.0.
 
 Update all four when a frontend convention changes. Update this
 file alone when adding ideas that aren't yet rules.

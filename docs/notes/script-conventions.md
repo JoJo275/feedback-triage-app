@@ -322,6 +322,149 @@ let `--help` read as a list of things the script can do.
 
 ---
 
+## Conventions still worth adding (post-17)
+
+The 17 numbered conventions above are now enforced in
+`scripts/.instructions.md`. The list below is what I'd add **next** —
+smaller, more targeted, but each one closes a real gap I've hit
+recently.
+
+### 18. `--help` snapshot tests
+
+Flag drift is silent: someone renames `--reset` to `--clean` and
+nothing fails until a CI script breaks on an unknown argument.
+A tiny `tests/scripts/test_help_snapshots.py` that captures each
+script's `--help` output and diffs it against a stored fixture
+turns flag changes into deliberate, reviewable PRs.
+
+```python
+# pseudo
+def test_seed_help_snapshot(snapshot):
+    out = subprocess.run([sys.executable, "scripts/seed.py", "--help"],
+                         capture_output=True, text=True, check=True)
+    assert out.stdout == snapshot
+```
+
+When `--help` legitimately changes, regenerate the snapshot in
+the same PR. The snapshot lives next to the test, not in the
+script.
+
+### 19. `_cli.py` parser factory
+
+Every script's `_build_parser()` opens with the same ten lines:
+`--version`, `--dry-run`, `--smoke`, `--quiet`, `--verbose`,
+`--format {text,json}`, `--no-color`. Extract a
+`make_base_parser(prog, description, version, *, dry_run=True,
+smoke=True)` factory in `scripts/_cli.py`. Each script calls it,
+then adds its bespoke args. Cuts ~40 lines from every new
+script and guarantees the universal flags actually behave the
+same way everywhere.
+
+### 20. `_env.py` for environment-variable reads
+
+Replace scattered `os.environ.get("DATABASE_URL", "")` calls
+with `_env.require("DATABASE_URL")` (raises with a useful
+message if missing) and `_env.optional("FOO", default=...,
+cast=int)`. Side benefits: one place to mock in `--smoke`, one
+place to document the env-var surface, and the next-action
+rule (#14) gets enforced for free — `_env.require` raises with
+"`DATABASE_URL` not set; export it or copy `.env.example` to
+`.env`."
+
+### 21. Banned-imports lint pass
+
+A `scripts/lint_scripts.py` (or a ruff rule) that fails on:
+
+- `import requests` — use `httpx` (already in deps).
+- `import yaml` without `safe_load` on the next ten lines.
+- `subprocess.run(..., shell=True)` — already bandit-flagged,
+  but worth a script-local check for clearer diagnostics.
+- `from src.feedback_triage import ...` — must be absolute
+  package import, not `src.`-prefixed.
+- bare `print()` for error reporting — errors go through
+  `logging` so `--quiet` can suppress them.
+
+This is cheaper to write than to argue about in PR review.
+
+### 22. Shebang-and-mode invariant
+
+The instructions already require `#!/usr/bin/env python3` and
+the executable bit. Add a one-line check to `smoke_all.py`:
+for every `scripts/*.py` (excluding `_*.py`), assert the file
+starts with `#!` *and* `os.access(path, os.X_OK)`. Fails
+loudly when someone commits a script with the bit stripped
+(common on Windows checkouts).
+
+### 23. `--config` reads `[tool.scripts.<name>]` from `pyproject.toml`
+
+Per-script defaults without env-var sprawl. Each script reads
+its section if present:
+
+```toml
+[tool.scripts.seed]
+default-rows = 50
+default-workspace = "demo"
+```
+
+```python
+cfg = _config.load("seed")  # returns dict, empty if missing
+rows = args.rows or cfg.get("default-rows", 25)
+```
+
+Layered precedence: CLI > env > pyproject > built-in default.
+Document the precedence once in `scripts/.instructions.md` and
+never again per-script.
+
+### 24. Logging format is one shared formatter
+
+`_ui.configure_logging(level)` sets a consistent
+`%(levelname)s %(name)s: %(message)s` format with the optional
+color/icon prefix from `_ui.status_icon()`. Scripts that call
+`logging.basicConfig` themselves are wrong; the formatter
+belongs in one place.
+
+### 25. Deprecation policy for scripts
+
+When a script is being retired, it gets a one-release
+deprecation period:
+
+1. Add a `DEPRECATED = "<replacement or reason>"` constant.
+2. `_build_parser()` prints the deprecation banner via
+   `_ui.warn()` on every invocation.
+3. The Taskfile entry (if any) gets `desc: "[deprecated] …"`.
+4. After one release, delete the script and its Taskfile entry
+   in the same PR, with the deletion mentioned in the changelog.
+
+Deleting scripts without the banner step breaks muscle memory
+for anyone running them locally.
+
+### 26. Scripts that mutate the repo declare `--check`
+
+Any script that *writes* to tracked files (formatters,
+codemods, `apply_labels.py`-style tools that edit YAML) must
+accept `--check` for a non-mutating diagnostic mode that exits
+non-zero if it *would* have written. This is what lets the
+script run inside `task check` and inside pre-commit without
+dividing into two scripts.
+
+### 27. `--smoke` covers the script's own bug surface
+
+The current `--smoke` rule (no network, no DB) is good. Add:
+`--smoke` must exercise every helper function the script
+defines — even if only by calling them with synthetic
+arguments and asserting return types. A script whose `--smoke`
+only checks `SCRIPT_VERSION` is a script with no smoke test.
+
+### 28. `tests/scripts/` mirror layout
+
+Right now scripts are minimally tested. Mirror `scripts/foo.py`
+as `tests/scripts/test_foo.py`. The test imports `main` from
+the script and calls it with synthetic argv. Coverage on
+`scripts/` (currently excluded) should at minimum reach the
+`main()` happy path of every user-facing script.
+
+---
+
 ## Quality-of-life upgrades worth a half-day each
 
 Sized to a single afternoon's work. Pick the one most likely to fail
