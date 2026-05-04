@@ -42,7 +42,7 @@ is the tie-breaker.
 | **Tier**              | Tag on a requirement: `Must`, `Should`, `Nice`, `Defer`. Inherited from v1.0.                            |
 | **Phase gate**        | The condition that closes a phase. Stated in [`implementation.md`](implementation.md).                   |
 | **Locked string**     | A user-facing string that may not be edited without an ADR. Examples: tagline, description, name.        |
-| **`sn-*` class**      | Bespoke component class in `input.css`. The only project-defined CSS classes; everything else is a Tailwind utility. |
+| **`sn-*` class**      | Bespoke component class in `static/css/components.css` (or `layout.css` for layout primitives). The only project-defined CSS classes; everything else is a Tailwind utility. |
 | **Token**             | Email-borne, single-use string for verify-email / reset-password / accept-invitation. Distinct from session cookies. |
 | **Session**           | The cookie-backed authenticated state. Stored server-side in `sessions`. Rolling 30-day expiry.          |
 

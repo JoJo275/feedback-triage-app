@@ -68,7 +68,12 @@ feedback-triage-app/
 │       ├── schemas.py               # Pydantic v2 request/response
 │       ├── static/                  # served by StaticFiles
 │       │   ├── css/
-│       │   │   ├── input.css        # Tailwind source (tokens + @apply)
+│       │   │   ├── input.css        # entry: @tailwind + @import
+│       │   │   ├── tokens.css       # design tokens (CSS custom properties)
+│       │   │   ├── base.css         # element resets, a11y floors
+│       │   │   ├── layout.css       # layout primitives (page shell, grid)
+│       │   │   ├── components.css   # .sn-* component vocabulary (@apply)
+│       │   │   ├── effects.css      # transitions, animations, polish
 │       │   │   └── app.css          # generated; NOT committed
 │       │   ├── js/
 │       │   │   ├── api.js           # fetch wrapper, X-Workspace-Slug
@@ -142,7 +147,7 @@ Listed so a reviewer can scan the diff:
 | `src/feedback_triage/email/`          | new            | Resend client + plain-text templates                 |
 | `src/feedback_triage/routes/api/`     | new layout     | one module per resource                              |
 | `src/feedback_triage/routes/pages/`   | new layout     | HTML page routes split out                           |
-| `src/feedback_triage/static/css/`     | new layout     | `input.css` source + generated `app.css`             |
+| `src/feedback_triage/static/css/`     | new layout     | five-file source split (`input.css` orchestrator + `tokens` / `base` / `layout` / `components` / `effects`); generated `app.css` |
 | `src/feedback_triage/static/js/`      | expanded       | per-page JS files (no bundler)                       |
 | `tailwind.config.cjs`                 | new            | added by [ADR 058](../../../adr/058-tailwind-via-standalone-cli.md) |
 | `tests/api/test_isolation.py`         | new            | cross-tenant leak canaries — required Must test      |
@@ -187,7 +192,8 @@ import machinery. Violations are bugs.
 - Test files: `test_<surface>.py`; one file per resource.
 - Static JS files: lowercase-hyphenated, e.g. `feedback-detail.js`.
 - CSS classes: pure Tailwind utilities; bespoke classes (rare) live
-  in `input.css` with a `sn-` prefix (see [`css.md`](css.md)).
+  in `static/css/components.css` (or `layout.css` for layout
+  primitives) with a `sn-` prefix (see [`css.md`](css.md)).
 
 ---
 
@@ -203,6 +209,11 @@ non-empty:
 - [ ] `src/feedback_triage/email/client.py`
 - [ ] `tailwind.config.cjs`
 - [ ] `src/feedback_triage/static/css/input.css`
+- [ ] `src/feedback_triage/static/css/tokens.css`
+- [ ] `src/feedback_triage/static/css/base.css`
+- [ ] `src/feedback_triage/static/css/layout.css`
+- [ ] `src/feedback_triage/static/css/components.css`
+- [ ] `src/feedback_triage/static/css/effects.css`
 - [ ] `tests/api/test_isolation.py`
 - [ ] `scripts/build_css.py`
 - [ ] Alembic migration that adds every table in

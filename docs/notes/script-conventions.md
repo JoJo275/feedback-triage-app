@@ -329,6 +329,20 @@ The 17 numbered conventions above are now enforced in
 smaller, more targeted, but each one closes a real gap I've hit
 recently.
 
+> **Status (May 2026):** all 11 conventions below (#18–#28) are
+> now **adopted as enforced rules** in
+> [`../../scripts/.instructions.md`](../../scripts/.instructions.md)
+> under "Required Script Conventions (post-17)." The wording in
+> the instructions file is authoritative; this section is
+> preserved as the rationale. No code-side changes have been
+> made yet — existing scripts are retrofitted opportunistically
+> when touched, and **new scripts must comply on first commit**.
+> The follow-up implementation tasks (writing `_cli.py`,
+> `_env.py`, the `lint_scripts.py` checker, the `tests/scripts/`
+> mirror, `--help` snapshots, and the `[tool.scripts.*]` reader)
+> are tracked in [`todo.md`](todo.md) and land script-by-script
+> as those scripts get touched.
+
 ### 18. `--help` snapshot tests
 
 Flag drift is silent: someone renames `--reset` to `--clean` and

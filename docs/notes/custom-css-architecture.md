@@ -1,29 +1,35 @@
-# Custom CSS architecture — future direction
+# Custom CSS architecture — long-form rationale
 
-> **Status:** exploration / parking lot. **Not** the v2.0 plan.
-> v2.0 stays on the Tailwind-first, single-`input.css` model defined
-> in [`../project/spec/v2/css.md`](../project/spec/v2/css.md) and
-> ratified by [ADR 058](../adr/058-tailwind-via-standalone-cli.md).
-> This file exists so the broader design-system idea isn't forgotten
-> when v2.0 ships and we start asking *"what comes next?"*.
+> **Status (May 2026):** the multi-file split below is now the
+> **v2.0 plan** — see [`../project/spec/v2/css.md`](../project/spec/v2/css.md)
+> for the authoritative file organization, charters, and
+> component vocabulary. This file is the **rationale and
+> decision narrative** behind that plan; the spec file is what
+> code follows.
 >
-> **Trigger to revisit:** more than ~10 distinct screens, ≥ 3
-> bespoke `sn-*` components per screen, or a serious push toward
-> a strong visual identity (animation, custom layouts, marketing
-> surfaces, public roadmap polish) that Tailwind utilities make
-> awkward to express inline.
+> **Why we made the jump now:** v2.0 ships ~22 distinct pages
+> ([`../project/spec/v2/pages.md`](../project/spec/v2/pages.md)),
+> a deliberate visual identity, and intent for custom effects.
+> The original "single `input.css`" model was sized for the
+> v1.0 surface (~5 pages); at the v2.0 scale, splitting was
+> cheaper to do up front than to retrofit later.
+>
+> **What this file still does:** explains *why* each charter
+> exists, *why* each "hard part" defense is the one chosen,
+> and the decision criteria for any future change (Pattern A
+> vs. Pattern B, when to add a sixth file, etc.).
 
 ---
 
-## 1. Why this might exist later
+## 1. Why we split
 
-The v2.0 system is intentionally minimal: Tailwind utilities at the
-call site, ~8 promoted `sn-*` classes, one `input.css`, no
-preprocessor. That works because the v2.0 surface is small (inbox,
-detail, settings, public submit, public roadmap, styleguide).
+The original v2.0 draft kept everything in one `input.css`:
+Tailwind utilities at the call site, ~8 promoted `sn-*` classes,
+no preprocessor. That sizing was correct for a v1.0-shaped
+surface (5 pages). It was wrong for v2.0:
 
 If the product grows in any of these directions, the single-file
-model starts to strain:
+model strains immediately:
 
 - **Heavy custom visual identity** — bespoke animations, layered
   effects, signature gradients, illustrative empty states.
@@ -35,14 +41,15 @@ model starts to strain:
 - **A visible brand step-up** — when "looks fine" stops being
   good enough and "looks like ours" becomes the goal.
 
-When that happens, the right move is **not** more Tailwind utility
-strings on every element. It's a real, organized, multi-file CSS
-architecture sitting *alongside* Tailwind (or eventually replacing
-the bespoke layer Tailwind currently fills).
+When that happens — and v2.0 already qualifies on every count —
+the right move is **not** more Tailwind utility strings on every
+element. It's a real, organized, multi-file CSS architecture
+sitting *alongside* Tailwind (or eventually replacing the
+bespoke layer Tailwind currently fills).
 
 ---
 
-## 2. Proposed file split
+## 2. The file split (now adopted)
 
 ```text
 src/feedback_triage/static/css/
@@ -292,32 +299,31 @@ worse than either alone.
 
 ---
 
-## 6. When to make the jump — decision criteria
+## 6. When this might change again — decision criteria
 
-Stay with v2.0's single-`input.css` model while **all** of these
-hold:
+The split adopted for v2.0 is the smallest one that solves the
+22-page surface. It can grow in two directions; both need an ADR.
 
-- Total bespoke `sn-*` classes ≤ 10.
-- Per-screen utility strings rarely exceed 6 classes per element.
-- No screen has a custom animation longer than a 200ms transition.
-- Designers (when we have any) say "Tailwind utilities are fine."
+**Add a sixth file** — e.g. `pages/<page>.css` for a marketing
+surface, `print.css` for an exportable view — only when **all**
+of these hold:
 
-Promote to the multi-file architecture in §2 when **any two** of
-these hold:
+- The pattern is genuinely page-scoped (not reusable).
+- Inlining it bloats `effects.css` past a single screen of code.
+- The pattern doesn't compose well with the existing `sn-*`
+  vocabulary even with modifiers.
 
-- More than 12 bespoke components, or `components.css` exceeds
-  ~400 lines.
-- We add a styling concern Tailwind doesn't cover well —
-  multi-step gradients, layered shadows, custom keyframes,
-  scroll-driven effects.
-- Two components keep duplicating the same 10-class utility
-  string.
-- A designer or a visual identity guideline lands and the
-  Tailwind palette stops being the source of truth.
-- The styleguide page exceeds ~500 lines and is hard to skim.
+**Promote to Pattern B (no inline utilities anywhere)** when **all**
+of these hold:
 
-Promote to **Pattern B (no inline utilities)** only with an ADR.
-That's a one-way door.
+- The styleguide vocabulary is stable for two consecutive
+  releases (no new components added).
+- Two designers (or one designer + one strong opinion) agree the
+  Tailwind utility surface is friction, not a feature.
+- A visual regression suite covers every component on
+  `/styleguide` at every breakpoint.
+
+That's a one-way door. Open it with an ADR, not a PR.
 
 ---
 
