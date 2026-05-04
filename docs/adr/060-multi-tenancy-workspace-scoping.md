@@ -8,7 +8,7 @@ Accepted
 
 v2.0 promotes SignalNest from a single-table CRUD app to a
 **B2B SaaS feedback-triage tool**. The user model committed to in the
-session [`docs/project/spec/todo.md`](../project/spec/todo.md)
+session [`docs/project/spec/_archive/todo.md`](../project/spec/_archive/todo.md)
 distinguishes:
 
 - **Admin** — the project author. Cross-workspace access.
