@@ -91,8 +91,18 @@ nav:
       - Labels: labels.md
   - Project:
       - Spec (v1.0): project/spec/spec-v1.md
-      - Spec (v2.0 draft): project/spec/spec-v2.md
-      - Spec (v2.0 reviewer feedback): project/spec/spec-v2-feedback.md
+      - Spec (v2.0 draft):
+          - Overview: project/spec/spec-v2.md
+          - Index: project/spec/v2/README.md
+          - Schema: project/spec/v2/schema.md
+          - API: project/spec/v2/api.md
+          - Auth: project/spec/v2/auth.md
+          - Multi-tenancy: project/spec/v2/multi-tenancy.md
+          - UI: project/spec/v2/ui.md
+          - Email: project/spec/v2/email.md
+          - Security: project/spec/v2/security.md
+          - Rollout: project/spec/v2/rollout.md
+          - Tooling: project/spec/v2/tooling.md
       - Implementation Plan: project/implementation.md
       - Open Questions: project/questions.md
       - Deployment Notes: project/deployment-notes.md
