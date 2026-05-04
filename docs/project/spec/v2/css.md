@@ -10,6 +10,35 @@ v2.0?"*. It supersedes any earlier guidance for the v2.0 codebase.
 
 ---
 
+## The design system at a glance
+
+v2.0 ships a small, **opinionated design system**, not just "some
+CSS." The system has four layers; PRs touch one layer at a time:
+
+| Layer            | Lives in                              | What it is                                                                |
+| ---------------- | ------------------------------------- | ------------------------------------------------------------------------- |
+| 1. Tokens        | `tokens.css`                          | Named primitives (color, radius, shadow, motion, z-layer) as CSS custom properties. The only place raw values exist. |
+| 2. Primitives    | `base.css`, `layout.css`              | Element resets + structural layout classes (`sn-page-shell`, `sn-dashboard-grid`, `sn-stack`, `sn-cluster`, `sn-grid-12`, `sn-content-gutter`). |
+| 3. Components    | `components.css`                      | The `sn-*` vocabulary — visible UI atoms with documented variants and states. |
+| 4. Effects       | `effects.css`                         | Decorative-only: transitions, keyframes, hover polish. Removable for print or low-motion. |
+
+The **styleguide page** (`/styleguide`, [ADR 056](../../../adr/056-style-guide-page.md))
+is the system's source of truth: every component renders there in
+every state, plus four named theme presets. A component without
+a styleguide row is incomplete.
+
+The system rests on three discipline rules that bind every layer:
+
+1. **Tags carry meaning, classes carry style.** Semantic HTML
+   first; CSS targets classes only.
+2. **Tokens drive everything.** Components reference tokens, not
+   raw values; theme switches override token values, never
+   selectors.
+3. **Three-template promotion.** Patterns are inline utilities
+   until they appear in 3+ templates, then they earn a class.
+
+---
+
 ## Tooling pipeline
 
 | Step | Input                          | Tool                          | Output                       |
@@ -322,12 +351,30 @@ These are tested by code review, not tooling.
 ### 1. Tags carry meaning, classes carry style
 
 - Use the right HTML tag for what an element *is*: `<header>`,
-  `<nav>`, `<main>`, `<section>`, `<article>`, `<button>`, `<a>`,
-  `<form>`, `<label>`, `<table>`, `<dialog>`, `<details>`. `<div>`
-  / `<span>` are reserved for genuinely semantic-free wrappers.
+  `<nav>`, `<main>`, `<section>`, `<article>`, `<aside>`,
+  `<footer>`, `<button>`, `<a>`, `<form>`, `<label>`, `<table>`,
+  `<dialog>`, `<details>`, `<summary>`, `<figure>`, `<time>`.
+  `<div>` and `<span>` are reserved for genuinely semantic-free
+  wrappers (layout grouping, animation hooks).
+- Actions that *do* something are `<button>`. Things that
+  *navigate* are `<a>`. Never `<div onclick>`.
+- Every `<input>` has a paired `<label for="…">`. Floating labels
+  are still real labels, not placeholders.
+- Heading levels are sequential. One `<h1>` per page; no skipping
+  levels (`<h2>` then `<h4>` is a bug).
+- One `<main>` per page; the skip-link (`sn-skip-link`) targets
+  it via `#main`.
 - **Never** style by `id` or `data-*`. CSS targets classes only.
+  `data-state` / `data-theme` may be *read* by CSS attribute
+  selectors only when they represent a state the page mutates at
+  runtime (e.g. `[data-theme="dark"]`); never as a styling hook
+  for static layout.
 - **Never** put `role="button"` on a `<div>`. Use `<button>`.
-  ARIA roles are reserved for cases where no native element exists.
+  ARIA roles are reserved for cases where no native element
+  exists; everything else is a sign you picked the wrong tag.
+- Decorative icons get `aria-hidden="true"`; meaningful icons
+  get an accessible name (`aria-label` on the icon, or visible
+  text alongside).
 
 ### 2. Compose with utilities first; promote to a class on repeat
 
@@ -341,6 +388,23 @@ These are tested by code review, not tooling.
 - `@apply` is **only** legal inside `components.css` and
   `layout.css`. Never in HTML, never in `tokens.css` or
   `base.css`.
+
+#### Utility classes vs. component classes — which goes where
+
+| Pattern                                                          | Goes in           |
+| ---------------------------------------------------------------- | ----------------- |
+| One element, one page (`flex items-center gap-2`)                | inline utilities  |
+| Same 4–6 utility string, two templates                            | inline utilities  |
+| Same string in 3+ templates                                      | promote to `sn-*` |
+| Structural / layout shape (page shell, dashboard grid, stack)    | `layout.css`      |
+| Visible UI atom with variants + states (button, card, modal)     | `components.css`  |
+| Token (color, radius, shadow, motion, z-layer)                   | `tokens.css`      |
+| Element-level reset / a11y floor                                 | `base.css`        |
+| Decorative-only hover polish, keyframes, gradients               | `effects.css`     |
+
+Authored utility strings should rarely exceed **6 utilities** on
+one element. If they do, you're either missing a layout primitive
+or you've found a candidate for promotion.
 
 ### 3. Tokens drive everything
 
