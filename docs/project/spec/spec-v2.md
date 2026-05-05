@@ -234,9 +234,9 @@ and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
 | 059 | Auth model — cookie sessions + Argon2id                       | ✅ Accepted | 1 (Alpha)        | F1               |
 | 060 | Multi-tenancy / workspace scoping                             | ✅ Accepted | 1 (Alpha)        | F1b              |
 | 061 | Email provider (Resend) + fail-soft semantics                 | **Accepted** | **1 (Alpha)** — gates `email_log` DDL in Migration A | FE, F1, F1b |
-| 062 | v1.0 → v2.0 data migration (legacy workspace + status rename) | TBD         | 2 (Beta)         | cut-over         |
-| 063 | Status enum extension + `rejected` deprecation                | TBD         | 2 (Beta)         | FX               |
-| 064 | Pain vs. Priority dual-field rationale                        | TBD         | 2 (Beta)         | FX               |
+| 062 | v1.0 → v2.0 data migration (legacy workspace + status rename) | ✅ Accepted | 2 (Beta)         | cut-over         |
+| 063 | Status enum extension + `rejected` deprecation                | ✅ Accepted | 2 (Beta)         | FX               |
+| 064 | Pain vs. Priority dual-field rationale                        | ✅ Accepted | 2 (Beta)         | FX               |
 
 ---
 

@@ -100,6 +100,9 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [059](059-auth-model.md)                              | Auth model — sessions, Argon2id, no-enumeration                    | Accepted |
 | [060](060-multi-tenancy-workspace-scoping.md)         | Multi-tenancy via workspace path scoping                           | Accepted |
 | [061](061-resend-email-fail-soft.md)                  | Resend email provider + fail-soft semantics + `email_log`          | Accepted |
+| [062](062-v1-to-v2-data-migration.md)                 | v1.0 → v2.0 data migration (legacy workspace + status rename)      | Accepted |
+| [063](063-status-enum-extension.md)                   | Status enum extension + `rejected` deprecation                     | Accepted |
+| [064](064-pain-vs-priority-dual-fields.md)            | Pain vs. Priority — dual-field rationale                           | Accepted |
 
 > ADRs 011, 015, 036, 039–043 were deprecated during the fork from
 > `simple-python-boilerplate` to `feedback-triage-app` and live in

@@ -196,6 +196,9 @@ nav:
       - 059 – Auth Model: adr/059-auth-model.md
       - 060 – Multi-Tenancy Workspace Scoping: adr/060-multi-tenancy-workspace-scoping.md
       - 061 – Resend Email Fail-Soft: adr/061-resend-email-fail-soft.md
+      - 062 – v1→v2 Data Migration: adr/062-v1-to-v2-data-migration.md
+      - 063 – Status Enum Extension: adr/063-status-enum-extension.md
+      - 064 – Pain vs Priority: adr/064-pain-vs-priority-dual-fields.md
       - Archive:
           - Archive Index: adr/archive/README.md
           - 011 – Repository Guard: adr/archive/011-repository-guard-pattern.md

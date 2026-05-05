@@ -27,6 +27,9 @@ move it to the Accepted section. Don't leave stale entries.
 | 059 | Auth model — cookie sessions + Argon2id     | Alpha            |
 | 060 | Multi-tenancy / workspace scoping           | Alpha            |
 | 061 | Email provider (Resend) + fail-soft semantics | Alpha          |
+| 062 | v1.0 → v2.0 data migration ([file](../../../adr/062-v1-to-v2-data-migration.md)) | Beta |
+| 063 | Status enum extension + `rejected` deprecation ([file](../../../adr/063-status-enum-extension.md)) | Beta |
+| 064 | Pain vs. Priority dual-field rationale ([file](../../../adr/064-pain-vs-priority-dual-fields.md)) | Beta |
 
 ---
 
@@ -35,70 +38,8 @@ move it to the Accepted section. Don't leave stale entries.
 Order is intentional: each ADR below depends only on the ones
 above it.
 
-### ADR 062 — v1.0 → v2.0 data migration
-
-**Phase gate:** Beta. The `NOT NULL workspace_id` migration cannot
-ship until this is decided.
-
-Must answer:
-
-- The migration path: create one `signalnest-legacy` workspace +
-  one synthetic owner user, backfill every existing
-  `feedback_item.workspace_id` to it, **then** flip `NOT NULL`.
-- The backfill is one Alembic revision; it is split from the
-  schema-only revision so a deploy that fails halfway can roll
-  forward.
-- Status-enum migration: rename `rejected → closed` via data
-  migration before the new enum value is committed (Postgres
-  enum-rename is awkward; the path is `ALTER TYPE ... ADD VALUE`
-  for the new states + `UPDATE … SET status = 'closed' WHERE
-  status = 'rejected'`).
-- Decision on *whether to drop the legacy `rejected` value*. ADR
-  063 covers the actual `ALTER TYPE`; this ADR covers the
-  data-migration choreography.
-
-Drives: cut-over.
-Companion file: [`rollout.md`](rollout.md).
-
-### ADR 063 — Status enum extension + `rejected` deprecation
-
-**Phase gate:** Beta. Cannot ship the inbox until status enum is
-final.
-
-Must answer:
-
-- The exact final set: `new`, `needs_info`, `reviewing`,
-  `accepted`, `planned`, `in_progress`, `shipped`, `closed`,
-  `spam`.
-- Whether `rejected` is removed from the enum or kept as an alias.
-  Recommendation: remove. PG does not support `DROP VALUE`; the
-  practical path is "stop emitting `rejected`" plus a `CHECK`
-  preventing it; the enum value itself stays in the type
-  definition forever.
-- Lifecycle diagram (which transitions are allowed, which are
-  not). E.g. `spam` is terminal; `closed` is reversible.
-- UI mapping — the colors / icons / labels per status, mirrored
-  from [`core-idea.md`](core-idea.md#status-workflow).
-
-Drives: FX.
-
-### ADR 064 — Pain vs. priority — dual fields rationale
-
-**Phase gate:** Beta. Lock the choice before UI is built.
-
-Must answer:
-
-- Why two fields, not one. Submitter-set pain (1–5) is data;
-  team-set priority (Low / Medium / High / Critical) is decision.
-  Collapsing them creates either a popularity contest or a
-  customer-blame problem.
-- Why pain stays 1–5 and not a freeform integer or a slider.
-- Why priority is an enum and not a numeric score.
-- UI implications already captured in
-  [`core-idea.md`](core-idea.md#pain-level-vs-priority) and
-  [`pages.md`](pages.md#feedback-detail).
-
-Drives: FX, dashboard, insights.
+*(All Beta-phase ADRs are now accepted — see the table above.
+This section is preserved for the next round of TBD ADRs.)*
 
 ---
 
