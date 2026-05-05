@@ -46,11 +46,18 @@ RUN apt-get update \
 
 WORKDIR /build-fe
 
-# Only the inputs the CSS build needs.
+# scripts/build_css.py walks up looking for pyproject.toml to anchor
+# the repo root; copy it for that purpose only (not for installing).
+COPY pyproject.toml ./
 COPY tailwind.config.cjs ./
 COPY scripts/_imports.py scripts/build_css.py scripts/
-COPY src/feedback_triage/static/css/ src/feedback_triage/static/css/
+
+# Tailwind's content globs scan templates, the whole static tree
+# (HTML + JS), and routes/*.py for class names. Copy all four so the
+# container build sees the same source surface as a local build.
+COPY src/feedback_triage/static/ src/feedback_triage/static/
 COPY src/feedback_triage/templates/ src/feedback_triage/templates/
+COPY src/feedback_triage/routes/ src/feedback_triage/routes/
 
 # Build CSS. The script downloads the Tailwind binary into .tools/ and
 # writes app.<hash>.css + manifest.json into the css/ source dir.

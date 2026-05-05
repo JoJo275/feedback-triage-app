@@ -2,9 +2,10 @@
 """Build the v2.0 Tailwind CSS bundle (cross-platform wrapper).
 
 Wraps the Tailwind Standalone CLI binary (no Node, no npm). On first
-run, downloads the platform-appropriate binary into ``.tools/`` and
-verifies its SHA256 against the pinned digest. Subsequent runs reuse
-the cached binary.
+run, downloads the platform-appropriate binary into ``.tools/``,
+**verifies its SHA256** against the in-script pin, and caches it under
+a version-stamped filename so a ``TAILWIND_VERSION`` bump invalidates
+the cache automatically.
 
 Outputs:
     src/feedback_triage/static/css/app.<hash>.css   (hashed for cache-busting)
@@ -20,10 +21,12 @@ Usage::
 See:
     docs/project/spec/v2/css.md
     docs/adr/058-tailwind-via-standalone-cli.md
+    scripts/.instructions.md   # required CLI conventions
 """
 
 from __future__ import annotations
 
+# 1. stdlib
 import argparse
 import hashlib
 import json
@@ -35,29 +38,34 @@ import stat
 import subprocess  # nosec B404 — argv-only invocations below
 import sys
 import urllib.request
+from contextlib import suppress
 from pathlib import Path
 
 # -- Local script modules (not third-party; live in scripts/) ----------------
-from _imports import find_repo_root
+from _imports import find_repo_root, import_sibling
+
+_ui = import_sibling("_ui")
+ExitCode = _ui.ExitCode
 
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
+THEME = "cyan"
 
 # Pinned Tailwind Standalone CLI release. Refresh quarterly or when a
-# fix is required; bump SCRIPT_VERSION in lockstep.
+# fix is required; bump SCRIPT_VERSION and refresh _PLATFORM_SHA256
+# in the same commit.
 TAILWIND_VERSION = "v3.4.13"
 TAILWIND_RELEASE_BASE = (
     f"https://github.com/tailwindlabs/tailwindcss/releases/download/{TAILWIND_VERSION}"
 )
 
 # Pinned SHA256 digests for the Tailwind v3.4.13 platform assets.
-# The Windows-x64 hash was captured locally on 2026-05-05 from the
-# binary downloaded by this script (TOFU). Other-platform digests are
-# blank until verified on the corresponding host; an empty string
-# disables verification for that asset only and emits a warning.
-# Refresh every entry in the same commit that bumps TAILWIND_VERSION.
+# An empty string means "not yet verified on this platform" — downloads
+# fail closed unless ``--allow-unverified-download`` is passed (which is
+# never set in CI). Refresh every entry in the same commit that bumps
+# TAILWIND_VERSION.
 _PLATFORM_SHA256: dict[str, str] = {
     "tailwindcss-windows-x64.exe": (
         "76d7a37764c172bd25f9eb2b76d46099cca642f84c8dda10891a536018ab1511"
@@ -86,75 +94,123 @@ MANIFEST = "manifest.json"
 TOOLS_DIR_NAME = ".tools"
 
 
-def _binary_name() -> str:
-    """Return the Tailwind binary filename for this platform."""
+# --- Helpers ---
+def _load_env() -> str | None:
+    """Read env vars consumed by this script in one place."""
+    return os.environ.get("TAILWINDCSS_BIN") or None
+
+
+def _platform_asset() -> str:
+    """Return the Tailwind asset name for the current platform.
+
+    Raises:
+        RuntimeError: when the (system, machine) pair is unknown.
+    """
     key = (platform.system(), platform.machine())
     asset = _PLATFORM_ASSETS.get(key)
     if asset is None:
-        raise RuntimeError(
+        msg = (
             f"No Tailwind Standalone CLI asset known for platform "
             f"{platform.system()} / {platform.machine()}. Add it to "
             f"_PLATFORM_ASSETS in scripts/build_css.py."
         )
-    # Cache it under a stable local name so the rest of the script
-    # doesn't care which asset was downloaded.
-    return "tailwindcss.exe" if platform.system() == "Windows" else "tailwindcss"
+        raise RuntimeError(msg)
+    return asset
+
+
+def _binary_filename() -> str:
+    """Local cache filename, stamped with ``TAILWIND_VERSION``.
+
+    Embedding the version means a ``TAILWIND_VERSION`` bump invalidates
+    the cache automatically — the next run downloads the new binary
+    instead of silently reusing the previous version.
+    """
+    suffix = ".exe" if platform.system() == "Windows" else ""
+    return f"tailwindcss-{TAILWIND_VERSION}{suffix}"
 
 
 def _binary_path(repo_root: Path) -> Path:
-    return repo_root / TOOLS_DIR_NAME / _binary_name()
+    return repo_root / TOOLS_DIR_NAME / _binary_filename()
 
 
-def _download_binary(repo_root: Path) -> Path:
+def _verify_sha256(payload: bytes, asset: str, *, allow_unverified: bool) -> None:
+    """Check ``payload`` against the pinned digest. Fail closed by default."""
+    expected = _PLATFORM_SHA256.get(asset, "")
+    actual = hashlib.sha256(payload).hexdigest()
+    if expected:
+        if actual != expected:
+            msg = (
+                f"Tailwind binary SHA256 mismatch for {asset}.\n"
+                f"  expected: {expected}\n"
+                f"  actual:   {actual}\n"
+                f"If this is a legitimate version bump, update "
+                f"_PLATFORM_SHA256 in scripts/build_css.py in the same "
+                f"commit as TAILWIND_VERSION."
+            )
+            raise RuntimeError(msg)
+        logger.info("SHA256 verified: %s", actual)
+        return
+
+    # No pin recorded for this platform.
+    if not allow_unverified:
+        msg = (
+            f"No pinned SHA256 for {asset} (downloaded digest is {actual}).\n"
+            f"Refusing to use an unverified Tailwind binary.\n"
+            f"  - Add the digest to _PLATFORM_SHA256 in "
+            f"scripts/build_css.py and retry, or\n"
+            f"  - re-run with --allow-unverified-download (NEVER in CI), or\n"
+            f"  - pre-stage a trusted binary and point TAILWINDCSS_BIN at it."
+        )
+        raise RuntimeError(msg)
+    logger.warning(
+        "Using unverified Tailwind binary for %s (digest %s). "
+        "--allow-unverified-download is set; do NOT use this in CI.",
+        asset,
+        actual,
+    )
+
+
+def _download_binary(repo_root: Path, *, allow_unverified: bool) -> Path:
     """Download the Tailwind binary for this platform into ``.tools/``."""
-    asset = _PLATFORM_ASSETS[(platform.system(), platform.machine())]
+    asset = _platform_asset()
     url = f"{TAILWIND_RELEASE_BASE}/{asset}"
     target = _binary_path(repo_root)
     target.parent.mkdir(parents=True, exist_ok=True)
 
     logger.info("Downloading Tailwind %s for %s ...", TAILWIND_VERSION, asset)
-    tmp = target.with_suffix(target.suffix + ".part")
     # URL is a hard-coded HTTPS GitHub release asset; B310's file:/ /
     # custom-scheme concern does not apply.
     with urllib.request.urlopen(url, timeout=60) as response:  # nosec B310
         if response.status != 200:
-            raise RuntimeError(f"Download failed: HTTP {response.status} from {url}")
+            msg = f"Download failed: HTTP {response.status} from {url}"
+            raise RuntimeError(msg)
         payload = response.read()
 
-    expected = _PLATFORM_SHA256.get(asset, "")
-    actual = hashlib.sha256(payload).hexdigest()
-    if expected:
-        if actual != expected:
-            raise RuntimeError(
-                f"Tailwind binary SHA256 mismatch for {asset}.\n"
-                f"  expected: {expected}\n"
-                f"  actual:   {actual}\n"
-                f"If this is a legitimate version bump, update _PLATFORM_SHA256 "
-                f"in scripts/build_css.py in the same commit as TAILWIND_VERSION."
-            )
-        logger.info("SHA256 verified: %s", actual)
-    else:
-        logger.warning(
-            "No pinned SHA256 for %s; downloaded digest is %s. "
-            "Add it to _PLATFORM_SHA256 in scripts/build_css.py.",
-            asset,
-            actual,
-        )
+    _verify_sha256(payload, asset, allow_unverified=allow_unverified)
 
+    tmp = target.with_suffix(target.suffix + ".part")
     tmp.write_bytes(payload)
     tmp.replace(target)
     if platform.system() != "Windows":
         target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+    # Best-effort cleanup of stale cached binaries from older versions.
+    for stale in target.parent.glob("tailwindcss-v*"):
+        if stale.name != target.name:
+            with suppress(OSError):
+                stale.unlink()
+
     logger.info("Tailwind installed at %s", target)
     return target
 
 
-def _ensure_binary(repo_root: Path) -> Path:
+def _ensure_binary(repo_root: Path, *, allow_unverified: bool) -> Path:
     """Return path to the Tailwind binary, downloading if missing."""
     target = _binary_path(repo_root)
     if target.exists():
+        logger.debug("Reusing cached Tailwind binary: %s", target)
         return target
-    return _download_binary(repo_root)
+    return _download_binary(repo_root, allow_unverified=allow_unverified)
 
 
 def _build_once(binary: Path, css_dir: Path, *, watch: bool) -> int:
@@ -183,9 +239,10 @@ def _hash_and_manifest(css_dir: Path) -> Path:
     """Hash app.css → app.<hash>.css; write manifest.json. Return hashed path."""
     src = css_dir / OUTPUT_CSS
     if not src.exists():
-        raise RuntimeError(
+        msg = (
             f"Tailwind did not produce {src}. Check the build output above for errors."
         )
+        raise RuntimeError(msg)
     digest = hashlib.sha256(src.read_bytes()).hexdigest()[:10]
     hashed_name = f"app.{digest}.css"
     hashed_path = css_dir / hashed_name
@@ -207,16 +264,19 @@ def _hash_and_manifest(css_dir: Path) -> Path:
 
 # --- CLI ---
 def _build_parser() -> argparse.ArgumentParser:
-    return argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         prog="build_css",
         description="Build the v2.0 Tailwind CSS bundle (Standalone CLI).",
+        epilog=(
+            "Examples:\n"
+            "  python scripts/build_css.py --setup\n"
+            "  python scripts/build_css.py\n"
+            "  python scripts/build_css.py --watch -v\n"
+            "  TAILWINDCSS_BIN=/usr/local/bin/tailwindcss "
+            "python scripts/build_css.py\n"
+        ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-
-
-def main(argv: list[str] | None = None) -> int:
-    """Entry point. Returns the exit code."""
-    parser = _build_parser()
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {SCRIPT_VERSION}"
     )
@@ -227,48 +287,95 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--smoke", action="store_true", help="Self-check; no download or build"
     )
+    parser.add_argument(
+        "--allow-unverified-download",
+        action="store_true",
+        help=(
+            "Permit downloading a Tailwind binary even when no pinned "
+            "SHA256 is recorded for this platform. NEVER set in CI."
+        ),
+    )
+    parser.add_argument(
+        "-q", "--quiet", action="count", default=0, help="Decrease verbosity"
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="count", default=0, help="Increase verbosity"
+    )
+    return parser
+
+
+def _do_smoke() -> int:
+    try:
+        _platform_asset()
+        repo_root = find_repo_root()
+    except (RuntimeError, FileNotFoundError) as exc:
+        logger.error("smoke failed: %s", exc)
+        return ExitCode.FAIL
+    if not (repo_root / "tailwind.config.cjs").is_file():
+        logger.error("tailwind.config.cjs missing at repo root")
+        return ExitCode.FAIL
+    if not (repo_root / CSS_DIR_RELATIVE / INPUT_CSS).is_file():
+        logger.error("input.css missing")
+        return ExitCode.FAIL
+    for name, digest in _PLATFORM_SHA256.items():
+        if digest and len(digest) != 64:
+            logger.error("malformed SHA256 entry for %s", name)
+            return ExitCode.FAIL
+    print(f"build_css {SCRIPT_VERSION}: smoke ok")
+    return ExitCode.OK
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point. Returns one of the ``ExitCode`` values."""
+    parser = _build_parser()
     args = parser.parse_args(argv)
 
-    logging.basicConfig(format="%(message)s", level=logging.INFO)
+    level = logging.INFO - 10 * args.verbose + 10 * args.quiet
+    logging.basicConfig(format="%(message)s", level=max(level, logging.DEBUG))
 
     if args.smoke:
-        # Validate that platform mapping resolves and paths compute.
-        _ = _binary_name()  # raises if unsupported platform
-        repo_root = find_repo_root()
-        assert (repo_root / "tailwind.config.cjs").is_file(), (
-            "tailwind.config.cjs missing at repo root"
-        )
-        assert (repo_root / CSS_DIR_RELATIVE / INPUT_CSS).is_file(), "input.css missing"
-        print(f"build_css {SCRIPT_VERSION}: smoke ok")
-        return 0
+        return _do_smoke()
 
-    repo_root = find_repo_root()
+    try:
+        repo_root = find_repo_root()
+    except FileNotFoundError as exc:
+        logger.error("%s", exc)
+        return ExitCode.FAIL
+
     css_dir = repo_root / CSS_DIR_RELATIVE
     if not css_dir.is_dir():
         logger.error("CSS source dir not found: %s", css_dir)
-        return 2
+        return ExitCode.FAIL
 
-    # Allow CI to inject a pre-staged binary path; otherwise download.
-    env_override = os.environ.get("TAILWINDCSS_BIN")
-    if env_override:
-        binary = Path(env_override)
+    env_bin = _load_env()
+    if env_bin:
+        binary = Path(env_bin)
         if not binary.is_file():
             logger.error("TAILWINDCSS_BIN points at a missing file: %s", binary)
-            return 2
+            return ExitCode.FAIL
     else:
-        binary = _ensure_binary(repo_root)
+        try:
+            binary = _ensure_binary(
+                repo_root, allow_unverified=args.allow_unverified_download
+            )
+        except RuntimeError as exc:
+            logger.error("%s", exc)
+            return ExitCode.FAIL
 
     if args.setup:
-        return 0
+        return ExitCode.OK
 
     rc = _build_once(binary, css_dir, watch=args.watch)
     if rc != 0:
-        return rc
+        return ExitCode.FAIL
     if args.watch:
-        # Watch mode never reaches here under normal exit.
-        return 0
-    _hash_and_manifest(css_dir)
-    return 0
+        return ExitCode.OK
+    try:
+        _hash_and_manifest(css_dir)
+    except RuntimeError as exc:
+        logger.error("%s", exc)
+        return ExitCode.FAIL
+    return ExitCode.OK
 
 
 if __name__ == "__main__":

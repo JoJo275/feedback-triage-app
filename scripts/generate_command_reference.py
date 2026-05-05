@@ -57,6 +57,7 @@ from __future__ import annotations
 import argparse
 import ast
 import logging
+import os
 import platform
 import re
 import subprocess  # nosec B404
@@ -68,7 +69,12 @@ from pathlib import Path
 from _imports import find_repo_root
 from _progress import ProgressBar, Spinner
 
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "1.6.0"
+
+# Force UTF-8 on subprocess stdio so em-dashes and other non-ASCII
+# characters in --help output don't become U+FFFD on Windows runners
+# whose default cp1252 encoding can't represent them.
+_UTF8_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
 
 # Theme color for this script's dashboard output.
 THEME = "white"
@@ -132,6 +138,7 @@ def _run(cmd: list[str], *, timeout: int = 30) -> str | None:
             errors="replace",
             timeout=timeout,
             cwd=str(ROOT),
+            env=_UTF8_ENV,
         )
         return result.stdout.strip() if result.returncode == 0 else None
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError, UnicodeDecodeError):
@@ -148,6 +155,7 @@ def _run_combined(cmd: list[str], *, timeout: int = 30) -> str | None:
             errors="replace",
             timeout=timeout,
             cwd=str(ROOT),
+            env=_UTF8_ENV,
         )
         # Some tools (like argparse) print help to stderr on error,
         # and some print to stdout. Combine both.
