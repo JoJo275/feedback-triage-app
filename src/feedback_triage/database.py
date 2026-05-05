@@ -20,16 +20,20 @@ from feedback_triage.config import Settings, get_settings
 def make_engine(settings: Settings | None = None) -> Engine:
     """Build the process-wide SQLAlchemy engine.
 
-    Connection-pool sizing follows the spec: ``pool_size=5``,
-    ``max_overflow=5``, ``pool_pre_ping=True``. ``pool_timeout`` is held
-    to 2 seconds so the readiness probe fails fast instead of blocking
-    Railway's healthcheck.
+    Connection-pool sizing follows
+    [`v2/railway-optimization.md`](../../docs/project/spec/v2/railway-optimization.md):
+    ``pool_size=5, max_overflow=0`` per worker (10 connections in
+    steady state across two Uvicorn workers; hard ceiling of 15 with
+    cron + migration overlap, well under Railway Hobby Postgres's
+    connection cap). ``pool_pre_ping=True`` keeps stale connections
+    out of request handlers; ``pool_timeout=2`` makes the readiness
+    probe fail fast instead of blocking Railway's healthcheck.
     """
     settings = settings or get_settings()
     return create_engine(
         settings.database_url.get_secret_value(),
         pool_size=5,
-        max_overflow=5,
+        max_overflow=0,
         pool_pre_ping=True,
         pool_timeout=2,
         future=True,
