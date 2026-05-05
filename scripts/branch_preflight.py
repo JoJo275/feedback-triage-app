@@ -44,8 +44,8 @@ from _ui import UI
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
-SCRIPT_VERSION = "1.1.0"
-THEME = "yellow"
+SCRIPT_VERSION = "1.2.0"
+THEME = "cyan"
 
 
 # --- Helpers ---
@@ -262,6 +262,7 @@ def main(argv: list[str] | None = None) -> int:
             ui.header()
             c = Colors()
             sym = unicode_symbols()
+            print()
             print(
                 f"  {c.green(sym['check'])} "
                 f"{c.green('Working tree is clean')} "
@@ -271,6 +272,7 @@ def main(argv: list[str] | None = None) -> int:
                 else f"  {c.green(sym['check'])} "
                 f"{c.green('Working tree is clean. Safe to switch.')}"
             )
+            print()
         return 0
 
     ui.header()
