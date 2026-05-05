@@ -230,6 +230,13 @@ is broken, say so.
 5. **DB invariants** — Session-per-request, no sessions on `app.state` / module globals; migrations hand-reviewed; native enums + CHECK constraints in every schema change.
 6. **Imports** — Must work with `src/` layout. `from feedback_triage.X import Y`, never `from src...`.
 7. **Docstrings** — Google style on public functions.
+8. **New scripts** — Any new file under `scripts/` follows the
+   "Read this before creating a new script" checklist at the top of
+   [`scripts/.instructions.md`](../scripts/.instructions.md):
+   `ExitCode` from `_ui`, `--smoke`, `--quiet`/`--verbose`, `--version`,
+   `epilog=` examples, single `_load_env()` helper, shebang +
+   executable bit, fail-closed integrity checks for any download.
+   Reject the change if any item is missing.
 
 ### General Guidance
 
