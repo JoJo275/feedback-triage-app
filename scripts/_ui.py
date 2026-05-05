@@ -414,15 +414,30 @@ class UI:
     # ── Layout elements ────────────────────────────────────────
 
     def header(self, *, width: int = 60) -> None:
-        """Print the main dashboard header with double-border box."""
-        border = self.h_double * width
+        """Print the main dashboard header with double-border box.
+
+        The right border is aligned to ``width`` columns regardless of
+        title or version length: the inner content is padded (or the
+        outer border expanded) so the box always closes cleanly.
+        """
+        # Build the visible content first so we can size the box from it.
+        version_str = f"v{self.version}"
+        plain = f" {self.title}  {version_str} "
+        inner_width = max(width, len(plain))
+        pad = " " * (inner_width - len(plain))
+        styled = (
+            " "
+            + self.c.bold(self._themed(self.title))
+            + "  "
+            + self.c.dim(version_str)
+            + " "
+            + pad
+        )
+        border = self.h_double * inner_width
+        bar = self.c.bold(self._themed(self.vl_d))
         print()
         print(self.c.bold(self._themed(f"  {self.tl_d}{border}{self.tr_d}")))
-        print(
-            f"  {self.c.bold(self._themed(self.vl_d))} "
-            f"{self.c.bold(self._themed(self.title))}  "
-            f"{self.c.dim(f'v{self.version}')}"
-        )
+        print(f"  {bar}{styled}{bar}")
         print(self.c.bold(self._themed(f"  {self.bl_d}{border}{self.br_d}")))
 
     def section(self, title: str, *, width: int = 60, compact: bool = False) -> None:
@@ -433,10 +448,15 @@ class UI:
             width: Border width.
             compact: If True, omit the trailing blank line.
         """
-        border = self.h_line * width
+        plain = f" {title} "
+        inner_width = max(width, len(plain))
+        pad = " " * (inner_width - len(plain))
+        styled = " " + self.c.bold(self._themed(title)) + " " + pad
+        border = self.h_line * inner_width
+        bar = self._themed(self.vl)
         print()
         print(self._themed(f"  {self.tl}{border}{self.tr}"))
-        print(f"  {self._themed(self.vl)} {self.c.bold(self._themed(title))}")
+        print(f"  {bar}{styled}{bar}")
         print(self._themed(f"  {self.bl}{border}{self.br}"))
         if not compact:
             print()
