@@ -53,7 +53,7 @@ PR.**
 | 1.1 | `feat(css): tailwind plumbing + four-file architecture + /styleguide stub`                                    | 1     | done        |
 | 1.2 | `docs(adr): draft ADR 062 + ADR 063 + ADR 064`                                                                | 1     | done        |
 | 1.3a | `refactor(models): split models.py into a package + add v2 enums`                                            | 1     | not started |
-| 1.3b | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                                      | 1     | not started |
+| 1.3b | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                                      | 1     | done        |
 | 1.4 | `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`                                        | 1     | not started |
 | 1.5 | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                                        | 1     | not started |
 | 1.6 | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                                    | 1     | not started |
@@ -272,8 +272,8 @@ will ship Migration B.
   proving the contract holds with the bigger table set
 
 **Deliverables this PR closes**
-- [ ] **Schema migration #1 (auth + tenancy)** — full deliverable.
-- [ ] **`feedback_item` retrofit (additive)** — `workspace_id`
+- [x] **Schema migration #1 (auth + tenancy)** — full deliverable.
+- [x] **`feedback_item` retrofit (additive)** — `workspace_id`
       column added nullable with backfill into `signalnest-legacy`
       workspace; `NOT NULL` flip is deferred to Migration B per
       ADR 062.

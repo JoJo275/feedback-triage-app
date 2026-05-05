@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+
 
 class Source(StrEnum):
     """Where a feedback item originated."""
@@ -99,3 +101,40 @@ class EmailPurpose(StrEnum):
     PASSWORD_RESET = "password_reset"  # nosec B105 - enum label, not a credential
     INVITATION = "invitation"
     STATUS_CHANGE = "status_change"
+
+
+# ---------------------------------------------------------------------------
+# Native Postgres ENUM types for the v2 enums.
+# ---------------------------------------------------------------------------
+# ``create_type=False`` because the migration owns the CREATE TYPE / DROP TYPE
+# lifecycle (see ``alembic/versions/0002_v2_a_auth_tenancy_email_log.py``).
+# These are imported by the v2 model modules so the SQLModel column types
+# resolve to the matching native Postgres enum.
+
+USER_ROLE_ENUM = PgEnum(
+    UserRole,
+    name="user_role_enum",
+    values_callable=lambda enum_cls: [m.value for m in enum_cls],
+    create_type=False,
+)
+
+WORKSPACE_ROLE_ENUM = PgEnum(
+    WorkspaceRole,
+    name="workspace_role_enum",
+    values_callable=lambda enum_cls: [m.value for m in enum_cls],
+    create_type=False,
+)
+
+EMAIL_STATUS_ENUM = PgEnum(
+    EmailStatus,
+    name="email_status_enum",
+    values_callable=lambda enum_cls: [m.value for m in enum_cls],
+    create_type=False,
+)
+
+EMAIL_PURPOSE_ENUM = PgEnum(
+    EmailPurpose,
+    name="email_purpose_enum",
+    values_callable=lambda enum_cls: [m.value for m in enum_cls],
+    create_type=False,
+)
