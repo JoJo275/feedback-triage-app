@@ -9,12 +9,15 @@ routers, and OpenAPI metadata are all wired here.
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from feedback_triage import __version__
+from feedback_triage.auth import hashing as auth_hashing
 from feedback_triage.config import Settings, get_settings
 from feedback_triage.errors import register_exception_handlers
 from feedback_triage.middleware import (
@@ -57,12 +60,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     _configure_logging(settings)
 
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        # Warm Argon2's native lib so the first sign-in after a cold
+        # boot doesn't pay the 50-200 ms first-verify tax on top of the
+        # 150 ms hash itself. Skipped when the auth surface is gated
+        # off so v2.0-alpha boots don't load ``argon2-cffi`` for no
+        # reason. See ``docs/project/spec/v2/railway-optimization.md``
+        # - Cold-path inventory.
+        if settings.feature_auth:
+            auth_hashing.warmup()
+        yield
+
     app = FastAPI(
         title="Feedback Triage App",
         version=__version__,
         docs_url="/api/v1/docs",
         redoc_url=None,
         openapi_url="/api/v1/openapi.json",
+        lifespan=lifespan,
     )
 
     # Starlette's ``add_middleware`` *prepends* — the LAST class added is

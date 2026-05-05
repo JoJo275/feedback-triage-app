@@ -46,6 +46,7 @@ dependencies = [
   "psycopg[binary]>=3.3.4",     # Postgres driver (sync)
   "pydantic>=2.7",              # Validation
   "pydantic-settings>=2.4",     # Settings via env vars
+  "argon2-cffi>=25.1.0",
 ]
 
 [project.urls]

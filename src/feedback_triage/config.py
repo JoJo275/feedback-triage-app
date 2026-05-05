@@ -47,6 +47,28 @@ class Settings(BaseSettings):
     page_size_default: int = Field(default=20, ge=1, le=1000)
     page_size_max: int = Field(default=100, ge=1, le=1000)
 
+    # ------------------------------------------------------------------
+    # Auth (v2.0). See ``docs/project/spec/v2/auth.md``.
+    # ------------------------------------------------------------------
+    feature_auth: bool = Field(default=True)
+    """v2.0-alpha → v2.0-beta gate for the auth surface.
+
+    When false, ``/login``, ``/signup``, ``/forgot-password``,
+    ``/reset-password``, ``/verify-email``, and ``/api/v1/auth/*`` all
+    return ``503 Service Unavailable``. Read once at startup; flipping
+    the flag requires a redeploy. Per ``v2/auth.md``, defaults to
+    ``true`` in development and is flipped to ``true`` in production
+    at the alpha → beta boundary.
+    """
+
+    secure_cookies: bool = Field(default=False)
+    """Toggle the ``Secure`` attribute on auth cookies.
+
+    Defaults to ``false`` so local HTTP development works; production
+    deployments MUST set ``SECURE_COOKIES=true``. The model validator
+    ``_require_secure_cookies_in_production`` enforces this.
+    """
+
     @field_validator("database_url", mode="before")
     @classmethod
     def _normalize_database_url(cls, value: object) -> object:
@@ -103,6 +125,23 @@ class Settings(BaseSettings):
                 "Railway dashboard (Variables → Reference Variable → "
                 "Postgres → DATABASE_URL). See "
                 "docs/project/railway-setup.md step 2."
+            )
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _require_secure_cookies_in_production(self) -> Settings:
+        """Refuse to boot in production without ``SECURE_COOKIES=true``.
+
+        Auth cookies that omit the ``Secure`` flag travel over plain
+        HTTP, exposing the session token to passive network observers.
+        See ``docs/project/spec/v2/auth.md`` — Session cookie.
+        """
+        if self.app_env == "production" and not self.secure_cookies:
+            msg = (
+                "SECURE_COOKIES must be true when APP_ENV=production. "
+                "Auth cookies without the Secure flag leak the session "
+                "token over plain HTTP. See docs/project/spec/v2/auth.md."
             )
             raise ValueError(msg)
         return self
