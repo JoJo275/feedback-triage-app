@@ -83,13 +83,13 @@ only_if.regex = "(?i)\\bmypy\\b"
 
 [[rule]]
 type = "exists"
-path = "src/simple_python_boilerplate/py.typed"
+path = "src/feedback_triage/py.typed"
 kind = "file"
 level = "info"
 category = "typing"
 impact = "No py.typed marker — downstream consumers won't get type info from this package (PEP 561)."
-hint = "Create an empty src/simple_python_boilerplate/py.typed file."
-fix = "touch src/simple_python_boilerplate/py.typed"
+hint = "Create an empty src/feedback_triage/py.typed file."
+fix = "New-Item -ItemType File src/feedback_triage/py.typed"
 only_if.path = "pyproject.toml"
 only_if.regex = "\\[tool\\.mypy\\]"
 
@@ -116,7 +116,7 @@ toml_path = "tool.coverage.run.source"
 level = "info"
 category = "testing"
 impact = "No [tool.coverage.run] source — coverage reports may include unintended files or miss your package."
-hint = "Add [tool.coverage.run] source = ['simple_python_boilerplate']."
+hint = "Add [tool.coverage.run] source = ['feedback_triage']."
 only_if.path = "pyproject.toml"
 only_if.regex = "\\[tool\\.pytest"
 
@@ -139,25 +139,38 @@ only_if.regex = "(?m)^\\s*-\\s*id:\\s*bandit\\b"
 
 
 # ---------------------------------------------------------------------------
-# Virtual environment
+# Dependency management — uv
 # ---------------------------------------------------------------------------
 
 [[rule]]
 type = "exists"
-path = "requirements.txt"
+path = "uv.lock"
 kind = "file"
-level = "info"
+level = "warn"
 category = "packaging"
-impact = "No requirements.txt — contributors without hatch must manually read pyproject.toml for dependencies."
-hint = "Generate with: pip-compile pyproject.toml -o requirements.txt (or keep it manually)."
+impact = "uv.lock missing — `uv sync --frozen` will fail in CI and contributor environments will drift."
+hint = "Run `uv lock` and commit uv.lock."
+link = "docs/adr/055-uv-environment-management.md"
 
 [[rule]]
-type = "exists"
-path = "requirements-dev.txt"
-kind = "file"
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "build-system.requires"
 level = "info"
 category = "packaging"
-impact = "No dev requirements file — contributors may miss dev-only dependencies."
+impact = "No [build-system] requires entry — uv build / hatch build won't know which backend to install."
+hint = "Set build-system.requires = ['hatchling', 'hatch-vcs'] and build-system.build-backend = 'hatchling.build'."
+
+[[rule]]
+type = "regex_present"
+path = "pyproject.toml"
+regex = "hatchling\\.build"
+level = "info"
+category = "packaging"
+impact = "build-backend is not hatchling.build — this project's release pipeline (hatch-vcs git-tag versioning) assumes hatchling."
+hint = "Set build-system.build-backend = 'hatchling.build'."
+only_if.path = "pyproject.toml"
+only_if.regex = "\\[build-system\\]"
 
 
 # ---------------------------------------------------------------------------

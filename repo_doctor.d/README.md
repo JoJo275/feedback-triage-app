@@ -1,18 +1,20 @@
 # repo_doctor.d/ — Optional Profile Rules
 
-<!-- TODO (template users): Add custom profiles for your project's specific
-     checks. Modify existing profiles to match your actual file layout. -->
-
 Extra rule sets for `scripts/repo_doctor.py`. These are **not** loaded by
 default — activate them on the CLI or in `.repo-doctor.toml`.
+
+These profiles are tuned for **feedback-triage-app**: package
+`feedback_triage` under `src/`, `uv` + `hatchling` build, Postgres 16 +
+Alembic migrations, FastAPI sync routes, MkDocs docs site, multi-stage
+`Containerfile`, Railway deploy.
 
 ## Available Profiles
 
 | Profile     | File             | What it checks                                                       |
 | ----------- | ---------------- | -------------------------------------------------------------------- |
-| `python`    | `python.toml`    | Packaging, typing, linting, coverage, bandit, editorconfig           |
-| `docs`      | `docs.toml`      | MkDocs structure, ADRs, dev guides, standard files, workflows ref    |
-| `db`        | `db.toml`        | Schema, migrations, seeds, bootstrap scripts, schema consistency     |
+| `python`    | `python.toml`    | Packaging, typing, linting, coverage, bandit, uv lockfile, hatchling |
+| `docs`      | `docs.toml`      | MkDocs structure, ADRs, dev guides, standard files                   |
+| `db`        | `db.toml`        | Alembic config, SQLModel models, session wiring, Postgres parity     |
 | `ci`        | `ci.toml`        | Workflow hardening, pinning, Dependabot, CI gate, labeler            |
 | `container` | `container.toml` | Containerfile hygiene, ignore files, multi-stage, docker-compose     |
 | `security`  | `security.toml`  | Security policy, bandit config, secret scanning, audits, env guards  |
