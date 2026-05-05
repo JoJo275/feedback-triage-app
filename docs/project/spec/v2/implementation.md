@@ -52,7 +52,8 @@ PR.**
 | --- | ------------------------------------------------------------------------------------------------------------- | ----- | ------ |
 | 1.1 | `feat(css): tailwind plumbing + four-file architecture + /styleguide stub`                                    | 1     | done        |
 | 1.2 | `docs(adr): draft ADR 062 + ADR 063 + ADR 064`                                                                | 1     | done        |
-| 1.3 | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                                      | 1     | not started |
+| 1.3a | `refactor(models): split models.py into a package + add v2 enums`                                            | 1     | not started |
+| 1.3b | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                                      | 1     | not started |
 | 1.4 | `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`                                        | 1     | not started |
 | 1.5 | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                                        | 1     | not started |
 | 1.6 | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                                    | 1     | not started |
@@ -75,10 +76,10 @@ PR.**
 | 4.3 | `feat(email): Resend webhook for delivery + bounce events (if available)`                                     | 4     | not started |
 | 4.4 | `feat(brand): custom favicon + wordmark refresh`                                                              | 4     | not started |
 
-**Twenty-four PRs total** — nine for Phase 1, six for Phase 2,
+**Twenty-five PRs total** — ten for Phase 1, six for Phase 2,
 five for Phase 3, four for Phase 4. Phase 1's PR 1.2 is doc-only;
-PR 1.3 and PR 2.1 are the two hand-reviewed migration PRs that
-must land in isolation.
+PR 1.3a is a non-migration scaffold split; PR 1.3b and PR 2.1 are
+the two hand-reviewed migration PRs that must land in isolation.
 
 ---
 
@@ -173,7 +174,7 @@ later page a stylesheet to link to.
 
 ### PR 1.2 — `docs(adr): draft ADR 062 (v1→v2 data migration) + ADR 063 (status enum) + ADR 064 (pain vs priority)`
 
-Documentation-only. Locks the schema choices PR 1.3, PR 2.1, and
+Documentation-only. Locks the schema choices PR 1.3b, PR 2.1, and
 Phase 2 UI will rely on.
 
 **Touches**
@@ -201,7 +202,52 @@ Phase 2 UI will rely on.
 
 ---
 
-### PR 1.3 — `feat(db): migration A — auth, tenancy, email_log tables + native enums`
+### PR 1.3a — `refactor(models): split models.py into a package + add v2 enums`
+
+Pure scaffold. **No DB changes, no migration.** Splits the current
+single-file `src/feedback_triage/models.py` into a `models/`
+package so PR 1.3b can land tables one file at a time, and adds
+the new native-enum *Python* mirrors (the Postgres types are
+created in 1.3b). Existing routes, tests, and the current Alembic
+revision keep working unchanged.
+
+**Touches**
+- `src/feedback_triage/models/__init__.py` — re-exports
+  `FeedbackItem` so `from feedback_triage.models import …`
+  callers keep working.
+- `src/feedback_triage/models/feedback.py` — moved verbatim from
+  the old `models.py` (only the import path changes).
+- `src/feedback_triage/models/users.py`, `sessions.py`,
+  `tokens.py`, `workspaces.py`, `memberships.py`,
+  `invitations.py`, `auth_rate_limits.py`, `email_log.py` —
+  empty stub files with module docstrings only. PR 1.3b fills
+  them in.
+- `src/feedback_triage/enums.py` — adds `UserRole`,
+  `WorkspaceRole`, `EmailStatus`, `EmailPurpose` Python
+  `StrEnum`s (per ADR 061). The matching Postgres native enum
+  types are created in PR 1.3b's migration.
+- `tests/` — no test changes; the existing suite is the
+  regression check that the package split didn't break imports.
+
+**Deliverables this PR closes**
+
+None of the v2 ledger deliverables are completed by this PR. It
+is preparatory scaffolding for PR 1.3b.
+
+**DoD**
+- [x] `task check` is green (lint + typecheck + tests).
+- [x] `from feedback_triage.models import FeedbackItem` and
+  `from feedback_triage.models.feedback import FeedbackItem`
+  both resolve.
+- [x] The four new enum classes are importable from
+  `feedback_triage.enums` and round-trip through `StrEnum`
+  (`UserRole("admin")` etc.).
+- [x] No new Alembic revisions; `uv run alembic current` is
+  unchanged.
+
+---
+
+### PR 1.3b — `feat(db): migration A — auth, tenancy, email_log tables + native enums`
 
 The single largest schema migration in the v1→v2 jump.
 **Hand-reviewed.** Ships as exactly one Alembic revision; PR 2.1
@@ -212,13 +258,16 @@ will ship Migration B.
 - `src/feedback_triage/models/users.py`,
   `models/sessions.py`, `models/tokens.py`, `models/workspaces.py`,
   `models/memberships.py`, `models/invitations.py`,
-  `models/auth_rate_limits.py`, `models/email_log.py`
+  `models/auth_rate_limits.py`, `models/email_log.py` — bodies
+  filled in (the empty modules were created in PR 1.3a).
 - `src/feedback_triage/database.py` — pool config
   (`pool_size=5, max_overflow=0` per worker; ADR 048 invariant
   preserved)
-- `src/feedback_triage/enums.py` — `user_role_enum`,
-  `workspace_role_enum`, `email_status_enum`,
-  `email_purpose_enum` (per ADR 061)
+- `src/feedback_triage/enums.py` — wires the `UserRole`,
+  `WorkspaceRole`, `EmailStatus`, `EmailPurpose` Python enums
+  (added in PR 1.3a) to native Postgres enum types
+  `user_role_enum`, `workspace_role_enum`, `email_status_enum`,
+  `email_purpose_enum` (per ADR 061).
 - `tests/api/test_session_per_request.py` — extended canary
   proving the contract holds with the bigger table set
 
@@ -486,7 +535,7 @@ forward.
 **DoD**
 - Round-trip migration test green on a snapshot containing both
   `rejected` rows and rows with `workspace_id IS NULL`.
-- Hand-review checklist signed off (same items as PR 1.3).
+- Hand-review checklist signed off (same items as PR 1.3b).
 - `test_isolation.py` extended with cases for tags, notes,
   submitters.
 

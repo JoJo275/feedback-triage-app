@@ -89,7 +89,7 @@ level = "info"
 category = "typing"
 impact = "No py.typed marker — downstream consumers won't get type info from this package (PEP 561)."
 hint = "Create an empty src/feedback_triage/py.typed file."
-fix = "New-Item -ItemType File src/feedback_triage/py.typed"
+fix = "python -c \"from pathlib import Path; Path('src/feedback_triage/py.typed').touch()\""
 only_if.path = "pyproject.toml"
 only_if.regex = "\\[tool\\.mypy\\]"
 

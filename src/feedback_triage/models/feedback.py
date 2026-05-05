@@ -1,4 +1,4 @@
-"""SQLModel ORM models.
+"""SQLModel ORM model for the ``feedback_item`` table.
 
 The model defines the shape; the canonical schema is owned by Alembic
 (see ``alembic/versions/0001_create_feedback_item.py``). Both must agree
