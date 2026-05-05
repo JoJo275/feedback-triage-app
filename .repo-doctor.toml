@@ -69,7 +69,7 @@ level = "warn"
 category = "packaging"
 impact = "The src/ layout is the project's package structure. Without it, imports and builds will fail."
 link = "docs/adr/001-src-layout.md"
-fix = "mkdir -p src/feedback_triage"
+fix = "python -c \"from pathlib import Path; Path('src/feedback_triage').mkdir(parents=True, exist_ok=True)\""
 
 [[rule]]
 type = "exists"
@@ -79,7 +79,7 @@ level = "warn"
 category = "packaging"
 impact = "Package won't be importable without __init__.py; pip install and all imports will break."
 link = "docs/adr/001-src-layout.md"
-fix = "mkdir -p src/feedback_triage && New-Item -ItemType File src/feedback_triage/__init__.py"
+fix = "python -c \"from pathlib import Path; p = Path('src/feedback_triage'); p.mkdir(parents=True, exist_ok=True); (p / '__init__.py').touch()\""
 
 [[rule]]
 type = "exists"

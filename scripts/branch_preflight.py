@@ -44,7 +44,7 @@ from _ui import UI
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.2.1"
 THEME = "cyan"
 
 
@@ -264,12 +264,12 @@ def main(argv: list[str] | None = None) -> int:
             sym = unicode_symbols()
             print()
             print(
-                f"  {c.green(sym['check'])} "
+                f"    {c.green(sym['check'])} "
                 f"{c.green('Working tree is clean')} "
                 f"({total} untracked file(s) ignored \u2014 they don't block "
                 f"a branch switch)."
                 if buckets["untracked"]
-                else f"  {c.green(sym['check'])} "
+                else f"    {c.green(sym['check'])} "
                 f"{c.green('Working tree is clean. Safe to switch.')}"
             )
             print()
