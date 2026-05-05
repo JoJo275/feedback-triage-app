@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.0.0...v1.0.0) (2026-05-05)
+
+
+### Features
+
+* Add draft for Feedback Triage App spec v2.0 and update references ([f4428d5](https://github.com/JoJo275/feedback-triage-app/commit/f4428d531f74e32afaf9a93f216083fcbb1cb69a))
+* **implementation:** add PR ledger for v2.0 phases with detailed tracking ([abc3793](https://github.com/JoJo275/feedback-triage-app/commit/abc3793c9d65f195e7b285630a422fa33ed3b649))
+* introduce v2.0 specifications including multi-tenancy, rollout, schema, security, and tooling ([28c1b89](https://github.com/JoJo275/feedback-triage-app/commit/28c1b891841b9a095b382833918ebe534d9db2ac))
+* ratify v2.0 spec and ADR 061 for email integration. ([587ee53](https://github.com/JoJo275/feedback-triage-app/commit/587ee5324b822430a0e9358b2cdca4bd208f636a))
+* rename project from Feedback Triage to SignalNest ([09e72e0](https://github.com/JoJo275/feedback-triage-app/commit/09e72e00422e88a2024c85fa6eb5772e8076b5b1))
+
 ## 1.0.0 (2026-05-01)
 
 
