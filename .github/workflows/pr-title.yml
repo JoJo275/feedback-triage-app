@@ -80,10 +80,13 @@ jobs:
             perf
             build
             revert
-          # Require lowercase subject (digits also allowed, e.g. version numbers)
-          subjectPattern: ^[a-z0-9].*$
+          # Allow upper- or lowercase first letter (digits also allowed,
+          # e.g. version numbers). Proper-noun and acronym subjects
+          # ("PR 1.2 ADRs", "ADR 062 accepted") are common and shouldn't
+          # be rejected.
+          subjectPattern: ^[A-Za-z0-9].*$
           subjectPatternError: >
-            The subject "{subject}" must start with a lowercase letter or digit.
+            The subject "{subject}" must start with a letter or digit.
             Example: "feat: add user authentication"
 
       - name: Suggest corrected PR title
@@ -96,8 +99,6 @@ jobs:
           desc="$PR_TITLE"
           # Remove leading type-like prefix with / or : or space (e.g. "feat/...", "Feature: ...")
           desc=$(echo "$desc" | sed -E 's/^[A-Za-z]+[\/: ]+//')
-          # Lowercase the first character of the description
-          desc="$(echo "${desc:0:1}" | tr '[:upper:]' '[:lower:]')${desc:1}"
 
           echo "::error::PR title does not follow conventional commit format."
           echo ""

@@ -155,7 +155,7 @@ Migration B forbids future writes.
   passes are bounded by a single small table.
 - **Auditable.** Two revisions, each with a clear single purpose,
   show up cleanly in `alembic history` and in the
-  [pre-deploy ledger](../project/pr-ledger.md).
+  [v2 implementation ledger](../project/spec/v2/implementation.md).
 - **Rehearsable.** Operators can dry-run B against a production
   snapshot before flipping the switch on the live deploy.
 
@@ -200,8 +200,8 @@ Migration B forbids future writes.
   — full DDL.
 - [`docs/project/spec/v2/rollout.md`](../project/spec/v2/rollout.md)
   — operator runbook, snapshot policy, smoke checks.
-- [`tests/test_migration_v1_to_v2.py`](../../tests/test_migration_v1_to_v2.py)
-  — canary tests.
+- `tests/test_migration_v1_to_v2.py` — canary tests (added in
+  PR 2.x; see the v2 implementation ledger).
 
 ## References
 

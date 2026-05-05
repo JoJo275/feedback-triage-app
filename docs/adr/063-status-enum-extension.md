@@ -216,4 +216,6 @@ deliberately avoids.
 - [ADR 062](062-v1-to-v2-data-migration.md) — owns the actual
   `ALTER TYPE` and the `rejected → closed` data rewrite.
 - [Postgres — `ALTER TYPE`](https://www.postgresql.org/docs/16/sql-altertype.html)
-- [Postgres mailing list — DROP VALUE rationale](https://www.postgresql.org/message-id/CAH2-WzkSDB1Z6gZxKqEh1nPnLdC8WpO%2BrR-VQ7%3DHqf6PsCY1Pw%40mail.gmail.com)
+- Postgres mailing list — `DROP VALUE` rationale (search
+  pgsql-hackers archives; no stable permalink, the URL form has
+  rotated multiple times).
