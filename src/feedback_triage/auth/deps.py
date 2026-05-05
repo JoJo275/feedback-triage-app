@@ -44,9 +44,13 @@ from feedback_triage.models import User, UserSession
 
 DbDep = Annotated[DbSession, Depends(get_db)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+# FastAPI's ``Annotated[..., Cookie(...)]`` form forbids ``default=...``
+# inside the FieldInfo (the assertion in ``analyze_param`` requires the
+# default to be ``Undefined``); the per-parameter ``= None`` below is
+# what makes the cookie optional. See FastAPI 0.118+ behaviour.
 SessionCookieDep = Annotated[
     str | None,
-    Cookie(default=None, alias=SESSION_COOKIE_NAME),
+    Cookie(alias=SESSION_COOKIE_NAME),
 ]
 
 
@@ -73,7 +77,7 @@ def current_user_optional(
     response: Response,
     db: DbDep,
     settings: SettingsDep,
-    raw_token: SessionCookieDep,
+    raw_token: SessionCookieDep = None,
 ) -> User | None:
     """Return the :class:`User` for the caller's session, or ``None``."""
     if not settings.feature_auth or not raw_token:
