@@ -135,7 +135,7 @@ Only user-facing commit types appear (`feat:`, `fix:`, `perf:`, `revert:`). Inte
 ### Files Changed
 
 - `pyproject.toml` — hatch-vcs build plugin, dynamic version, commitizen config
-- `src/simple_python_boilerplate/__init__.py` — imports from generated `_version.py`
+- `src/feedback_triage/__init__.py` — imports from generated `_version.py`
 - `.gitignore` — excludes generated `_version.py`
 - `.github/workflows/release-please.yml` — new workflow
 - `.github/workflows/commit-lint.yml` — new workflow

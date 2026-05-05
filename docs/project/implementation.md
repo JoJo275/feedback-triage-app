@@ -29,11 +29,11 @@ Before Phase 1 can start, the surrounding template must be repurposed.
 ### Deliverables
 
 - [x] Repository renamed / new repo created as `feedback-triage-app`.
-- [x] `src/simple_python_boilerplate/` removed; replaced with empty
+- [x] `src/feedback_triage/` removed; replaced with empty
       `src/feedback_triage/__init__.py`.
 - [x] `pyproject.toml` updated:
   - [x] `name = "feedback-triage-app"`
-  - [x] `[project.scripts]` cleared of `spb-*` entries
+  - [x] `[project.scripts]` cleared of `fta-*` entries
   - [x] description, URLs, classifiers updated
   - [x] dependencies trimmed to runtime needs (FastAPI, SQLModel,
         Alembic, psycopg[binary], pydantic-settings, uvicorn)
@@ -45,7 +45,7 @@ Before Phase 1 can start, the surrounding template must be repurposed.
 - [x] `scripts/` retained as a project-wide tooling library (bootstrap,
       doctor family, env collectors / dashboard, dep/version helpers,
       container-test scripts, pre-commit hooks). The only project-
-      specific addition for v1.0 is `scripts/seed.py`. Template `spb-*`
+      specific addition for v1.0 is `scripts/seed.py`. Template `fta-*`
       console-script entry points in `pyproject.toml` should be renamed
       (e.g. `fta-*`) or dropped; the underlying scripts stay.
 - [x] `.github/workflows/` retained as-is. SHA pins refreshed at fork

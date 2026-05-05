@@ -82,4 +82,8 @@ jobs:
         run: uv sync --frozen --extra docs
 
       - name: Build docs (strict)
+        env:
+          # Suppress upstream Material for MkDocs 2.0 announcement banner.
+          # The banner writes to stderr and would fail --strict.
+          NO_MKDOCS_2_WARNING: "true"
         run: uv run mkdocs build --strict

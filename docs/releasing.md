@@ -469,7 +469,7 @@ compatibility promises, security responsiveness, and baseline quality.
 - [ ] `pyproject.toml` metadata is complete: name, description, author, URLs, classifiers
 - [ ] `Development Status` classifier set to `Production/Stable`
 - [ ] `requires-python` matches actual minimum tested version
-- [ ] Entry points (`[project.scripts]`) work: `spb --version` (or your equivalent)
+- [ ] Entry points (`[project.scripts]`) work: `fta --version` (or your equivalent)
 - [ ] Package installs cleanly: `pip install .` in a fresh venv
 - [ ] `LICENSE` file has correct year and author
 

@@ -79,7 +79,7 @@ else:
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.6.0"
+SCRIPT_VERSION = "1.6.1"
 
 # Theme color for this script's dashboard output.
 THEME = "blue"
@@ -216,7 +216,7 @@ def check_editable_install() -> tuple[bool, str]:
 
     # --- Fallback: check if imported module lives in src/ tree ---------
     try:
-        import simple_python_boilerplate as _spb
+        import feedback_triage as _spb
 
         mod_path = Path(_spb.__file__).resolve()
         src_dir = ROOT / "src"
@@ -866,11 +866,11 @@ def check_import_cycles() -> tuple[bool, str]:
     Returns:
         Tuple of (passed, message).
     """
-    pkg_dir = ROOT / "src" / "simple_python_boilerplate"
+    pkg_dir = ROOT / "src" / "feedback_triage"
     if not pkg_dir.is_dir():
         return True, "No package directory found \u2014 skipping"
 
-    pkg_name = "simple_python_boilerplate"
+    pkg_name = "feedback_triage"
     imports: dict[str, set[str]] = {}
 
     for py_file in pkg_dir.rglob("*.py"):

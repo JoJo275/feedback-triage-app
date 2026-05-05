@@ -54,7 +54,7 @@ import sys
 import tokenize
 from pathlib import Path
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 
 _GIT_CMD: str | None = shutil.which("git")
 
@@ -227,10 +227,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {f}: {reason}")
     print()
     print("Fix it:")
-    print("  - Bump SCRIPT_VERSION at the top of the file (semver).")
-    print("  - Or, if the change is genuinely trivial, add either:")
-    print("      * '[skip script-version]' to the commit message, or")
-    print("      * '# bump-script-version: skip' at the top of the file.")
+    print("  - Bump SCRIPT_VERSION at the top of the file (semver):")
+    print("      * patch (x.y.Z) - bug fix or trivial change")
+    print("      * minor (x.Y.0) - new flag, new behaviour, refactor")
+    print("      * major (X.0.0) - breaking CLI surface change")
+    print("  - Or, if the change is genuinely trivial (formatting, typo,")
+    print("    pure comment edit), add this near the top of the file:")
+    print("      * '# bump-script-version: skip'")
+    print("  - Commit-message tags ('[skip script-version]') are NOT")
+    print("    honoured: this hook runs at the pre-commit stage, before")
+    print("    the commit message exists. Use the in-file marker.")
     return 1
 
 

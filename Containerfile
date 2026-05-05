@@ -50,7 +50,9 @@ WORKDIR /build-fe
 # the repo root; copy it for that purpose only (not for installing).
 COPY pyproject.toml ./
 COPY tailwind.config.cjs ./
-COPY scripts/_imports.py scripts/build_css.py scripts/
+# build_css.py imports _imports → import_sibling("_ui") → _ui imports
+# _colors. Copy the full chain so the container build resolves them.
+COPY scripts/_imports.py scripts/_colors.py scripts/_ui.py scripts/build_css.py scripts/
 
 # Tailwind's content globs scan templates, the whole static tree
 # (HTML + JS), and routes/*.py for class names. Copy all four so the

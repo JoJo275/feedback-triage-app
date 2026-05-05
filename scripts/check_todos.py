@@ -74,7 +74,7 @@ DEFAULT_EXCLUDE = {
 
 # Directory name suffixes to skip.  A path component whose name *ends with*
 # one of these is excluded (e.g. ".egg-info" matches
-# "simple_python_boilerplate.egg-info").
+# "feedback_triage.egg-info").
 DEFAULT_EXCLUDE_SUFFIXES = {
     ".egg-info",
 }
@@ -226,7 +226,7 @@ def _is_excluded(
       (e.g. ``".git"``, ``"__pycache__"``).
     * **Suffix match** — the directory name *ends with* an entry in
       *exclude_suffixes* (e.g. ``".egg-info"`` matches
-      ``"simple_python_boilerplate.egg-info"``).
+      ``"feedback_triage.egg-info"``).
 
     Args:
         path: File path to test.

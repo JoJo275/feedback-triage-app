@@ -46,7 +46,7 @@ scripts/
 Two things changed at the fork that affect this ADR:
 
 1. The package being introspected is now `feedback_triage`, not
-   `simple_python_boilerplate`.
+   `feedback_triage`.
 2. Scripts must work without the project's runtime dependencies on
    `PATH`. Where they need them, they declare so with a PEP 723
    `# /// script` header or are invoked through `uv run`.
@@ -190,7 +190,7 @@ so they install as CLI commands.
 **Rejected for v1.0** because these are dev tooling, not user-facing
 CLIs. Console entries require an installed package, which forces the
 chicken-and-egg "doctor before install" tools to grow extra paths. The
-template's `spb-*` console-script entries were dropped at the fork
+template's `fta-*` console-script entries were dropped at the fork
 (commented out in `[project.scripts]`); reconsider per-script if a
 workflow proves the abstraction useful.
 

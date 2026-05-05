@@ -14,7 +14,7 @@ Completed items are periodically archived via `python scripts/archive_todos.py`.
 ### Setup Checklist
 
 - [ ] Run `python scripts/customize.py` to rename the package and enable workflows
-- [ ] Replace placeholder code in `src/simple_python_boilerplate/` with your implementation
+- [ ] Replace placeholder code in `src/feedback_triage/` with your implementation
 - [ ] Update `pyproject.toml` metadata (name, description, URLs, authors)
 - [ ] Update `README.md` with your project's description and usage
 - [ ] Replace `SECURITY.md` PGP key and fingerprint with your own (or remove PGP section)

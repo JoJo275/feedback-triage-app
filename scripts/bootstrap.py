@@ -69,7 +69,7 @@ log = logging.getLogger(__name__)
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 12
-SCRIPT_VERSION = "2.0.0"
+SCRIPT_VERSION = "2.0.1"
 
 # Theme color for this script's dashboard output.
 THEME = "green"
@@ -405,7 +405,7 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         with Spinner("Verifying package install") as spin:
             spin.update("importing package")
             # Quick test run
-            # TODO (template users): Replace 'simple_python_boilerplate' with
+            # TODO (template users): Replace 'feedback_triage' with
             #   your package name after running customize.py.
             result = run_cmd(
                 [
@@ -413,7 +413,7 @@ def verify_setup(*, dry_run: bool = False) -> bool:
                     "run",
                     "python",
                     "-c",
-                    "from simple_python_boilerplate import __version__; print(__version__)",
+                    "from feedback_triage import __version__; print(__version__)",
                 ],
                 capture=True,
             )
@@ -428,7 +428,7 @@ def verify_setup(*, dry_run: bool = False) -> bool:
 
 # -- Template placeholder patterns that should be replaced after customize --
 _PLACEHOLDER_PATTERNS: list[tuple[str, str]] = [
-    (r"simple_python_boilerplate", "package name"),
+    (r"feedback_triage", "package name"),
     (r"simple-python-boilerplate", "project slug"),
     (r"JoJo275/simple-python-boilerplate", "repo slug"),
     (r"JoJo275", "GitHub owner"),
@@ -503,7 +503,7 @@ def wheel_install_test(*, dry_run: bool = False) -> bool:
     try:
         with Spinner("Testing wheel install") as spin:
             spin.update("pip install --dry-run")
-            # TODO (template users): Replace 'simple_python_boilerplate' with
+            # TODO (template users): Replace 'feedback_triage' with
             #   your package name after running customize.py.
             run_cmd(
                 [
@@ -848,9 +848,7 @@ def print_next_steps(ui: UI, *, results: dict[str, bool] | None = None) -> None:
     step += 1
 
     log.info("  %d. Verify the package is importable:", step)
-    log.info(
-        "     $ %s", c.cyan('hatch run python -c "import simple_python_boilerplate"')
-    )
+    log.info("     $ %s", c.cyan('hatch run python -c "import feedback_triage"'))
     log.info("")
     step += 1
 

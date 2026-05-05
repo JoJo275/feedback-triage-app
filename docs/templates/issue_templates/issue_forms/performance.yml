@@ -251,7 +251,7 @@ body:
         Provide the smallest possible code snippet that demonstrates the
         performance issue. Include any setup for data/inputs if needed.
       placeholder: |
-        from simple_python_boilerplate import something
+        from feedback_triage import something
         import time
 
         # Setup

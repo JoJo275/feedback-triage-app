@@ -54,7 +54,7 @@ Utility scripts for development and maintenance.
 
 ## Usage
 
-### Global Entry Points (spb-\* commands)
+### Global Entry Points (fta-\* commands)
 
 All scripts are also available as **global CLI commands** when the package is
 installed with `pipx install .` (or `pip install .`). This lets you run them
@@ -65,17 +65,17 @@ from **any repository**, not just this one.
 pipx install .
 
 # Now run scripts from any directory:
-spb-doctor          # instead of python scripts/doctor.py
-spb-git-doctor      # instead of python scripts/git_doctor.py
-spb-env-doctor      # instead of python scripts/env_doctor.py
-spb-repo-doctor     # instead of python scripts/repo_doctor.py
-spb-clean           # instead of python scripts/clean.py
-spb-dashboard       # instead of hatch run dashboard:serve
+fta-doctor          # instead of python scripts/doctor.py
+fta-git-doctor      # instead of python scripts/git_doctor.py
+fta-env-doctor      # instead of python scripts/env_doctor.py
+fta-repo-doctor     # instead of python scripts/repo_doctor.py
+fta-clean           # instead of python scripts/clean.py
+fta-dashboard       # instead of hatch run dashboard:serve
 ```
 
-The entry point automatically sets `SPB_REPO_ROOT` to your current working
+The entry point automatically sets `FEEDBACK_TRIAGE_REPO_ROOT` to your current working
 directory, so scripts discover the target repo from wherever you run them.
-All arguments are forwarded: `spb-git-doctor --json` works the same as
+All arguments are forwarded: `fta-git-doctor --json` works the same as
 `python scripts/git_doctor.py --json`.
 
 For the full list of 21 commands, see the
@@ -156,7 +156,7 @@ python scripts/env_inspect.py --json
 - **Shebang:** Include `#!/usr/bin/env python3` and mark executable:
   `git add --chmod=+x scripts/my_script.py`
 - **Naming:** `snake_case.py` for Python scripts, `kebab-case.sh` for shell
-- **Standalone:** Scripts must not import from `src/simple_python_boilerplate/`
+- **Standalone:** Scripts must not import from `src/feedback_triage/`
   — they should work without installing the package
 - **`--dry-run`:** Destructive scripts should support `--dry-run` to preview changes
 - **Exit codes:** 0 = success, non-zero = failure (for CI compatibility)
