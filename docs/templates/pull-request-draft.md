@@ -4,7 +4,7 @@
 <!--
   Suggested PR title (conventional commit format — type: description):
 
-    chore: PR 1.2 ADRs + UI box-border fix + release-please depin
+  refactor(models): split models.py into a package and add v2 enums (PR 1.3a)
 
   Available prefixes:
     feat:     — new feature or capability
@@ -20,7 +20,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels: documentation, chore, ui, release -->
+<!-- Suggested labels: refactor, scaffolding, v2, models, enums, docs, repo-doctor -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -38,58 +38,121 @@
 
 ## Description
 
-Three independent fixes, kept as separate commits so each can be cherry-picked or reverted on its own.
+Pre-Phase-1 scaffolding for the v2.0 jump, plus a few small tooling
+fixes that surfaced while running pre-commit and `task branch`. Lands
+PR **1.3a** from
+[`docs/project/spec/v2/implementation.md`](../project/spec/v2/implementation.md):
+splits the single-file `models.py` into a `models/` package and adds
+the four new Python `StrEnum`s that PR 1.3b will wire to native
+Postgres enum types.
+
+**No DB changes. No Alembic revisions.** The package split is a pure
+import-surface refactor — `from feedback_triage.models import
+FeedbackItem` keeps working unchanged. The enums ship now (ahead of
+the migration that creates the matching Postgres types) so PR 1.3b
+can wire `PgEnum(..., create_type=False)` to them without a circular
+dependency.
 
 **What changes you made:**
 
-1. **`fix(ui)` — `2708be2`** — `scripts/_ui.py` `header()` and `section()` now compute the inner box width from the rendered title (and version, for `header()`), pad the title row, and reuse the same width for the top/bottom borders. Boxes always close cleanly and grow when the title outgrows the requested width.
-2. **`chore(release)` — `21825f5`** — Removed `"release-as": "1.0.0"` from `release-please-config.json`. The pin was forcing every release PR to 1.0.0 and blocking SemVer bumps from `feat:` / `fix:` / `BREAKING CHANGE:` commits.
-3. **`docs(adr)` — `27e0695`** — PR 1.2 of the v2.0 implementation ledger: ADRs 062, 063, 064 accepted. Updated `docs/adr/README.md`, `mkdocs.yml` nav, `docs/project/spec/spec-v2.md` ADR table, `docs/project/spec/v2/adrs.md` (moved to Accepted), and `docs/project/spec/v2/implementation.md` (PR 1.1 + PR 1.2 marked done with deliverables ticked).
+- **`src/feedback_triage/models/`** — promoted from a single module
+  to a package.
+  - `__init__.py` re-exports `FeedbackItem`, `SOURCE_ENUM`,
+    `STATUS_ENUM` so the historical import path still resolves.
+  - `feedback.py` — verbatim move of the old `models.py`
+    `FeedbackItem` mapping (only the module docstring changed).
+  - `users.py`, `sessions.py`, `tokens.py`, `workspaces.py`,
+    `memberships.py`, `invitations.py`, `auth_rate_limits.py`,
+    `email_log.py` — empty stubs (module docstring + `from __future__
+    import annotations` only). Each docstring points at the ADR / spec
+    section that PR 1.3b will implement.
+- **`src/feedback_triage/enums.py`** — adds four new `StrEnum`
+  classes whose string values match the v2 Postgres enum labels:
+  - `UserRole` ∈ `{admin, team_member, demo}`
+    (per [`v2/schema.md`](../project/spec/v2/schema.md))
+  - `WorkspaceRole` ∈ `{owner, team_member}`
+    (per [ADR 060](../adr/060-multi-tenancy-workspace-scoping.md))
+  - `EmailStatus` ∈ `{queued, sent, retrying, failed}`
+    (per [ADR 061](../adr/061-resend-email-fail-soft.md))
+  - `EmailPurpose` ∈ `{verification, password_reset, invitation,
+    status_change}` (per ADR 061). `PASSWORD_RESET` carries an inline
+    `# nosec B105` — it's an enum label, not a credential.
+- **[`docs/project/spec/v2/implementation.md`](../project/spec/v2/implementation.md)**
+  — split the original PR 1.3 row into PR 1.3a (this PR — scaffold,
+  no migration) and PR 1.3b (Migration A). Bumped totals and ticked
+  the four DoD checkboxes for 1.3a.
+- **[`scripts/branch_preflight.py`](../../scripts/branch_preflight.py)**
+  — fixed vertical alignment of the body line under the first header
+  (2-space → 4-space indent). `SCRIPT_VERSION` bumped 1.2.0 → 1.2.1.
+- **[`.repo-doctor.toml`](../../.repo-doctor.toml)** and
+  **[`repo_doctor.d/python.toml`](../../repo_doctor.d/python.toml)**
+  — replaced PowerShell-only `New-Item` fix commands with
+  cross-platform `python -c "from pathlib import Path; ..."`
+  one-liners so copy-paste works on Windows, macOS, and Linux.
 
 **Why you made them:**
 
-- The task-branch UI helpers were drawing unclosed boxes on long titles — visual rough edge that shows up every time a workflow boots a header.
-- Release-please was silently broken; the pin held back v1.0.x patch releases.
-- PR 1.2 unblocks Phase 1 implementation work by ratifying the data-migration choreography (ADR 062), the final status workflow (ADR 063), and the pain/priority dual-field decision (ADR 064).
+PR 1.3 as originally written touched models, enums, and a 9-table
+Alembic migration in one go — too big to review in one pass and
+risky to roll back. Splitting it into 1.3a (scaffold) and 1.3b
+(migration) means reviewers can verify the import-surface change in
+isolation before any DDL lands. The repo-doctor / branch_preflight
+tweaks are unrelated polish that surfaced during the same session
+and were small enough to fold in.
 
 ## Related Issue
 
-N/A — maintenance + governance burst rolled up from the in-flight scratch branch.
+N/A — this is planned scaffolding for the v2 milestone tracked in
+[`docs/project/spec/v2/implementation.md`](../project/spec/v2/implementation.md).
+No external issue.
 
 ## Type of Change
 
-- [x] 🐛 Bug fix (non-breaking change that fixes an issue) — UI box borders
+- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
 - [ ] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [x] 📚 Documentation update — ADRs 062/063/064 + ledger updates
-- [ ] 🔧 Refactor (no functional changes)
+- [x] 📚 Documentation update
+- [x] 🔧 Refactor (no functional changes)
 - [ ] 🧪 Test update
-- [x] Other: release pipeline config (`release-please-config.json`)
 
 ## How to Test
 
+The whole PR is verifiable against the PR 1.3a DoD: existing tests
+still pass, both old and new model import paths resolve, the four
+new enums round-trip, and Alembic head is unchanged.
+
 **Steps:**
 
-1. UI fix — run any script that calls `_ui.header(...)` / `_ui.section(...)` (e.g., `python scripts/task_branch.py status`) and confirm the right-hand border closes flush with the longest line.
-2. Release-please change — inspect the next release PR opened against `main`; it should compute a version bump from commit types since `v1.0.0`, not propose 1.0.0.
-3. ADRs — `uv run mkdocs serve`, navigate to ADR 062 / 063 / 064 in the nav, confirm the Accepted ADRs section in `docs/adr/README.md` lists them, and confirm `spec-v2.md` and `v2/adrs.md` show them as Accepted.
+1. Pull the branch and run `task check` — should be green.
+2. Confirm both import paths resolve (see test command below).
+3. Confirm `uv run alembic current` still reports `0001 (head)` and
+   no new files exist under `alembic/versions/`.
+4. Run `task branch` and visually confirm the status line under
+   "Branch summary" sits under the title text, not the box border.
 
 **Test command(s):**
 
-```powershell
-# UI alignment
-uv run python scripts/task_branch.py status
-
-# ADR rendering
-uv run mkdocs serve
-
-# Existing test suite (no behavior changes expected)
+```bash
+# Full lint + typecheck + tests
 task check
+
+# Import-surface smoke
+uv run python -c "from feedback_triage.models import FeedbackItem; \
+  from feedback_triage.models.feedback import FeedbackItem as F2; \
+  from feedback_triage.enums import UserRole, WorkspaceRole, EmailStatus, EmailPurpose; \
+  print(UserRole('admin'), WorkspaceRole('team_member'), \
+        EmailStatus('retrying'), EmailPurpose('verification'))"
+
+# Alembic head should be unchanged
+uv run alembic current
+
+# Repo-doctor cross-platform fix commands (Windows + POSIX both work)
+uv run python scripts/repo_doctor.py --smoke
 ```
 
 **Screenshots / Demo (if applicable):**
 
-N/A — text-only UI fix; visual diff is "right border now closes".
+N/A.
 
 ## Risk / Impact
 
@@ -97,17 +160,31 @@ N/A — text-only UI fix; visual diff is "right border now closes".
 
 **What could break:**
 
-- `_ui.py` change is layout-only; the only callers are dev-time scripts, not the running app.
-- Removing the `release-as` pin will let release-please bump versions normally — confirm the next release PR is the expected SemVer step before merging it.
-- ADR docs are additive; only `docs/project/spec/v2/adrs.md` had existing rows moved (Proposed → Accepted).
+- Anything that imports `feedback_triage.models` as a *module object*
+  (not via `from … import …`) and relies on it being a single file
+  rather than a package — none in the current tree (`grep` found one
+  consumer in `crud.py`, which uses `from feedback_triage.models
+  import FeedbackItem` and is unaffected).
+- Downstream code that imports the new enum names with different
+  spellings — none yet; nothing in `src/` references them outside the
+  enum module itself.
+- The `branch_preflight.py` indent change is cosmetic; the only
+  behavioural risk is the `SCRIPT_VERSION` bump, which is required
+  by the `bump-script-version` pre-commit hook.
 
-**Rollback plan:** Revert this PR. Each commit can also be reverted independently.
+**Rollback plan:** Revert this PR. The package can be collapsed
+back to a single `models.py` by moving `feedback.py` up one level
+and deleting the stub modules; no DB state to undo.
 
 ## Dependencies (if applicable)
 
-**Depends on:** PR 1.0 + PR 1.1 of the v2.0 ledger (already merged).
+**Depends on:** N/A — no upstream PRs.
 
-**Blocked by:** Nothing.
+**Blocked by:** N/A.
+
+PR **1.3b** (Migration A — auth, tenancy, email_log tables + native
+enums) depends on this one. Phase 1 PRs 1.4+ depend on 1.3b, not
+directly on this PR.
 
 ## Breaking Changes / Migrations (if applicable)
 
@@ -116,7 +193,10 @@ N/A — text-only UI fix; visual diff is "right border now closes".
 - [ ] API changes (document below)
 - [ ] Dependency changes
 
-**Details:** None. ADRs 062/063 describe migrations that will land in **PR 2.x / 3.x**, not in this PR.
+**Details:** None. Pure import-surface refactor + new enum classes
++ docs + tooling polish. The Postgres enum types referenced by the
+new Python `StrEnum`s do **not** exist in the database yet — they
+are created by PR 1.3b's Migration A.
 
 ## Checklist
 
@@ -125,17 +205,44 @@ N/A — text-only UI fix; visual diff is "right border now closes".
 - [x] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
 - [x] No new warnings (or explained in Additional Notes)
+- [x] I have added tests that prove my fix is effective or that my feature works
 - [x] Relevant tests pass locally (or explained in Additional Notes)
 - [x] No security concerns introduced (or flagged for review)
 - [x] No performance regressions expected (or flagged for review)
-- [ ] I have added tests that prove my fix is effective or that my feature works — _N/A: docs + config + cosmetic UI only._
+
+Notes on the checklist:
+
+- "Added tests" — no new tests were added; per the PR 1.3a DoD, the
+  existing 66-test suite is the regression check that the package
+  split didn't break imports. New tests land alongside the table
+  bodies in PR 1.3b.
+- "No security concerns" — bandit reports clean. The single `# nosec
+  B105` on `EmailPurpose.PASSWORD_RESET` suppresses a known
+  false-positive (an enum label, not a credential).
 
 ## Reviewer Focus (Optional)
 
-- ADR 062's two-revision Alembic choreography (Migration A schema-only + additive, Migration B data backfill + tighten) — verify the forward-only, idempotent re-run guarantees match what we want for Railway pre-deploy.
-- ADR 063's decision to keep `'rejected'` in the enum type definition forever (Postgres has no stable `DROP VALUE`) blocked by `CHECK` and rewritten to `'closed'` by Migration B — confirm the deprecation story holds.
-- ADR 064's defaults-sort `priority DESC, pain_level DESC, created_at ASC` — confirm this matches the intended triage UX.
+- **Enum string values.** They must match the `CREATE TYPE` labels
+  PR 1.3b will ship verbatim. Cross-checked against
+  [`v2/schema.md`](../project/spec/v2/schema.md), ADR 060, and
+  ADR 061 — but a second pair of eyes is welcome before this lands,
+  since renaming a member after 1.3b ships is a breaking change.
+- **Stub module docstrings.** Each one points at the ADR / spec it
+  will implement. If a reviewer spots a wrong cross-reference, easier
+  to fix here than after 1.3b adds the table body.
+- **PR ledger split.** The split rationale and totals update in
+  [`docs/project/spec/v2/implementation.md`](../project/spec/v2/implementation.md)
+  — confirm the "Twenty-five PRs total — ten for Phase 1" sentence
+  matches your read of the new structure.
 
 ## Additional Notes
 
-Pre-push repo-doctor warnings dropped from 11 → 1 in the follow-up cleanup commit (the remaining finding is "alembic/versions has no .py revisions yet", which is real and tracked under Phase 1 PR 1.0 work).
+Local verification before push:
+
+- `uv run mypy src/feedback_triage` → `Success: no issues found in
+  26 source files`.
+- `uv run ruff check src/ tests/` + `ruff format --check src/`
+  → clean.
+- `uv run pytest tests/ -q` → 66 passed.
+- `uv run bandit -c pyproject.toml -r src/` → 0 issues.
+- `uv run alembic current` → `0001 (head)`, unchanged.
