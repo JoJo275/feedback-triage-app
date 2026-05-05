@@ -93,6 +93,8 @@ jobs:
         run: uv sync --frozen --extra docs
 
       - name: Build docs (strict)
+        env:
+          NO_MKDOCS_2_WARNING: "true"
         run: uv run mkdocs build --strict
 
       - name: Configure GitHub Pages

@@ -17,8 +17,10 @@
 schemaVersion: "2.0.0"
 
 # -- Metadata checks ---------------------------------------------------------
+# The Containerfile sets no ENTRYPOINT; the default CMD launches uvicorn via
+# ``sh -c``. We assert the runtime user, workdir, and env only — adding an
+# ``entrypoint`` assertion here would just hard-code shell quirks.
 metadataTest:
-  entrypoint: ["spb"]
   user: "app"
   workdir: "/app"
   env:

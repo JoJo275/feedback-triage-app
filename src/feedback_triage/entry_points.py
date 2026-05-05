@@ -14,7 +14,7 @@ sits two levels above this file. Invoking them from a wheel installed
 outside a checkout will exit with a clear error.
 
 Inventory (mirrors the originals in
-``attic/simple_python_boilerplate/entry_points.py``):
+``attic/feedback_triage/entry_points.py``):
 
 ============================  ===================================
 Command                       Function
@@ -40,8 +40,8 @@ Command                       Function
 ``fta-dashboard``             :func:`dashboard`
 ============================  ===================================
 
-The template's core entry points (``spb`` / ``spb-version`` /
-``spb-doctor``) were dropped on fork: they delegated to ``cli.py`` and
+The template's core entry points (``fta`` / ``fta-version`` /
+``fta-doctor``) were dropped on fork: they delegated to ``cli.py`` and
 ``engine.py`` modules that don't exist in ``feedback_triage``. The
 FastAPI app itself is launched via ``uvicorn feedback_triage.main:app``
 or ``task dev``.

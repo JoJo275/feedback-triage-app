@@ -47,9 +47,33 @@ tasks:
     desc: Run the FastAPI app with auto-reload (one-shot CSS build first)
     cmds:
       # One-shot CSS build so the page renders correctly on first hit.
-      # Run `task watch:css` in a second terminal for live rebuilds.
+      # Run `task watch:css` in a second terminal — or use `task dev:all`
+      # to launch the watcher and the API server together.
       - task: build:css
       - uv run fastapi dev src/feedback_triage/main.py
+
+  dev:server:
+    desc: Run only the FastAPI dev server (no CSS build)
+    internal: true
+    cmds:
+      - uv run fastapi dev src/feedback_triage/main.py
+
+  dev:all:
+    desc: Run the API server and the CSS watcher together (one terminal)
+    deps:
+      - build:css
+    cmds:
+      # `deps:` finishes before `cmds:`, so build:css completes first;
+      # then dev:server and watch:css run in parallel via the second
+      # `deps:` block in a wrapper task.
+      - task: dev:parallel
+
+  dev:parallel:
+    desc: Run dev:server + watch:css concurrently (internal)
+    internal: true
+    deps:
+      - dev:server
+      - watch:css
 
   # ── Docker Compose (Postgres) ───────────────────────────────
   up:
@@ -227,11 +251,18 @@ tasks:
   # ── Documentation ──────────────────────────────────────────
   docs:serve:
     desc: Live-reload docs server
+    env:
+      # Suppress upstream Material for MkDocs 2.0 announcement banner so
+      # `mkdocs build --strict` does not see stderr noise. Reassess once
+      # squidfunk/mkdocs-material 10.x or Zensical lands.
+      NO_MKDOCS_2_WARNING: "true"
     cmds:
       - uv run mkdocs serve
 
   docs:build:
     desc: Build docs site (strict mode)
+    env:
+      NO_MKDOCS_2_WARNING: "true"
     cmds:
       - uv run mkdocs build --strict
 

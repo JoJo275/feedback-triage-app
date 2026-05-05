@@ -18,16 +18,16 @@
 This spec lives inside a Python template repository (`simple-python-boilerplate`).
 Only files under `docs/project/` describe the Feedback Triage App;
 everything else in the repo (CI, scripts, dashboard, ADRs,
-`src/simple_python_boilerplate/`) is template scaffolding. The fork
+`src/feedback_triage/`) is template scaffolding. The fork
 will retain most of `scripts/`, `tools/`, and `.github/workflows/` as
-general-purpose dev tooling — only `src/simple_python_boilerplate/`
-and project-name-bound config (e.g. `spb-*` console scripts, the
+general-purpose dev tooling — only `src/feedback_triage/`
+and project-name-bound config (e.g. `fta-*` console scripts, the
 template's own ADRs) are guaranteed to be replaced once the spec is
 finalized.
 
 **Plan of record:** finalize this spec → fork/repurpose the template
 into the `feedback-triage-app` repository → replace
-`src/simple_python_boilerplate/` with `src/feedback_triage/` → refresh
+`src/feedback_triage/` with `src/feedback_triage/` → refresh
 SHA pins on existing workflows and trim only what proves wrong for
 this project after first green run. Until then, do not edit template
 files in this workspace.

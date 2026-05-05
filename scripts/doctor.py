@@ -462,7 +462,7 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
     spinner.update("hooks")
 
     # Editable install check — whether the package is pip-installed
-    # (so that `import simple_python_boilerplate` works)
+    # (so that `import feedback_triage` works)
     info["pip_install"] = _check_editable_install()
     spinner.update("install check")
 

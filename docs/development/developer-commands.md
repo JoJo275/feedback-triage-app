@@ -99,7 +99,7 @@ hatch env show
 pytest
 pytest -v
 pytest tests/unit/test_example.py
-pytest --cov=simple_python_boilerplate --cov-report=term-missing
+pytest --cov=feedback_triage --cov-report=term-missing
 ```
 
 </details>

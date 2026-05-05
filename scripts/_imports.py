@@ -47,10 +47,12 @@ def find_repo_root(start: Path | None = None) -> Path:
     This replaces the brittle ``Path(__file__).resolve().parent.parent``
     pattern that breaks if a script is moved to a different directory depth.
 
-    When run as an installed entry point (e.g. ``spb-git-doctor``), the
-    ``SPB_REPO_ROOT`` environment variable overrides the walk-up search
-    so the script inspects the user's current repo instead of the
-    installed package location.
+    When running from outside the repository (e.g. an installed entry
+    point), the ``FEEDBACK_TRIAGE_REPO_ROOT`` environment variable
+    overrides the walk-up search so the script inspects the user's
+    current repo instead of the installed package location. The legacy
+    ``FEEDBACK_TRIAGE_REPO_ROOT`` name is still honoured for one release for any
+    downstream forks that set it.
 
     Args:
         start: Starting directory.  Defaults to the ``scripts/`` directory
@@ -63,9 +65,12 @@ def find_repo_root(start: Path | None = None) -> Path:
         FileNotFoundError: If no ``pyproject.toml`` is found before the
             filesystem root.
     """
-    # Entry points set SPB_REPO_ROOT to the user's CWD so scripts
-    # discover the correct repo when run from a global install.
-    env_root = os.environ.get("SPB_REPO_ROOT")
+    # Allow callers to point scripts at a specific repo root when running
+    # from a global install or CI runner. Prefer the project-specific
+    # name; fall back to the legacy template name for backwards compat.
+    env_root = os.environ.get("FEEDBACK_TRIAGE_REPO_ROOT") or os.environ.get(
+        "FEEDBACK_TRIAGE_REPO_ROOT"
+    )
     if env_root:
         candidate = Path(env_root).resolve()
         if (candidate / "pyproject.toml").is_file():

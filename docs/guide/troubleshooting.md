@@ -11,7 +11,7 @@ check here before opening an issue.
 
 ## Installation & Setup
 
-### `ModuleNotFoundError: No module named 'simple_python_boilerplate'`
+### `ModuleNotFoundError: No module named 'feedback_triage'`
 
 **Cause:** The package isn't installed. The `src/` layout intentionally
 prevents direct imports without installation.
@@ -353,7 +353,7 @@ bumps, review manually.
 **Cause:** Coverage is measuring the installed package, not your source files.
 
 **Fix:** Make sure `[tool.coverage.run]` in `pyproject.toml` has
-`source = ["simple_python_boilerplate"]` (not `src/simple_python_boilerplate`).
+`source = ["feedback_triage"]` (not `src/feedback_triage`).
 The `--cov` flag should point to the package name, not the file path.
 
 ---
@@ -1228,7 +1228,7 @@ pytest --lf
 
 ```bash
 # Run mypy on a single file
-mypy src/simple_python_boilerplate/engine.py
+mypy src/feedback_triage/engine.py
 
 # Show error codes (useful for ignoring specific errors)
 mypy --show-error-codes src/
@@ -1282,7 +1282,7 @@ pre-commit run mypy --all-files
 pre-commit run ruff
 
 # Run all hooks on a specific file
-pre-commit run --files src/simple_python_boilerplate/engine.py
+pre-commit run --files src/feedback_triage/engine.py
 
 # List all installed hooks
 pre-commit run --all-files --list-hooks
@@ -1373,11 +1373,11 @@ task lint:fix     # Auto-fix lint issues
      repository path after forking. -->
 
 1. Search existing [issues](https://github.com/JoJo275/simple-python-boilerplate/issues) — someone may have hit the same problem
-2. Run the diagnostic tool: `spb-doctor` or `python scripts/doctor.py`
+2. Run the diagnostic tool: `fta-doctor` or `python scripts/doctor.py`
 3. Open a [new issue](https://github.com/JoJo275/simple-python-boilerplate/issues/new) with:
     - What you tried
     - Expected vs. actual behavior
-    - Output of `spb-doctor`
+    - Output of `fta-doctor`
     - Python version and OS
 
 ---

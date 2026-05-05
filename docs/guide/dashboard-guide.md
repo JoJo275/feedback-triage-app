@@ -15,7 +15,7 @@ checks, and more.
 ```bash
 hatch run dashboard:serve        # Start at http://127.0.0.1:8000
 # or, if installed globally:
-spb-dashboard                    # Works from any repo
+fta-dashboard                    # Works from any repo
 ```
 
 Open <http://127.0.0.1:8000> in your browser. Press **Ctrl+C** in the
@@ -498,5 +498,5 @@ python -m tools.dev_tools.env_dashboard.app
   concepts explained (HTTP, frameworks, templates, HTMX, CSS)
 - [ADR 041](../adr/041-env-inspect-web-dashboard.md) — Architecture decision
 - [Blueprint 001](../blueprints/001-env-inspect-web-dashboard.md) — Design document
-- [Entry Points](entry-points.md) — Global CLI commands including `spb-dashboard`
+- [Entry Points](entry-points.md) — Global CLI commands including `fta-dashboard`
 - [Tooling Reference](../tooling.md) — All tools used in this project

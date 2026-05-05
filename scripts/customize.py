@@ -112,7 +112,7 @@ else:
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "1.5.1"
 
 # Theme color for this script's dashboard output.
 THEME = "cyan"
@@ -124,7 +124,9 @@ THEME = "cyan"
 # template clone before running customize.py, update them here so the script can
 # find them.
 TEMPLATE_PROJECT_NAME = "simple-python-boilerplate"  # -> cfg.project_name  (kebab-case repo slug / PyPI name)
-TEMPLATE_PACKAGE_NAME = "simple_python_boilerplate"  # -> cfg.package_name  (Python import name, underscored)
+TEMPLATE_PACKAGE_NAME = (
+    "feedback_triage"  # -> cfg.package_name  (Python import name, underscored)
+)
 TEMPLATE_GITHUB_USER = "JoJo275"  # -> cfg.github_user   (GitHub username or org)
 TEMPLATE_GITHUB_URL_PLACEHOLDER = (
     "YOURNAME/YOURREPO"  # -> <github_user>/<project_name>  (full repo slug)
@@ -133,7 +135,7 @@ TEMPLATE_AUTHOR = "Joseph"  # -> cfg.author        (pyproject.toml authors.name)
 TEMPLATE_DESCRIPTION = (
     "Simple Python boilerplate using src/ layout"  # -> cfg.description
 )
-TEMPLATE_CLI_PREFIX = "spb"  # -> cfg.cli_prefix    (entry-point command prefix)
+TEMPLATE_CLI_PREFIX = "fta"  # -> cfg.cli_prefix    (entry-point command prefix)
 
 # Whether to delete the config markdown file after successfully applying it.
 # Set to True to auto-delete customize-config.md after apply; False to keep it.
@@ -1658,7 +1660,7 @@ def apply_replacements(
 
 
 def rename_package_dir(cfg: Config, *, dry_run: bool = False) -> bool:
-    """Rename ``src/simple_python_boilerplate/`` to the new package name.
+    """Rename ``src/feedback_triage/`` to the new package name.
 
     Also cleans up stale ``.egg-info`` if present.
 
@@ -3414,7 +3416,7 @@ def export_customize_config(filepath: str) -> str:
             f"| **Author** | `{TEMPLATE_AUTHOR}` | Author / maintainer name for pyproject.toml. |",
             f"| **GitHub user** | `{TEMPLATE_GITHUB_USER}` | GitHub username or organization. |",
             f"| **Description** | `{TEMPLATE_DESCRIPTION}` | One-line project description. |",
-            f"| **CLI prefix** | `{TEMPLATE_CLI_PREFIX}` | CLI command prefix for entry points (e.g. `spb-version`). Default: initials of project name. |",
+            f"| **CLI prefix** | `{TEMPLATE_CLI_PREFIX}` | CLI command prefix for entry points (e.g. `fta-version`). Default: initials of project name. |",
             "",
             "---",
             "",

@@ -19,7 +19,7 @@ The `src/` directory is a container that:
 
 ```text
 src/
-└── simple_python_boilerplate/   # ← The actual package
+└── feedback_triage/   # ← The actual package
     ├── __init__.py
     ├── entry_points.py          # All 22 CLI entry points in one place
     ├── main.py                  # Re-exports core entry points (backward compat)
@@ -68,7 +68,7 @@ stays interface-agnostic:
 | Module        | Role                                                                                              |
 | ------------- | ------------------------------------------------------------------------------------------------- |
 | `__init__.py`      | Package root. Exports `__version__` (from `_version.py` with release-please fallback).                      |
-| `entry_points.py`  | **All 22 CLI entry points** — the single file to read for `spb-*` commands. See `ENTRY_POINTS.md`.          |
+| `entry_points.py`  | **All 22 CLI entry points** — the single file to read for `fta-*` commands. See `ENTRY_POINTS.md`.          |
 | `main.py`          | Re-exports 4 core entry points from `entry_points.py` for backward compatibility.                           |
 | `scripts_cli.py`   | Re-exports 18 script entry points from `entry_points.py` for backward compatibility.                        |
 | `cli.py`           | CLI contract: `argparse` parser, subcommands, flags. Calls `engine` for actual work.                        |
@@ -94,7 +94,7 @@ hatch shell
 pip install -e .
 
 # Then import normally
-python -c "from simple_python_boilerplate import main"
+python -c "from feedback_triage import main"
 ```
 
 ## Learn More

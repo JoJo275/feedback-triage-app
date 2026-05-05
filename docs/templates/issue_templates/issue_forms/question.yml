@@ -147,7 +147,7 @@ body:
       description: >
         If relevant, provide a code snippet showing what you're working with.
       placeholder: |
-        from simple_python_boilerplate import something
+        from feedback_triage import something
 
         # Your code here
         something.do_thing()

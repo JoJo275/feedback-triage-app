@@ -50,7 +50,7 @@ ExitCode = _ui.ExitCode
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.2.1"
 THEME = "cyan"
 
 # Pinned Tailwind Standalone CLI release. Refresh quarterly or when a
@@ -62,19 +62,31 @@ TAILWIND_RELEASE_BASE = (
 )
 
 # Pinned SHA256 digests for the Tailwind v3.4.13 platform assets.
-# An empty string means "not yet verified on this platform" — downloads
-# fail closed unless ``--allow-unverified-download`` is passed (which is
-# never set in CI). Refresh every entry in the same commit that bumps
-# TAILWIND_VERSION.
+# All six entries were captured from
+# https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.13/...
+# on 2026-05-05. Refresh every entry in the same commit that bumps
+# TAILWIND_VERSION. An empty string disables verification for that
+# asset only and the script will refuse to use the binary unless
+# ``--allow-unverified-download`` is passed (never used in CI).
 _PLATFORM_SHA256: dict[str, str] = {
     "tailwindcss-windows-x64.exe": (
         "76d7a37764c172bd25f9eb2b76d46099cca642f84c8dda10891a536018ab1511"
     ),
-    "tailwindcss-windows-arm64.exe": "",
-    "tailwindcss-linux-x64": "",
-    "tailwindcss-linux-arm64": "",
-    "tailwindcss-macos-x64": "",
-    "tailwindcss-macos-arm64": "",
+    "tailwindcss-windows-arm64.exe": (
+        "a6fbf64a92ca03b6a60488c8fb887e54b7b8199bcdd4890064d82498028470ab"
+    ),
+    "tailwindcss-linux-x64": (
+        "c91ccc8642f79d7db5538e8d686a4dc18e00a93180f5377208a9a93c7efb9b6a"
+    ),
+    "tailwindcss-linux-arm64": (
+        "d878afd75b6a792945c7f234543f0c389b7e026001e72505aa7cb76d3e1e47ec"
+    ),
+    "tailwindcss-macos-x64": (
+        "3c4423494d8204b37455cb77b1b85ef5c6c42413f58e1516a4bf7528531c067d"
+    ),
+    "tailwindcss-macos-arm64": (
+        "327703a4646081906e11d116ff4e8e43076466c3d269282bbe612555b9fe0c58"
+    ),
 }
 
 # Platform → asset-name suffix (matches Tailwind's release naming).

@@ -168,7 +168,7 @@ Search your project for these placeholders and replace them with your values:
 | Placeholder                 | Replace with                         | Key files                                                                                     |
 | :-------------------------- | :----------------------------------- | :-------------------------------------------------------------------------------------------- |
 | `simple-python-boilerplate` | Your project name (kebab-case)       | [README.md](../README.md), [pyproject.toml](../pyproject.toml), [SECURITY.md](../SECURITY.md) |
-| `simple_python_boilerplate` | Your package name (snake_case)       | [src/](../src/), [pyproject.toml](../pyproject.toml)                                          |
+| `feedback_triage` | Your package name (snake_case)       | [src/](../src/), [pyproject.toml](../pyproject.toml)                                          |
 | `JoJo275`                   | Your GitHub username/org             | [SECURITY.md](../SECURITY.md), issue templates                                                |
 | `YOURNAME/YOURREPO`         | Your `owner/repo` slug               | [.github/workflows/](../.github/workflows/), [README.md](../README.md)                        |
 | `security@example.com`      | Your security contact email          | [SECURITY.md](../SECURITY.md)                                                                 |
@@ -212,7 +212,7 @@ Search your project for these placeholders and replace them with your values:
 | [.gitattributes](../.gitattributes)                                   | Binary/text overrides for project-specific file types            |
 | [.gitmessage.txt](../.gitmessage.txt)                                 | Commit template path if renamed or moved                         |
 | [release-please-config.json](../release-please-config.json)           | Package name and extra-files path                                |
-| [src/.../scripts\_cli.py](../src/simple_python_boilerplate/scripts_cli.py) | Entry point wrappers — update script list after adding/removing scripts |
+| [src/.../scripts\_cli.py](../src/feedback_triage/scripts_cli.py) | Entry point wrappers — update script list after adding/removing scripts |
 
 ---
 
@@ -325,10 +325,10 @@ check items off as you go.
 
 ### Source Code
 
-- [ ] Rename `src/simple_python_boilerplate/` to your package name
+- [ ] Rename `src/feedback_triage/` to your package name
 - [ ] Update imports in test files to match new package name
 - [ ] Update `[project.scripts]` entry points in [pyproject.toml](../pyproject.toml)
-- [ ] Update [scripts\_cli.py](../src/simple_python_boilerplate/scripts_cli.py) — rename module paths and bundled-script references
+- [ ] Update [scripts\_cli.py](../src/feedback_triage/scripts_cli.py) — rename module paths and bundled-script references
 - [ ] Replace placeholder code in [src/](../src/) and [tests/](../tests/)
 
 ### Containers (if keeping)
@@ -570,19 +570,19 @@ See [workflows.md](workflows.md#local-health-scripts) for the full list.
 
 ---
 
-## CLI Entry Points (`spb-*` Commands)
+## CLI Entry Points (`fta-*` Commands)
 
 This template ships **21 global CLI commands** defined in
 [`pyproject.toml`](../pyproject.toml) under `[project.scripts]`. These are
 thin wrappers (in
-[`scripts_cli.py`](../src/simple_python_boilerplate/scripts_cli.py)) that
+[`scripts_cli.py`](../src/feedback_triage/scripts_cli.py)) that
 run the bundled scripts via subprocess — so each command inspects whichever
 repo your terminal is currently in, not the repo the package was installed from.
 
 ### Do I Need to Install Anything?
 
 **If you already cloned the repo and ran `hatch shell`** (or
-`pip install -e .`), all `spb-*` commands are already available in that
+`pip install -e .`), all `fta-*` commands are already available in that
 environment. No extra steps needed.
 
 **If you want the commands available globally** (outside Hatch, in any
@@ -597,7 +597,7 @@ pipx install /path/to/simple-python-boilerplate
 pipx install git+https://github.com/JoJo275/simple-python-boilerplate.git
 ```
 
-After `pipx install`, the `spb-*` commands are on your `PATH` system-wide.
+After `pipx install`, the `fta-*` commands are on your `PATH` system-wide.
 
 > **Why pipx?** `pipx` installs Python CLI tools in isolated environments so
 > they don't pollute your system Python. It's the recommended way to install
@@ -607,30 +607,30 @@ After `pipx install`, the `spb-*` commands are on your `PATH` system-wide.
 
 | Command | Purpose | Equivalent script |
 | :------ | :------ | :---------------- |
-| `spb` | Main CLI command | — |
-| `spb-version` | Print version info | — |
-| `spb-start` | Start the application | — |
-| `spb-doctor` | Diagnose environment issues | — |
-| `spb-diag` | Full diagnostics bundle for bug reports | `python scripts/doctor.py` |
-| `spb-git-doctor` | Git health dashboard and branch ops | `python scripts/git_doctor.py` |
-| `spb-env-doctor` | Environment health check | `python scripts/env_doctor.py` |
-| `spb-repo-doctor` | Repository structure health checks | `python scripts/repo_doctor.py` |
-| `spb-env-inspect` | Environment, packages, PATH inspection | `python scripts/env_inspect.py` |
-| `spb-repo-stats` | Repository statistics dashboard | `python scripts/repo_sauron.py` |
-| `spb-clean` | Remove build artifacts and caches | `python scripts/clean.py` |
-| `spb-bootstrap` | One-command setup for fresh clones | `python scripts/bootstrap.py` |
-| `spb-dep-versions` | Show/update dependency versions | `python scripts/dep_versions.py` |
-| `spb-workflow-versions` | Show/update SHA-pinned action versions | `python scripts/workflow_versions.py` |
-| `spb-check-todos` | Scan for template TODO comments | `python scripts/check_todos.py` |
-| `spb-check-python` | Verify Python version consistency | `python scripts/check_python_support.py` |
-| `spb-changelog-check` | Verify CHANGELOG matches git tags | `python scripts/changelog_check.py` |
-| `spb-apply-labels` | Apply GitHub labels from JSON definitions | `python scripts/apply_labels.py` |
-| `spb-archive-todos` | Archive completed TODOs | `python scripts/archive_todos.py` |
-| `spb-customize` | Interactive project customization | `python scripts/customize.py` |
-| `spb-check-issues` | Flag stale entries in known-issues.md | `python scripts/check_known_issues.py` |
-| `spb-dashboard` | Start the environment inspection dashboard | `hatch run dashboard:serve` |
+| `fta` | Main CLI command | — |
+| `fta-version` | Print version info | — |
+| `fta-start` | Start the application | — |
+| `fta-doctor` | Diagnose environment issues | — |
+| `fta-diag` | Full diagnostics bundle for bug reports | `python scripts/doctor.py` |
+| `fta-git-doctor` | Git health dashboard and branch ops | `python scripts/git_doctor.py` |
+| `fta-env-doctor` | Environment health check | `python scripts/env_doctor.py` |
+| `fta-repo-doctor` | Repository structure health checks | `python scripts/repo_doctor.py` |
+| `fta-env-inspect` | Environment, packages, PATH inspection | `python scripts/env_inspect.py` |
+| `fta-repo-stats` | Repository statistics dashboard | `python scripts/repo_sauron.py` |
+| `fta-clean` | Remove build artifacts and caches | `python scripts/clean.py` |
+| `fta-bootstrap` | One-command setup for fresh clones | `python scripts/bootstrap.py` |
+| `fta-dep-versions` | Show/update dependency versions | `python scripts/dep_versions.py` |
+| `fta-workflow-versions` | Show/update SHA-pinned action versions | `python scripts/workflow_versions.py` |
+| `fta-check-todos` | Scan for template TODO comments | `python scripts/check_todos.py` |
+| `fta-check-python` | Verify Python version consistency | `python scripts/check_python_support.py` |
+| `fta-changelog-check` | Verify CHANGELOG matches git tags | `python scripts/changelog_check.py` |
+| `fta-apply-labels` | Apply GitHub labels from JSON definitions | `python scripts/apply_labels.py` |
+| `fta-archive-todos` | Archive completed TODOs | `python scripts/archive_todos.py` |
+| `fta-customize` | Interactive project customization | `python scripts/customize.py` |
+| `fta-check-issues` | Flag stale entries in known-issues.md | `python scripts/check_known_issues.py` |
+| `fta-dashboard` | Start the environment inspection dashboard | `hatch run dashboard:serve` |
 
-All arguments are forwarded: `spb-git-doctor --json` works the same as
+All arguments are forwarded: `fta-git-doctor --json` works the same as
 `python scripts/git_doctor.py --json`.
 
 ### How It Works
@@ -640,10 +640,10 @@ creates executable wrappers on your `PATH` for each entry in
 `[project.scripts]`. Each wrapper:
 
 1. Locates the bundled script inside the installed package
-2. Sets `SPB_REPO_ROOT` to your current working directory
+2. Sets `FEEDBACK_TRIAGE_REPO_ROOT` to your current working directory
 3. Runs the script as a subprocess with `cwd` set to your current directory
 
-This means `spb-git-doctor` run from `~/projects/my-app/` inspects
+This means `fta-git-doctor` run from `~/projects/my-app/` inspects
 `my-app` — not the template repo where the package was built.
 
 ### After Forking: Rename the Prefix
@@ -653,8 +653,8 @@ This means `spb-git-doctor` run from `~/projects/my-app/` inspects
 
 After running `scripts/customize.py` to rename the package, update the
 `[project.scripts]` section in [`pyproject.toml`](../pyproject.toml) to
-replace the `spb-` prefix with your project's prefix (e.g., `myapp-doctor`).
-Then update [`scripts_cli.py`](../src/simple_python_boilerplate/scripts_cli.py)
+replace the `fta-` prefix with your project's prefix (e.g., `myapp-doctor`).
+Then update [`scripts_cli.py`](../src/feedback_triage/scripts_cli.py)
 to match.
 
 For the full entry points guide (architecture diagram, adding new commands,
@@ -692,7 +692,7 @@ compilers, no source code, no build dependencies.
 - Read-only filesystem compatible
 - `PYTHONDONTWRITEBYTECODE=1` and `PYTHONUNBUFFERED=1` set
 - OCI metadata labels for tooling compatibility
-- Entrypoint is the `spb` CLI command (your package's console_scripts entry point)
+- Entrypoint is the `fta` CLI command (your package's console_scripts entry point)
 
 **Setup:**
 
@@ -983,7 +983,7 @@ If your app is a CLI tool (default template):
 
 ```bash
 # Run a command inside the container
-docker compose exec app spb --version
+docker compose exec app fta --version
 
 # Or run and check exit code
 docker compose run --rm app --help
