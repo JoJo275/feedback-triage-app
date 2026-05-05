@@ -1,0 +1,27 @@
+/* base.css — charter: element-level rules only. No class selectors.
+   See docs/project/spec/v2/css.md. */
+
+html {
+    color-scheme: light dark;
+}
+
+body {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

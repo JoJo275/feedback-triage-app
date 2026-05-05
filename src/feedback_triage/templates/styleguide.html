@@ -1,0 +1,26 @@
+{% extends "_base.html" %} {% block title %}Style guide — Feedback Triage{%
+endblock %} {% block body %}
+<main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+        <header>
+            <h1>Style guide</h1>
+            <p class="text-ink-muted">
+                v2.0 design-system stub. Components and theme presets land in
+                later PRs (see
+                <code>docs/project/spec/v2/implementation.md</code>).
+            </p>
+        </header>
+        <section aria-label="Token sanity check" class="sn-card">
+            <div class="sn-card-header">
+                <h2>Token sanity check</h2>
+            </div>
+            <div class="sn-card-body">
+                <p>
+                    If the page background is the slate-50 token and this card
+                    has a soft shadow, the Tailwind pipeline is wired correctly.
+                </p>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

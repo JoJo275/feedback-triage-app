@@ -1,0 +1,13 @@
+/* input.css — charter: only @tailwind directives + @import statements.
+   No rules, no tokens, no @apply. See docs/project/spec/v2/css.md. */
+
+@tailwind base;
+@import "./tokens.css";
+@import "./base.css";
+
+@tailwind components;
+@import "./layout.css";
+@import "./components.css";
+
+@tailwind utilities;
+@import "./effects.css";

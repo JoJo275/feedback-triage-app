@@ -14,6 +14,9 @@ __pycache__/
 # Auto-generated version file (hatch-vcs)
 src/feedback_triage/_version.py
 
+# Tailwind Standalone CLI binary cache (see ADR 058, css.md)
+.tools/
+
 # Common build output directories
 build/
 dist/
