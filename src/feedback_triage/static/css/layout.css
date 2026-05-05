@@ -1,0 +1,36 @@
+/* layout.css — charter: structural primitives. No decorative styling.
+   @apply is legal here and in components.css only.
+   See docs/project/spec/v2/css.md. */
+
+.sn-page-shell {
+    @apply min-h-screen bg-bg text-ink flex flex-col;
+}
+
+.sn-dashboard-grid {
+    display: grid;
+    grid-template-columns: 16rem 1fr;
+    min-height: 100vh;
+}
+
+.sn-content-gutter {
+    @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.sn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sn-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sn-grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+}

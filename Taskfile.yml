@@ -44,8 +44,11 @@ tasks:
 
   # ── Local app server ────────────────────────────────────────
   dev:
-    desc: Run the FastAPI app with auto-reload
+    desc: Run the FastAPI app with auto-reload (one-shot CSS build first)
     cmds:
+      # One-shot CSS build so the page renders correctly on first hit.
+      # Run `task watch:css` in a second terminal for live rebuilds.
+      - task: build:css
       - uv run fastapi dev src/feedback_triage/main.py
 
   # ── Docker Compose (Postgres) ───────────────────────────────
@@ -119,6 +122,25 @@ tasks:
     cmds:
       - uv run pytest -m e2e {{.CLI_ARGS}}
 
+  # ── Frontend (Tailwind via Standalone CLI) ─────────────────
+  # See docs/project/spec/v2/css.md and ADR 058. Output is the
+  # hashed app.<hash>.css plus manifest.json under
+  # src/feedback_triage/static/css/. Both are gitignored.
+  setup:css:
+    desc: Download the Tailwind Standalone CLI binary into .tools/
+    cmds:
+      - uv run python scripts/build_css.py --setup
+
+  build:css:
+    desc: Build the Tailwind CSS bundle (one-shot, minified, hashed)
+    cmds:
+      - uv run python scripts/build_css.py
+
+  watch:css:
+    desc: Watch CSS sources and templates; rebuild on change
+    cmds:
+      - uv run python scripts/build_css.py --watch
+
   # ── Linting & Formatting ───────────────────────────────────
   lint:
     desc: Lint (ruff check)
@@ -159,8 +181,8 @@ tasks:
 
   # ── Quality Gate (CI mirror) ───────────────────────────────
   check:
-    desc: Run lint + fmt:check + typecheck + test
-    deps: [lint, fmt:check, typecheck, test]
+    desc: Run lint + fmt:check + typecheck + test (incl. CSS build)
+    deps: [build:css, lint, fmt:check, typecheck, test]
 
   # ── Build ──────────────────────────────────────────────────
   build:

@@ -1,0 +1,28 @@
+/* effects.css — charter: decorative-only. Removable for print or low-motion.
+   No structural rules; no a11y-required rules.
+   See docs/project/spec/v2/css.md. */
+
+.sn-card {
+    transition: box-shadow var(--motion-base) var(--easing-standard);
+}
+
+.sn-button {
+    transition:
+        background-color var(--motion-fast) var(--easing-standard),
+        color var(--motion-fast) var(--easing-standard);
+}
+
+@keyframes sn-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sn-toast {
+    animation: sn-fade-in var(--motion-base) var(--easing-standard);
+}

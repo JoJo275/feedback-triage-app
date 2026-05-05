@@ -41,6 +41,25 @@ def test_static_css_is_served(client: TestClient) -> None:
     assert response.headers["content-type"].startswith("text/css")
 
 
+def test_styleguide_page_renders(client: TestClient) -> None:
+    """v2.0 styleguide stub: confirms Jinja + Tailwind link wiring.
+
+    The actual hashed app.<hash>.css comes from `task build:css`. When
+    the manifest is missing (clean clone before first build), the
+    fallback resolves to ``/static/css/app.css`` — both forms count
+    as "wiring works" for this smoke.
+    """
+    response = client.get("/styleguide")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    body = response.text
+    assert "<title>Style guide" in body
+    # Either the hashed (post-build) or unhashed (pre-build) link.
+    assert "/static/css/app." in body
+    # Skip-link present per accessibility floor.
+    assert 'class="sn-skip-link"' in body
+
+
 def test_static_js_modules_are_served(client: TestClient) -> None:
     for path in (
         "/static/js/api.js",

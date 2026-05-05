@@ -4,13 +4,19 @@
 # OCI-compatible (Docker, Podman, BuildKit).
 # ──────────────────────────────────────────────────────────────
 # Multi-stage:
-#   Stage 1 (builder) — uses `uv build` (which calls hatchling) to produce
-#                        the project wheel. uv itself is copied in from the
-#                        official Astral image, pinned by digest.
-#   Stage 2 (runtime) — slim Python image. Installs only the wheel via
+#   Stage 1 (builder-frontend) — runs scripts/build_css.py, which
+#                        downloads the Tailwind Standalone CLI binary
+#                        and emits the hashed app.<hash>.css plus
+#                        manifest.json into src/feedback_triage/static/css/.
+#   Stage 2 (builder)  — uses `uv build` (which calls hatchling) to produce
+#                        the project wheel. Source tree includes the CSS
+#                        artifacts copied in from stage 1 so the wheel
+#                        ships them.
+#   Stage 3 (runtime)  — slim Python image. Installs only the wheel via
 #                        `uv pip install --system --no-cache`, then drops
 #                        privileges. No source tree, no build tools, no
-#                        .git in the final image.
+#                        .git in the final image. The Tailwind binary is
+#                        not in the runtime image.
 #
 # Refresh base/uv digests with Dependabot's `docker` ecosystem block.
 # ──────────────────────────────────────────────────────────────
@@ -26,7 +32,31 @@ ARG PYTHON_BASE=python:3.13-slim@sha256:a0779d7c12fc20be6ec6b4ddc901a4fd7657b8a6
 #   docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/astral-sh/uv:latest
 ARG UV_IMAGE=ghcr.io/astral-sh/uv@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347
 
-# ── Stage 1: Build ────────────────────────────────────────────
+# ── Stage 1: Frontend (Tailwind CSS) ──────────────────────────
+FROM ${PYTHON_BASE} AS builder-frontend
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Download CA certs are already in slim; ca-certificates is enough for
+# the GitHub release fetch performed by scripts/build_css.py.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build-fe
+
+# Only the inputs the CSS build needs.
+COPY tailwind.config.cjs ./
+COPY scripts/_imports.py scripts/build_css.py scripts/
+COPY src/feedback_triage/static/css/ src/feedback_triage/static/css/
+COPY src/feedback_triage/templates/ src/feedback_triage/templates/
+
+# Build CSS. The script downloads the Tailwind binary into .tools/ and
+# writes app.<hash>.css + manifest.json into the css/ source dir.
+RUN python scripts/build_css.py
+
+# ── Stage 2: Build wheel ──────────────────────────────────────
 FROM ${PYTHON_BASE} AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -48,6 +78,11 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION} \
 # layer-cache independently.
 COPY pyproject.toml README.md LICENSE ./
 COPY src/ src/
+
+# Overlay the hashed CSS + manifest produced by builder-frontend.
+COPY --from=builder-frontend \
+    /build-fe/src/feedback_triage/static/css/ \
+    src/feedback_triage/static/css/
 
 RUN uv build --wheel --out-dir /build/dist
 

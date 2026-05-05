@@ -1,0 +1,99 @@
+/* components.css — charter: .sn-<component> rules + their states.
+   @apply is legal here and in layout.css only.
+   See docs/project/spec/v2/css.md. */
+
+/* ---- Card ---- */
+.sn-card {
+    @apply bg-surface border border-line rounded-2xl shadow-sm p-4;
+}
+.sn-card-header {
+    @apply flex items-center justify-between mb-3;
+}
+.sn-card-body {
+    @apply space-y-2;
+}
+.sn-card-footer {
+    @apply mt-3 flex items-center justify-end gap-2;
+}
+
+/* ---- Button ---- */
+.sn-button {
+    @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium;
+}
+.sn-button-primary {
+    @apply bg-brand text-white hover:bg-brand-hover;
+}
+.sn-button-secondary {
+    @apply bg-surface border border-line text-ink hover:bg-surface-alt;
+}
+.sn-button-ghost {
+    @apply bg-transparent text-ink hover:bg-surface-alt;
+}
+.sn-button-danger {
+    @apply bg-danger text-white hover:opacity-90;
+}
+.sn-button:disabled,
+.sn-button.is-disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+.sn-button.is-loading {
+    @apply cursor-progress;
+}
+
+/* ---- Pills ---- */
+.sn-pill-status {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+}
+.sn-pill-priority {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold;
+}
+
+/* ---- Form fields ---- */
+.sn-form-field {
+    @apply block;
+}
+.sn-form-field-label {
+    @apply block text-sm font-medium text-ink mb-1;
+}
+.sn-form-field-input {
+    @apply block w-full rounded-xl border border-line;
+}
+.sn-form-field-help {
+    @apply mt-1 text-xs text-ink-muted;
+}
+.sn-form-field.has-error .sn-form-field-input {
+    @apply border-danger;
+}
+.sn-form-field.has-error .sn-form-field-help {
+    @apply text-danger;
+}
+
+/* ---- Feedback row ---- */
+.sn-feedback-item {
+    @apply sn-card cursor-pointer hover:shadow-md;
+}
+
+/* ---- Modal ---- */
+.sn-modal {
+    @apply rounded-2xl bg-surface text-ink shadow-md p-6 max-w-lg w-full;
+}
+.sn-modal::backdrop {
+    background: rgb(0 0 0 / 0.4);
+}
+
+/* ---- Empty state ---- */
+.sn-empty-state {
+    @apply flex flex-col items-center text-center py-12 gap-3 text-ink-muted;
+}
+
+/* ---- Toast ---- */
+.sn-toast {
+    @apply fixed bottom-4 right-4 rounded-xl bg-slate-900 text-white px-4 py-2 z-50;
+}
+
+/* ---- Skip-link ---- */
+.sn-skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute
+         focus:top-2 focus:left-2 focus:bg-surface
+         focus:text-ink focus:rounded focus:px-3 focus:py-2;
+}

@@ -8,14 +8,20 @@ JSON API contract under ``/api/v1/``.
 The HTML files live in ``feedback_triage/static/`` and are also mounted
 at ``/static`` for their CSS/JS asset siblings — see
 :func:`feedback_triage.main.create_app`.
+
+The v2.0 ``/styleguide`` route is the first Jinja-rendered page in the
+project ([ADR 056](../../../docs/adr/056-style-guide-page.md)). It
+links to the hashed Tailwind bundle produced by ``task build:css``.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse, HTMLResponse
+
+from feedback_triage.templating import templates
 
 STATIC_DIR: Path = Path(__file__).resolve().parent.parent / "static"
 
@@ -48,3 +54,14 @@ def detail_page(item_id: int) -> FileResponse:
     """
     del item_id  # Page-level routing only; rendering happens client-side.
     return _page("detail.html")
+
+
+@router.get("/styleguide", summary="Design-system style guide")
+def styleguide_page(request: Request) -> HTMLResponse:
+    """Serve the v2.0 styleguide stub.
+
+    Empty shell at this point — components arrive in later PRs.
+    Confirms the Tailwind pipeline (input.css → app.<hash>.css)
+    and the Jinja base template are wired end-to-end.
+    """
+    return templates.TemplateResponse(request, "styleguide.html")

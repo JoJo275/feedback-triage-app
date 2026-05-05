@@ -1,10 +1,10 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Branch: wip/2026-05-01-scratch -->
+<!-- Branch: wip/2026-05-05 -->
 <!--
   Suggested PR title (conventional commit format — type: description):
 
-    docs(spec): scaffold and ratify v2.0 spec, ADR 061, Phase 0 close, and 24-PR implementation plan
+    feat(css): tailwind plumbing + four-file architecture + /styleguide stub
 
   Available prefixes:
     feat:     — new feature or capability
@@ -20,7 +20,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels: documentation, spec, adr -->
+<!-- Suggested labels: feat, css, frontend, v2.0, phase-1 -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -38,108 +38,117 @@
 
 ## Description
 
-Scaffolds the entire v2.0 spec ("SignalNest"), ratifies it, ratifies
-ADR 061 (Resend + fail-soft email), closes Phase 0, and slices the
-remainder of v2.0 work into 24 PR-sized deliverables.
-**Documentation only** — no production code, no schema, no
-dependencies touched.
+PR 1.1 of v2.0 Phase 1 (Alpha). Stands up the Tailwind CSS pipeline,
+the four-file CSS architecture from `docs/project/spec/v2/css.md`,
+the first Jinja-rendered page, and the `/styleguide` stub. No DB,
+no auth, no API changes — pure frontend plumbing so every later
+PR has a stylesheet to link to.
 
 **What changes you made:**
 
-- **Project rename:** Feedback Triage → SignalNest (docs surface
-  only; package name unchanged).
-- **v2.0 spec scaffolded** under `docs/project/spec/v2/`:
-  `core-idea.md`, `schema.md`, `api.md`, `pages.md`, `security.md`,
-  `multi-tenancy.md`, `rollout.md`, `tooling.md`, `css.md`,
-  `copy-style-guide.md`, `observability.md`,
-  `performance-budgets.md`, `railway-optimization.md`,
-  `pages-catalog.md`, `repo-structure.md`, `risk-register.md`,
-  `adrs.md`, `implementation.md`.
-- **`spec-v2.md` ratified** (Status: Ratified 2026-05-04).
-- **ADR 061 (Resend email, fail-soft)** added and Accepted, with
-  full `email_log` DDL, outcome→status table, and `RESEND_DRY_RUN=1`
-  test strategy.
-- **Phase 0 closed** in `implementation.md` (all pre-flight items
-  ticked).
-- **CSS architecture** moved to the four-file structure
-  (`tokens → base → layout → components → effects`, glued by
-  `app.css`); `frontend-conventions.md` and `css-learning.md`
-  updated to match, including a new "How CSS is installed in a
-  repo" section.
-- **`railway-optimization.md`** synced to actual Hobby posture: $5
-  credit ceiling, sleep ON, `--workers 2`, 5 GB Postgres volume,
-  `pool_size=5` per worker, with cold-start risks documented.
-- **`performance-budgets.md`** gained a `cold_start=true` access-log
-  carve-out so cold requests do not poison the P95 rollup.
-- **`implementation.md`** rewritten with a top-level **PR ledger**
-  of 24 conventional-commit-titled PRs (Phase 1: 9, Phase 2: 6,
-  Phase 3: 5, Phase 4: 4). Each PR has Touches /
-  Deliverables-it-closes / DoD; Migrations A and B are isolated
-  PRs; spec-ratification (PR 3.5) lands last in Phase 3.
-- **`mkdocs.yml`** + **`docs/adr/README.md`** index updated to
-  surface ADRs 045–061.
+- Added `tailwind.config.cjs` (tokens-via-CSS-vars palette,
+  `darkMode: 'selector'`, content globs that cover templates,
+  static HTML, JS, and route Python).
+- Added the four-file CSS architecture under
+  `src/feedback_triage/static/css/` (`tokens.css`, `base.css`,
+  `layout.css`, `components.css`, `effects.css`) plus the
+  thin `input.css` orchestrator.
+- Added `scripts/build_css.py` — cross-platform wrapper around
+  the Tailwind Standalone CLI. On first run it downloads the
+  pinned binary (`v3.4.13`) into `.tools/`, **verifies SHA256**
+  against the in-script pin, builds, hashes the output to
+  `app.<hash>.css`, and writes `manifest.json` for cache-busting.
+  Honors `TAILWINDCSS_BIN` env var so CI can pre-stage the
+  binary.
+- Added `task setup:css` / `task build:css` / `task watch:css`.
+  `task check` now depends on `build:css` so a clean clone
+  produces the bundle as part of the gate. `task dev` runs a
+  one-shot CSS build before starting the API server.
+- Added `src/feedback_triage/templating.py` — single
+  `Jinja2Templates` instance plus a `static_url` helper that
+  reads `manifest.json` and falls back to the unhashed filename
+  when the manifest is missing (so the page still renders before
+  someone runs `task build:css`).
+- Added `src/feedback_triage/templates/_base.html` (the project's
+  first Jinja base template) and `templates/styleguide.html`
+  (empty shell, populated as components arrive in later PRs).
+- Added `GET /styleguide` to `src/feedback_triage/routes/pages.py`.
+- New `builder-frontend` stage in the `Containerfile`: downloads
+  Tailwind, builds CSS, and overlays the hashed bundle into the
+  wheel-build stage. The runtime image is unchanged — no Tailwind
+  binary in production.
+- `.gitignore` ignores `.tools/`. `static/css/.gitignore` ignores
+  `app.css`, `app.*.css`, and `manifest.json` (all generated).
+- New smoke test `test_styleguide_page_renders` confirms the
+  `/styleguide` route returns 200, links the hashed CSS, and
+  includes the `sn-skip-link`.
 
 **Why you made them:**
 
-v2.0 was sitting as scattered drafts with no agreed ratification
-path. This PR moves the v2.0 spec from "draft scratch" to "ratified
-plan with PR-sized work units" so subsequent code PRs can each cite
-a single PR slice from `implementation.md` and a single deliverable
-checkbox. It also unblocks the first code PR (PR 1.1 — Tailwind
-plumbing + `/styleguide` stub) by locking ADR 061's email contract
-and the Railway cost ceiling that Phase 1 budget decisions depend
-on.
+`docs/project/spec/v2/css.md` is the authoritative answer for
+*"how does CSS work in v2.0?"* — but until this PR there was no
+plumbing to back any of it up. This PR is the smallest possible
+slice that makes every claim in `css.md` testable: the build
+pipeline exists, the file split exists, the dark-mode token
+override is wired, the styleguide route returns 200. Later PRs
+populate the styleguide and migrate the v1 pages onto the new
+shell.
+
+ADR 058 (Tailwind via Standalone CLI) and ADR 056 (style guide
+page) prescribe this approach.
 
 ## Related Issue
 
-N/A — spec scaffolding work; not tracked by an issue. The 24-PR
-ledger in `docs/project/spec/v2/implementation.md` replaces the
-need for a tracker issue per phase.
+N/A — implementation of `docs/project/spec/v2/implementation.md`
+PR 1.1.
 
 ## Type of Change
 
+- [x] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
-- [ ] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [x] 📚 Documentation update
+- [ ] 📚 Documentation update
 - [ ] 🔧 Refactor (no functional changes)
 - [ ] 🧪 Test update
 
 ## How to Test
 
-This PR contains no executable code changes. Reviewers verify by
-reading and by building the docs site.
-
 **Steps:**
 
-1. Skim `docs/project/spec/spec-v2.md` — confirm Status row reads
-   `Ratified (2026-05-04)`.
-2. Open `docs/project/spec/v2/implementation.md` — confirm the
-   **PR ledger** lists 24 rows (1.1–4.4) and Phase 0 is fully
-   checked off.
-3. Open `docs/adr/061-resend-email-fail-soft.md` — confirm Status
-   is **Accepted (2026-05-04)** and the `email_log` DDL block is
-   present.
-4. Build the docs site and confirm no broken links and that ADRs
-   045–061 appear in the nav.
+1. From a clean clone (or after deleting `.tools/` and
+   `src/feedback_triage/static/css/app.*.css`):
+   ```powershell
+   uv sync
+   task build:css
+   ```
+   Expect: `Downloading Tailwind v3.4.13 …`, then
+   `SHA256 verified: …`, then `Wrote app.<hash>.css and manifest.json`.
+2. Run the gate:
+   ```powershell
+   task check
+   ```
+   Expect: 56 tests pass, mypy + ruff clean, CSS rebuilt as part of
+   the gate.
+3. Boot the app and visit `/styleguide`:
+   ```powershell
+   task dev
+   ```
+   Expect: 200, page background is the slate-50 token, the
+   "Token sanity check" card has a soft shadow.
 
 **Test command(s):**
 
 ```bash
-# Docs build (must be clean — no broken links, no missing nav entries)
-uv run mkdocs build --strict
-
-# Markdown / typo check (best-effort; not the CI gate)
-uv run pre-commit run typos --all-files
-
-# No code changes, but confirm the existing test suite still parses
-uv run pytest --collect-only -q
+task check
+uv run pytest tests/test_pages.py -v
+uv run python scripts/build_css.py --smoke
 ```
 
 **Screenshots / Demo (if applicable):**
 
-N/A — pure documentation diff. Reviewers can preview rendered
-output locally with `uv run mkdocs serve`.
+`/styleguide` is intentionally empty in this PR (component rows
+land in later PRs). The single visible card is the wiring
+sanity-check.
 
 ## Risk / Impact
 
@@ -147,42 +156,34 @@ output locally with `uv run mkdocs serve`.
 
 **What could break:**
 
-- **Broken cross-references** if a moved/renamed file is linked
-  from outside `docs/project/spec/v2/`. Mitigated by
-  `mkdocs build --strict` and lychee in CI.
-- **Stale guidance** if `.github/copilot-instructions.md` still
-  points reviewers at v1.0 in places where v2.0 is now
-  authoritative. Note: this PR does **not** flip
-  copilot-instructions to v2.0-authoritative — that flip is
-  deliberately deferred to PR 3.5 alongside the `v2.0.0` git tag,
-  per the ratification policy now codified in
-  `implementation.md`.
-- **PR-ledger drift** if Phase 1 code work starts before this
-  lands — later PRs would have nothing to cite.
+- A clean clone with no internet egress to `github.com/tailwindlabs/`
+  cannot run `task build:css` until someone pre-stages the binary
+  via `TAILWINDCSS_BIN`. CI runners with restricted egress need
+  either a cached binary or that env var.
+- `task dev` now runs `task build:css` first, so first-boot is
+  slower (one-time download on first ever run; ~250 ms thereafter).
+- The `Containerfile` grew a new stage; image build time goes up
+  by the duration of one CSS build (~1–2 s plus the binary
+  download on cold cache).
+- The `Browserslist: caniuse-lite is outdated` warning is emitted
+  by the Tailwind v3.4.13 binary on every build. It's bundled and
+  cosmetic; the only fix is bumping `TAILWIND_VERSION`. Not in
+  scope here.
 
-**Rollback plan:** Revert this PR. No schema, no dependency, no
-runtime change to undo. The pre-fork `wip/...` drafts remain in
-git history.
+**Rollback plan:** Revert this PR. No data migration, no schema,
+no deployed surface change other than the new `/styleguide` URL
+(which 404s after revert).
 
 ## Dependencies (if applicable)
 
-**Depends on:** N/A
+**Depends on:** Phase 0 (closed 2026-05-04). Ratification of ADR
+056 and ADR 058 (both already accepted).
 
-**Blocked by:** N/A
-
-This PR is the unblocker for **PR 1.1** (`feat(css): tailwind
-plumbing + four-file architecture + /styleguide stub`). Phase 1
-cannot legitimately start until this PR-ledger and ADR 061 are
-merged.
+**Blocked by:** N/A.
 
 ## Breaking Changes / Migrations (if applicable)
 
-- [ ] Config changes required
-- [ ] Data migration needed
-- [ ] API changes (document below)
-- [ ] Dependency changes
-
-**Details:** None. Documentation only.
+None.
 
 ## Checklist
 
@@ -190,41 +191,45 @@ merged.
 - [x] I have performed a self-review of my code
 - [x] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
-- [x] No new warnings (or explained in Additional Notes)
-- [ ] I have added tests that prove my fix is effective or that my feature works <!-- N/A — docs only -->
-- [x] Relevant tests pass locally (or explained in Additional Notes)
+- [x] No new warnings (or explained in Additional Notes — see Browserslist note above)
+- [x] I have added tests that prove my fix is effective or that my feature works
+- [x] Relevant tests pass locally (`task check` green; 56 passed, 3 deselected)
 - [x] No security concerns introduced (or flagged for review)
-- [x] No performance regressions expected (or flagged for review)
+- [x] No performance regressions expected
 
 ## Reviewer Focus (Optional)
 
-Please pay close attention to:
-
-1. **`implementation.md` — the PR ledger.** Are any deliverables
-   from the original Phase 1–4 Must / Should / Nice tables missing
-   a checkbox under one of the 24 PRs? Are any PRs too fat to
-   land as a single review?
-2. **ADR 061's outcome→status mapping.** Does the fail-soft
-   contract (network error → status change still commits;
-   `email_log` row lands at `failed`) match what we want
-   operationally?
-3. **`railway-optimization.md`** — the actual Hobby posture
-   (sleep ON, 2 workers, 5 GB volume, $5 ceiling). Anyone
-   disagree before this gets baked into Phase 1 sizing?
-4. **PR-slicing of Migration B (PR 2.1).** Two Alembic revisions
-   in one PR is a deliberate exception to "one logical change per
-   commit" — confirm this is acceptable per ADR 062's
-   roll-forward rule.
+- `scripts/build_css.py` — confirm the SHA256 verification logic
+  reads correctly. The Windows-x64 digest was captured locally
+  (TOFU) on 2026-05-05; other platform entries are blank and
+  emit a warning until populated by someone building on that
+  platform.
+- `Containerfile` — confirm the `builder-frontend` stage's
+  `COPY` paths line up and that the runtime stage still has no
+  Tailwind binary.
+- `tailwind.config.cjs` `content` globs — make sure no class-
+  emitting source path is missing (current set: templates,
+  static HTML, static JS, routes Python).
+- `src/feedback_triage/templating.py` — `static_url` falls back
+  silently when the manifest is missing; confirm that's the
+  desired behavior vs. raising.
 
 ## Additional Notes
 
-- Phase numbering: **0–4 are canonical**. The codenames Alpha /
-  Beta / Final / Polish are aliases for Phases 1–4 and are used
-  interchangeably in the spec.
-- The v1.0 spec (`docs/project/spec/spec-v1.md`) remains in the
-  tree for historical reference. It is **not** removed by this PR;
-  removal happens after v2.0.0 ships.
-- ADRs 062, 063, and 064 are still **TBD** in the spec table on
-  purpose — they are drafted in PR 1.2 (the doc-only PR at the
-  start of Phase 1), not here. Reviewers should not ask for them
-  in this PR.
+- **Tailwind binary integrity.** `_PLATFORM_SHA256` in
+  `scripts/build_css.py` only has the Windows-x64 digest pinned
+  today. Linux/macOS digests are blank and the script logs a
+  warning when an unpinned platform downloads. Follow-up: capture
+  digests on the Railway build container (linux-x64) and on a
+  macOS host, fold them into the same dict.
+- **`task dev` + watcher.** Doesn't run the watcher in parallel —
+  Task's `cmds` is sequential. Run `task watch:css` in a second
+  terminal during dev. Adding a `dev:all` that orchestrates both
+  needs a small process supervisor (`concurrently`-equivalent in
+  Python, or a tiny `asyncio` runner); deferred.
+- **mkdocs `--strict` warning.** `uv run mkdocs build --strict`
+  exits 1 on `main` already due to a Material for MkDocs
+  framework deprecation notice (MkDocs 2.0). Pre-existing,
+  unrelated to this PR.
+- **What lands in the next PR (1.2).** Three ADR drafts (062,
+  063, 064). Doc-only, no code touch.
