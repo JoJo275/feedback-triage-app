@@ -2,7 +2,7 @@
 
 > Topical detail file. Entry point: [`../spec-v2.md`](../spec-v2.md).
 > Authoritative decision record:
-> ADR 061 (TBD; see [`../spec-v2.md`](../spec-v2.md#adrs-to-write-for-v20)).
+> [ADR 061 (Accepted 2026-05-04)](../../../adr/061-resend-email-fail-soft.md).
 
 Provider: **Resend**, via the `resend` Python SDK from PyPI.
 
@@ -71,7 +71,7 @@ table lives in [`tooling.md`](tooling.md).
 
 ## Cross-references
 
-- ADR 061 (TBD).
+- [ADR 061 — Resend email provider + fail-soft](../../../adr/061-resend-email-fail-soft.md).
 - [`auth.md`](auth.md) — verification / reset / invitation TTLs.
 - [`security.md`](security.md) — secret handling for `RESEND_API_KEY`.
 - [`rollout.md`](rollout.md) — production DNS prerequisites.

@@ -66,7 +66,7 @@ Rules:
 
 **Cross-tenant rule:** any access to a resource that exists but
 belongs to another workspace returns **404, not 403**. This is
-enforced by [`tests/api/test_isolation.py`](../../../tests/api/test_isolation.py)
+enforced by `tests/api/test_isolation.py` (Phase 1 canary, file not yet created)
 and is the canary test for [`security.md`](security.md).
 
 ---

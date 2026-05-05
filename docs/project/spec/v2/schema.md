@@ -5,7 +5,7 @@
 Every change here ships as a hand-reviewed Alembic migration with
 `compare_type` + `compare_server_default` set. Native Postgres enums
 + DB CHECK constraints (per
-[ADR 046](../../../adr/046-native-pg-enums-and-checks.md)) remain
+[ADR 046](../../../adr/046-postgres-enums-and-check-constraints.md)) remain
 mandatory. Citext is used for case-insensitive emails and slugs
 (`CREATE EXTENSION IF NOT EXISTS citext` in the auth migration).
 
@@ -264,5 +264,5 @@ CREATE INDEX feedback_stale_idx
 - [`multi-tenancy.md`](multi-tenancy.md) — the `workspace_id` invariant.
 - [`auth.md`](auth.md) — token tables in detail.
 - [`rollout.md`](rollout.md) — v1.0 → v2.0 migration script.
-- [ADR 046 — Native PG enums + CHECK](../../../adr/046-native-pg-enums-and-checks.md)
+- [ADR 046 — Native PG enums + CHECK](../../../adr/046-postgres-enums-and-check-constraints.md)
 - [ADR 060 — Multi-tenancy / workspace scoping](../../../adr/060-multi-tenancy-workspace-scoping.md)

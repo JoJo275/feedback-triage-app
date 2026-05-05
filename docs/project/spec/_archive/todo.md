@@ -1,4 +1,4 @@
-#Answers to Divergence between core-idea.md and spec-v2.md
+# Answers to Divergence between core-idea.md and spec-v2.md
 
 -	Recommendations on how we should position this app? Would it be a SaaS/B2B? I feel like it would and I feel like it would be helpful to have this written down even though this is only a portfolio app.
 -	Everything in vs regarding question one. I guess I’ll just break it up linearly if the pr grows too large.
@@ -113,7 +113,7 @@ The Feedback page is a database/search page.
 -	Regarding D7, make sure to take into account what I gave you regarding D5
 -	Regarding D9, Definitely want a page that is more of like a landing/marketing page instead of just throwing users into the login screen or app. This not only sells the app, but also provides clarity to users what this app even is.I feel like it would be nice to have a mini demo in this page of what the app can do and anyone can try the demo out to see if they like some functionality of the app.
 -	Regarding D10, use actual tailwind unless you have a good reason not too. Regarding conventions about how css and styling will work, I think I will differ to notes/frontend-conventions.md
--	Regarding D16, I think I can handle creating the favicon, generate a placeholder for now, and we can put your recommendation as a backup incase I don’t up succeeding with the favicon.
+-	Regarding D16, I think I can handle creating the favicon, generate a placeholder for now, and we can put your recommendation as a backup in case I don’t up succeeding with the favicon.
 -	To be clear we’re combining all versions into one sprint v2, v3, etc…
 -	Everything else, go with what you recommended
 

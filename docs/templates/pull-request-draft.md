@@ -1,10 +1,10 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Branch: wip/2026-04-30-scratch -->
+<!-- Branch: wip/2026-05-01-scratch -->
 <!--
   Suggested PR title (conventional commit format — type: description):
 
-    feat: v1.0 release candidate — config hardening, seed script, learning notes
+    docs(spec): scaffold and ratify v2.0 spec, ADR 061, Phase 0 close, and 24-PR implementation plan
 
   Available prefixes:
     feat:     — new feature or capability
@@ -20,7 +20,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels: "feature", "documentation", "chore" -->
+<!-- Suggested labels: documentation, spec, adr -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -38,129 +38,108 @@
 
 ## Description
 
-The v1.0 release-candidate sweep: harden production config, finish the
-seed script to project script-conventions, document Railway / web-app
-tooling for future-me, and reset the version line so the next
-release-please PR ships as `v1.0.0` (not `v1.4.0` inherited from the
-template).
+Scaffolds the entire v2.0 spec ("SignalNest"), ratifies it, ratifies
+ADR 061 (Resend + fail-soft email), closes Phase 0, and slices the
+remainder of v2.0 work into 24 PR-sized deliverables.
+**Documentation only** — no production code, no schema, no
+dependencies touched.
 
 **What changes you made:**
 
-- **Production safety net** — `Settings` now refuses to boot when
-  `APP_ENV=production` and `DATABASE_URL` is unset or points at
-  `localhost`. Includes a unit test.
-- **`scripts/seed.py`** mirrors the rest of `scripts/` —
-  `SCRIPT_VERSION`, `THEME`, `_ui.UI` header/section/kv/footer,
-  `_progress.ProgressBar` over the insert loop, `--version`,
-  `--smoke` self-check that validates every `Source` and `Status`
-  is represented.
-- **Version line reset** — removed inherited `v1.3.0` tag and GitHub
-  Release; `.release-please-manifest.json` set to `0.0.0`;
-  `release-please-config.json` pinned with `"release-as": "1.0.0"`
-  for the next release. (This pin must be removed in a follow-up PR
-  after `v1.0.0` ships, otherwise every subsequent release tries to
-  be 1.0.0 again.)
-- **CHANGELOG.md** reset to a fresh template — release-please will
-  repopulate from commit history on the next release PR.
-- **`copilot-instructions.md`** — Frontend section expanded with
-  semantic-HTML, tags-vs-classes, and CSS rules; pointer added to
-  the new `frontend-conventions.md` notes file. Targeted-instruction
-  table updated to point at the new `script-conventions.md`.
-- **`scripts/.instructions.md`** + **`.github/SKILL.md`** — pointers
-  to the new script-conventions notes.
-- **New notes files** in `docs/notes/`:
-  - `script-conventions.md` — rationale for the rules in
-    `scripts/.instructions.md` plus 17 recommended additions and a
-    half-day-each upgrade table.
-  - `frontend-conventions.md` — semantic-HTML rationale, full
-    tag-selection table, CSS conventions (tokens, `:focus-visible`,
-    no `!important`, accessibility checklist), and a tiered
-    "commercial-product features" roadmap (Tier 1 / Tier 2 / Tier 3)
-    for v2 work.
-  - `webapp-tooling.md` — field guide to web-app tools (Pico,
-    Tailwind, htmx, Alpine, React, Svelte, Django, Vite, etc.) with
-    when-to-use, pros, cons, and how each would affect this repo.
-  - Plus three notes from earlier commits in this branch:
-    `railway-learning.md`, `how-deployment-works.md`,
-    `post-launch-checklist.md`.
+- **Project rename:** Feedback Triage → SignalNest (docs surface
+  only; package name unchanged).
+- **v2.0 spec scaffolded** under `docs/project/spec/v2/`:
+  `core-idea.md`, `schema.md`, `api.md`, `pages.md`, `security.md`,
+  `multi-tenancy.md`, `rollout.md`, `tooling.md`, `css.md`,
+  `copy-style-guide.md`, `observability.md`,
+  `performance-budgets.md`, `railway-optimization.md`,
+  `pages-catalog.md`, `repo-structure.md`, `risk-register.md`,
+  `adrs.md`, `implementation.md`.
+- **`spec-v2.md` ratified** (Status: Ratified 2026-05-04).
+- **ADR 061 (Resend email, fail-soft)** added and Accepted, with
+  full `email_log` DDL, outcome→status table, and `RESEND_DRY_RUN=1`
+  test strategy.
+- **Phase 0 closed** in `implementation.md` (all pre-flight items
+  ticked).
+- **CSS architecture** moved to the four-file structure
+  (`tokens → base → layout → components → effects`, glued by
+  `app.css`); `frontend-conventions.md` and `css-learning.md`
+  updated to match, including a new "How CSS is installed in a
+  repo" section.
+- **`railway-optimization.md`** synced to actual Hobby posture: $5
+  credit ceiling, sleep ON, `--workers 2`, 5 GB Postgres volume,
+  `pool_size=5` per worker, with cold-start risks documented.
+- **`performance-budgets.md`** gained a `cold_start=true` access-log
+  carve-out so cold requests do not poison the P95 rollup.
+- **`implementation.md`** rewritten with a top-level **PR ledger**
+  of 24 conventional-commit-titled PRs (Phase 1: 9, Phase 2: 6,
+  Phase 3: 5, Phase 4: 4). Each PR has Touches /
+  Deliverables-it-closes / DoD; Migrations A and B are isolated
+  PRs; spec-ratification (PR 3.5) lands last in Phase 3.
+- **`mkdocs.yml`** + **`docs/adr/README.md`** index updated to
+  surface ADRs 045–061.
 
 **Why you made them:**
 
-- The localhost-DB-in-production check exists because Railway's
-  pre-deploy command silently inherits the default `DATABASE_URL`
-  if the Postgres plugin isn't linked, leading to a confusing
-  `Connection refused` instead of an actionable error. See
-  `docs/project/railway-setup.md` step 2.
-- `seed.py` was the only script in `scripts/` not following the
-  shared conventions; bringing it in line removes the rough edge
-  before v1.0.
-- The version reset turns the inherited-template tag history into
-  a clean `v1.0.0` for the portfolio piece.
-- The notes files capture decisions and trade-offs while context is
-  fresh, and pre-write the v2 roadmap so post-1.0 work has a plan.
+v2.0 was sitting as scattered drafts with no agreed ratification
+path. This PR moves the v2.0 spec from "draft scratch" to "ratified
+plan with PR-sized work units" so subsequent code PRs can each cite
+a single PR slice from `implementation.md` and a single deliverable
+checkbox. It also unblocks the first code PR (PR 1.1 — Tailwind
+plumbing + `/styleguide` stub) by locking ADR 061's email contract
+and the Railway cost ceiling that Phase 1 budget decisions depend
+on.
 
 ## Related Issue
 
-N/A — pre-1.0 sweep, not tracking each item as a separate issue.
+N/A — spec scaffolding work; not tracked by an issue. The 24-PR
+ledger in `docs/project/spec/v2/implementation.md` replaces the
+need for a tracker issue per phase.
 
 ## Type of Change
 
 - [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
-- [x] ✨ New feature (non-breaking change that adds functionality)
+- [ ] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [x] 📚 Documentation update
 - [ ] 🔧 Refactor (no functional changes)
-- [x] 🧪 Test update
+- [ ] 🧪 Test update
 
 ## How to Test
 
+This PR contains no executable code changes. Reviewers verify by
+reading and by building the docs site.
+
 **Steps:**
 
-1. **Production-config guard** — confirm the new validator fails
-   loudly when misconfigured and is silent in dev:
-   ```powershell
-   $env:APP_ENV="production"; $env:DATABASE_URL="postgresql://u:p@localhost/db"
-   uv run python -c "from feedback_triage.config import Settings; Settings()"
-   # Expect: ValidationError mentioning 'localhost' and railway-setup.md
-   Remove-Item Env:\APP_ENV; Remove-Item Env:\DATABASE_URL
-   ```
-2. **Seed script smoke** — no DB required:
-   ```powershell
-   uv run python scripts/seed.py --smoke
-   # Expect: "seed 1.0.0: smoke ok (20 rows)"
-   ```
-3. **Seed script end-to-end** — local Postgres up:
-   ```powershell
-   task up
-   task migrate
-   uv run python scripts/seed.py --reset
-   uv run python scripts/seed.py --version
-   ```
-4. **Release pipeline dry check** — confirm the manifest + config
-   change parses:
-   ```powershell
-   Get-Content .release-please-manifest.json
-   Get-Content release-please-config.json | Select-String release-as
-   ```
-5. **Lint / format / tests:**
-   ```powershell
-   uv run ruff check src/ scripts/ tests/
-   uv run ruff format --check src/ scripts/ tests/
-   uv run pytest tests/test_config.py -v
-   task check
-   ```
+1. Skim `docs/project/spec/spec-v2.md` — confirm Status row reads
+   `Ratified (2026-05-04)`.
+2. Open `docs/project/spec/v2/implementation.md` — confirm the
+   **PR ledger** lists 24 rows (1.1–4.4) and Phase 0 is fully
+   checked off.
+3. Open `docs/adr/061-resend-email-fail-soft.md` — confirm Status
+   is **Accepted (2026-05-04)** and the `email_log` DDL block is
+   present.
+4. Build the docs site and confirm no broken links and that ADRs
+   045–061 appear in the nav.
 
 **Test command(s):**
 
 ```bash
-uv run python scripts/seed.py --smoke
-uv run pytest tests/test_config.py -v
-task check
+# Docs build (must be clean — no broken links, no missing nav entries)
+uv run mkdocs build --strict
+
+# Markdown / typo check (best-effort; not the CI gate)
+uv run pre-commit run typos --all-files
+
+# No code changes, but confirm the existing test suite still parses
+uv run pytest --collect-only -q
 ```
 
 **Screenshots / Demo (if applicable):**
 
-N/A — no UI changes in this PR.
+N/A — pure documentation diff. Reviewers can preview rendered
+output locally with `uv run mkdocs serve`.
 
 ## Risk / Impact
 
@@ -168,19 +147,22 @@ N/A — no UI changes in this PR.
 
 **What could break:**
 
-- A production deploy whose `DATABASE_URL` *is* localhost will now
-  refuse to start. This is the intended behavior — surfacing the
-  misconfiguration early instead of after a confusing `Connection
-  refused`. Verify the Railway reference variable resolves to a
-  `*.railway.internal` host (which the validator allows).
-- Release-please will produce a `v1.0.0` PR on the next run because
-  of the `release-as` pin. Reviewers should expect this and merge
-  it; the follow-up PR removing the pin must land before the next
-  release after that.
+- **Broken cross-references** if a moved/renamed file is linked
+  from outside `docs/project/spec/v2/`. Mitigated by
+  `mkdocs build --strict` and lychee in CI.
+- **Stale guidance** if `.github/copilot-instructions.md` still
+  points reviewers at v1.0 in places where v2.0 is now
+  authoritative. Note: this PR does **not** flip
+  copilot-instructions to v2.0-authoritative — that flip is
+  deliberately deferred to PR 3.5 alongside the `v2.0.0` git tag,
+  per the ratification policy now codified in
+  `implementation.md`.
+- **PR-ledger drift** if Phase 1 code work starts before this
+  lands — later PRs would have nothing to cite.
 
-**Rollback plan:** Revert this PR. Tag history is already reset on
-the remote, but re-tagging `v1.3.0` is possible from any ancestor
-commit if needed.
+**Rollback plan:** Revert this PR. No schema, no dependency, no
+runtime change to undo. The pre-fork `wip/...` drafts remain in
+git history.
 
 ## Dependencies (if applicable)
 
@@ -188,9 +170,10 @@ commit if needed.
 
 **Blocked by:** N/A
 
-**Follow-up required:** After `v1.0.0` is tagged on `main`, open a
-PR removing `"release-as": "1.0.0"` from `release-please-config.json`
-so subsequent bumps follow Conventional Commits normally.
+This PR is the unblocker for **PR 1.1** (`feat(css): tailwind
+plumbing + four-file architecture + /styleguide stub`). Phase 1
+cannot legitimately start until this PR-ledger and ADR 061 are
+merged.
 
 ## Breaking Changes / Migrations (if applicable)
 
@@ -199,9 +182,7 @@ so subsequent bumps follow Conventional Commits normally.
 - [ ] API changes (document below)
 - [ ] Dependency changes
 
-**Details:** No schema, no API, no dependency changes. The
-`release-as` pin is a one-shot release-please instruction, not a
-breaking change to consumers.
+**Details:** None. Documentation only.
 
 ## Checklist
 
@@ -210,37 +191,40 @@ breaking change to consumers.
 - [x] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
 - [x] No new warnings (or explained in Additional Notes)
-- [x] I have added tests that prove my fix is effective or that my feature works
+- [ ] I have added tests that prove my fix is effective or that my feature works <!-- N/A — docs only -->
 - [x] Relevant tests pass locally (or explained in Additional Notes)
 - [x] No security concerns introduced (or flagged for review)
 - [x] No performance regressions expected (or flagged for review)
 
 ## Reviewer Focus (Optional)
 
-- **`src/feedback_triage/config.py`** — the new
-  `_require_remote_db_in_production` validator. Confirm the host
-  parsing covers what you'd expect (the `_LOCAL_DB_HOSTS` set
-  matches `localhost`, `127.0.0.1`, `::1`, and empty host) and that
-  the error message points at the right runbook step.
-- **`scripts/seed.py`** — `--smoke` should remain side-effect-free.
-  Verify no DB import path runs during smoke.
-- **`release-please-config.json`** — the `release-as` line is the
-  one-shot pin to `1.0.0`. Track the follow-up issue to remove it
-  after the release lands.
+Please pay close attention to:
+
+1. **`implementation.md` — the PR ledger.** Are any deliverables
+   from the original Phase 1–4 Must / Should / Nice tables missing
+   a checkbox under one of the 24 PRs? Are any PRs too fat to
+   land as a single review?
+2. **ADR 061's outcome→status mapping.** Does the fail-soft
+   contract (network error → status change still commits;
+   `email_log` row lands at `failed`) match what we want
+   operationally?
+3. **`railway-optimization.md`** — the actual Hobby posture
+   (sleep ON, 2 workers, 5 GB volume, $5 ceiling). Anyone
+   disagree before this gets baked into Phase 1 sizing?
+4. **PR-slicing of Migration B (PR 2.1).** Two Alembic revisions
+   in one PR is a deliberate exception to "one logical change per
+   commit" — confirm this is acceptable per ADR 062's
+   roll-forward rule.
 
 ## Additional Notes
 
-- Inherited `v1.3.0` tag and GitHub Release have already been
-  deleted from the remote (`gh release delete v1.3.0 --yes
-  --cleanup-tag`). The `CHANGELOG.md` was reset accordingly so
-  release-please regenerates it from commit history.
-- The three new `docs/notes/*.md` files are intentionally
-  long-form. They are companions to short, rule-shaped instruction
-  files (`scripts/.instructions.md`, the Frontend section in
-  `copilot-instructions.md`) — instruction files stay terse for
-  Copilot's `applyTo` scoping; notes files hold the rationale and
-  the v2 roadmap thinking.
-- After this PR merges, the planned sequence is: release-please
-  opens "release v1.0.0" → merge → tag created → follow-up PR
-  removes the `release-as` pin → start v2 work on feature
-  branches per `docs/notes/frontend-conventions.md` § 5.
+- Phase numbering: **0–4 are canonical**. The codenames Alpha /
+  Beta / Final / Polish are aliases for Phases 1–4 and are used
+  interchangeably in the spec.
+- The v1.0 spec (`docs/project/spec/spec-v1.md`) remains in the
+  tree for historical reference. It is **not** removed by this PR;
+  removal happens after v2.0.0 ships.
+- ADRs 062, 063, and 064 are still **TBD** in the spec table on
+  purpose — they are drafted in PR 1.2 (the doc-only PR at the
+  start of Phase 1), not here. Reviewers should not ask for them
+  in this PR.

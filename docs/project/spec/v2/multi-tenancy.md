@@ -158,7 +158,7 @@ the request lifecycle.
   `Model.workspace_id == ctx.id`. A code-review red flag and a
   candidate for a custom static-analysis check.
 - The cross-tenant canary test
-  (`tests/test_tenant_isolation.py::test_cross_tenant_read_returns_404`)
+  (`tests/api/test_isolation.py::test_cross_tenant_read_returns_404`)
   must stay green.
 
 ---

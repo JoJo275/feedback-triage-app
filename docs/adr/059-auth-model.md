@@ -170,7 +170,7 @@ POST /api/v1/auth/change-password     { current_password, new_password }    -> 2
   that library's release cadence and adds a layer between the auth
   state machine and the DB. Hand-rolled is ~400 lines and stays in
   the codebase.
-- Email delivery uses Resend (see [ADR 061](061-email-provider-resend.md)).
+- Email delivery uses Resend (see [ADR 061](061-resend-email-fail-soft.md)).
 
 ## Alternatives Considered
 
@@ -264,6 +264,6 @@ Acceptable as a v3.0 addition.
 - [ADR 048: Session-per-request DB lifecycle](048-session-per-request.md)
 - [ADR 050: Sync DB driver in v1.0](050-sync-db-driver-v1.md)
 - [ADR 060: Multi-tenancy / workspace scoping](060-multi-tenancy-workspace-scoping.md)
-- [ADR 061: Email provider — Resend](061-email-provider-resend.md)
+- [ADR 061: Resend email provider + fail-soft](061-resend-email-fail-soft.md)
 - [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
 - [Argon2id parameters guidance (OWASP)](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id)

@@ -7,10 +7,10 @@ Guidelines for GitHub Copilot when working in this repository.
 > `src/feedback_triage/`; the original template lives under `attic/`
 > as read-only reference material and is not imported by the live tree.
 > The authoritative spec is [`docs/project/spec/spec-v1.md`](../docs/project/spec/spec-v1.md);
-> a v2.0 spec is being scaffolded at
-> [`docs/project/spec/spec-v2.md`](../docs/project/spec/spec-v2.md) but is
-> **draft** and not yet authoritative — keep treating v1.0 as the source of
-> truth until v2.0 is ratified.
+> v2.0 is **ratified** at
+> [`docs/project/spec/spec-v2.md`](../docs/project/spec/spec-v2.md) for upcoming
+> Phase 1+ work, but **v1.0 remains authoritative for the shipped v1.0
+> implementation** until Phase 1 code lands.
 > phase order is in [`docs/project/implementation.md`](../docs/project/implementation.md).
 > `scripts/`, `tools/`, `mkdocs-hooks/`, and `.github/workflows/` are
 > retained as general-purpose dev tooling; trim only when something

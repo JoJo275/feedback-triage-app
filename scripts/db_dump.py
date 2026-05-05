@@ -24,15 +24,16 @@ Usage::
     python scripts/db_dump.py
     python scripts/db_dump.py --output backups/manual.sql
 
-Exit codes:
-    0 = dump written
-    1 = pg_dump or docker compose failed
-    2 = docker not on PATH
+Exit codes (see ``scripts/_ui.py::ExitCode``):
+    0  OK       — dump written
+    2  FAIL     — pg_dump or docker compose failed, or not in a repo
+    64 USAGE    — docker not on PATH
 """
 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
 import shutil
 import subprocess  # nosec B404 — argv-only invocations below
@@ -43,24 +44,22 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
 from _imports import find_repo_root
-from _ui import UI
+from _ui import UI, ExitCode
 
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 THEME = "blue"
-ROOT = find_repo_root()
-BACKUPS_DIR = ROOT / "backups"
 
 
 def _docker() -> str | None:
     return shutil.which("docker")
 
 
-def _default_output() -> Path:
+def _default_output(backups_dir: Path) -> Path:
     ts = datetime.now(tz=UTC).strftime("%Y%m%d-%H%M%S")
-    return BACKUPS_DIR / f"feedback-{ts}.sql"
+    return backups_dir / f"feedback-{ts}.sql"
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -96,18 +95,29 @@ def main(argv: list[str] | None = None) -> int:
     if args.smoke:
         assert SCRIPT_VERSION
         assert THEME
-        out = _default_output()
+        out = _default_output(Path("backups"))
         assert out.parent.name == "backups"
         assert out.suffix == ".sql"
         print(f"db_dump {SCRIPT_VERSION}: smoke ok")
-        return 0
+        return int(ExitCode.OK)
+
+    try:
+        root = find_repo_root()
+    except FileNotFoundError:
+        logger.error(
+            "Not inside a git repository. Run this command from the "
+            "feedback-triage-app working tree."
+        )
+        return int(ExitCode.FAIL)
+
+    backups_dir = root / "backups"
 
     docker = _docker()
     if docker is None:
         logger.error("docker not found in PATH")
-        return 2
+        return int(ExitCode.USAGE)
 
-    output = args.output or _default_output()
+    output = args.output or _default_output(backups_dir)
     output.parent.mkdir(parents=True, exist_ok=True)
 
     cmd = [
@@ -135,27 +145,38 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.dry_run:
         print(f"\n  {c.yellow('[dry-run]')} not executing")
-        return 0
+        return int(ExitCode.OK)
 
     ui.section("Running")
-    proc = subprocess.run(  # nosec B603 — argv list, no shell
-        cmd, cwd=ROOT, capture_output=True, check=False
-    )
+    # Stream pg_dump stdout straight to disk to avoid buffering large
+    # dumps in memory; capture stderr for error reporting only.
+    with output.open("wb") as fh:
+        proc = subprocess.Popen(  # nosec B603 — argv list, no shell
+            cmd,
+            cwd=root,
+            stdout=fh,
+            stderr=subprocess.PIPE,
+        )
+        _, stderr = proc.communicate()
     if proc.returncode != 0:
+        # Remove the partial dump so a stale file isn't mistaken for a
+        # successful backup.
+        with contextlib.suppress(OSError):
+            output.unlink()
         logger.error(
             "%s pg_dump failed (rc=%d)\n%s",
             c.red(sym["cross"]),
             proc.returncode,
-            proc.stderr.decode("utf-8", errors="replace"),
+            stderr.decode("utf-8", errors="replace"),
         )
-        return 1
+        return int(ExitCode.FAIL)
 
-    output.write_bytes(proc.stdout)
+    bytes_written = output.stat().st_size
     print(
         f"  {c.green(sym['check'])} wrote "
-        f"{c.cyan(str(output))} ({len(proc.stdout):,} bytes)"
+        f"{c.cyan(str(output))} ({bytes_written:,} bytes)"
     )
-    return 0
+    return int(ExitCode.OK)
 
 
 if __name__ == "__main__":
