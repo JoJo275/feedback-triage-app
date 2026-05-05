@@ -50,8 +50,8 @@ PR.**
 
 | PR  | Title                                                                                                         | Phase | Status |
 | --- | ------------------------------------------------------------------------------------------------------------- | ----- | ------ |
-| 1.1 | `feat(css): tailwind plumbing + four-file architecture + /styleguide stub`                                    | 1     | not started |
-| 1.2 | `docs(adr): draft ADR 062 + ADR 063 + ADR 064`                                                                | 1     | not started |
+| 1.1 | `feat(css): tailwind plumbing + four-file architecture + /styleguide stub`                                    | 1     | done        |
+| 1.2 | `docs(adr): draft ADR 062 + ADR 063 + ADR 064`                                                                | 1     | done        |
 | 1.3 | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                                      | 1     | not started |
 | 1.4 | `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`                                        | 1     | not started |
 | 1.5 | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                                        | 1     | not started |
@@ -157,9 +157,9 @@ later page a stylesheet to link to.
 - `src/feedback_triage/static/css/.gitignore` — ignore `app.*.css`
 
 **Deliverables this PR closes**
-- [ ] **Tailwind plumbing** — full deliverable from
+- [x] **Tailwind plumbing** — full deliverable from
       [`css.md`](css.md).
-- [ ] `/styleguide` route exists (empty shell; populated as
+- [x] `/styleguide` route exists (empty shell; populated as
       components arrive in later PRs).
 
 **DoD**
@@ -187,11 +187,11 @@ Phase 2 UI will rely on.
 - `docs/project/spec/spec-v2.md` — ADR table status column
 
 **Deliverables this PR closes**
-- [ ] **ADR 062** drafted and accepted — covers the two-step
+- [x] **ADR 062** drafted and accepted — covers the two-step
       Migration A / Migration B choreography.
-- [ ] **ADR 063** drafted and accepted — covers the status enum
+- [x] **ADR 063** drafted and accepted — covers the status enum
       extension and `rejected` deprecation path.
-- [ ] **ADR 064** drafted and accepted — covers the
+- [x] **ADR 064** drafted and accepted — covers the
       pain-vs-priority dual-field rationale.
 
 **DoD**
