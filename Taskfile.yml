@@ -254,6 +254,7 @@ tasks:
       # working tree has changes that would block `git switch main`.
       - uv run python scripts/branch_preflight.py
       - git switch main
+      - echo ""
       - uv run python scripts/git_doctor.py --cleanup
       - uv run python scripts/git_doctor.py --new-branch
 
