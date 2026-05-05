@@ -15,7 +15,7 @@
 | Pydantic v2                   | ✅ same           | —                                                      |
 | `pydantic-settings`           | ✅ same           | —                                                      |
 | `argon2-cffi`                 | 🆕               | password hashing ([ADR 059](../../../adr/059-auth-model.md)) |
-| `resend`                      | 🆕               | transactional email (ADR 061 TBD)                       |
+| `resend`                      | 🆕               | transactional email ([ADR 061](../../../adr/061-resend-email-fail-soft.md)) |
 | `psycopg[binary]`             | ✅ same           | sync driver                                             |
 | `httpx`                       | ✅ test-only      | —                                                      |
 
@@ -44,7 +44,7 @@ No bundler, no React, no Vite, no TypeScript on the frontend.
 | Item                          | Notes                                                              |
 | ----------------------------- | ------------------------------------------------------------------ |
 | pytest                        | unchanged                                                          |
-| `pytest-postgresql`           | ephemeral Postgres per session ([ADR 047](../../../adr/047-test-db-ephemeral-postgres.md)) |
+| `pytest-postgresql`           | ephemeral Postgres per session (ADR for ephemeral test DB — TBD) |
 | Playwright (Python)           | gated `@pytest.mark.e2e`                                           |
 | `axe-core` integration        | accessibility regression                                           |
 | Cross-tenant canary fixture   | `client_w1` / `client_w2` for tenant-isolation tests               |

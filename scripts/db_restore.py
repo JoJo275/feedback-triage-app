@@ -25,11 +25,10 @@ Usage::
 
     python scripts/db_restore.py backups/feedback-20260501-120000.sql --yes
 
-Exit codes:
-    0 = restore succeeded
-    1 = psql or docker compose failed
-    2 = docker not on PATH or dump file missing
-    64 = bad usage (missing path, missing --yes)
+Exit codes (see ``scripts/_ui.py::ExitCode``):
+    0  OK     — restore succeeded
+    2  FAIL   — psql/docker failed, dump missing, or not in a repo
+    64 USAGE  — missing path, missing --yes, or docker not on PATH
 """
 
 from __future__ import annotations
@@ -44,14 +43,13 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
 from _imports import find_repo_root
-from _ui import UI
+from _ui import UI, ExitCode
 
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 THEME = "red"
-ROOT = find_repo_root()
 
 
 def _docker() -> str | None:
@@ -103,18 +101,18 @@ def main(argv: list[str] | None = None) -> int:
         assert SCRIPT_VERSION
         assert THEME
         print(f"db_restore {SCRIPT_VERSION}: smoke ok")
-        return 0
+        return int(ExitCode.OK)
 
     if args.dump_path is None:
         logger.error(
             "%s missing dump path. Usage: db_restore.py <path.sql> --yes",
             c.red(sym["cross"]),
         )
-        return 64
+        return int(ExitCode.USAGE)
 
     if not args.dump_path.exists():
         logger.error("%s dump file not found: %s", c.red(sym["cross"]), args.dump_path)
-        return 2
+        return int(ExitCode.FAIL)
 
     if not args.yes and not args.dry_run:
         logger.error(
@@ -122,12 +120,21 @@ def main(argv: list[str] | None = None) -> int:
             "(The Taskfile wrapper prompts; CLI users must pass it explicitly.)",
             c.red(sym["cross"]),
         )
-        return 64
+        return int(ExitCode.USAGE)
+
+    try:
+        root = find_repo_root()
+    except FileNotFoundError:
+        logger.error(
+            "Not inside a git repository. Run this command from the "
+            "feedback-triage-app working tree."
+        )
+        return int(ExitCode.FAIL)
 
     docker = _docker()
     if docker is None:
         logger.error("docker not found in PATH")
-        return 2
+        return int(ExitCode.USAGE)
 
     cmd = [
         docker,
@@ -150,12 +157,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.dry_run:
         print(f"\n  {c.yellow('[dry-run]')} not executing")
-        return 0
+        return int(ExitCode.OK)
 
     ui.section("Running")
     with args.dump_path.open("rb") as fh:
         proc = subprocess.run(  # nosec B603 — argv list, no shell
-            cmd, cwd=ROOT, stdin=fh, capture_output=True, check=False
+            cmd, cwd=root, stdin=fh, capture_output=True, check=False
         )
 
     if proc.returncode != 0:
@@ -165,10 +172,10 @@ def main(argv: list[str] | None = None) -> int:
             proc.returncode,
             proc.stderr.decode("utf-8", errors="replace"),
         )
-        return 1
+        return int(ExitCode.FAIL)
 
     print(f"  {c.green(sym['check'])} restore complete")
-    return 0
+    return int(ExitCode.OK)
 
 
 if __name__ == "__main__":

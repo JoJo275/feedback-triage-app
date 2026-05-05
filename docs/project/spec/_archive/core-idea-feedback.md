@@ -1,13 +1,13 @@
 # SignalNest — Core Idea, Pushback & Actionables
 
-> **Audience:** the author of [`core-idea.md`](core-idea.md). This is
+> **Audience:** the author of [`core-idea.md`](../core-idea.md). This is
 > direct, unfiltered review of the brand/visual brief — what's strong,
 > what conflicts with v1.0 / v2.0 decisions already made, and what to
 > change before the brief drives any code.
 >
 > **Status:** review notes. Not authoritative. Once each item is
 > decided, fold the decision back into `core-idea.md` (or
-> [`spec-v2.md`](spec-v2.md) for cross-cutting calls), then either
+> [`spec-v2.md`](../spec-v2.md) for cross-cutting calls), then either
 > archive this doc or keep it as the brand-decision history.
 
 ---
@@ -66,10 +66,10 @@ The "Tailwind UI style direction" code block uses `bg-slate-50`,
 `rounded-2xl`, `shadow-sm`, etc. Those are Tailwind utility classes.
 Adopting Tailwind:
 
-- Conflicts with [ADR 051](../../adr/051-static-html-vanilla-js.md)
+- Conflicts with [ADR 051](../../../adr/051-static-html-vanilla-js.md)
   ("static HTML + vanilla JS", no bundler).
 - Conflicts with the
-  [`docs/notes/frontend-conventions.md`](../../notes/frontend-conventions.md)
+  [`docs/notes/frontend-conventions.md`](../../../notes/frontend-conventions.md)
   rule that "Tags carry meaning, classes carry style" — Tailwind is
   the explicit example given of a tool that needs an ADR before
   adoption.
@@ -89,10 +89,10 @@ it.
       add a one-line note: _"Tokens, not utility classes. The
       production CSS uses CSS custom properties named after these
       values (e.g. `--color-bg: var(--slate-50)`). See
-      [ADR 051](../../adr/051-static-html-vanilla-js.md)."_
+      [ADR 051](../../../adr/051-static-html-vanilla-js.md)."_
 - [ ] If the actual intent **is** to adopt Tailwind, that's an ADR
       paired with the React/Vite ADR (Feature 2 in
-      [`spec-v2.md`](spec-v2.md)). Don't sneak it in.
+      [`spec-v2.md`](../spec-v2.md)). Don't sneak it in.
 
 ### 2. Brief implies a SPA-shaped app; the spec hasn't decided yet
 
@@ -134,7 +134,7 @@ tells the workflow story.
 ### 3. Status enum is being expanded silently
 
 v1.0's `status_enum` has a fixed set of values enforced at the DB
-level (see [ADR 046](../../adr/046-postgres-enums-and-check-constraints.md)).
+level (see [ADR 046](../../../adr/046-postgres-enums-and-check-constraints.md)).
 The brief lists **nine** statuses (New, Needs Info, Reviewing,
 Accepted, Planned, In Progress, Shipped, Closed, Spam) — that's a
 much richer workflow than v1.0 supports.
@@ -239,9 +239,9 @@ tokens become bit-rot).
 **Actionable:**
 
 - [ ] Mark dark mode explicitly **v3.0** in
-      [`spec-v2.md`](spec-v2.md) Future Improvements.
+      [`spec-v2.md`](../spec-v2.md) Future Improvements.
 - [ ] Define dark-mode tokens in `themes.css` from the start (see
-      [ADR 056](../../adr/056-style-guide-page.md)) but only as a
+      [ADR 056](../../../adr/056-style-guide-page.md)) but only as a
       styleguide-page theme — not wired to a real `prefers-color-scheme`
       switch on the live app.
 
@@ -252,7 +252,7 @@ The visual direction is clean and dense. That's at risk for:
 - Contrast: slate-500 muted text on slate-50 background needs
   measuring. Teal-600 buttons need WCAG AA contrast against white.
 - Focus rings: "subtle" can mean invisible. The
-  [`docs/notes/frontend-conventions.md`](../../notes/frontend-conventions.md)
+  [`docs/notes/frontend-conventions.md`](../../../notes/frontend-conventions.md)
   rule is `:focus-visible` rings on every interactive element.
 - Status colors: relying on color alone for "Spam" / "Shipped"
   fails colorblind users. Pair color with an icon or label.

@@ -68,6 +68,10 @@ https://scorecard\.dev/?$
 # cursor.sh marketing site intermittently times out from CI runners.
 https://cursor\.sh
 
+# SignalNest production domain — reachable from browsers, intermittently
+# refuses connections from GitHub Actions egress IPs.
+https://signalnest\.app
+
 
 file://.*/docs/reference/template-inventory\.md
 # ADRs that reference removed template tooling and are slated for

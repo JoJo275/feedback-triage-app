@@ -44,9 +44,8 @@ from _ui import UI
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 THEME = "yellow"
-ROOT = find_repo_root()
 
 
 # --- Helpers ---
@@ -55,11 +54,11 @@ def _git() -> str | None:
     return shutil.which("git")
 
 
-def _porcelain_status(git_bin: str) -> tuple[int, str]:
+def _porcelain_status(git_bin: str, root: Path) -> tuple[int, str]:
     """Run ``git status --porcelain`` and return (returncode, stdout)."""
     proc = subprocess.run(  # nosec B603 — argv list, no shell
         [git_bin, "status", "--porcelain"],
-        cwd=ROOT,
+        cwd=root,
         capture_output=True,
         text=True,
         check=False,
@@ -217,7 +216,6 @@ def main(argv: list[str] | None = None) -> int:
         # Validate constants and that helpers are wired correctly.
         assert SCRIPT_VERSION
         assert THEME
-        assert isinstance(ROOT, Path)
         # Exercise classifier on a representative sample.
         # Porcelain XY columns: X=index, Y=worktree.
         sample = " M src/foo.py\n?? notes.txt\nA  staged.txt\nUU conflict.txt\n"
@@ -234,7 +232,16 @@ def main(argv: list[str] | None = None) -> int:
         logger.error("git not found in PATH")
         return 2
 
-    code, out = _porcelain_status(git_bin)
+    try:
+        root = find_repo_root()
+    except FileNotFoundError:
+        logger.error(
+            "Not inside a git repository. Run this command from inside the "
+            "feedback-triage-app working tree."
+        )
+        return 2
+
+    code, out = _porcelain_status(git_bin, root)
     if code != 0:
         logger.error("git status failed (rc=%d). Are you inside a repo?", code)
         return 2

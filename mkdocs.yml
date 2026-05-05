@@ -91,7 +91,7 @@ nav:
       - Labels: labels.md
   - Project:
       - Spec (v1.0): project/spec/spec-v1.md
-      - Spec (v2.0 draft):
+      - Spec (v2.0 ratified):
           - Overview: project/spec/spec-v2.md
           - Index: project/spec/v2/README.md
           - Core idea: project/spec/v2/core-idea.md

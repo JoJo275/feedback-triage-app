@@ -250,12 +250,17 @@ of sends sustained over 24h.
 
 ## Implementation
 
-- [src/feedback_triage/email/client.py](../../src/feedback_triage/email/client.py) — Resend HTTP wrapper, retry loop, `email_log` writes
-- [src/feedback_triage/email/templates/](../../src/feedback_triage/email/templates/) — Jinja templates (`verification.html`, `verification_already.html`, `password_reset.html`, `invitation.html`, `status_change.html` Phase 3)
+Phase 1 deliverables (paths planned, files not yet created):
+
+- `src/feedback_triage/email/client.py` — Resend HTTP wrapper, retry loop, `email_log` writes
+- `src/feedback_triage/email/templates/` — Jinja templates (`verification.html`, `verification_already.html`, `password_reset.html`, `invitation.html`, `status_change.html` Phase 3)
+- `tests/api/test_auth_no_enumeration.py` — DRY_RUN + log-row asserts
+
+Existing references:
+
 - [docs/project/spec/v2/email.md](../project/spec/v2/email.md) — full surface
 - [docs/project/spec/v2/schema.md](../project/spec/v2/schema.md) — `email_log` columns and indexes
 - [docs/project/spec/v2/migration-from-v1.md](../project/spec/v2/migration-from-v1.md) — Migration A includes `email_log`
-- [tests/api/test_auth_no_enumeration.py](../../tests/api/test_auth_no_enumeration.py) — DRY_RUN + log-row asserts
 
 ## References
 

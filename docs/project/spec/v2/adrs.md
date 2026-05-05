@@ -26,6 +26,7 @@ move it to the Accepted section. Don't leave stale entries.
 | 058 | Tailwind via Standalone CLI                 | Alpha            |
 | 059 | Auth model — cookie sessions + Argon2id     | Alpha            |
 | 060 | Multi-tenancy / workspace scoping           | Alpha            |
+| 061 | Email provider (Resend) + fail-soft semantics | Alpha          |
 
 ---
 
@@ -33,35 +34,6 @@ move it to the Accepted section. Don't leave stale entries.
 
 Order is intentional: each ADR below depends only on the ones
 above it.
-
-### ADR 061 — Email provider (Resend) + fail-soft semantics
-
-**Status:** Accepted (2026-05-04). See
-[`../../../adr/061-resend-email-fail-soft.md`](../../../adr/061-resend-email-fail-soft.md).
-**Phase gate:** Alpha. Anything that sends an email (verify
-account, password reset, accept invitation) blocks on this.
-
-Must answer:
-
-- Why Resend over Postmark / SendGrid / SMTP-direct (cost,
-  deliverability, simplicity).
-- Failure modes — what happens when Resend returns 5xx, 429,
-  network timeout. The product contract is **"the user-facing
-  action succeeds; the email is best-effort logged."**
-- The `email_log` table shape (status, error code, retried).
-- Test strategy — `RESEND_DRY_RUN=1` short-circuits the HTTP call
-  in unit / integration tests.
-- Secret management — `RESEND_API_KEY` is a Railway secret; never
-  in git, never in logs.
-- Templates — plain text first, optional minimal HTML; templates
-  live at `src/feedback_triage/email/templates/`.
-- Out of scope for v2.0 — webhook ingest, suppression list,
-  unsubscribe link (not legally required for transactional mail in
-  the project's jurisdictions; revisit before any marketing
-  email).
-
-Drives: F1, F1b, FE.
-Companion file: [`email.md`](email.md).
 
 ### ADR 062 — v1.0 → v2.0 data migration
 

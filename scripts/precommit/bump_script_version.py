@@ -18,16 +18,15 @@ The hook only inspects the diff for **non-trivial** changes: pure
 whitespace, comment-only, and docstring-only edits don't trigger a
 required bump. The heuristic is conservative — when in doubt, the hook
 fails closed and asks the author to either bump the version or add
-``# bump-script-version: skip`` to the staged commit message.
+``# bump-script-version: skip`` near the top of the file.
 
 Skipping
 ========
-- Per-commit: include ``[skip script-version]`` (or
-  ``bump-script-version: skip``) anywhere in the commit message. Useful
-  for genuine no-op edits the heuristic misclassifies.
 - Per-file: add a ``# bump-script-version: skip`` comment near the top
   of the file. Use sparingly — usually a sign the file should be moved
-  out of the versioned-script set.
+  out of the versioned-script set. The hook runs in the ``pre-commit``
+  stage (before the commit message exists), so commit-message-based
+  skip markers are not supported.
 
 Usage (called by pre-commit, receives staged filenames as arguments)::
 
@@ -102,24 +101,6 @@ def _git_show_head(path: str) -> str | None:
     if result.returncode != 0:
         return None
     return result.stdout.decode("utf-8", errors="replace")
-
-
-def _commit_msg_skips() -> bool:
-    """Return True if the current commit message opts out of the check.
-
-    Reads ``.git/COMMIT_EDITMSG`` if available. Best-effort only — if the
-    file isn't there (e.g. the hook is running outside a real commit),
-    returns False.
-    """
-    msg_path = Path(".git/COMMIT_EDITMSG")
-    if not msg_path.exists():
-        return False
-    try:
-        msg = msg_path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return False
-    lowered = msg.lower()
-    return "[skip script-version]" in lowered or "bump-script-version: skip" in lowered
 
 
 def _extract_version(text: str) -> str | None:
@@ -227,9 +208,6 @@ def main(argv: list[str] | None = None) -> int:
         assert _body_changed("a = 1\n", "a = 2\n")
         assert _FILE_SKIP_RE.search("# bump-script-version: skip\n")
         print(f"bump_script_version {SCRIPT_VERSION}: smoke ok")
-        return 0
-
-    if _commit_msg_skips():
         return 0
 
     failures: list[tuple[str, str]] = []
