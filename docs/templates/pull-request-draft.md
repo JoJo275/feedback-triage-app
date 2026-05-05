@@ -1,10 +1,10 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Branch: wip/2026-05-05 -->
+<!-- Branch: wip/2026-05-05-scratch -->
 <!--
   Suggested PR title (conventional commit format — type: description):
 
-    feat(css): tailwind plumbing + four-file architecture + /styleguide stub
+    chore: PR 1.2 ADRs + UI box-border fix + release-please depin
 
   Available prefixes:
     feat:     — new feature or capability
@@ -20,7 +20,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels: feat, css, frontend, v2.0, phase-1 -->
+<!-- Suggested labels: documentation, chore, ui, release -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -38,117 +38,58 @@
 
 ## Description
 
-PR 1.1 of v2.0 Phase 1 (Alpha). Stands up the Tailwind CSS pipeline,
-the four-file CSS architecture from `docs/project/spec/v2/css.md`,
-the first Jinja-rendered page, and the `/styleguide` stub. No DB,
-no auth, no API changes — pure frontend plumbing so every later
-PR has a stylesheet to link to.
+Three independent fixes, kept as separate commits so each can be cherry-picked or reverted on its own.
 
 **What changes you made:**
 
-- Added `tailwind.config.cjs` (tokens-via-CSS-vars palette,
-  `darkMode: 'selector'`, content globs that cover templates,
-  static HTML, JS, and route Python).
-- Added the four-file CSS architecture under
-  `src/feedback_triage/static/css/` (`tokens.css`, `base.css`,
-  `layout.css`, `components.css`, `effects.css`) plus the
-  thin `input.css` orchestrator.
-- Added `scripts/build_css.py` — cross-platform wrapper around
-  the Tailwind Standalone CLI. On first run it downloads the
-  pinned binary (`v3.4.13`) into `.tools/`, **verifies SHA256**
-  against the in-script pin, builds, hashes the output to
-  `app.<hash>.css`, and writes `manifest.json` for cache-busting.
-  Honors `TAILWINDCSS_BIN` env var so CI can pre-stage the
-  binary.
-- Added `task setup:css` / `task build:css` / `task watch:css`.
-  `task check` now depends on `build:css` so a clean clone
-  produces the bundle as part of the gate. `task dev` runs a
-  one-shot CSS build before starting the API server.
-- Added `src/feedback_triage/templating.py` — single
-  `Jinja2Templates` instance plus a `static_url` helper that
-  reads `manifest.json` and falls back to the unhashed filename
-  when the manifest is missing (so the page still renders before
-  someone runs `task build:css`).
-- Added `src/feedback_triage/templates/_base.html` (the project's
-  first Jinja base template) and `templates/styleguide.html`
-  (empty shell, populated as components arrive in later PRs).
-- Added `GET /styleguide` to `src/feedback_triage/routes/pages.py`.
-- New `builder-frontend` stage in the `Containerfile`: downloads
-  Tailwind, builds CSS, and overlays the hashed bundle into the
-  wheel-build stage. The runtime image is unchanged — no Tailwind
-  binary in production.
-- `.gitignore` ignores `.tools/`. `static/css/.gitignore` ignores
-  `app.css`, `app.*.css`, and `manifest.json` (all generated).
-- New smoke test `test_styleguide_page_renders` confirms the
-  `/styleguide` route returns 200, links the hashed CSS, and
-  includes the `sn-skip-link`.
+1. **`fix(ui)` — `2708be2`** — `scripts/_ui.py` `header()` and `section()` now compute the inner box width from the rendered title (and version, for `header()`), pad the title row, and reuse the same width for the top/bottom borders. Boxes always close cleanly and grow when the title outgrows the requested width.
+2. **`chore(release)` — `21825f5`** — Removed `"release-as": "1.0.0"` from `release-please-config.json`. The pin was forcing every release PR to 1.0.0 and blocking SemVer bumps from `feat:` / `fix:` / `BREAKING CHANGE:` commits.
+3. **`docs(adr)` — `27e0695`** — PR 1.2 of the v2.0 implementation ledger: ADRs 062, 063, 064 accepted. Updated `docs/adr/README.md`, `mkdocs.yml` nav, `docs/project/spec/spec-v2.md` ADR table, `docs/project/spec/v2/adrs.md` (moved to Accepted), and `docs/project/spec/v2/implementation.md` (PR 1.1 + PR 1.2 marked done with deliverables ticked).
 
 **Why you made them:**
 
-`docs/project/spec/v2/css.md` is the authoritative answer for
-*"how does CSS work in v2.0?"* — but until this PR there was no
-plumbing to back any of it up. This PR is the smallest possible
-slice that makes every claim in `css.md` testable: the build
-pipeline exists, the file split exists, the dark-mode token
-override is wired, the styleguide route returns 200. Later PRs
-populate the styleguide and migrate the v1 pages onto the new
-shell.
-
-ADR 058 (Tailwind via Standalone CLI) and ADR 056 (style guide
-page) prescribe this approach.
+- The task-branch UI helpers were drawing unclosed boxes on long titles — visual rough edge that shows up every time a workflow boots a header.
+- Release-please was silently broken; the pin held back v1.0.x patch releases.
+- PR 1.2 unblocks Phase 1 implementation work by ratifying the data-migration choreography (ADR 062), the final status workflow (ADR 063), and the pain/priority dual-field decision (ADR 064).
 
 ## Related Issue
 
-N/A — implementation of `docs/project/spec/v2/implementation.md`
-PR 1.1.
+N/A — maintenance + governance burst rolled up from the in-flight scratch branch.
 
 ## Type of Change
 
-- [x] ✨ New feature (non-breaking change that adds functionality)
-- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
+- [x] 🐛 Bug fix (non-breaking change that fixes an issue) — UI box borders
+- [ ] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] 📚 Documentation update
+- [x] 📚 Documentation update — ADRs 062/063/064 + ledger updates
 - [ ] 🔧 Refactor (no functional changes)
 - [ ] 🧪 Test update
+- [x] Other: release pipeline config (`release-please-config.json`)
 
 ## How to Test
 
 **Steps:**
 
-1. From a clean clone (or after deleting `.tools/` and
-   `src/feedback_triage/static/css/app.*.css`):
-   ```powershell
-   uv sync
-   task build:css
-   ```
-   Expect: `Downloading Tailwind v3.4.13 …`, then
-   `SHA256 verified: …`, then `Wrote app.<hash>.css and manifest.json`.
-2. Run the gate:
-   ```powershell
-   task check
-   ```
-   Expect: 56 tests pass, mypy + ruff clean, CSS rebuilt as part of
-   the gate.
-3. Boot the app and visit `/styleguide`:
-   ```powershell
-   task dev
-   ```
-   Expect: 200, page background is the slate-50 token, the
-   "Token sanity check" card has a soft shadow.
+1. UI fix — run any script that calls `_ui.header(...)` / `_ui.section(...)` (e.g., `python scripts/task_branch.py status`) and confirm the right-hand border closes flush with the longest line.
+2. Release-please change — inspect the next release PR opened against `main`; it should compute a version bump from commit types since `v1.0.0`, not propose 1.0.0.
+3. ADRs — `uv run mkdocs serve`, navigate to ADR 062 / 063 / 064 in the nav, confirm the Accepted ADRs section in `docs/adr/README.md` lists them, and confirm `spec-v2.md` and `v2/adrs.md` show them as Accepted.
 
 **Test command(s):**
 
-```bash
+```powershell
+# UI alignment
+uv run python scripts/task_branch.py status
+
+# ADR rendering
+uv run mkdocs serve
+
+# Existing test suite (no behavior changes expected)
 task check
-uv run pytest tests/test_pages.py -v
-uv run python scripts/build_css.py --smoke
 ```
 
 **Screenshots / Demo (if applicable):**
 
-`/styleguide` is intentionally empty in this PR (component rows
-land in later PRs). The single visible card is the wiring
-sanity-check.
+N/A — text-only UI fix; visual diff is "right border now closes".
 
 ## Risk / Impact
 
@@ -156,34 +97,26 @@ sanity-check.
 
 **What could break:**
 
-- A clean clone with no internet egress to `github.com/tailwindlabs/`
-  cannot run `task build:css` until someone pre-stages the binary
-  via `TAILWINDCSS_BIN`. CI runners with restricted egress need
-  either a cached binary or that env var.
-- `task dev` now runs `task build:css` first, so first-boot is
-  slower (one-time download on first ever run; ~250 ms thereafter).
-- The `Containerfile` grew a new stage; image build time goes up
-  by the duration of one CSS build (~1–2 s plus the binary
-  download on cold cache).
-- The `Browserslist: caniuse-lite is outdated` warning is emitted
-  by the Tailwind v3.4.13 binary on every build. It's bundled and
-  cosmetic; the only fix is bumping `TAILWIND_VERSION`. Not in
-  scope here.
+- `_ui.py` change is layout-only; the only callers are dev-time scripts, not the running app.
+- Removing the `release-as` pin will let release-please bump versions normally — confirm the next release PR is the expected SemVer step before merging it.
+- ADR docs are additive; only `docs/project/spec/v2/adrs.md` had existing rows moved (Proposed → Accepted).
 
-**Rollback plan:** Revert this PR. No data migration, no schema,
-no deployed surface change other than the new `/styleguide` URL
-(which 404s after revert).
+**Rollback plan:** Revert this PR. Each commit can also be reverted independently.
 
 ## Dependencies (if applicable)
 
-**Depends on:** Phase 0 (closed 2026-05-04). Ratification of ADR
-056 and ADR 058 (both already accepted).
+**Depends on:** PR 1.0 + PR 1.1 of the v2.0 ledger (already merged).
 
-**Blocked by:** N/A.
+**Blocked by:** Nothing.
 
 ## Breaking Changes / Migrations (if applicable)
 
-None.
+- [ ] Config changes required
+- [ ] Data migration needed
+- [ ] API changes (document below)
+- [ ] Dependency changes
+
+**Details:** None. ADRs 062/063 describe migrations that will land in **PR 2.x / 3.x**, not in this PR.
 
 ## Checklist
 
@@ -191,45 +124,18 @@ None.
 - [x] I have performed a self-review of my code
 - [x] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
-- [x] No new warnings (or explained in Additional Notes — see Browserslist note above)
-- [x] I have added tests that prove my fix is effective or that my feature works
-- [x] Relevant tests pass locally (`task check` green; 56 passed, 3 deselected)
+- [x] No new warnings (or explained in Additional Notes)
+- [x] Relevant tests pass locally (or explained in Additional Notes)
 - [x] No security concerns introduced (or flagged for review)
-- [x] No performance regressions expected
+- [x] No performance regressions expected (or flagged for review)
+- [ ] I have added tests that prove my fix is effective or that my feature works — _N/A: docs + config + cosmetic UI only._
 
 ## Reviewer Focus (Optional)
 
-- `scripts/build_css.py` — confirm the SHA256 verification logic
-  reads correctly. The Windows-x64 digest was captured locally
-  (TOFU) on 2026-05-05; other platform entries are blank and
-  emit a warning until populated by someone building on that
-  platform.
-- `Containerfile` — confirm the `builder-frontend` stage's
-  `COPY` paths line up and that the runtime stage still has no
-  Tailwind binary.
-- `tailwind.config.cjs` `content` globs — make sure no class-
-  emitting source path is missing (current set: templates,
-  static HTML, static JS, routes Python).
-- `src/feedback_triage/templating.py` — `static_url` falls back
-  silently when the manifest is missing; confirm that's the
-  desired behavior vs. raising.
+- ADR 062's two-revision Alembic choreography (Migration A schema-only + additive, Migration B data backfill + tighten) — verify the forward-only, idempotent re-run guarantees match what we want for Railway pre-deploy.
+- ADR 063's decision to keep `'rejected'` in the enum type definition forever (Postgres has no stable `DROP VALUE`) blocked by `CHECK` and rewritten to `'closed'` by Migration B — confirm the deprecation story holds.
+- ADR 064's defaults-sort `priority DESC, pain_level DESC, created_at ASC` — confirm this matches the intended triage UX.
 
 ## Additional Notes
 
-- **Tailwind binary integrity.** `_PLATFORM_SHA256` in
-  `scripts/build_css.py` only has the Windows-x64 digest pinned
-  today. Linux/macOS digests are blank and the script logs a
-  warning when an unpinned platform downloads. Follow-up: capture
-  digests on the Railway build container (linux-x64) and on a
-  macOS host, fold them into the same dict.
-- **`task dev` + watcher.** Doesn't run the watcher in parallel —
-  Task's `cmds` is sequential. Run `task watch:css` in a second
-  terminal during dev. Adding a `dev:all` that orchestrates both
-  needs a small process supervisor (`concurrently`-equivalent in
-  Python, or a tiny `asyncio` runner); deferred.
-- **mkdocs `--strict` warning.** `uv run mkdocs build --strict`
-  exits 1 on `main` already due to a Material for MkDocs
-  framework deprecation notice (MkDocs 2.0). Pre-existing,
-  unrelated to this PR.
-- **What lands in the next PR (1.2).** Three ADR drafts (062,
-  063, 064). Doc-only, no code touch.
+Pre-push repo-doctor warnings dropped from 11 → 1 in the follow-up cleanup commit (the remaining finding is "alembic/versions has no .py revisions yet", which is real and tracked under Phase 1 PR 1.0 work).

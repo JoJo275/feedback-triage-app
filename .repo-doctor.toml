@@ -69,17 +69,17 @@ level = "warn"
 category = "packaging"
 impact = "The src/ layout is the project's package structure. Without it, imports and builds will fail."
 link = "docs/adr/001-src-layout.md"
-fix = "mkdir -p src/simple_python_boilerplate"
+fix = "mkdir -p src/feedback_triage"
 
 [[rule]]
 type = "exists"
-path = "src/simple_python_boilerplate/__init__.py"
+path = "src/feedback_triage/__init__.py"
 kind = "file"
 level = "warn"
 category = "packaging"
 impact = "Package won't be importable without __init__.py; pip install and all imports will break."
 link = "docs/adr/001-src-layout.md"
-fix = "mkdir -p src/simple_python_boilerplate && touch src/simple_python_boilerplate/__init__.py"
+fix = "mkdir -p src/feedback_triage && New-Item -ItemType File src/feedback_triage/__init__.py"
 
 [[rule]]
 type = "exists"
@@ -99,21 +99,13 @@ impact = "No README — first thing visitors see on GitHub. pyproject.toml refer
 
 [[rule]]
 type = "exists"
-path = "requirements.txt"
+path = "uv.lock"
 kind = "file"
-level = "info"
+level = "warn"
 category = "packaging"
-impact = "No requirements.txt — pip-audit pre-push hook and some CI workflows reference it. pip users won't have a pinned dependency list."
-hint = "Generate with: hatch run pip freeze > requirements.txt (or remove pip-audit -r references)."
-
-[[rule]]
-type = "exists"
-path = "requirements-dev.txt"
-kind = "file"
-level = "info"
-category = "packaging"
-impact = "No requirements-dev.txt — pip-audit pre-push hook references it; the hook will fail."
-hint = "Generate with: hatch run pip freeze > requirements-dev.txt (or update pip-audit args in .pre-commit-config.yaml)."
+impact = "No uv.lock — `uv sync --frozen` will fail in CI and contributor environments will drift."
+hint = "Run `uv lock` and commit uv.lock alongside pyproject.toml changes."
+link = "docs/adr/055-uv-environment-management.md"
 
 
 # =============================================================================
@@ -457,27 +449,20 @@ only_if.regex = "(?s)."
 
 # =============================================================================
 # CATEGORY: database — DB bootstrap, migrations, seeds
+#
+# Detailed Postgres + Alembic checks live in repo_doctor.d/db.toml. The
+# base config keeps only a stub so the category exists when no profile is
+# loaded.
 # =============================================================================
 
 [[rule]]
 type = "exists"
-path = "db"
-kind = "dir"
+path = "alembic.ini"
+kind = "file"
 level = "info"
 category = "database"
-impact = "DB bootstrap/migrations/seeds assets may be missing; scripts/docs referencing db/ may break."
-fix = "mkdir -p db/migrations db/queries db/seeds"
-
-[[rule]]
-type = "regex_present"
-path = "scripts"
-regex = "(?i)sqlite|db|schema\\.sql"
-level = "info"
-category = "database"
-impact = "No obvious DB bootstrap reference found in scripts/. If you intended SQLite bootstrap, scripts/docs may be incomplete."
-hint = "Ignore if you intentionally removed DB bootstrap; otherwise add/init scripts and update docs."
-only_if.path = "db"
-only_if.regex = "\\.sql\\b"
+impact = "alembic.ini missing — `alembic upgrade head` and the Railway pre-deploy command will fail."
+hint = "Restore alembic.ini at repo root, or load the db profile for deeper checks."
 
 
 # =============================================================================
@@ -572,25 +557,25 @@ hint = "Add concurrency: { group: '${{ github.workflow }}-${{ github.ref }}', ca
 only_if.path = ".github/workflows/lint-format.yml"
 only_if.regex = "(?s)."
 
-# Workflows using setup-python should enable pip caching
+# Workflows using setup-uv should enable the built-in cache (uv-based project; setup-python is not used)
 [[rule]]
 type = "regex_present"
 path = ".github/workflows/test.yml"
-regex = "cache:\\s*[\"']?pip"
+regex = "(?i)enable-cache:\\s*[\"']?true"
 level = "info"
 category = "ci-hygiene"
-impact = "test.yml uses setup-python without pip caching — every run re-downloads all dependencies."
-hint = "Add cache: 'pip' to the setup-python step."
+impact = "test.yml uses astral-sh/setup-uv without enable-cache: true — every run re-downloads dependencies."
+hint = "Add enable-cache: true to the setup-uv step."
 only_if.path = ".github/workflows/test.yml"
-only_if.regex = "setup-python"
+only_if.regex = "astral-sh/setup-uv"
 
 [[rule]]
 type = "regex_present"
 path = ".github/workflows/coverage.yml"
-regex = "cache:\\s*[\"']?pip"
+regex = "(?i)enable-cache:\\s*[\"']?true"
 level = "info"
 category = "ci-hygiene"
-impact = "coverage.yml uses setup-python without pip caching — every run re-downloads all dependencies."
-hint = "Add cache: 'pip' to the setup-python step."
+impact = "coverage.yml uses astral-sh/setup-uv without enable-cache: true — every run re-downloads dependencies."
+hint = "Add enable-cache: true to the setup-uv step."
 only_if.path = ".github/workflows/coverage.yml"
-only_if.regex = "setup-python"
+only_if.regex = "astral-sh/setup-uv"
