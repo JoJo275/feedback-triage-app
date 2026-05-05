@@ -8,7 +8,7 @@ hatch-vcs from the latest git tag.
 from __future__ import annotations
 
 try:
-    from feedback_triage._version import __version__  # type: ignore[import-not-found]
+    from feedback_triage._version import __version__
 except ImportError:  # pragma: no cover - sdist/dev tree before first build
     __version__ = "0.0.0+unknown"
 
