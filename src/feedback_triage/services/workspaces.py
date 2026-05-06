@@ -62,6 +62,28 @@ def rename_workspace(
     return workspace
 
 
+def update_workspace_settings(
+    db: DbSession,
+    *,
+    workspace_id: uuid.UUID,
+    changes: dict[str, object],
+) -> Workspace:
+    """Apply a partial update to a workspace.
+
+    ``changes`` is a pre-validated dict of column-name → new-value
+    pairs. Callers must guarantee no immutable column (``slug``,
+    ``id``, ``owner_id``) is included; the request schema in
+    ``api/v1/_schemas.py`` enforces that today.
+    """
+    workspace = db.get(Workspace, workspace_id)
+    assert workspace is not None, "update_workspace_settings: id not in this tx"
+    for field, value in changes.items():
+        setattr(workspace, field, value)
+    db.add(workspace)
+    db.flush()
+    return workspace
+
+
 # ---------------------------------------------------------------------------
 # Memberships
 # ---------------------------------------------------------------------------

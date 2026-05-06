@@ -125,6 +125,7 @@ class WorkspaceResponse(BaseModel):
     slug: str
     name: str
     is_demo: bool
+    public_submit_enabled: bool
     created_at: datetime
 
 

@@ -44,7 +44,7 @@ State machine + TTLs + rate limits live in [`auth.md`](auth.md).
 | ------ | ---------------------------------------------- | ------------------- | ------- |
 | GET    | `/api/v1/workspaces`                           | session             | list of workspaces the user belongs to |
 | GET    | `/api/v1/workspaces/{slug}`                    | session + membership | one workspace |
-| PATCH  | `/api/v1/workspaces/{slug}`                    | owner only          | rename only — **`slug` is immutable in v2.0** ([`glossary.md`](glossary.md)) |
+| PATCH  | `/api/v1/workspaces/{slug}`                    | owner only          | rename and/or toggle `public_submit_enabled` — **`slug` is immutable in v2.0** ([`glossary.md`](glossary.md)) |
 | GET    | `/api/v1/workspaces/{slug}/members`            | session + membership | list members |
 | POST   | `/api/v1/workspaces/{slug}/invitations`        | owner only          | `{ email, role }` → invitation id, sends email |
 | GET    | `/api/v1/workspaces/{slug}/invitations`        | owner only          | open invitations |

@@ -46,6 +46,16 @@ def public_submit_page(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "not_found", "message": "Workspace not found."},
         )
+    # When the owner has flipped the kill switch we 404 with the same
+    # envelope as an unknown slug. Returning a different status here
+    # would let an anonymous probe distinguish "exists but closed"
+    # from "doesn't exist", which the spec ``security.md`` Public
+    # form section forbids.
+    if not workspace.public_submit_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "not_found", "message": "Workspace not found."},
+        )
     return templates.TemplateResponse(
         request,
         "pages/public_submit.html",

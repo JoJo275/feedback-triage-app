@@ -140,6 +140,11 @@ def submit_public_feedback(
     ).scalar_one_or_none()
     if workspace is None:
         raise _NOT_FOUND
+    # Owner kill switch (PR 2.5). Same shape as the unknown-slug 404
+    # so an anonymous caller cannot distinguish "exists but closed"
+    # from "doesn't exist".
+    if not workspace.public_submit_enabled:
+        raise _NOT_FOUND
 
     # Honeypot tripped: 200 with the same envelope a real success
     # would return. Never 4xx -- leaks detection signal to bots.
