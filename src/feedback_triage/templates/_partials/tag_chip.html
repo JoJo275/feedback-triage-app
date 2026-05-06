@@ -1,0 +1,15 @@
+{# Tag chip -- workspace tag, optionally removable.
+
+Inputs:
+  name  -- tag display name (required)
+  slug  -- tag slug (lowercase, hyphenated)
+  color -- one of the eight palette keys (`docs/project/spec/v2/css.md` — Tag colours)
+  removable -- when truthy, render a remove button. The detail-page
+               JS wires the click handler. #}
+{%- set _color = color or 'slate' -%}
+<span class="sn-tag-chip sn-tag-chip--{{ _color }}" data-tag-slug="{{ slug }}">
+  <span class="sn-tag-chip__label">{{ name }}</span>
+  {%- if removable %}
+  <button type="button" class="sn-tag-chip__remove" data-action="remove-tag" aria-label="Remove tag {{ name }}">×</button>
+  {%- endif %}
+</span>

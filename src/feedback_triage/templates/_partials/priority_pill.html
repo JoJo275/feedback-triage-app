@@ -1,0 +1,15 @@
+{# Priority pill -- low / medium / high / critical.
+
+Renders an `sn-pill-priority` chip; an unset priority is rendered as
+a muted em-dash so the column never collapses. #}
+{%- if priority -%}
+{%- set _tone_map = {
+  "low":      "info",
+  "medium":   "warn",
+  "high":     "danger",
+  "critical": "danger",
+} -%}
+<span class="sn-pill-priority sn-pill-priority--{{ _tone_map.get(priority, 'muted') }}" data-priority="{{ priority }}">{{ priority }}</span>
+{%- else -%}
+<span class="sn-pill-priority sn-pill-priority--unset" aria-label="No priority set">—</span>
+{%- endif -%}

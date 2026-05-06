@@ -1,0 +1,85 @@
+{# Filter bar -- inbox / feedback list.
+
+Pure markup; state is managed client-side by `inbox.js`, which reads
+the URL query string on load and writes back via
+`history.replaceState`. The available filters mirror the v2 list
+endpoint's query parameters (`docs/project/spec/v2/api.md` —
+`GET /api/v1/feedback`). The page-mode flag controls the default
+status filter:
+
+  * inbox    -> { new, needs_info, reviewing }
+  * feedback -> all statuses
+
+The user can override the inbox default via the dropdown. #}
+<form id="filter-form" class="sn-filter-bar" role="search" aria-label="Filter feedback">
+  <label class="sn-form-field sn-filter-bar__field">
+    <span class="sn-form-field-label">Search</span>
+    <input id="filter-q" name="q" type="search" class="sn-form-field-input" autocomplete="off"
+           placeholder="Description contains…" />
+  </label>
+  <label class="sn-form-field sn-filter-bar__field">
+    <span class="sn-form-field-label">Status</span>
+    <select id="filter-status" name="status" class="sn-form-field-input">
+      <option value="">All</option>
+      <option value="new">New</option>
+      <option value="needs_info">Needs info</option>
+      <option value="reviewing">Reviewing</option>
+      <option value="accepted">Accepted</option>
+      <option value="planned">Planned</option>
+      <option value="in_progress">In progress</option>
+      <option value="shipped">Shipped</option>
+      <option value="closed">Closed</option>
+      <option value="spam">Spam</option>
+    </select>
+  </label>
+  <label class="sn-form-field sn-filter-bar__field">
+    <span class="sn-form-field-label">Type</span>
+    <select id="filter-type" name="type" class="sn-form-field-input">
+      <option value="">All</option>
+      <option value="bug">Bug</option>
+      <option value="feature_request">Feature request</option>
+      <option value="complaint">Complaint</option>
+      <option value="praise">Praise</option>
+      <option value="question">Question</option>
+      <option value="other">Other</option>
+    </select>
+  </label>
+  <label class="sn-form-field sn-filter-bar__field">
+    <span class="sn-form-field-label">Priority</span>
+    <select id="filter-priority" name="priority" class="sn-form-field-input">
+      <option value="">All</option>
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+      <option value="critical">Critical</option>
+    </select>
+  </label>
+  <label class="sn-form-field sn-filter-bar__field">
+    <span class="sn-form-field-label">Source</span>
+    <select id="filter-source" name="source" class="sn-form-field-input">
+      <option value="">All</option>
+      <option value="email">Email</option>
+      <option value="interview">Interview</option>
+      <option value="reddit">Reddit</option>
+      <option value="support">Support</option>
+      <option value="app_store">App store</option>
+      <option value="twitter">Twitter</option>
+      <option value="web_form">Web form</option>
+      <option value="other">Other</option>
+    </select>
+  </label>
+  <label class="sn-form-field sn-filter-bar__field">
+    <span class="sn-form-field-label">Sort</span>
+    <select id="filter-sort" name="sort_by" class="sn-form-field-input">
+      <option value="-created_at">Newest first</option>
+      <option value="created_at">Oldest first</option>
+      <option value="-updated_at">Recently updated</option>
+      <option value="-pain_level">Highest pain</option>
+      <option value="status">Status</option>
+    </select>
+  </label>
+  <div class="sn-filter-bar__actions">
+    <button type="submit" class="sn-button sn-button-primary">Apply</button>
+    <button type="button" id="filter-reset" class="sn-button sn-button-ghost">Reset</button>
+  </div>
+</form>

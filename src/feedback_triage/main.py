@@ -34,6 +34,8 @@ from feedback_triage.middleware import (
 )
 from feedback_triage.pages import auth as auth_pages
 from feedback_triage.pages import dashboard as dashboard_pages
+from feedback_triage.pages import feedback_detail as feedback_detail_pages
+from feedback_triage.pages import inbox as inbox_pages
 from feedback_triage.routes import health, pages
 from feedback_triage.routes.pages import STATIC_DIR
 
@@ -129,6 +131,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(invitations_api.accept_router)
     app.include_router(auth_pages.router)
     app.include_router(dashboard_pages.router)
+    app.include_router(inbox_pages.router)
+    app.include_router(feedback_detail_pages.router)
     app.include_router(pages.router)
 
     register_exception_handlers(app)

@@ -1,0 +1,28 @@
+{# Internal notes panel -- author + 15-minute edit window.
+
+Append-only thread. The list is filled by `feedback_detail.js` on
+load; the form posts to `POST /api/v1/feedback/{id}/notes` (PR 2.2).
+Notes are author-editable for 15 minutes; after that the API
+returns 409 with `code=edit_window_closed`. #}
+<section class="sn-notes-panel" aria-labelledby="notes-heading">
+  <header class="sn-notes-panel__header">
+    <h2 id="notes-heading">Internal notes</h2>
+    <p class="sn-notes-panel__meta sn-text-muted">
+      Visible to workspace members only. Edits allowed within 15 minutes of posting.
+    </p>
+  </header>
+  <ol id="notes-list" class="sn-notes-panel__list" aria-live="polite">
+    <li class="sn-notes-panel__placeholder" data-state="loading">Loading notes…</li>
+  </ol>
+  <form id="notes-form" class="sn-notes-panel__form">
+    <label class="sn-form-field">
+      <span class="sn-form-field-label">Add a note</span>
+      <textarea id="notes-input" name="body" required minlength="1" maxlength="4000"
+                rows="3" class="sn-form-field-input" placeholder="Internal context, next steps, links…"></textarea>
+    </label>
+    <div class="sn-notes-panel__form-actions">
+      <button type="submit" class="sn-button sn-button-primary">Post note</button>
+      <span id="notes-error" class="sn-text-danger" role="alert" hidden></span>
+    </div>
+  </form>
+</section>

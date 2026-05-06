@@ -1,0 +1,19 @@
+{# Status pill -- workspace inbox / detail.
+
+Renders a feedback `status` value as an `sn-pill-status` chip with a
+tone modifier so the colour matches the workflow stage. Tone keys
+mirror `docs/project/spec/v2/css.md` — Status pill tones. #}
+{%- set _label_map = {
+  "new":         ("new",         "info"),
+  "needs_info":  ("needs info",  "warn"),
+  "reviewing":   ("reviewing",   "info"),
+  "accepted":    ("accepted",    "ok"),
+  "planned":     ("planned",     "ok"),
+  "in_progress": ("in progress", "ok"),
+  "shipped":     ("shipped",     "ok"),
+  "closed":      ("closed",      "muted"),
+  "spam":        ("spam",        "danger"),
+  "rejected":    ("rejected",    "muted"),
+} -%}
+{%- set _label, _tone = _label_map.get(status, (status, "muted")) -%}
+<span class="sn-pill-status sn-pill-status--{{ _tone }}" data-status="{{ status }}">{{ _label }}</span>

@@ -1,0 +1,81 @@
+{% extends "_base.html" %}
+{% block title %}{% if page_mode == "feedback" %}Feedback{% else %}Inbox{% endif %} — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}" data-page-mode="{{ page_mode }}">
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-stack">
+        <h1>
+          {% if page_mode == "feedback" %}Feedback{% else %}Inbox{% endif %}
+          <span id="result-count-chip" class="sn-count-chip" hidden></span>
+        </h1>
+        <p class="sn-text-muted">
+          {% if page_mode == "feedback" %}
+            Searchable archive across every status.
+          {% else %}
+            Triage queue: new, needs info, and reviewing items.
+          {% endif %}
+        </p>
+      </header>
+
+      <section class="sn-summary-cards" aria-labelledby="summary-heading">
+        <h2 id="summary-heading" class="sr-only">Workspace summary</h2>
+        <div class="sn-grid-12">
+          {% for key, label in [
+            ("new", "New"),
+            ("needs_info", "Needs info"),
+            ("reviewing", "Reviewing"),
+            ("high_priority", "High priority"),
+            ("stale", "Stale"),
+          ] %}
+          <article class="sn-card sn-summary-card" data-card="{{ key }}">
+            <div class="sn-card-header">
+              <h3>{{ label }}</h3>
+            </div>
+            <div class="sn-card-body">
+              <p class="sn-summary-card__count" data-summary-count="{{ key }}">—</p>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      {% include "_partials/filter_bar.html" %}
+
+      <section aria-labelledby="results-heading" class="sn-stack">
+        <h2 id="results-heading" class="sr-only">Results</h2>
+        <p id="list-status" class="sn-text-muted" role="status" aria-live="polite">Loading…</p>
+        <p id="list-error" class="sn-text-danger" role="alert" hidden></p>
+        <div class="sn-table-wrap">
+          <table id="list-table" class="sn-table" hidden>
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Type</th>
+                <th scope="col">Status</th>
+                <th scope="col">Priority</th>
+                <th scope="col">Pain</th>
+                <th scope="col">Source</th>
+                <th scope="col">Created</th>
+              </tr>
+            </thead>
+            <tbody id="list-body"></tbody>
+          </table>
+        </div>
+        <p id="list-summary" class="sn-text-muted" hidden></p>
+        <p id="empty-state" class="sn-empty-state" hidden>
+          {% if page_mode == "feedback" %}
+            <strong>No feedback yet.</strong>
+            <span>Start collecting signals from your users.</span>
+          {% else %}
+            <strong>Inbox zero.</strong>
+            <span>Nothing waiting. New feedback shows up here.</span>
+          {% endif %}
+        </p>
+      </section>
+    </div>
+  </main>
+</div>
+<script type="module" src="/static/js/inbox.js" defer></script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "_base.html" %}
+{% block title %}{{ feedback_title }} · {{ workspace_name }} — SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell"
+        data-workspace-slug="{{ workspace_slug }}"
+        data-feedback-id="{{ feedback_id }}">
+    <div class="sn-content-gutter sn-stack">
+      <nav aria-label="Back" class="sn-stack">
+        <a class="sn-link" href="/w/{{ workspace_slug }}/inbox">← Back to inbox</a>
+      </nav>
+
+      <header class="sn-stack">
+        <h1 id="detail-title">{{ feedback_title }}</h1>
+        <div class="sn-cluster" aria-label="Feedback metadata">
+          <span id="detail-type" class="sn-pill-status sn-pill-status--muted" data-state="loading">type…</span>
+          <span id="detail-status-wrap"></span>
+          <span id="detail-priority-wrap"></span>
+          <span id="detail-pain" class="sn-pain-dots" aria-label="Pain level">●○○○○</span>
+        </div>
+        <p id="detail-error" class="sn-text-danger" role="alert" hidden></p>
+      </header>
+
+      <div class="sn-detail-grid">
+        <section class="sn-detail-main sn-stack" aria-labelledby="detail-main-heading">
+          <h2 id="detail-main-heading" class="sr-only">Feedback content</h2>
+
+          <article class="sn-card">
+            <div class="sn-card-header">
+              <h3>Description</h3>
+            </div>
+            <div class="sn-card-body">
+              <p id="detail-description" class="sn-prose">Loading…</p>
+            </div>
+          </article>
+
+          {% include "_partials/notes_panel.html" %}
+          {% include "_partials/timeline.html" %}
+        </section>
+
+        <aside class="sn-detail-aside sn-stack" aria-label="Feedback metadata">
+          <article class="sn-card" aria-labelledby="submitter-heading">
+            <div class="sn-card-header"><h3 id="submitter-heading">Submitter</h3></div>
+            <div class="sn-card-body">
+              <p id="detail-submitter" class="sn-text-muted">No known submitter.</p>
+            </div>
+          </article>
+
+          <article class="sn-card" aria-labelledby="meta-heading">
+            <div class="sn-card-header"><h3 id="meta-heading">Metadata</h3></div>
+            <div class="sn-card-body">
+              <dl class="sn-meta-list">
+                <dt>Source</dt><dd id="detail-source">—</dd>
+                <dt>Created</dt><dd id="detail-created">—</dd>
+                <dt>Updated</dt><dd id="detail-updated">—</dd>
+              </dl>
+            </div>
+          </article>
+
+          <article class="sn-card" aria-labelledby="tags-heading">
+            <div class="sn-card-header"><h3 id="tags-heading">Tags</h3></div>
+            <div class="sn-card-body">
+              <ul id="detail-tags" class="sn-tag-list" aria-live="polite">
+                <li class="sn-text-muted" data-state="loading">Loading tags…</li>
+              </ul>
+              <form id="tag-add-form" class="sn-stack">
+                <label class="sn-form-field">
+                  <span class="sn-form-field-label">Add a tag</span>
+                  <select id="tag-add-select" class="sn-form-field-input">
+                    <option value="">Pick a tag…</option>
+                  </select>
+                </label>
+                <button type="submit" class="sn-button sn-button-secondary">Add</button>
+              </form>
+            </div>
+          </article>
+
+          <article class="sn-card" aria-labelledby="publishing-heading">
+            <div class="sn-card-header"><h3 id="publishing-heading">Publishing</h3></div>
+            <div class="sn-card-body sn-stack">
+              <label class="sn-toggle">
+                <input type="checkbox" id="toggle-roadmap" data-toggle="published_to_roadmap" />
+                <span>Publish to roadmap</span>
+              </label>
+              <label class="sn-toggle">
+                <input type="checkbox" id="toggle-changelog" data-toggle="published_to_changelog" />
+                <span>Publish to changelog</span>
+              </label>
+            </div>
+          </article>
+
+          <article class="sn-card sn-card--danger" aria-labelledby="status-heading">
+            <div class="sn-card-header"><h3 id="status-heading">Workflow</h3></div>
+            <div class="sn-card-body sn-stack">
+              <label class="sn-form-field">
+                <span class="sn-form-field-label">Status</span>
+                <select id="status-select" class="sn-form-field-input">
+                  <option value="new">New</option>
+                  <option value="needs_info">Needs info</option>
+                  <option value="reviewing">Reviewing</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="planned">Planned</option>
+                  <option value="in_progress">In progress</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="closed">Closed</option>
+                  <option value="spam">Spam</option>
+                </select>
+              </label>
+              <label class="sn-form-field">
+                <span class="sn-form-field-label">Priority</span>
+                <select id="priority-select" class="sn-form-field-input">
+                  <option value="">— unset —</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </label>
+            </div>
+          </article>
+        </aside>
+      </div>
+    </div>
+  </main>
+</div>
+<script type="module" src="/static/js/feedback_detail.js" defer></script>
+{% endblock %}

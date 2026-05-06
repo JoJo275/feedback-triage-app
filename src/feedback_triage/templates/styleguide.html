@@ -1,26 +1,90 @@
-{% extends "_base.html" %} {% block title %}Style guide — Feedback Triage{%
-endblock %} {% block body %}
+{% extends "_base.html" %}
+{% block title %}Style guide — SignalNest{% endblock %}
+{% block body %}
 <main id="main" class="sn-page-shell">
-    <div class="sn-content-gutter sn-stack">
-        <header>
-            <h1>Style guide</h1>
-            <p class="text-ink-muted">
-                v2.0 design-system stub. Components and theme presets land in
-                later PRs (see
-                <code>docs/project/spec/v2/implementation.md</code>).
-            </p>
-        </header>
-        <section aria-label="Token sanity check" class="sn-card">
-            <div class="sn-card-header">
-                <h2>Token sanity check</h2>
-            </div>
-            <div class="sn-card-body">
-                <p>
-                    If the page background is the slate-50 token and this card
-                    has a soft shadow, the Tailwind pipeline is wired correctly.
-                </p>
-            </div>
-        </section>
-    </div>
+  <div class="sn-content-gutter sn-stack">
+    <header>
+      <h1>Style guide</h1>
+      <p class="sn-text-muted">
+        v2.0 component vocabulary in every variant + state. PR 2.3 adds
+        status pills, priority pills, tag chips, the filter bar, the
+        notes panel, and the timeline.
+      </p>
+    </header>
+
+    <section aria-label="Token sanity check" class="sn-card">
+      <div class="sn-card-header"><h2>Token sanity check</h2></div>
+      <div class="sn-card-body">
+        <p>
+          If the page background is the slate-50 token and this card has a soft
+          shadow, the Tailwind pipeline is wired correctly.
+        </p>
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-status" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-status">Status pill</h2></div>
+      <div class="sn-card-body sn-cluster">
+        {% for s in ["new", "needs_info", "reviewing", "accepted", "planned",
+                     "in_progress", "shipped", "closed", "spam"] %}
+          {% with status=s %}{% include "_partials/status_pill.html" %}{% endwith %}
+        {% endfor %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-priority" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-priority">Priority pill</h2></div>
+      <div class="sn-card-body sn-cluster">
+        {% for p in [None, "low", "medium", "high", "critical"] %}
+          {% with priority=p %}{% include "_partials/priority_pill.html" %}{% endwith %}
+        {% endfor %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-tag" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-tag">Tag chip</h2></div>
+      <div class="sn-card-body sn-cluster">
+        {% for c in ["slate", "teal", "amber", "rose", "indigo", "sky",
+                     "green", "violet"] %}
+          {% with name="Example", slug="example-" ~ c, color=c, removable=False %}
+            {% include "_partials/tag_chip.html" %}
+          {% endwith %}
+        {% endfor %}
+        {% with name="Removable", slug="removable", color="teal", removable=True %}
+          {% include "_partials/tag_chip.html" %}
+        {% endwith %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-pain" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-pain">Pain dots</h2></div>
+      <div class="sn-card-body sn-cluster">
+        {% for n in range(0, 6) %}
+          <span class="sn-pain-dots" aria-label="Pain level {{ n }} of 5">{{ "●" * n }}{{ "○" * (5 - n) }}</span>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-filter" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-filter">Filter bar</h2></div>
+      <div class="sn-card-body">
+        {% include "_partials/filter_bar.html" %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-timeline" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-timeline">Timeline</h2></div>
+      <div class="sn-card-body">
+        {% include "_partials/timeline.html" %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-notes" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-notes">Notes panel</h2></div>
+      <div class="sn-card-body">
+        {% include "_partials/notes_panel.html" %}
+      </div>
+    </section>
+  </div>
 </main>
 {% endblock %}
