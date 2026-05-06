@@ -1,8 +1,11 @@
 """Tests for global exception handlers and the error envelope shape.
 
 Covers Phase 5 deliverables: 404 / 422 / 500 bodies all include the
-request ID, validation rules from the spec are enforced, and unhandled
-exceptions never leak stack traces to the client.
+request ID, and unhandled exceptions never leak stack traces to the
+client. The detailed v2 feedback validation matrix (pain_level,
+title, description, source, status) is exercised in
+``tests/api/test_feedback_v2.py``; this file keeps the
+envelope-shape coverage that the parametrised matrix used to share.
 """
 
 from __future__ import annotations
@@ -16,66 +19,57 @@ from fastapi.testclient import TestClient
 from feedback_triage.config import Settings
 from feedback_triage.main import create_app
 
-
-def _valid_payload(**overrides: object) -> dict[str, object]:
-    base: dict[str, object] = {
-        "title": "Login is slow",
-        "description": "Takes 8 seconds on cold start.",
-        "source": "email",
-        "pain_level": 3,
-    }
-    base.update(overrides)
-    return base
+VALID_PASSWORD = "correct horse battery staple"  # pragma: allowlist secret
 
 
 # --- 404 envelope ---------------------------------------------------------
 
 
 def test_404_body_contains_detail_and_request_id(client: TestClient) -> None:
-    resp = client.get("/api/v1/feedback/99999")
+    # Any unmatched route returns the generic 404 envelope; this no
+    # longer touches the now-authenticated /api/v1/feedback surface.
+    resp = client.get("/no-such-page")
     body = resp.json()
     assert resp.status_code == 404
-    assert body["detail"] == "Feedback item not found"
+    assert "detail" in body
     assert body["request_id"] == resp.headers["X-Request-ID"]
 
 
 def test_404_echoes_inbound_request_id(client: TestClient) -> None:
     rid = "fixed-test-rid"
-    resp = client.get("/api/v1/feedback/99999", headers={"X-Request-ID": rid})
+    resp = client.get("/no-such-page", headers={"X-Request-ID": rid})
     assert resp.json()["request_id"] == rid
 
 
-# --- 422 / validation rules -----------------------------------------------
+# --- 422 / validation envelope --------------------------------------------
 
 
-def test_validation_error_body_has_request_id(client: TestClient) -> None:
-    resp = client.post("/api/v1/feedback", json=_valid_payload(pain_level=0))
+def test_validation_error_body_has_request_id(
+    auth_client: TestClient,
+) -> None:
+    """A 422 from an authenticated route still carries ``request_id``."""
+    auth_client.post(
+        "/api/v1/auth/signup",
+        json={"email": "alice@example.com", "password": VALID_PASSWORD},
+    )
+    login = auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": "alice@example.com", "password": VALID_PASSWORD},
+    )
+    slug = login.json()["memberships"][0]["workspace_slug"]
+    resp = auth_client.post(
+        "/api/v1/feedback",
+        json={
+            "title": "Login is slow",
+            "source": "email",
+            "pain_level": 0,  # out of range -> 422
+        },
+        headers={"X-Workspace-Slug": slug},
+    )
     assert resp.status_code == 422
     body = resp.json()
     assert body["request_id"] == resp.headers["X-Request-ID"]
     assert isinstance(body["detail"], list)
-
-
-@pytest.mark.parametrize(
-    "overrides",
-    [
-        {"pain_level": 0},
-        {"pain_level": 6},
-        {"pain_level": -1},
-        {"title": ""},
-        {"title": "   "},
-        {"title": "x" * 201},
-        {"description": "x" * 5001},
-        {"source": "carrier-pigeon"},
-        {"status": "bogus"},
-    ],
-)
-def test_validation_rules_reject_bad_input(
-    client: TestClient,
-    overrides: dict[str, object],
-) -> None:
-    resp = client.post("/api/v1/feedback", json=_valid_payload(**overrides))
-    assert resp.status_code == 422, overrides
 
 
 # --- 500 / unhandled exceptions -------------------------------------------
@@ -91,8 +85,6 @@ def boom_client() -> Iterator[TestClient]:
     def boom() -> None:
         raise RuntimeError("intentional explosion for tests")
 
-    # raise_server_exceptions=False so TestClient lets the handler run
-    # instead of re-raising the exception in our face.
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
 
@@ -105,7 +97,6 @@ def test_unhandled_exception_returns_generic_500(boom_client: TestClient) -> Non
         "detail": "Internal server error",
         "request_id": resp.headers["X-Request-ID"],
     }
-    # No leaked exception text in the body.
     assert "intentional explosion" not in resp.text
     assert "RuntimeError" not in resp.text
 
