@@ -1,0 +1,76 @@
+{% extends "_base.html" %}
+{% block title %}Submitter — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main
+    id="main"
+    class="sn-page-shell"
+    data-workspace-slug="{{ workspace_slug }}"
+    data-submitter-id="{{ submitter_id }}"
+  >
+    <div class="sn-content-gutter sn-stack">
+      <nav aria-label="Back" class="sn-stack">
+        <a class="sn-link" href="/w/{{ workspace_slug }}/submitters">← Back to submitters</a>
+      </nav>
+
+      <header class="sn-stack">
+        <h1 id="submitter-display-name">Submitter</h1>
+        <p id="submitter-email" class="sn-text-muted">—</p>
+        <p id="detail-error" class="sn-text-danger" role="alert" hidden></p>
+      </header>
+
+      <section class="sn-card" aria-labelledby="profile-heading">
+        <div class="sn-card-header">
+          <h2 id="profile-heading">Profile</h2>
+        </div>
+        <div class="sn-card-body">
+          <form id="submitter-form" class="sn-stack" novalidate>
+            <div class="sn-form-row">
+              <label for="submitter-name">Display name</label>
+              <input id="submitter-name" name="name" type="text" maxlength="120" />
+            </div>
+            <div class="sn-form-row">
+              <label for="submitter-internal-notes">Internal notes</label>
+              <textarea
+                id="submitter-internal-notes"
+                name="internal_notes"
+                maxlength="4000"
+                rows="3"
+              ></textarea>
+              <p class="sn-text-muted">
+                Visible to your team only. Submitters never see this.
+              </p>
+            </div>
+            <div class="sn-form-actions">
+              <button type="submit" class="sn-button">Save</button>
+            </div>
+            <p id="form-status" class="sn-text-muted" role="status" aria-live="polite" hidden></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="sn-stack" aria-labelledby="recent-heading">
+        <h2 id="recent-heading">Feedback from this submitter</h2>
+        <p id="recent-status" class="sn-text-muted" role="status" aria-live="polite">Loading…</p>
+        <div class="sn-table-wrap">
+          <table id="recent-table" class="sn-table" hidden>
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
+              </tr>
+            </thead>
+            <tbody id="recent-body"></tbody>
+          </table>
+        </div>
+        <p id="recent-empty" class="sn-empty-state" hidden>
+          <strong>No feedback yet.</strong>
+        </p>
+      </section>
+    </div>
+  </main>
+</div>
+<script type="module" src="/static/js/submitter_detail.js" defer></script>
+{% endblock %}

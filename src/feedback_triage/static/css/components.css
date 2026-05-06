@@ -138,3 +138,18 @@
          focus:top-2 focus:left-2 focus:bg-surface
          focus:text-ink focus:rounded focus:px-3 focus:py-2;
 }
+
+/* ---- Stale badge ---- */
+/* Visual cue on inbox rows whose `created_at` is older than 14 days
+   while still in `new` or `needs_info`. Server source of truth lives
+   in `services/stale_detector.py`; the JS row renderer mirrors the
+   predicate so the badge lights up without an extra round-trip. */
+.sn-stale-badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5
+           ml-2 text-[0.6875rem] font-semibold uppercase tracking-wide;
+    color: var(--color-warning);
+    background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+}
+tr[data-stale="true"] {
+    background: color-mix(in srgb, var(--color-warning) 6%, transparent);
+}
