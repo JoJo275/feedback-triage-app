@@ -21,6 +21,7 @@ from feedback_triage.api.v1 import auth as auth_api
 from feedback_triage.api.v1 import invitations as invitations_api
 from feedback_triage.api.v1 import workspaces as workspaces_api
 from feedback_triage.auth import hashing as auth_hashing
+from feedback_triage.auth.feature_flag import FeatureAuthGateMiddleware
 from feedback_triage.config import Settings, get_settings
 from feedback_triage.errors import register_exception_handlers
 from feedback_triage.middleware import (
@@ -96,6 +97,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         json_format=settings.is_production,
     )
     app.add_middleware(RequestIDMiddleware)
+
+    # ``FEATURE_AUTH`` gate (PR 1.9). Mounted only when the flag is
+    # off so the auth surface (``/api/v1/auth/*`` and the auth page
+    # routes) short-circuits with 503. Read once at startup; flipping
+    # the flag requires a redeploy. Sits *inside* the request-id and
+    # logging middlewares so gated requests still log and still echo
+    # an ``X-Request-ID``.
+    if not settings.feature_auth:
+        app.add_middleware(FeatureAuthGateMiddleware)
 
     if settings.cors_origins:
         app.add_middleware(

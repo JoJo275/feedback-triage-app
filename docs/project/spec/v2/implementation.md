@@ -48,33 +48,35 @@ has a conventional-commit title, a single focused diff, and runs
 `task check` green on its own. **Do not stack two slices into one
 PR.**
 
+Click a PR number to jump to its slice below.
+
 | PR  | Title                                                                                                         | Phase | Status |
 | --- | ------------------------------------------------------------------------------------------------------------- | ----- | ------ |
-| 1.1 | `feat(css): tailwind plumbing + four-file architecture + /styleguide stub`                                    | 1     | done        |
-| 1.2 | `docs(adr): draft ADR 062 + ADR 063 + ADR 064`                                                                | 1     | done        |
-| 1.3a | `refactor(models): split models.py into a package + add v2 enums`                                            | 1     | not started |
-| 1.3b | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                                      | 1     | done        |
-| 1.4 | `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`                                        | 1     | done        |
-| 1.5 | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                                        | 1     | done        |
-| 1.6 | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                                    | 1     | done        |
-| 1.7 | `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`                                          | 1     | done        |
-| 1.8 | `feat(api): workspaces, memberships, invitations + dashboard empty state`                                     | 1     | done        |
-| 1.9 | `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`                        | 1     | not started |
-| 2.1 | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables`  | 2     | not started |
-| 2.2 | `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`                                 | 2     | not started |
-| 2.3 | `feat(pages): inbox + feedback list + feedback detail`                                                        | 2     | not started |
-| 2.4 | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                            | 2     | not started |
-| 2.5 | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                              | 2     | not started |
-| 2.6 | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)`        | 2     | not started |
-| 3.1 | `feat(email): status-change emails end-to-end + status_change.html template`                                  | 3     | not started |
-| 3.2 | `feat(pages): public roadmap + public changelog`                                                              | 3     | not started |
-| 3.3 | `feat(pages): management roadmap kanban + management changelog editor`                                        | 3     | not started |
-| 3.4 | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`                          | 3     | not started |
-| 3.5 | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag`          | 3     | not started |
-| 4.1 | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                                 | 4     | not started |
-| 4.2 | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                              | 4     | not started |
-| 4.3 | `feat(email): Resend webhook for delivery + bounce events (if available)`                                     | 4     | not started |
-| 4.4 | `feat(brand): custom favicon + wordmark refresh`                                                              | 4     | not started |
+| [1.1](#pr-1-1) | `feat(css): tailwind plumbing + four-file architecture + /styleguide stub`                         | 1     | done        |
+| [1.2](#pr-1-2) | `docs(adr): draft ADR 062 + ADR 063 + ADR 064`                                                     | 1     | done        |
+| [1.3a](#pr-1-3a) | `refactor(models): split models.py into a package + add v2 enums`                                | 1     | done        |
+| [1.3b](#pr-1-3b) | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                         | 1     | done        |
+| [1.4](#pr-1-4) | `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`                             | 1     | done        |
+| [1.5](#pr-1-5) | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                             | 1     | done        |
+| [1.6](#pr-1-6) | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                         | 1     | done        |
+| [1.7](#pr-1-7) | `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`                               | 1     | done        |
+| [1.8](#pr-1-8) | `feat(api): workspaces, memberships, invitations + dashboard empty state`                          | 1     | done        |
+| [1.9](#pr-1-9) | `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`             | 1     | done        |
+| [2.1](#pr-2-1) | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables` | 2 | not started |
+| [2.2](#pr-2-2) | `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`                      | 2     | not started |
+| [2.3](#pr-2-3) | `feat(pages): inbox + feedback list + feedback detail`                                             | 2     | not started |
+| [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | not started |
+| [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | not started |
+| [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | not started |
+| [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | not started |
+| [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | not started |
+| [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | not started |
+| [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | not started |
+| [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | not started |
+| [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | not started |
+| [4.2](#pr-4-2) | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                   | 4     | not started |
+| [4.3](#pr-4-3) | `feat(email): Resend webhook for delivery + bounce events (if available)`                          | 4     | not started |
+| [4.4](#pr-4-4) | `feat(brand): custom favicon + wordmark refresh`                                                   | 4     | not started |
 
 **Twenty-five PRs total** — ten for Phase 1, six for Phase 2,
 five for Phase 3, four for Phase 4. Phase 1's PR 1.2 is doc-only;
@@ -135,6 +137,8 @@ Tier tags from the spec apply to every PR: `[Must]` blocks the
 phase from closing; `[Should]` can slip into a later PR within the
 same phase; `[Nice]` is opportunistic.
 
+<a id="pr-1-1"></a>
+
 ### PR 1.1 — `feat(css): tailwind plumbing + four-file architecture + /styleguide stub`
 
 Pure-frontend, no DB. Stands up the build pipeline and gives every
@@ -172,6 +176,8 @@ later page a stylesheet to link to.
 
 ---
 
+<a id="pr-1-2"></a>
+
 ### PR 1.2 — `docs(adr): draft ADR 062 (v1→v2 data migration) + ADR 063 (status enum) + ADR 064 (pain vs priority)`
 
 Documentation-only. Locks the schema choices PR 1.3b, PR 2.1, and
@@ -201,6 +207,8 @@ Phase 2 UI will rely on.
 - `mkdocs build` is clean (no broken links).
 
 ---
+
+<a id="pr-1-3a"></a>
 
 ### PR 1.3a — `refactor(models): split models.py into a package + add v2 enums`
 
@@ -247,6 +255,8 @@ is preparatory scaffolding for PR 1.3b.
 
 ---
 
+<a id="pr-1-3b"></a>
+
 ### PR 1.3b — `feat(db): migration A — auth, tenancy, email_log tables + native enums`
 
 The single largest schema migration in the v1→v2 jump.
@@ -291,6 +301,8 @@ will ship Migration B.
 
 ---
 
+<a id="pr-1-4"></a>
+
 ### PR 1.4 — `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`
 
 Self-contained module. No HTTP routes yet — just the building
@@ -324,6 +336,8 @@ blocks.
 
 ---
 
+<a id="pr-1-5"></a>
+
 ### PR 1.5 — `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`
 
 Tenancy primitives plus the canary tests that **must exist before
@@ -350,6 +364,8 @@ any tenanted route ships in PR 1.7+**.
   the canary actually catches the regression).
 
 ---
+
+<a id="pr-1-6"></a>
 
 ### PR 1.6 — `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`
 
@@ -381,6 +397,8 @@ implementation.
 - `RESEND_API_KEY` missing at boot fails fast with a clear error.
 
 ---
+
+<a id="pr-1-7"></a>
 
 ### PR 1.7 — `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`
 
@@ -415,6 +433,8 @@ the sign-up / sign-in / verify / reset / invitation flows.
 
 ---
 
+<a id="pr-1-8"></a>
+
 ### PR 1.8 — `feat(api): workspaces, memberships, invitations + dashboard empty state`
 
 Closes the Phase 1 product slice: a workspace exists, members
@@ -445,6 +465,8 @@ belong to it, dashboard renders.
 
 ---
 
+<a id="pr-1-9"></a>
+
 ### PR 1.9 — `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`
 
 Should/Nice items + the production-rollout flag. Closes Phase 1.
@@ -462,9 +484,9 @@ Should/Nice items + the production-rollout flag. Closes Phase 1.
   flag is false
 
 **Deliverables this PR closes**
-- [ ] **`FEATURE_AUTH` flag** — full deliverable.
-- [ ] **Sidebar navigation rendered** (Should).
-- [ ] **Theme switcher dormant but wired to `data-theme`**
+- [x] **`FEATURE_AUTH` flag** — full deliverable.
+- [x] **Sidebar navigation rendered** (Should).
+- [x] **Theme switcher dormant but wired to `data-theme`**
       (Should).
 
 **DoD (Phase 1 close)**
@@ -490,6 +512,24 @@ task build:css && test -s src/feedback_triage/static/css/app.*.css
 uv run alembic upgrade head
 ```
 
+**Phase 1 closed 2026-05-06.** Verification run on this date:
+
+- `uv run pytest -m "not e2e"` → **159 passed, 3 skipped, 4
+  deselected** (includes the 18 new `test_feature_auth_flag.py`
+  cases).
+- `uv run pytest tests/api/test_isolation.py -v` → **6 passed, 3
+  skipped** (placeholder cases for tags/notes/submitters land in
+  PR 2.1 with the schema).
+- `task build:css` → wrote `app.de4d3f16a4.css` + manifest.
+- `uv run alembic upgrade head` → already at head; no pending
+  revisions.
+- `task check` → green (ruff + mypy + tests).
+- `uv run pytest -m e2e tests/e2e/test_signup_flow.py` runs
+  locally with Playwright browsers installed; the smoke suite is
+  gated and not part of the default `task check`.
+
+Phase 2 (Beta) is now unblocked.
+
 ---
 
 ## Phase 2 — Beta (triage workflow + public submit)
@@ -504,6 +544,8 @@ Phase 2 ships as **six sequential PRs**. Migration B (the
 `NOT NULL workspace_id` flip + status rename) is the first PR
 because every later PR depends on the new schema; it is
 hand-reviewed in isolation.
+
+<a id="pr-2-1"></a>
 
 ### PR 2.1 — `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables`
 
@@ -541,6 +583,8 @@ forward.
 
 ---
 
+<a id="pr-2-2"></a>
+
 ### PR 2.2 — `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`
 
 Pure API; no UI yet. Lets PR 2.3+ build pages against a stable
@@ -566,6 +610,8 @@ contract.
 - `test_isolation.py` has cases covering every new endpoint.
 
 ---
+
+<a id="pr-2-3"></a>
 
 ### PR 2.3 — `feat(pages): inbox + feedback list + feedback detail`
 
@@ -603,6 +649,8 @@ honest.
 
 ---
 
+<a id="pr-2-4"></a>
+
 ### PR 2.4 — `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`
 
 The only unauthenticated write surface in v2.0. Security guards
@@ -634,6 +682,8 @@ are part of the deliverable, not a follow-up.
 
 ---
 
+<a id="pr-2-5"></a>
+
 ### PR 2.5 — `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`
 
 Closes the "owner can run a workspace" loop.
@@ -656,6 +706,8 @@ Closes the "owner can run a workspace" loop.
   the page.
 
 ---
+
+<a id="pr-2-6"></a>
 
 ### PR 2.6 — `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)`
 
@@ -715,6 +767,8 @@ integration end-to-end (the riskiest piece because it crosses a
 network boundary); PR 3.5 is the spec-ratification PR and must
 land last.
 
+<a id="pr-3-1"></a>
+
 ### PR 3.1 — `feat(email): status-change emails end-to-end + status_change.html template`
 
 Resend integration in production mode. Fail-soft contract from
@@ -748,6 +802,8 @@ ADR 061 is exercised by integration tests for real this time.
 
 ---
 
+<a id="pr-3-2"></a>
+
 ### PR 3.2 — `feat(pages): public roadmap + public changelog`
 
 The two unauthenticated read surfaces. Same shell, same caching,
@@ -776,6 +832,8 @@ different filters.
   the changelog — covered by a test, not just spot-check.
 
 ---
+
+<a id="pr-3-3"></a>
 
 ### PR 3.3 — `feat(pages): management roadmap kanban + management changelog editor`
 
@@ -807,6 +865,8 @@ owners set the publish flags and edit release notes.
   persists.
 
 ---
+
+<a id="pr-3-4"></a>
 
 ### PR 3.4 — `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`
 
@@ -852,6 +912,8 @@ remaining static + Should + Nice surfaces.
   API call.
 
 ---
+
+<a id="pr-3-5"></a>
 
 ### PR 3.5 — `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag`
 
@@ -905,6 +967,8 @@ v2.0 is already shipped at the end of Phase 3. Each Polish item
 ships as its own small PR; none has dependencies on the others,
 so the order is reader's choice.
 
+<a id="pr-4-1"></a>
+
 ### PR 4.1 — `feat(ui): dark mode (FD) — [data-theme="dark"] activated + persisted per user`
 
 **Touches**
@@ -921,6 +985,8 @@ so the order is reader's choice.
 - [ ] **Dark mode (FD)** — toggle persisted per user.
 
 ---
+
+<a id="pr-4-2"></a>
 
 ### PR 4.2 — `feat(ui): styleguide preset themes (4) wired up on /styleguide`
 
@@ -939,6 +1005,8 @@ so the order is reader's choice.
 
 ---
 
+<a id="pr-4-3"></a>
+
 ### PR 4.3 — `feat(email): Resend webhook for delivery + bounce events (if available)`
 
 Gated on Resend actually shipping a webhook within v2.0's
@@ -955,6 +1023,8 @@ depends on it.
 - [ ] **Resend webhook** for delivery / bounce events.
 
 ---
+
+<a id="pr-4-4"></a>
 
 ### PR 4.4 — `feat(brand): custom favicon + wordmark refresh`
 
