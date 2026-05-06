@@ -64,7 +64,7 @@ Click a PR number to jump to its slice below.
 | [1.9](#pr-1-9) | `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`             | 1     | done        |
 | [2.1](#pr-2-1) | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables` | 2 | done |
 | [2.2](#pr-2-2) | `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`                      | 2     | done        |
-| [2.3](#pr-2-3) | `feat(pages): inbox + feedback list + feedback detail`                                             | 2     | not started |
+| [2.3](#pr-2-3) | `feat(pages): inbox + feedback list + feedback detail`                                             | 2     | done        |
 | [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | not started |
 | [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | not started |
 | [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | not started |
@@ -77,9 +77,10 @@ Click a PR number to jump to its slice below.
 | [4.2](#pr-4-2) | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                   | 4     | not started |
 | [4.3](#pr-4-3) | `feat(email): Resend webhook for delivery + bounce events (if available)`                          | 4     | not started |
 | [4.4](#pr-4-4) | `feat(brand): custom favicon + wordmark refresh`                                                   | 4     | not started |
+| [4.5](#pr-4-5) | `feat(ui): production visual identity — palette, motion, effects (designer-driven)`                | 4     | not started |
 
-**Twenty-five PRs total** — ten for Phase 1, six for Phase 2,
-five for Phase 3, four for Phase 4. Phase 1's PR 1.2 is doc-only;
+**Twenty-six PRs total** — ten for Phase 1, six for Phase 2,
+five for Phase 3, five for Phase 4. Phase 1's PR 1.2 is doc-only;
 PR 1.3a is a non-migration scaffold split; PR 1.3b and PR 2.1 are
 the two hand-reviewed migration PRs that must land in isolation.
 
@@ -633,11 +634,11 @@ honest.
   `test_feedback_detail_smoke.py`
 
 **Deliverables this PR closes**
-- [ ] **Inbox page** with summary cards, filter bar, search,
+- [x] **Inbox page** with summary cards, filter bar, search,
       table.
-- [ ] **Feedback list page** (same shell, no default status
+- [x] **Feedback list page** (same shell, no default status
       filter).
-- [ ] **Feedback detail page** with timeline, internal notes,
+- [x] **Feedback detail page** with timeline, internal notes,
       tags editor, publishing toggles.
 
 **DoD**
@@ -1038,6 +1039,80 @@ Design-driven. Lands when the designed mark is ready.
 
 **Deliverables this PR closes**
 - [ ] **Custom favicon + wordmark refresh.**
+
+---
+
+<a id="pr-4-5"></a>
+
+### PR 4.5 — `feat(ui): production visual identity — palette, motion, effects`
+
+Designer-driven; the project owner picks the final look. Up to
+this PR every page has used placeholder tokens from
+[`css.md`](css.md). PR 4.5 ratifies the production palette,
+motion language, and decorative polish, then promotes the chosen
+preset on `/styleguide` to the unmarked default token block.
+The four [ADR 056](../../../adr/056-style-guide-page.md)
+presets — `production`, `basic`, `unique`, `crazy` — remain on
+`/styleguide` for reviewer comparison; one becomes the shipped
+identity.
+
+Why this is its own PR: every preceding feature PR has been built
+against tokens, not raw values, so changing the visual identity
+is a one-block edit to `tokens.css` plus polish in
+`effects.css`. No template churn, no JS churn — by design.
+
+**Touches**
+- `src/feedback_triage/static/css/tokens.css` — final
+  `--color-*`, `--radius-*`, `--shadow-*`, `--motion-*`,
+  `--easing-*` values; the four `[data-theme=…]` preset blocks
+  retained on `/styleguide`.
+- `src/feedback_triage/static/css/effects.css` — production
+  transitions, hover polish, any keyframes the designed identity
+  calls for (`prefers-reduced-motion` honoured).
+- `src/feedback_triage/static/css/components.css` — only if the
+  identity needs new sub-states; otherwise unchanged because
+  components reference tokens, not raw values.
+- `src/feedback_triage/templates/styleguide.html` — wire the
+  preset switcher (`<select>` flipping `data-theme` on `<main>`)
+  if not already shipped by PR 4.2; document which preset is the
+  production default.
+- `tailwind.config.cjs` — only if a new token name is added.
+- `docs/project/spec/v2/core-idea.md` — update the palette
+  section to reflect the chosen production values.
+- `docs/adr/065-production-visual-identity.md` — record the
+  chosen palette + motion language as a ratified decision
+  (template at [`docs/adr/template.md`](../../../adr/template.md)).
+- `docs/adr/066-theme-switcher-scope.md` — record that the
+  preset switcher stays on `/styleguide` only in v2.0; per-user
+  theming is deferred (separate ADR when proposed).
+
+**Deliverables this PR closes**
+- [ ] **Production palette ratified** in `tokens.css` and
+      mirrored in `core-idea.md`.
+- [ ] **Motion + effects** finalised in `effects.css` (transitions,
+      keyframes, hover polish) with `prefers-reduced-motion`
+      coverage on every animated rule.
+- [ ] **Styleguide preset switcher** demonstrates all four
+      [ADR 056](../../../adr/056-style-guide-page.md) themes;
+      the production default matches one of them (or the
+      fifth designed-in-this-PR option).
+- [ ] **ADR 065** committed and linked from `css.md`.
+- [ ] **ADR 066** committed and linked from `css.md`.
+- [ ] **No template diffs** beyond the styleguide — proof that
+      the token discipline held.
+
+**DoD**
+- `task build:css` produces a visually-final `app.css`.
+- Reviewer flips between the four presets on `/styleguide` with
+  the switcher; production default is unambiguous.
+- Lighthouse accessibility on every shipped page ≥ 95
+  (contrast ratios on the chosen palette must clear WCAG AA).
+- All [`css.md`](css.md) rules still pass: no `!important`
+  outside reduced-motion, no `@apply` outside
+  `components.css` / `layout.css`, specificity budget held,
+  pills carry icon + text + color (not color alone).
+- `docs/project/spec/v2/core-idea.md` palette section matches
+  `tokens.css` byte-for-byte on color values.
 
 ---
 

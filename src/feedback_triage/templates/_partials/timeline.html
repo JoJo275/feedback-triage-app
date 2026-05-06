@@ -1,0 +1,15 @@
+{# Timeline -- read-only system log.
+
+Renders a server-side empty shell; entries are populated by
+`feedback_detail.js` once the GET succeeds. Each entry is one
+`<li>` styled by the `sn-timeline__entry--<kind>` modifier (status
+change, tag change, note added, …). #}
+<section class="sn-timeline" aria-labelledby="timeline-heading">
+  <header class="sn-timeline__header">
+    <h2 id="timeline-heading">Timeline</h2>
+    <p class="sn-timeline__meta sn-text-muted">Status, priority, and tag changes appear here.</p>
+  </header>
+  <ol id="timeline-entries" class="sn-timeline__entries">
+    <li class="sn-timeline__entry sn-timeline__entry--placeholder" data-state="loading">Loading timeline…</li>
+  </ol>
+</section>

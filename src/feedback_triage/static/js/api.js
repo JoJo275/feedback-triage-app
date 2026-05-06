@@ -9,10 +9,10 @@ const API_BASE = "/api/v1/feedback";
  * Throws an Error whose `.status` and `.detail` carry the server response
  * so callers can render a useful message.
  */
-export async function apiFetch(path, { method = "GET", body } = {}) {
+export async function apiFetch(path, { method = "GET", body, headers } = {}) {
     const init = {
         method,
-        headers: { Accept: "application/json" },
+        headers: { Accept: "application/json", ...(headers || {}) },
     };
     if (body !== undefined) {
         init.headers["Content-Type"] = "application/json";
