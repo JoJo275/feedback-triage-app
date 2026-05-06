@@ -1,99 +1,34 @@
-{# Sidebar partial — PR 1.9. Rendered inside authenticated shells (currently the
-dashboard). Anonymous pages (login/signup/etc.) do not include this partial.
-`active` is the current section identifier ("dashboard", "feedback", "roadmap",
-"changelog", "settings"); compared to each link's slug to toggle
-`aria-current="page"`. The theme switcher button is wired to
-`/static/js/theme.js`, which toggles `data-theme` on `
-<html>
-    ` and persists the choice to `localStorage`. Dark-mode tokens already exist
-    in `tokens.css` from PR 1.1; activating dark mode end-to-end is a Phase 4
-    deliverable. #}
-    <aside class="sn-sidebar" aria-label="Workspace navigation">
-        <nav class="sn-sidebar-nav">
-            <ul>
-                <li>
-                    <a
-                        href="/w/{{ workspace_slug }}/dashboard"
-                        {%
-                        if
-                        active=""
-                        ="dashboard"
-                        %}aria-current="page"
-                        {%
-                        endif
-                        %}
-                        >Dashboard</a
-                    >
-                </li>
-                <li>
-                    <a
-                        href="/w/{{ workspace_slug }}/feedback"
-                        {%
-                        if
-                        active=""
-                        ="feedback"
-                        %}aria-current="page"
-                        {%
-                        endif
-                        %}
-                        >Feedback</a
-                    >
-                </li>
-                <li>
-                    <a
-                        href="/w/{{ workspace_slug }}/roadmap"
-                        {%
-                        if
-                        active=""
-                        ="roadmap"
-                        %}aria-current="page"
-                        {%
-                        endif
-                        %}
-                        >Roadmap</a
-                    >
-                </li>
-                <li>
-                    <a
-                        href="/w/{{ workspace_slug }}/changelog"
-                        {%
-                        if
-                        active=""
-                        ="changelog"
-                        %}aria-current="page"
-                        {%
-                        endif
-                        %}
-                        >Changelog</a
-                    >
-                </li>
-                <li>
-                    <a
-                        href="/w/{{ workspace_slug }}/settings"
-                        {%
-                        if
-                        active=""
-                        ="settings"
-                        %}aria-current="page"
-                        {%
-                        endif
-                        %}
-                        >Settings</a
-                    >
-                </li>
-            </ul>
-        </nav>
-        <div class="sn-sidebar-footer">
-            <button
-                type="button"
-                id="theme-switcher"
-                class="sn-theme-switcher"
-                aria-label="Toggle color theme"
-                aria-pressed="false"
-            >
-                Theme
-            </button>
-        </div>
-        <script src="/static/js/theme.js" defer></script>
-    </aside>
-</html>
+{# Sidebar partial -- PR 1.9.
+
+Rendered inside authenticated shells (currently the dashboard).
+Anonymous pages (login/signup/etc.) do not include this partial.
+
+`active` is the current section identifier ("dashboard", "feedback",
+"roadmap", "changelog", "settings"); compared to each link's slug to
+toggle aria-current="page". The theme switcher button is wired to
+/static/js/theme.js, which toggles data-theme on <html> and persists
+the choice to localStorage. Dark-mode tokens already exist in
+tokens.css from PR 1.1; activating dark mode end-to-end is a Phase 4
+deliverable. #}
+{%- macro nav_link(slug, key, label, current) -%}
+  <li>
+    <a href="/w/{{ slug }}/{{ key }}"{% if current == key %} aria-current="page"{% endif %}>{{ label }}</a>
+  </li>
+{%- endmacro -%}
+<aside class="sn-sidebar" aria-label="Workspace navigation">
+  <nav class="sn-sidebar-nav">
+    <ul>
+      {{ nav_link(workspace_slug, "dashboard", "Dashboard", active) }}
+      {{ nav_link(workspace_slug, "feedback", "Feedback", active) }}
+      {{ nav_link(workspace_slug, "roadmap", "Roadmap", active) }}
+      {{ nav_link(workspace_slug, "changelog", "Changelog", active) }}
+      {{ nav_link(workspace_slug, "settings", "Settings", active) }}
+    </ul>
+  </nav>
+  <div class="sn-sidebar-footer">
+    <button type="button" id="theme-switcher" class="sn-theme-switcher" aria-label="Toggle color theme" aria-pressed="false">
+      Theme
+    </button>
+  </div>
+  <script src="/static/js/theme.js" defer></script>
+</aside>
