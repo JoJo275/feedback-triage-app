@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+    <body
+        style="
+            margin: 0;
+            padding: 0;
+            font-family:
+                -apple-system,
+                Segoe UI,
+                sans-serif;
+            color: #111;
+            background: #f6f7f9;
+        "
+    >
+        <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="background: #f6f7f9; padding: 32px 0"
+        >
+            <tr>
+                <td align="center">
+                    <table
+                        role="presentation"
+                        width="520"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="
+                            background: #ffffff;
+                            border-radius: 8px;
+                            padding: 32px;
+                        "
+                    >
+                        <tr>
+                            <td>
+                                <h1 style="margin: 0 0 16px 0; font-size: 20px">
+                                    You're invited to {{ workspace_name }}
+                                </h1>
+                                <p style="margin: 0 0 16px 0; line-height: 1.5">
+                                    {{ inviter_name }} invited you to join the
+                                    <strong>{{ workspace_name }}</strong>
+                                    workspace on SignalNest as a {{ role }}.
+                                </p>
+                                <p style="margin: 24px 0">
+                                    <a
+                                        href="{{ accept_url }}"
+                                        style="
+                                            display: inline-block;
+                                            padding: 12px 20px;
+                                            background: #2b6cb0;
+                                            color: #fff;
+                                            text-decoration: none;
+                                            border-radius: 6px;
+                                            font-weight: 600;
+                                        "
+                                        >Accept invitation</a
+                                    >
+                                </p>
+                                <p
+                                    style="
+                                        margin: 0 0 16px 0;
+                                        line-height: 1.5;
+                                        color: #555;
+                                        font-size: 14px;
+                                    "
+                                >
+                                    This invitation expires in {{
+                                    expires_in_days }} days. If you weren't
+                                    expecting this, you can ignore the message.
+                                </p>
+                                <p
+                                    style="
+                                        margin: 0;
+                                        line-height: 1.5;
+                                        color: #555;
+                                        font-size: 13px;
+                                        word-break: break-all;
+                                    "
+                                >
+                                    {{ accept_url }}
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
