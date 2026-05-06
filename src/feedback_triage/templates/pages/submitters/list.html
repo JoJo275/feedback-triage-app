@@ -1,0 +1,54 @@
+{% extends "_base.html" %}
+{% block title %}Submitters — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-stack">
+        <h1>
+          Submitters
+          <span id="result-count-chip" class="sn-count-chip" hidden></span>
+        </h1>
+        <p class="sn-text-muted">
+          People who have submitted feedback to this workspace, grouped by
+          email. Anonymous submissions without an email do not appear here.
+        </p>
+      </header>
+
+      <section aria-labelledby="search-heading" class="sn-stack">
+        <h2 id="search-heading" class="sr-only">Search</h2>
+        <form id="submitter-search-form" class="sn-form-row" novalidate>
+          <label for="submitter-q">Search name or email</label>
+          <input id="submitter-q" name="q" type="search" maxlength="200" autocomplete="off" />
+        </form>
+      </section>
+
+      <section aria-labelledby="results-heading" class="sn-stack">
+        <h2 id="results-heading" class="sr-only">Results</h2>
+        <p id="list-status" class="sn-text-muted" role="status" aria-live="polite">Loading…</p>
+        <p id="list-error" class="sn-text-danger" role="alert" hidden></p>
+        <div class="sn-table-wrap">
+          <table id="list-table" class="sn-table" hidden>
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Submissions</th>
+                <th scope="col">Last seen</th>
+              </tr>
+            </thead>
+            <tbody id="list-body"></tbody>
+          </table>
+        </div>
+        <p id="list-summary" class="sn-text-muted" hidden></p>
+        <p id="empty-state" class="sn-empty-state" hidden>
+          <strong>No known submitters yet.</strong>
+          <span>Public submissions without an email do not appear here.</span>
+        </p>
+      </section>
+    </div>
+  </main>
+</div>
+<script type="module" src="/static/js/submitters.js" defer></script>
+{% endblock %}

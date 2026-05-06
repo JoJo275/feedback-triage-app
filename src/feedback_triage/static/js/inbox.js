@@ -61,6 +61,19 @@ const PRIORITY_TONES = {
     critical: "danger",
 };
 const INBOX_DEFAULT_STATUSES = ["new", "needs_info", "reviewing"];
+const STALE_STATUSES = new Set(["new", "needs_info"]);
+const STALE_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000;
+
+function isStale(item) {
+    // Mirrors `services.stale_detector.is_stale` server-side: items in
+    // {new, needs_info} older than 14 days. The badge is purely a
+    // visual cue; the source of truth is the SQL clause used by the
+    // `stale=true` filter and the summary card count.
+    if (!STALE_STATUSES.has(item.status)) return false;
+    const created = Date.parse(item.created_at);
+    if (Number.isNaN(created)) return false;
+    return Date.now() - created > STALE_THRESHOLD_MS;
+}
 
 const main = document.getElementById("main");
 const slug = workspaceSlug();
@@ -176,9 +189,12 @@ function renderRows(items) {
                 SOURCE_LABELS[item.source] || item.source,
             );
             const created = escapeHtml(formatDate(item.created_at));
+            const staleBadge = isStale(item)
+                ? ` <span class="sn-stale-badge" title="No activity for over 14 days">Stale</span>`
+                : "";
             return `
-        <tr data-id="${id}">
-          <td><a href="/w/${escapeHtml(slug)}/feedback/${id}">${title}</a></td>
+        <tr data-id="${id}"${isStale(item) ? ' data-stale="true"' : ""}>
+          <td><a href="/w/${escapeHtml(slug)}/feedback/${id}">${title}</a>${staleBadge}</td>
           <td>${type}</td>
           <td><span class="sn-pill-status sn-pill-status--${statusTone}">${statusLabel}</span></td>
           <td><span class="sn-pill-priority sn-pill-priority--${priorityTone}">${priorityLabel}</span></td>
@@ -205,9 +221,11 @@ async function fetchSummary() {
             card: "high_priority",
             params: { priority: "high", limit: 1 },
         },
-        // "Stale" is shipped in PR 2.6 (Should items + Phase 2 close).
-        // For now the card renders a `—` and is hidden via CSS once
-        // the stale detector lands.
+        // Stale = items >14 days old in {new, needs_info}. The
+        // server-side filter is implemented in
+        // `services/stale_detector.py` and exposed as `stale=true`
+        // on `GET /api/v1/feedback`.
+        { card: "stale", params: { stale: "true", limit: 1 } },
     ];
     const results = await Promise.allSettled(
         queries.map((q) => listFeedbackV2(slug, q.params)),
@@ -222,8 +240,6 @@ async function fetchSummary() {
             el.textContent = "—";
         }
     });
-    const stale = document.querySelector('[data-summary-count="stale"]');
-    if (stale) stale.textContent = "—";
 }
 
 async function refresh() {

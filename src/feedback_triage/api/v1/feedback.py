@@ -53,6 +53,7 @@ from feedback_triage.models import (
     FeedbackTag,
     Tag,
 )
+from feedback_triage.services.stale_detector import stale_clause
 from feedback_triage.tenancy import (
     WorkspaceContext,
     WorkspaceContextDep,
@@ -174,6 +175,7 @@ def list_feedback(
     published_to_changelog: Annotated[bool | None, Query()] = None,
     created_after: Annotated[datetime | None, Query()] = None,
     created_before: Annotated[datetime | None, Query()] = None,
+    stale: Annotated[bool | None, Query()] = None,
     sort_by: Annotated[str, Query()] = "-created_at",
 ) -> FeedbackListEnvelopeV2:
     """Return a paginated, filtered envelope of feedback in this workspace."""
@@ -229,6 +231,10 @@ def list_feedback(
             query = query.where(col(FeedbackItem.created_at) >= created_after)
         if created_before is not None:
             query = query.where(col(FeedbackItem.created_at) <= created_before)
+        if stale is True:
+            query = query.where(stale_clause())
+        elif stale is False:
+            query = query.where(~stale_clause())
         if q is not None:
             pattern = f"%{q}%"
             query = query.where(

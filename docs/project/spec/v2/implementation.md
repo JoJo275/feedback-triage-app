@@ -67,7 +67,7 @@ Click a PR number to jump to its slice below.
 | [2.3](#pr-2-3) | `feat(pages): inbox + feedback list + feedback detail`                                             | 2     | done        |
 | [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | done        |
 | [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | done        |
-| [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | not started |
+| [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | done |
 | [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | not started |
 | [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | not started |
 | [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | not started |
@@ -726,9 +726,9 @@ Phase 2.
   detail, settings, public submit
 
 **Deliverables this PR closes**
-- [ ] Submitters list & detail pages (Should).
-- [ ] Stale-item highlighting on Inbox (Should).
-- [ ] axe-core accessibility check in the e2e smoke suite
+- [x] Submitters list & detail pages (Should).
+- [x] Stale-item highlighting on Inbox (Should).
+- [x] axe-core accessibility check in the e2e smoke suite
       (Should).
 
 **DoD (Phase 2 close)**
