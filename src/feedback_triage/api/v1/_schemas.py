@@ -32,15 +32,19 @@ class WorkspaceUpdateRequest(BaseModel):
     """``PATCH /api/v1/workspaces/{slug}`` body.
 
     ``slug`` is intentionally absent: per the v2.0 glossary the slug is
-    immutable. Renaming a workspace only changes the display ``name``.
+    immutable. ``name`` and ``public_submit_enabled`` are both
+    optional; at least one must be supplied (the route returns 422
+    otherwise).
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    name: str = Field(
+    name: str | None = Field(
+        default=None,
         min_length=MIN_WORKSPACE_NAME_LEN,
         max_length=MAX_WORKSPACE_NAME_LEN,
     )
+    public_submit_enabled: bool | None = None
 
 
 # ---------------------------------------------------------------------------

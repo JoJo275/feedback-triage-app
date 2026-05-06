@@ -66,7 +66,7 @@ Click a PR number to jump to its slice below.
 | [2.2](#pr-2-2) | `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`                      | 2     | done        |
 | [2.3](#pr-2-3) | `feat(pages): inbox + feedback list + feedback detail`                                             | 2     | done        |
 | [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | done        |
-| [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | not started |
+| [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | done        |
 | [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | not started |
 | [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | not started |
 | [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | not started |
@@ -698,7 +698,7 @@ Closes the "owner can run a workspace" loop.
 - `tests/api/test_workspace_settings.py`
 
 **Deliverables this PR closes**
-- [ ] **Settings page** v1 — workspace info, members, tags,
+- [x] **Settings page** v1 — workspace info, members, tags,
       public-submit toggle.
 
 **DoD**

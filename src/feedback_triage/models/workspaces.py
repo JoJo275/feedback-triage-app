@@ -60,6 +60,14 @@ class Workspace(SQLModel, table=True):
             server_default=text("false"),
         ),
     )
+    public_submit_enabled: bool = Field(
+        default=True,
+        sa_column=Column(
+            "public_submit_enabled",
+            nullable=False,
+            server_default=text("true"),
+        ),
+    )
     created_at: datetime = Field(
         sa_column=Column(
             TIMESTAMP(timezone=True),

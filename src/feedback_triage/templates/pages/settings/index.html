@@ -1,0 +1,232 @@
+{% extends "_base.html" %}
+{% block title %}Settings — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main
+    id="main"
+    class="sn-page-shell"
+    data-workspace-slug="{{ workspace_slug }}"
+    data-is-owner="{{ 'true' if is_owner else 'false' }}"
+  >
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-stack">
+        <h1>Settings</h1>
+        <p class="sn-text-muted">
+          Workspace <code>{{ workspace_slug }}</code>
+        </p>
+      </header>
+
+      <p
+        id="settings-status"
+        class="sn-text-muted"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></p>
+      <p id="settings-error" class="sn-text-danger" role="alert" hidden></p>
+
+      {# ------------------------------------------------------------ #}
+      {# Workspace info — editable for owners, read-only otherwise.    #}
+      {# ------------------------------------------------------------ #}
+      <section
+        class="sn-card"
+        aria-labelledby="settings-workspace-heading"
+      >
+        <div class="sn-card-header">
+          <h2 id="settings-workspace-heading">Workspace</h2>
+        </div>
+        <div class="sn-card-body">
+          <form id="workspace-form" class="sn-stack" novalidate>
+            <div class="sn-form-row">
+              <label for="workspace-name">Name</label>
+              <input
+                id="workspace-name"
+                name="name"
+                type="text"
+                required
+                minlength="1"
+                maxlength="60"
+                value="{{ workspace_name }}"
+                {% if not is_owner %}readonly aria-readonly="true"{% endif %}
+              />
+            </div>
+            <div class="sn-form-row">
+              <label for="workspace-slug-display">Slug</label>
+              <input
+                id="workspace-slug-display"
+                type="text"
+                value="{{ workspace_slug }}"
+                readonly
+                aria-readonly="true"
+              />
+              <p class="sn-text-muted">
+                The slug is permanent — it appears in roadmap, changelog,
+                and public-form URLs you may have already shared.
+              </p>
+            </div>
+            {% if is_owner %}
+            <div class="sn-form-actions">
+              <button type="submit" class="sn-button">Save workspace</button>
+            </div>
+            {% endif %}
+          </form>
+        </div>
+      </section>
+
+      {% if is_owner %}
+      {# ------------------------------------------------------------ #}
+      {# Public submission — owner-only kill switch.                   #}
+      {# ------------------------------------------------------------ #}
+      <section
+        class="sn-card"
+        aria-labelledby="settings-public-submit-heading"
+      >
+        <div class="sn-card-header">
+          <h2 id="settings-public-submit-heading">Public submission form</h2>
+        </div>
+        <div class="sn-card-body sn-stack">
+          <p class="sn-text-muted">
+            Anyone with the link can post feedback to this workspace via
+            <code>/w/{{ workspace_slug }}/submit</code>. Turn this off
+            to close the form without changing the URL.
+          </p>
+          <form id="public-submit-form" class="sn-stack" novalidate>
+            <div class="sn-form-row sn-form-row--inline">
+              <input
+                id="public-submit-toggle"
+                name="public_submit_enabled"
+                type="checkbox"
+                {% if workspace_public_submit_enabled %}checked{% endif %}
+              />
+              <label for="public-submit-toggle">
+                Public submission form is open
+              </label>
+            </div>
+            <div class="sn-form-actions">
+              <button type="submit" class="sn-button">Save</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {# ------------------------------------------------------------ #}
+      {# Members — owner-only.                                         #}
+      {# ------------------------------------------------------------ #}
+      <section class="sn-card" aria-labelledby="settings-members-heading">
+        <div class="sn-card-header">
+          <h2 id="settings-members-heading">Members</h2>
+        </div>
+        <div class="sn-card-body sn-stack">
+          <form id="invite-form" class="sn-stack" novalidate>
+            <div class="sn-form-row">
+              <label for="invite-email">Invite by email</label>
+              <input
+                id="invite-email"
+                name="email"
+                type="email"
+                required
+                maxlength="320"
+              />
+            </div>
+            <div class="sn-form-row">
+              <label for="invite-role">Role</label>
+              <select id="invite-role" name="role">
+                <option value="team_member" selected>Team member</option>
+                <option value="owner">Owner</option>
+              </select>
+            </div>
+            <div class="sn-form-actions">
+              <button type="submit" class="sn-button">Send invitation</button>
+            </div>
+          </form>
+
+          <div class="sn-table-wrap">
+            <table id="members-table" class="sn-table" hidden>
+              <thead>
+                <tr>
+                  <th scope="col">Email</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Joined</th>
+                  <th scope="col"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="members-body"></tbody>
+            </table>
+          </div>
+          <p id="members-status" class="sn-text-muted">Loading…</p>
+        </div>
+      </section>
+
+      {# ------------------------------------------------------------ #}
+      {# Tags — owner-only CRUD.                                       #}
+      {# ------------------------------------------------------------ #}
+      <section class="sn-card" aria-labelledby="settings-tags-heading">
+        <div class="sn-card-header">
+          <h2 id="settings-tags-heading">Tags</h2>
+        </div>
+        <div class="sn-card-body sn-stack">
+          <form id="tag-form" class="sn-stack" novalidate>
+            <div class="sn-form-row">
+              <label for="tag-name">Name</label>
+              <input
+                id="tag-name"
+                name="name"
+                type="text"
+                required
+                minlength="1"
+                maxlength="40"
+              />
+            </div>
+            <div class="sn-form-row">
+              <label for="tag-slug">Slug</label>
+              <input
+                id="tag-slug"
+                name="slug"
+                type="text"
+                required
+                minlength="1"
+                maxlength="40"
+                pattern="[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?"
+              />
+            </div>
+            <div class="sn-form-row">
+              <label for="tag-color">Colour</label>
+              <select id="tag-color" name="color">
+                <option value="slate" selected>Slate</option>
+                <option value="teal">Teal</option>
+                <option value="amber">Amber</option>
+                <option value="rose">Rose</option>
+                <option value="indigo">Indigo</option>
+                <option value="sky">Sky</option>
+                <option value="green">Green</option>
+                <option value="violet">Violet</option>
+              </select>
+            </div>
+            <div class="sn-form-actions">
+              <button type="submit" class="sn-button">Add tag</button>
+            </div>
+          </form>
+
+          <div class="sn-table-wrap">
+            <table id="tags-table" class="sn-table" hidden>
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Slug</th>
+                  <th scope="col">Colour</th>
+                  <th scope="col"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="tags-body"></tbody>
+            </table>
+          </div>
+          <p id="tags-status" class="sn-text-muted">Loading…</p>
+        </div>
+      </section>
+      {% endif %}
+    </div>
+  </main>
+</div>
+<script type="module" src="/static/js/settings.js" defer></script>
+{% endblock %}

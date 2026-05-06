@@ -64,6 +64,7 @@ CREATE TABLE workspaces (
     name        text NOT NULL CHECK (length(name) BETWEEN 1 AND 60),
     owner_id    uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     is_demo     boolean NOT NULL DEFAULT false,
+    public_submit_enabled boolean NOT NULL DEFAULT true,
     created_at  timestamptz NOT NULL DEFAULT now(),
     updated_at  timestamptz NOT NULL DEFAULT now()
 );
