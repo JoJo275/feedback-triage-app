@@ -65,7 +65,7 @@ Click a PR number to jump to its slice below.
 | [2.1](#pr-2-1) | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables` | 2 | done |
 | [2.2](#pr-2-2) | `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`                      | 2     | done        |
 | [2.3](#pr-2-3) | `feat(pages): inbox + feedback list + feedback detail`                                             | 2     | done        |
-| [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | not started |
+| [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | done        |
 | [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | not started |
 | [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | not started |
 | [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | not started |
@@ -670,7 +670,7 @@ are part of the deliverable, not a follow-up.
 - `tests/e2e/test_public_submit.py`
 
 **Deliverables this PR closes**
-- [ ] **Public submission form** at `/w/<slug>/submit` with
+- [x] **Public submission form** at `/w/<slug>/submit` with
       honeypot + rate limit.
 
 **DoD**
@@ -1079,6 +1079,9 @@ is a one-block edit to `tokens.css` plus polish in
 - `tailwind.config.cjs` — only if a new token name is added.
 - `docs/project/spec/v2/core-idea.md` — update the palette
   section to reflect the chosen production values.
+- `docs/project/spec/v2/theming.md` — verify the recipes still
+  match the ratified token names; update the "How to add a theme
+  preset" section if any preset slot is renamed.
 - `docs/adr/065-production-visual-identity.md` — record the
   chosen palette + motion language as a ratified decision
   (template at [`docs/adr/template.md`](../../../adr/template.md)).

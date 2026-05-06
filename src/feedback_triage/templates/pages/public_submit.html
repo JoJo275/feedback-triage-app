@@ -1,0 +1,89 @@
+{% extends "_base.html" %}
+{% block title %}Submit feedback — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<main id="main" class="sn-page-shell">
+  <div class="sn-content-gutter sn-stack">
+    <header class="sn-stack">
+      <h1>Submit feedback</h1>
+      <p class="sn-text-muted">
+        Share an idea, bug, or pain point with the {{ workspace_name }} team.
+      </p>
+    </header>
+
+    <form id="submit-form"
+          class="sn-card sn-stack"
+          data-workspace-slug="{{ workspace_slug }}"
+          novalidate>
+      <p id="form-status" class="sn-text-muted" role="status" aria-live="polite" hidden></p>
+      <p id="form-error" class="sn-text-danger" role="alert" hidden></p>
+
+      <div class="sn-form-row">
+        <label for="f-title">Title</label>
+        <input id="f-title" name="title" type="text" required maxlength="200"
+               autocomplete="off" />
+      </div>
+
+      <div class="sn-form-row">
+        <label for="f-description">Details <span class="sn-text-muted">(optional)</span></label>
+        <textarea id="f-description" name="description" rows="5" maxlength="5000"></textarea>
+      </div>
+
+      <div class="sn-form-row">
+        <label for="f-pain">How painful is this? (1 = minor, 5 = blocking)</label>
+        <input id="f-pain" name="pain_level" type="number" min="1" max="5" required value="3" />
+      </div>
+
+      <fieldset class="sn-form-row">
+        <legend>Type</legend>
+        {% for value, label in [
+          ("bug", "Bug"),
+          ("feature_request", "Feature request"),
+          ("question", "Question"),
+          ("praise", "Praise"),
+          ("other", "Other"),
+        ] %}
+        <label class="sn-radio">
+          <input type="radio" name="type" value="{{ value }}"
+                 {% if value == "other" %}checked{% endif %} />
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </fieldset>
+
+      <div class="sn-form-row">
+        <label for="f-email">Your email <span class="sn-text-muted">(optional, lets us follow up)</span></label>
+        <input id="f-email" name="submitter_email" type="email" maxlength="320"
+               autocomplete="email" />
+      </div>
+
+      <div class="sn-form-row">
+        <label for="f-name">Your name <span class="sn-text-muted">(optional)</span></label>
+        <input id="f-name" name="submitter_name" type="text" maxlength="120"
+               autocomplete="name" />
+      </div>
+
+      {# Honeypot: real users never see this. Bots that auto-fill every
+         input will populate it and trip the silent-discard branch on
+         the server. ``aria-hidden`` + ``tabindex=-1`` keeps screen
+         readers and keyboard users away from it. #}
+      <div class="sn-honeypot" aria-hidden="true">
+        <label for="f-website">Leave this field empty.</label>
+        <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="sn-form-actions">
+        <button type="submit" class="sn-button sn-button-primary">Submit feedback</button>
+      </div>
+    </form>
+
+    <section id="thank-you" class="sn-card sn-stack" hidden>
+      <h2>Thanks!</h2>
+      <p>Your feedback was received and the team will take a look.</p>
+      <p>
+        <button type="button" id="submit-another" class="sn-button sn-button-secondary">Submit another</button>
+      </p>
+    </section>
+  </div>
+</main>
+<script src="{{ static_url('js/public_submit.js') }}" defer></script>
+{% endblock %}

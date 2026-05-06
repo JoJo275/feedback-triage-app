@@ -45,7 +45,48 @@
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
 }
 .sn-pill-priority {
-    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold;
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold;
+}
+/* Decorative leading glyph inside any pill -- ensures the icon never
+   inherits the label's text decoration and stays at a consistent
+   width across rows. */
+.sn-pill-icon {
+    @apply inline-block leading-none;
+    width: 1em;
+    text-align: center;
+}
+
+/* ---- Public submission form ---- */
+.sn-form-row {
+    @apply flex flex-col gap-1;
+}
+.sn-form-row input[type="text"],
+.sn-form-row input[type="email"],
+.sn-form-row input[type="number"],
+.sn-form-row textarea {
+    @apply block w-full rounded-xl border border-line bg-surface px-3 py-2 text-ink;
+}
+.sn-form-row textarea {
+    resize: vertical;
+}
+.sn-form-row legend {
+    @apply text-sm font-medium text-ink mb-1;
+}
+.sn-radio {
+    @apply inline-flex items-center gap-2 mr-4;
+}
+.sn-form-actions {
+    @apply flex justify-end gap-2 pt-2;
+}
+/* Honeypot: must remain in the DOM so bots find it, but invisible to
+   real users. ``aria-hidden`` + ``tabindex=-1`` on the input handles
+   AT/keyboard; this rule handles the visual side. */
+.sn-honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 /* ---- Form fields ---- */
