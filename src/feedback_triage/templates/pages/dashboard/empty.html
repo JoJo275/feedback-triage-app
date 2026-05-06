@@ -1,0 +1,23 @@
+{% extends "_base.html" %} {% block title %}{{ workspace_name }} dashboard —
+Feedback Triage{% endblock %} {% block body %}
+<main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+        <header class="sn-stack">
+            <h1>{{ workspace_name }}</h1>
+            <p class="sn-text-muted">
+                Workspace <code>{{ workspace_slug }}</code>
+            </p>
+        </header>
+        <section class="sn-empty-state" aria-labelledby="empty-state-heading">
+            <h2 id="empty-state-heading">No feedback yet</h2>
+            <p>
+                Once your team starts logging feedback you'll see counts, recent
+                items, and intake trends here.
+            </p>
+            <p>
+                <a class="sn-button" href="/new">Add your first item</a>
+            </p>
+        </section>
+    </div>
+</main>
+{% endblock %}

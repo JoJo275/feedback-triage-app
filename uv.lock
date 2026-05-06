@@ -769,6 +769,17 @@ test = [
     { name = "pytest-cov" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "bandit" },
+    { name = "commitizen" },
+    { name = "deptry" },
+    { name = "feedback-triage-app", extra = ["test"] },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.13" },
@@ -805,6 +816,17 @@ requires-dist = [
     { name = "sqlmodel", specifier = ">=0.0.22" },
 ]
 provides-extras = ["dashboard", "dev", "docs", "e2e", "test"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "bandit", specifier = ">=1.9" },
+    { name = "commitizen", specifier = ">=4.15.0" },
+    { name = "deptry", specifier = ">=0.25" },
+    { name = "feedback-triage-app", extras = ["test"] },
+    { name = "mypy", specifier = ">=1.20" },
+    { name = "pre-commit", specifier = ">=4.0" },
+    { name = "ruff", specifier = ">=0.11" },
+]
 
 [[package]]
 name = "filelock"

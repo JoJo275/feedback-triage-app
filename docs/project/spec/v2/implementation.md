@@ -58,7 +58,7 @@ PR.**
 | 1.5 | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                                        | 1     | done        |
 | 1.6 | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                                    | 1     | done        |
 | 1.7 | `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`                                          | 1     | done        |
-| 1.8 | `feat(api): workspaces, memberships, invitations + dashboard empty state`                                     | 1     | not started |
+| 1.8 | `feat(api): workspaces, memberships, invitations + dashboard empty state`                                     | 1     | done        |
 | 1.9 | `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`                        | 1     | not started |
 | 2.1 | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables`  | 2     | not started |
 | 2.2 | `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`                                 | 2     | not started |
@@ -432,9 +432,9 @@ belong to it, dashboard renders.
   to `test_isolation.py`
 
 **Deliverables this PR closes**
-- [ ] **API endpoints — workspace subset**
+- [x] **API endpoints — workspace subset**
       (`/api/v1/workspaces`, `/memberships`, `/invitations`).
-- [ ] **Page routes — dashboard subset**
+- [x] **Page routes — dashboard subset**
       (`/w/<slug>/dashboard` empty state).
 
 **DoD**
