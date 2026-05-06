@@ -9,6 +9,7 @@ scripts (``scripts/seed.py``) without importing FastAPI.
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import Sequence
 
 from sqlalchemy import asc, desc, func, select
@@ -16,7 +17,7 @@ from sqlalchemy.orm import Session
 from sqlmodel import col
 
 from feedback_triage.enums import Source, Status
-from feedback_triage.models import FeedbackItem
+from feedback_triage.models import FeedbackItem, Workspace
 from feedback_triage.schemas import FeedbackCreate, FeedbackUpdate
 
 _SORT_COLUMNS = {
@@ -26,10 +27,38 @@ _SORT_COLUMNS = {
     "source": col(FeedbackItem.source),
 }
 
+# v1 backwards-compat: posts to ``/api/v1/feedback`` without a workspace
+# header land in the synthetic ``signalnest-legacy`` workspace inserted
+# by Migration A. The v2.0-final cut removes this fallback (per
+# ``docs/project/spec/v2/rollout.md`` — Backwards compatibility).
+_LEGACY_WORKSPACE_SLUG = "signalnest-legacy"
+
+
+def _legacy_workspace_id(session: Session) -> uuid.UUID:
+    """Resolve the synthetic legacy workspace id, raising if it's missing."""
+    workspace_id = session.execute(
+        select(col(Workspace.id)).where(col(Workspace.slug) == _LEGACY_WORKSPACE_SLUG)
+    ).scalar_one_or_none()
+    if workspace_id is None:
+        msg = (
+            "signalnest-legacy workspace not found; Migration A (revision "
+            "0002) must run before any v1 feedback write."
+        )
+        raise RuntimeError(msg)
+    return workspace_id
+
 
 def create_item(session: Session, payload: FeedbackCreate) -> FeedbackItem:
-    """Insert a new feedback item and return the persisted row."""
-    item = FeedbackItem(**payload.model_dump())
+    """Insert a new feedback item and return the persisted row.
+
+    The v1 ``FeedbackCreate`` payload has no ``workspace_id`` field;
+    the row is assigned to the legacy workspace until PR 2.2 ships
+    workspace-scoped routes.
+    """
+    item = FeedbackItem(
+        **payload.model_dump(),
+        workspace_id=_legacy_workspace_id(session),
+    )
     session.add(item)
     # Flush so server defaults (id, created_at, updated_at) are populated
     # before the response is built — see spec — Transaction boundaries.

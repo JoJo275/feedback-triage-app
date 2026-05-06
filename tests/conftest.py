@@ -29,9 +29,46 @@ def settings() -> Settings:
 
 @pytest.fixture
 def truncate_feedback() -> Iterator[None]:
-    """Wipe ``feedback_item`` and reset its identity sequence per test."""
+    """Wipe ``feedback_item`` and reset its identity sequence per test.
+
+    ``CASCADE`` follows the v2 join tables (``feedback_tags``,
+    ``feedback_notes``) so a re-run starts with no orphan rows. Also
+    re-seeds the synthetic ``signalnest-legacy`` admin + workspace
+    inserted by Migration A — the v2 isolation / session canary
+    fixtures truncate ``users`` + ``workspaces`` between tests, so v1
+    routes (which fall back to the legacy workspace per
+    ``rollout.md``) need the rows re-created defensively.
+    """
     with engine.begin() as conn:
         conn.execute(text("TRUNCATE TABLE feedback_item RESTART IDENTITY CASCADE"))
+        # Sentinel password hash: not a valid Argon2id encoded hash, so
+        # login is disabled by construction (per ADR 062).
+        conn.execute(
+            text(
+                """
+                INSERT INTO users (id, email, password_hash, is_verified, role)
+                SELECT gen_random_uuid(), 'legacy@signalnest.local',
+                       '!disabled-legacy-v1-admin!', false, 'admin'
+                 WHERE NOT EXISTS (
+                    SELECT 1 FROM users WHERE email = 'legacy@signalnest.local'
+                 )
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO workspaces (id, slug, name, owner_id, is_demo)
+                SELECT gen_random_uuid(), 'signalnest-legacy',
+                       'SignalNest (legacy)', u.id, false
+                  FROM users u
+                 WHERE u.email = 'legacy@signalnest.local'
+                   AND NOT EXISTS (
+                    SELECT 1 FROM workspaces WHERE slug = 'signalnest-legacy'
+                   )
+                """
+            )
+        )
     yield
 
 

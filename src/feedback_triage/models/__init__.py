@@ -17,9 +17,13 @@ from __future__ import annotations
 from feedback_triage.models.auth_rate_limits import AuthRateLimit
 from feedback_triage.models.email_log import EmailLog
 from feedback_triage.models.feedback import SOURCE_ENUM, STATUS_ENUM, FeedbackItem
+from feedback_triage.models.feedback_notes import FeedbackNote
+from feedback_triage.models.feedback_tags import FeedbackTag
 from feedback_triage.models.invitations import WorkspaceInvitation
 from feedback_triage.models.memberships import WorkspaceMembership
 from feedback_triage.models.sessions import UserSession
+from feedback_triage.models.submitters import Submitter
+from feedback_triage.models.tags import Tag
 from feedback_triage.models.tokens import EmailVerificationToken, PasswordResetToken
 from feedback_triage.models.users import User
 from feedback_triage.models.workspaces import Workspace
@@ -31,7 +35,11 @@ __all__ = [
     "EmailLog",
     "EmailVerificationToken",
     "FeedbackItem",
+    "FeedbackNote",
+    "FeedbackTag",
     "PasswordResetToken",
+    "Submitter",
+    "Tag",
     "User",
     "UserSession",
     "Workspace",

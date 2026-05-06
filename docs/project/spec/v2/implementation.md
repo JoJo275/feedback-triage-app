@@ -62,7 +62,7 @@ Click a PR number to jump to its slice below.
 | [1.7](#pr-1-7) | `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`                               | 1     | done        |
 | [1.8](#pr-1-8) | `feat(api): workspaces, memberships, invitations + dashboard empty state`                          | 1     | done        |
 | [1.9](#pr-1-9) | `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`             | 1     | done        |
-| [2.1](#pr-2-1) | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables` | 2 | not started |
+| [2.1](#pr-2-1) | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables` | 2 | done |
 | [2.2](#pr-2-2) | `feat(api): feedback CRUD on the v2 schema + tags/notes/submitters endpoints`                      | 2     | not started |
 | [2.3](#pr-2-3) | `feat(pages): inbox + feedback list + feedback detail`                                             | 2     | not started |
 | [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | not started |
@@ -570,9 +570,9 @@ forward.
   `rejected` rows
 
 **Deliverables this PR closes**
-- [ ] **Schema migration #2 (workflow)** — full deliverable
+- [x] **Schema migration #2 (workflow)** — full deliverable
       (Migration B + status rename).
-- [ ] **Tags + notes + submitters tables** — full deliverable.
+- [x] **Tags + notes + submitters tables** — full deliverable.
 
 **DoD**
 - Round-trip migration test green on a snapshot containing both

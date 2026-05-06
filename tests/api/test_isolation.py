@@ -47,6 +47,9 @@ from feedback_triage.database import SessionLocal, engine
 from feedback_triage.enums import UserRole, WorkspaceRole
 from feedback_triage.errors import register_exception_handlers
 from feedback_triage.models import (
+    FeedbackNote,
+    Submitter,
+    Tag,
     User,
     Workspace,
     WorkspaceInvitation,
@@ -88,7 +91,8 @@ def truncate_tenancy_tables() -> Iterator[None]:
                 "users, workspaces, workspace_memberships, "
                 "workspace_invitations, sessions, "
                 "email_verification_tokens, password_reset_tokens, "
-                "auth_rate_limits, email_log "
+                "auth_rate_limits, email_log, "
+                "submitters, tags, feedback_tags, feedback_notes "
                 "RESTART IDENTITY CASCADE"
             )
         )
@@ -354,36 +358,107 @@ def test_invitations_cross_tenant_returns_404(
 
 
 # ---------------------------------------------------------------------------
-# Canary cases 4-6 — submitters / tags / notes (placeholder until PR 2.1)
+# Canary cases 4-6 — submitters / tags / notes (PR 2.1)
 # ---------------------------------------------------------------------------
-# These tables do not exist until Migration B (PR 2.1). The slots are
-# kept in this file so the count of canary cases visible in
-# ``test_isolation.py`` matches the six listed in the PR 1.9 DoD; the
-# bodies are filled in as part of PR 2.1 when the tables land. Each
-# placeholder uses ``pytest.skip`` (rather than ``xfail``) so the test
-# log makes the deferral explicit on every run.
+# These tables landed in PR 2.1 (Migration B / B2). The canary asserts
+# the same invariant as cases 1-3: a signed-in user asking for a slug
+# they're not a member of gets ``404`` and the response body never
+# leaks any row id from the other workspace.
 
 
-_PLACEHOLDER_REASON = (
-    "Table introduced by PR 2.1 (Migration B); canary body filled in "
-    "alongside the migration. Slot kept here so the six-case ledger "
-    "stays visible — see docs/project/spec/v2/implementation.md PR 1.5."
-)
+def _seed_submitter_for(workspace_id: uuid.UUID) -> uuid.UUID:
+    """Insert one ``submitter`` row tagged to ``workspace_id``."""
+    submitter = Submitter(
+        workspace_id=workspace_id,
+        email=f"submitter-{uuid.uuid4().hex[:8]}@example.com",
+        name="Canary Submitter",
+    )
+    db = SessionLocal()
+    try:
+        db.add(submitter)
+        db.commit()
+        assert submitter.id is not None
+        return submitter.id
+    finally:
+        db.close()
 
 
-@pytest.mark.skip(reason=_PLACEHOLDER_REASON)
-def test_submitters_cross_tenant_returns_404() -> None:
-    """Cross-tenant submitters lookup must 404 once the table exists."""
+def _seed_tag_for(workspace_id: uuid.UUID) -> uuid.UUID:
+    """Insert one ``tag`` row tagged to ``workspace_id``."""
+    slug = f"canary-{uuid.uuid4().hex[:6]}"
+    tag = Tag(workspace_id=workspace_id, name="Canary", slug=slug)
+    db = SessionLocal()
+    try:
+        db.add(tag)
+        db.commit()
+        assert tag.id is not None
+        return tag.id
+    finally:
+        db.close()
 
 
-@pytest.mark.skip(reason=_PLACEHOLDER_REASON)
-def test_tags_cross_tenant_returns_404() -> None:
-    """Cross-tenant tags lookup must 404 once the table exists."""
+def _seed_note_for(workspace_id: uuid.UUID, author_user_id: uuid.UUID) -> uuid.UUID:
+    """Insert one ``feedback_notes`` row tied to a feedback item in
+    ``workspace_id`` and authored by ``author_user_id``."""
+    feedback_id = _seed_feedback_for(workspace_id)
+    note = FeedbackNote(
+        feedback_id=feedback_id,
+        author_user_id=author_user_id,
+        body="canary note",
+    )
+    db = SessionLocal()
+    try:
+        db.add(note)
+        db.commit()
+        assert note.id is not None
+        return note.id
+    finally:
+        db.close()
 
 
-@pytest.mark.skip(reason=_PLACEHOLDER_REASON)
-def test_notes_cross_tenant_returns_404() -> None:
-    """Cross-tenant notes lookup must 404 once the table exists."""
+def test_submitters_cross_tenant_returns_404(
+    client: TestClient,
+    two_tenants: tuple[_Tenant, _Tenant],
+) -> None:
+    """User in tenant A asking for tenant B's slug → 404 with no leak."""
+    t1, t2 = two_tenants
+    submitter_id = _seed_submitter_for(t2.workspace_id)
+    _set_cookie(client, t1.raw_token)
+
+    resp = client.get(f"/probe/{t2.workspace_slug}")
+    assert resp.status_code == 404
+    assert str(submitter_id) not in resp.text
+    assert str(t2.workspace_id) not in resp.text
+
+
+def test_tags_cross_tenant_returns_404(
+    client: TestClient,
+    two_tenants: tuple[_Tenant, _Tenant],
+) -> None:
+    """User in tenant A asking for tenant B's slug → 404 with no leak."""
+    t1, t2 = two_tenants
+    tag_id = _seed_tag_for(t2.workspace_id)
+    _set_cookie(client, t1.raw_token)
+
+    resp = client.get(f"/probe/{t2.workspace_slug}")
+    assert resp.status_code == 404
+    assert str(tag_id) not in resp.text
+    assert str(t2.workspace_id) not in resp.text
+
+
+def test_notes_cross_tenant_returns_404(
+    client: TestClient,
+    two_tenants: tuple[_Tenant, _Tenant],
+) -> None:
+    """User in tenant A asking for tenant B's slug → 404 with no leak."""
+    t1, t2 = two_tenants
+    note_id = _seed_note_for(t2.workspace_id, t2.user_id)
+    _set_cookie(client, t1.raw_token)
+
+    resp = client.get(f"/probe/{t2.workspace_slug}")
+    assert resp.status_code == 404
+    assert str(note_id) not in resp.text
+    assert str(t2.workspace_id) not in resp.text
 
 
 # ---------------------------------------------------------------------------
