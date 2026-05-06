@@ -90,6 +90,7 @@ def test_production_accepts_remote_database_url() -> None:
         app_env="production",
         database_url="postgresql+psycopg://u:p@db.railway.internal:5432/d",
         secure_cookies=True,
+        feature_auth=False,
     )
     assert s.is_production is True
 

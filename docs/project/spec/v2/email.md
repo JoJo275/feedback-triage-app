@@ -4,7 +4,8 @@
 > Authoritative decision record:
 > [ADR 061 (Accepted 2026-05-04)](../../../adr/061-resend-email-fail-soft.md).
 
-Provider: **Resend**, via the `resend` Python SDK from PyPI.
+Provider: **Resend**, called over plain HTTP via `httpx` (no vendor
+SDK — keeps the runtime image lean, per ADR 061).
 
 ---
 
@@ -28,10 +29,17 @@ exponential backoff) is a deliberate v3.0 deferral.
 
 ## Templates
 
-Plain HTML strings in `src/feedback_triage/email/templates/*.html`.
-Inline CSS, table-based layout for client compatibility. No
-templating engine beyond `str.format` substitution. Content kept
-short and transactional.
+HTML templates in `src/feedback_triage/email/templates/*.html`,
+rendered with **Jinja2** (the autoescaping `Environment` from
+`jinja2`, already pulled in as a transitive dep of
+`fastapi[standard]`). Inline CSS, table-based layout for client
+compatibility. Rationale: Jinja autoescapes user-supplied context
+(invitee name, workspace name) into HTML attributes safely, where
+`str.format` would either silently double-render `{` characters in
+inline CSS or require manual `html.escape` at every callsite. Per
+[ADR 014](../../../adr/014-no-template-engine.md) Jinja is allowed
+**for email only** — application HTML is still hand-written and
+served via `StaticFiles`.
 
 Templates needed for v2.0:
 
@@ -45,9 +53,10 @@ Templates needed for v2.0:
   fires for `submitter.email IS NOT NULL` and only on transitions
   to `accepted`, `planned`, `shipped`)
 
-A small `email.send(template_name, to, ctx)` helper in
-`src/feedback_triage/email/sender.py` is the single point of
-delivery; nothing else calls the Resend SDK directly.
+The `EmailClient.send(purpose, to, context, ...)` method in
+`src/feedback_triage/email/client.py` is the single point of
+delivery — purpose → template + subject mapping lives there, and
+nothing else calls the Resend API directly.
 
 ---
 

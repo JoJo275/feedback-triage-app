@@ -69,6 +69,39 @@ class Settings(BaseSettings):
     ``_require_secure_cookies_in_production`` enforces this.
     """
 
+    # ------------------------------------------------------------------
+    # Email / Resend (v2.0). See ADR 061 and
+    # ``docs/project/spec/v2/email.md``.
+    # ------------------------------------------------------------------
+    resend_api_key: SecretStr = Field(default=SecretStr(""))
+    """Resend API key. Required in production when ``feature_auth=true``
+    and ``resend_dry_run=false``. Wrapped in :class:`SecretStr` so the
+    value never appears in ``repr(settings)`` or a validation error."""
+
+    resend_from_address: str = Field(default="no-reply@signalnest.app")
+    """Default ``From:`` address used for transactional sends."""
+
+    resend_dry_run: bool = Field(default=True)
+    """Short-circuit the Resend HTTP call.
+
+    When true, :meth:`feedback_triage.email.client.EmailClient.send`
+    writes a ``status='sent'`` row with a synthetic
+    ``provider_id='dry-run-<uuid>'`` and skips the network. Defaults
+    to ``true`` so test/dev boots succeed without a key; production
+    must explicitly set ``RESEND_DRY_RUN=0`` (enforced by
+    ``_require_resend_in_production``).
+    """
+
+    resend_timeout_seconds: float = Field(default=5.0, gt=0)
+    """Per-attempt HTTP timeout for the Resend send call."""
+
+    resend_max_retries: int = Field(default=2, ge=0, le=10)
+    """In-process retry budget on top of the initial attempt.
+
+    ADR 061 — total attempts is ``1 + resend_max_retries``. Retries
+    fire only on 429, 5xx, and network errors; auth/validation 4xx is
+    terminal."""
+
     @field_validator("database_url", mode="before")
     @classmethod
     def _normalize_database_url(cls, value: object) -> object:
@@ -142,6 +175,33 @@ class Settings(BaseSettings):
                 "SECURE_COOKIES must be true when APP_ENV=production. "
                 "Auth cookies without the Secure flag leak the session "
                 "token over plain HTTP. See docs/project/spec/v2/auth.md."
+            )
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _require_resend_in_production(self) -> Settings:
+        """Refuse to boot in production without a real Resend setup.
+
+        Per ADR 061, when the auth surface is on
+        (``FEATURE_AUTH=true``) the verify-email / reset / invitation
+        flows are user-blocking; silently running with
+        ``RESEND_DRY_RUN=true`` in production would log fake "sent"
+        rows while no email ever leaves the dyno. Fail fast at boot
+        with an actionable message.
+        """
+        if self.app_env != "production" or not self.feature_auth:
+            return self
+        if self.resend_dry_run:
+            msg = (
+                "RESEND_DRY_RUN must be false (0) when APP_ENV=production "
+                "and FEATURE_AUTH=true. See ADR 061."
+            )
+            raise ValueError(msg)
+        if not self.resend_api_key.get_secret_value():
+            msg = (
+                "RESEND_API_KEY must be set when APP_ENV=production and "
+                "FEATURE_AUTH=true. See ADR 061."
             )
             raise ValueError(msg)
         return self

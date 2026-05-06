@@ -56,7 +56,7 @@ PR.**
 | 1.3b | `feat(db): migration A — auth, tenancy, email_log tables + native enums`                                      | 1     | done        |
 | 1.4 | `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`                                        | 1     | done        |
 | 1.5 | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                                        | 1     | done        |
-| 1.6 | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                                    | 1     | not started |
+| 1.6 | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                                    | 1     | done        |
 | 1.7 | `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`                                          | 1     | not started |
 | 1.8 | `feat(api): workspaces, memberships, invitations + dashboard empty state`                                     | 1     | not started |
 | 1.9 | `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`                        | 1     | not started |
@@ -370,7 +370,7 @@ implementation.
   proves the no-enumeration copy is provider-state-independent
 
 **Deliverables this PR closes**
-- [ ] **Email client (fail-soft stub)** — full deliverable
+- [x] **Email client (fail-soft stub)** — full deliverable
       (templates listed; `status_change.html` lands in Phase 3).
 
 **DoD**

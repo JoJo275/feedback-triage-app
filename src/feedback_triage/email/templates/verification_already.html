@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <body
+        style="
+            margin: 0;
+            padding: 0;
+            font-family:
+                -apple-system,
+                Segoe UI,
+                sans-serif;
+            color: #111;
+            background: #f6f7f9;
+        "
+    >
+        <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="background: #f6f7f9; padding: 32px 0"
+        >
+            <tr>
+                <td align="center">
+                    <table
+                        role="presentation"
+                        width="520"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="
+                            background: #ffffff;
+                            border-radius: 8px;
+                            padding: 32px;
+                        "
+                    >
+                        <tr>
+                            <td>
+                                <h1 style="margin: 0 0 16px 0; font-size: 20px">
+                                    You already have an account
+                                </h1>
+                                <p style="margin: 0 0 16px 0; line-height: 1.5">
+                                    Hi,
+                                </p>
+                                <p style="margin: 0 0 16px 0; line-height: 1.5">
+                                    Someone tried to sign up for SignalNest with
+                                    this email address, but an account already
+                                    exists. If that was you, you can sign in
+                                    below — or reset your password if you don't
+                                    remember it.
+                                </p>
+                                <p style="margin: 24px 0">
+                                    <a
+                                        href="{{ login_url }}"
+                                        style="
+                                            display: inline-block;
+                                            padding: 12px 20px;
+                                            background: #2b6cb0;
+                                            color: #fff;
+                                            text-decoration: none;
+                                            border-radius: 6px;
+                                            font-weight: 600;
+                                        "
+                                        >Sign in</a
+                                    >
+                                </p>
+                                <p
+                                    style="
+                                        margin: 0 0 16px 0;
+                                        line-height: 1.5;
+                                        color: #555;
+                                        font-size: 14px;
+                                    "
+                                >
+                                    Forgot your password?
+                                    <a
+                                        href="{{ reset_url }}"
+                                        style="color: #2b6cb0"
+                                        >Reset it here</a
+                                    >.
+                                </p>
+                                <p
+                                    style="
+                                        margin: 0;
+                                        line-height: 1.5;
+                                        color: #555;
+                                        font-size: 13px;
+                                    "
+                                >
+                                    If this wasn't you, no action is needed —
+                                    your account is safe.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -47,6 +47,8 @@ dependencies = [
   "pydantic>=2.7",              # Validation
   "pydantic-settings>=2.4",     # Settings via env vars
   "argon2-cffi>=25.1.0",
+  "httpx>=0.27",                # Resend HTTP client (ADR 061)
+  "jinja2>=3.1",                # Email template rendering (ADR 014, ADR 061)
 ]
 
 [project.urls]
@@ -269,7 +271,7 @@ extend_exclude = [
 ]
 pep621_dev_dependency_groups = ["test", "e2e", "dev", "docs", "dashboard"]
 ignore = ["DEP004"]
-package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs-material = "material", pymdown-extensions = "pymdownx", mkdocstrings = "mkdocstrings", "psycopg[binary]" = "psycopg", "fastapi[standard]" = "fastapi", "mkdocstrings[python]" = "mkdocstrings" }
+package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs-material = "material", pymdown-extensions = "pymdownx", mkdocstrings = "mkdocstrings", "psycopg[binary]" = "psycopg", "fastapi[standard]" = "fastapi", "mkdocstrings[python]" = "mkdocstrings", argon2-cffi = "argon2" }
 
 # Per-rule ignores:
 # DEP002 — declared deps that aren't directly imported. ``alembic`` is
