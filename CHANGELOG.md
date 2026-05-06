@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.1.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.0.0...v1.1.0) (2026-05-06)
+
+
+### Features
+
+* Add draft for Feedback Triage App spec v2.0 and update references ([f4428d5](https://github.com/JoJo275/feedback-triage-app/commit/f4428d531f74e32afaf9a93f216083fcbb1cb69a))
+* **auth:** pr 1.7 -implement v2.0 authentication flow with email verification and password reset ([a43a0c5](https://github.com/JoJo275/feedback-triage-app/commit/a43a0c5a1d7984546361e96895ce1dc9e287c2fa))
+* **db:** phase 1.3b -  implement v2 auth, tenancy, and email_log tables with native enums ([872fff6](https://github.com/JoJo275/feedback-triage-app/commit/872fff6eda830a57c52bb359701c0c9bd96b4cbc))
+* **email:** (pr 1.6) integrate Resend client for transactional emails ([8d30022](https://github.com/JoJo275/feedback-triage-app/commit/8d3002293a1c5e7af29ba9ce02b12aa47ac1e8ce))
+* enhance templating with manifest caching and add unit tests for static_url ([a27a6b7](https://github.com/JoJo275/feedback-triage-app/commit/a27a6b7c36152a28fc353221273caa092ccec5f0))
+* implement Tailwind CSS integration with standalone CLI and add style guide page ([ebd10b7](https://github.com/JoJo275/feedback-triage-app/commit/ebd10b7eb0edcf03c18afa033497b15916785fe1))
+* **implementation:** add PR ledger for v2.0 phases with detailed tracking ([abc3793](https://github.com/JoJo275/feedback-triage-app/commit/abc3793c9d65f195e7b285630a422fa33ed3b649))
+* introduce v2.0 specifications including multi-tenancy, rollout, schema, security, and tooling ([28c1b89](https://github.com/JoJo275/feedback-triage-app/commit/28c1b891841b9a095b382833918ebe534d9db2ac))
+* **models:** introduce v2 models and enums for user roles, email status, and workspace management ([9d99345](https://github.com/JoJo275/feedback-triage-app/commit/9d99345949f8b6a0e0a1e5b9aee3d5bf8a690073))
+* pr 1.4 - refactor code structure for improved readability and maintainability ([febd38e](https://github.com/JoJo275/feedback-triage-app/commit/febd38e712d47aa168212d22a3e5c7475a6e0365))
+* pr 1.8 - add invitations and workspaces management endpoints ([671b522](https://github.com/JoJo275/feedback-triage-app/commit/671b5226edc7f1fe91151aa549db5e83734a2a4e))
+* pr 1.9 (phase 1 finished) - implement FEATURE_AUTH gate for v2 auth surface ([54d1850](https://github.com/JoJo275/feedback-triage-app/commit/54d18500c7385cf20cf3bec897f2bb233f96f8a6))
+* ratify v2.0 spec and ADR 061 for email integration. ([587ee53](https://github.com/JoJo275/feedback-triage-app/commit/587ee5324b822430a0e9358b2cdca4bd208f636a))
+* rename project from Feedback Triage to SignalNest ([09e72e0](https://github.com/JoJo275/feedback-triage-app/commit/09e72e00422e88a2024c85fa6eb5772e8076b5b1))
+* **tenancy:** implement WorkspaceContext and policies for multi-tenancy support ([94fea13](https://github.com/JoJo275/feedback-triage-app/commit/94fea131cc10a6529938f4e68635f64296e9c257))
+* **workflows:** update license-check and link-checker workflows; add Apache-2.0 to license allow-list and exclude email templates from link checks ([9867b93](https://github.com/JoJo275/feedback-triage-app/commit/9867b9353544d1e941ac6143e43f2fe3e9ad1cd1))
+
+
+### Bug Fixes
+
+* correct formatting in script instructions for shebang line ([47913aa](https://github.com/JoJo275/feedback-triage-app/commit/47913aa7d19c185dd6c11f3265e5c3ef75495fbc))
+* **docs:** update PR ledger for clarity on migration phases and deliverables ([9d99345](https://github.com/JoJo275/feedback-triage-app/commit/9d99345949f8b6a0e0a1e5b9aee3d5bf8a690073))
+* **templates:** make sidebar Jinja formatter-stable ([445f8d2](https://github.com/JoJo275/feedback-triage-app/commit/445f8d23f5b2cfd94dc4797918052fd104c8b971))
+* **ui:** align task-branch header/section box borders to content width ([6b6a771](https://github.com/JoJo275/feedback-triage-app/commit/6b6a771cf97de75e557b59bdf4a3b135e9de5e73))
+* update PR title linting to allow uppercase subject start and improve error messaging ([33bae8f](https://github.com/JoJo275/feedback-triage-app/commit/33bae8fd77827cc02790205d97ba6530e5889a36))
+
 ## [1.0.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.0.0...v1.0.0) (2026-05-05)
 
 
