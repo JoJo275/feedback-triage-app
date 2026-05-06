@@ -169,6 +169,7 @@ jobs:
           The Unlicense (Unlicense);\
           Public Domain;\
           Historical Permission Notice and Disclaimer (HPND);\
+          Apache-2.0 OR BSD-2-Clause;\
           license_check;\
           "
 

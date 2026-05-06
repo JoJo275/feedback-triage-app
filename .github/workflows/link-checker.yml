@@ -129,6 +129,7 @@ jobs:
             --exclude-path 'src/ENTRY_POINTS.md'
             --exclude-path 'src/feedback_triage/static'
             --exclude-path 'src/feedback_triage/templates'
+            --exclude-path 'src/feedback_triage/email/templates'
             --exclude-path 'scripts/sql/README.md'
             '**/*.md'
             '**/*.html'
