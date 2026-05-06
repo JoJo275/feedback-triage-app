@@ -121,7 +121,15 @@ repos:
     hooks:
       - id: mypy
         name: mypy (strict)
-        entry: uv run mypy src/
+        # ``uv run --no-sync`` invokes the project's existing ``.venv``
+        # without resyncing — that resync would otherwise uninstall
+        # everything from ``[dev]`` (including ``pre-commit`` itself) and
+        # break the next ``git commit``. Going through ``uv`` instead of a
+        # raw ``mypy`` PATH lookup is the only cross-platform way to make
+        # sure the venv's mypy + project deps are used (a plain ``mypy``
+        # on Windows often resolves to a global install with no project
+        # deps, producing ~80 spurious ``import-not-found`` errors).
+        entry: uv run --no-sync mypy src/
         language: system
         pass_filenames: false
         files: ^src/
@@ -202,11 +210,18 @@ repos:
 
       - id: no-secrets-patterns
         name: Block secrets / credentials patterns
-        # Two-part regex joined with |:
+        # Three-part regex:
+        #   Anchor: ^(?!.*pragma: allowlist secret) — negative lookahead
+        #     that lets a line opt out of this hook by appending
+        #     ``# pragma: allowlist secret`` (same convention as
+        #     detect-secrets / Yelp's tooling). Use sparingly — fixture
+        #     credentials in tests are the main legitimate case.
         #   Part 1 — labelled secrets:  API_KEY = "value"  style patterns
         #   Part 2 — known service token prefixes (high-confidence, low false-positive)
         entry: >-
           (?x)
+          ^(?!.*pragma:[ ]allowlist[ ]secret).*?
+          (?:
           (?i:api[_-]?key|api[_-]?secret|secret[_-]?key|access[_-]?token|
           auth[_-]?token|private[_-]?key|client[_-]?secret|password|passwd)
           \s*[:=]\s*["'][^\s"']{8,}
@@ -220,6 +235,7 @@ repos:
           |pypi-[A-Za-z0-9]{60,}
           |glpat-[A-Za-z0-9\-]{20,}
           |sq0[a-z]{3}-[A-Za-z0-9\-_]{22,}
+          )
         language: pygrep
         # Scope to files most likely to contain real credentials;
         # reduces false positives from docs/examples.
@@ -249,9 +265,14 @@ repos:
       # (where your packages are actually installed).  A remote-repo
       # hook would create an isolated venv without your deps, causing
       # "Executable not found" or false positives.
+      #
+      # Calls the venv binary directly rather than ``uv run deptry`` —
+      # ``uv run`` resyncs the base dependency set on every invocation,
+      # which uninstalls everything from ``[dev]`` (including
+      # ``pre-commit`` itself) and breaks the next ``git commit``.
       - id: deptry
         name: deptry (dependency hygiene)
-        entry: uv run deptry src/
+        entry: deptry src/
         language: system
         pass_filenames: false
         always_run: true

@@ -1,0 +1,19 @@
+{% extends "_base.html" %} {% block title %}Workspace invitation — Feedback
+Triage{% endblock %} {% block body %}
+<main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+        <header>
+            <h1>You've been invited</h1>
+            <p>Sign in to accept this invitation and join the workspace.</p>
+        </header>
+        <p>
+            <a href="/login?next=/invitations/{{ token }}">Sign in to accept</a
+            >, or <a href="/signup">create an account</a> first.
+        </p>
+        <p>
+            Acceptance lands in PR 1.8 — keep this link; it's good for seven
+            days.
+        </p>
+    </div>
+</main>
+{% endblock %}

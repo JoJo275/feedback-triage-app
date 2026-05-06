@@ -1,0 +1,21 @@
+{% extends "_base.html" %} {% block title %}Verify email — Feedback Triage{%
+endblock %} {% block body %}
+<main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+        <header>
+            <h1>Confirming your email</h1>
+        </header>
+        <div id="verify-status" data-token="{{ token }}" role="status">
+            <p>Working on it…</p>
+        </div>
+        <p id="verify-success" hidden>
+            Email confirmed. <a href="/login">Sign in</a>.
+        </p>
+        <p id="verify-error" class="sn-form-error" role="alert" hidden>
+            This verification link is no longer valid.
+            <a href="/login">Sign in</a> and request a new one.
+        </p>
+    </div>
+</main>
+<script src="/static/js/auth.js" defer></script>
+{% endblock %}

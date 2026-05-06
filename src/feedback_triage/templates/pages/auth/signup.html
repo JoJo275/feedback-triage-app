@@ -1,0 +1,52 @@
+{% extends "_base.html" %} {% block title %}Sign up — Feedback Triage{% endblock
+%} {% block body %}
+<main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+        <header>
+            <h1>Create an account</h1>
+        </header>
+        <form id="signup-form" class="sn-stack" novalidate>
+            <div>
+                <label for="email">Email</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    required
+                />
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="12"
+                    required
+                />
+                <small>Minimum 12 characters.</small>
+            </div>
+            <div>
+                <label for="workspace_name"
+                    >Workspace name <small>(optional)</small></label
+                >
+                <input
+                    id="workspace_name"
+                    name="workspace_name"
+                    type="text"
+                    maxlength="60"
+                />
+            </div>
+            <button type="submit">Create account</button>
+            <p id="signup-error" class="sn-form-error" role="alert" hidden></p>
+            <p id="signup-success" role="status" hidden>
+                Check your inbox to confirm your email address.
+            </p>
+        </form>
+        <p>Already registered? <a href="/login">Sign in</a>.</p>
+    </div>
+</main>
+<script src="/static/js/auth.js" defer></script>
+{% endblock %}

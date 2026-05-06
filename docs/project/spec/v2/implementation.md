@@ -57,7 +57,7 @@ PR.**
 | 1.4 | `feat(auth): hashing, sessions, tokens, deps + Argon2 startup warm-up`                                        | 1     | done        |
 | 1.5 | `feat(tenancy): WorkspaceContext + policies + cross-tenant 404 canary`                                        | 1     | done        |
 | 1.6 | `feat(email): Resend client (fail-soft) + 4 templates + DRY_RUN test mode`                                    | 1     | done        |
-| 1.7 | `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`                                          | 1     | not started |
+| 1.7 | `feat(api): /api/v1/auth/* endpoints + page routes for sign-in flow`                                          | 1     | done        |
 | 1.8 | `feat(api): workspaces, memberships, invitations + dashboard empty state`                                     | 1     | not started |
 | 1.9 | `feat(config): FEATURE_AUTH flag + sidebar + theme switcher (dormant) + Phase 1 close`                        | 1     | not started |
 | 2.1 | `feat(db): migration B — backfill, NOT NULL flip, status rename, plus tags/notes/submitters/workflow tables`  | 2     | not started |
@@ -400,8 +400,8 @@ the sign-up / sign-in / verify / reset / invitation flows.
 - `tests/e2e/test_signup_flow.py` — Playwright smoke
 
 **Deliverables this PR closes**
-- [ ] **API endpoints — auth subset** (`/api/v1/auth/*`).
-- [ ] **Page routes — auth subset** (`/login`, `/signup`,
+- [x] **API endpoints — auth subset** (`/api/v1/auth/*`).
+- [x] **Page routes — auth subset** (`/login`, `/signup`,
       `/forgot-password`, `/reset-password`, `/verify-email`,
       `/invitations/<token>`).
 

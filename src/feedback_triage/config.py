@@ -69,6 +69,14 @@ class Settings(BaseSettings):
     ``_require_secure_cookies_in_production`` enforces this.
     """
 
+    app_base_url: str = Field(default="http://localhost:8000")
+    """Public base URL used to build links in transactional emails.
+
+    Verification, password-reset, and invitation emails embed an
+    absolute URL of the form ``{app_base_url}/verify-email?token=...``.
+    Trailing slashes are stripped at use time.
+    """
+
     # ------------------------------------------------------------------
     # Email / Resend (v2.0). See ADR 061 and
     # ``docs/project/spec/v2/email.md``.

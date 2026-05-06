@@ -1,0 +1,40 @@
+{% extends "_base.html" %} {% block title %}Sign in — Feedback Triage{% endblock
+%} {% block body %}
+<main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+        <header>
+            <h1>Sign in</h1>
+        </header>
+        <form id="login-form" class="sn-stack" novalidate>
+            <div>
+                <label for="email">Email</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    required
+                />
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                />
+            </div>
+            <button type="submit">Sign in</button>
+            <p id="login-error" class="sn-form-error" role="alert" hidden></p>
+        </form>
+        <p>
+            New here? <a href="/signup">Create an account</a>.
+            <br />
+            Forgot your password? <a href="/forgot-password">Reset it</a>.
+        </p>
+    </div>
+</main>
+<script src="/static/js/auth.js" defer></script>
+{% endblock %}
