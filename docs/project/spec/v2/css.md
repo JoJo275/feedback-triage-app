@@ -621,6 +621,9 @@ does not contain the CLI binary.
 
 - [`core-idea.md`](core-idea.md) — palette, components shorthand.
 - [`pages.md`](pages.md) — per-page composition using these classes.
+- [`theming.md`](theming.md) — practical recipes for changing
+  colors, components, layout, motion, and adding theme presets
+  without breaking these rules.
 - [`tooling.md`](tooling.md) — `task build:css` wiring.
 - [`../../../notes/frontend-conventions.md`](../../../notes/frontend-conventions.md)
 - [ADR 056 — Style guide page](../../../adr/056-style-guide-page.md)

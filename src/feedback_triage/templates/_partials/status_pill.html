@@ -2,18 +2,23 @@
 
 Renders a feedback `status` value as an `sn-pill-status` chip with a
 tone modifier so the colour matches the workflow stage. Tone keys
-mirror `docs/project/spec/v2/css.md` — Status pill tones. #}
+mirror `docs/project/spec/v2/css.md` -- Status pill tones.
+
+Per `css.md` "Pills carry icon + text + color, never color alone":
+each row carries a leading glyph wrapped in `aria-hidden="true"` so
+screen readers hear the label only and color-blind users still get
+a non-color cue. #}
 {%- set _label_map = {
-  "new":         ("new",         "info"),
-  "needs_info":  ("needs info",  "warn"),
-  "reviewing":   ("reviewing",   "info"),
-  "accepted":    ("accepted",    "ok"),
-  "planned":     ("planned",     "ok"),
-  "in_progress": ("in progress", "ok"),
-  "shipped":     ("shipped",     "ok"),
-  "closed":      ("closed",      "muted"),
-  "spam":        ("spam",        "danger"),
-  "rejected":    ("rejected",    "muted"),
+  "new":         ("new",         "info",   "\u2728"),
+  "needs_info":  ("needs info",  "warn",   "?"),
+  "reviewing":   ("reviewing",   "info",   "\u25d0"),
+  "accepted":    ("accepted",    "ok",     "\u2713"),
+  "planned":     ("planned",     "ok",     "\u25b6"),
+  "in_progress": ("in progress", "ok",     "\u25d1"),
+  "shipped":     ("shipped",     "ok",     "\u2605"),
+  "closed":      ("closed",      "muted",  "\u25cf"),
+  "spam":        ("spam",        "danger", "\u2715"),
+  "rejected":    ("rejected",    "muted",  "\u2298"),
 } -%}
-{%- set _label, _tone = _label_map.get(status, (status, "muted")) -%}
-<span class="sn-pill-status sn-pill-status--{{ _tone }}" data-status="{{ status }}">{{ _label }}</span>
+{%- set _label, _tone, _icon = _label_map.get(status, (status, "muted", "\u25cf")) -%}
+<span class="sn-pill-status sn-pill-status--{{ _tone }}" data-status="{{ status }}"><span class="sn-pill-icon" aria-hidden="true">{{ _icon }}</span>{{ _label }}</span>

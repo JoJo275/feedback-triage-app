@@ -20,6 +20,7 @@ from feedback_triage import __version__
 from feedback_triage.api.v1 import auth as auth_api
 from feedback_triage.api.v1 import feedback as feedback_api
 from feedback_triage.api.v1 import invitations as invitations_api
+from feedback_triage.api.v1 import public_feedback as public_feedback_api
 from feedback_triage.api.v1 import submitters as submitters_api
 from feedback_triage.api.v1 import tags as tags_api
 from feedback_triage.api.v1 import workspaces as workspaces_api
@@ -36,6 +37,7 @@ from feedback_triage.pages import auth as auth_pages
 from feedback_triage.pages import dashboard as dashboard_pages
 from feedback_triage.pages import feedback_detail as feedback_detail_pages
 from feedback_triage.pages import inbox as inbox_pages
+from feedback_triage.pages import public_submit as public_submit_pages
 from feedback_triage.routes import health, pages
 from feedback_triage.routes.pages import STATIC_DIR
 
@@ -125,6 +127,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(feedback_api.router)
     app.include_router(tags_api.router)
     app.include_router(submitters_api.router)
+    app.include_router(public_feedback_api.router)
     app.include_router(auth_api.router)
     app.include_router(workspaces_api.router)
     app.include_router(invitations_api.ws_invitations_router)
@@ -132,6 +135,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth_pages.router)
     app.include_router(dashboard_pages.router)
     app.include_router(inbox_pages.router)
+    app.include_router(public_submit_pages.router)
     app.include_router(feedback_detail_pages.router)
     app.include_router(pages.router)
 
