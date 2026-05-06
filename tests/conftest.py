@@ -78,3 +78,36 @@ def client(settings: Settings, truncate_feedback: None) -> Iterator[TestClient]:
     app = create_app(settings)
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture
+def truncate_auth_world() -> Iterator[None]:
+    """Wipe every v2 auth/tenant table between tests."""
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "TRUNCATE TABLE "
+                "users, workspaces, workspace_memberships, "
+                "workspace_invitations, sessions, "
+                "email_verification_tokens, password_reset_tokens, "
+                "auth_rate_limits, email_log "
+                "RESTART IDENTITY CASCADE",
+            ),
+        )
+    yield
+
+
+@pytest.fixture
+def auth_settings() -> Settings:
+    return Settings(_env_file=None)  # type: ignore[call-arg]
+
+
+@pytest.fixture
+def auth_client(
+    auth_settings: Settings,
+    truncate_auth_world: None,
+) -> Iterator[TestClient]:
+    """TestClient for v2 auth/workspace flow tests."""
+    app = create_app(auth_settings)
+    with TestClient(app) as c:
+        yield c
