@@ -1,10 +1,10 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Branch: wip/2026-05-05-scratch -->
+<!-- Branch: wip/2026-05-06-scratch -->
 <!--
   Suggested PR title (conventional commit format — type: description):
 
-    feat(v2): close Phase 1 (Alpha) — auth, tenancy, email, FEATURE_AUTH gate
+    feat(v2): close Phase 2 (Beta) — triage core, public submit, settings, submitters + stale + axe-core
 
   Available prefixes:
     feat:     — new feature or capability
@@ -20,7 +20,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels: v2.0, phase-1, auth, tenancy, email, docs, schema-migration -->
+<!-- Suggested labels: v2.0, phase-2, triage, public-submit, settings, submitters, a11y, schema-migration -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -38,127 +38,123 @@
 
 ## Description
 
-Lands every Phase 1 (Alpha) slice from
+Lands every Phase 2 (Beta) slice from
 [`docs/project/spec/v2/implementation.md`](../../docs/project/spec/v2/implementation.md)
-on a single integration branch and closes the phase. The shortest
-path to *"a user can sign up, get a workspace, and see an empty
-inbox in their browser"* is now real, gated behind
-`FEATURE_AUTH=false` in production until Phase 2 ratifies the
-surface.
+on a single integration branch and closes the phase. After this PR
+the v2 triage surface is functionally complete: a workspace owner
+can sign up, see an inbox of feedback, drill into a detail page,
+manage tags and notes, expose a public submission form, and see
+who submitted what — with cross-tenant isolation, stale-item
+highlighting, and an automated a11y gate.
 
 **What changes you made:**
 
-- **PR 1.3a — `refactor(models)`** — `models.py` split into a
-  package; v2 enums (`UserRole`, `WorkspaceRole`, `EmailStatus`,
-  `EmailPurpose`) added as `StrEnum`s.
-- **PR 1.3b — `feat(db)` Migration A** — single Alembic revision
-  adding `users`, `sessions`, `*_tokens`, `workspaces`,
-  `workspace_memberships`, `workspace_invitations`,
-  `auth_rate_limits`, `email_log`, plus native Postgres enums and
-  the additive (nullable) `feedback_item.workspace_id` column.
-  Hand-reviewed; round-trips up/down/up.
-- **PR 1.4 — `feat(auth)`** — Argon2id hashing, session
-  create/renew/revoke, hashed verify/reset/invite token mint and
-  consume, `CurrentUser` / `RequireSession` / `RequireRole` deps,
-  Argon2 startup warm-up.
-- **PR 1.5 — `feat(tenancy)`** — `WorkspaceContext` resolved from
-  `<slug>`, role policies, and the canary
-  `tests/api/test_isolation.py` (six initial cases — **404 never
-  403**).
-- **PR 1.6 — `feat(email)`** — `httpx`-based Resend client per
-  ADR 061 (fail-soft, in-process retry, `email_log` rows), four
-  templates (`verification`, `verification_already`,
-  `password_reset`, `invitation`), `RESEND_DRY_RUN=1` test mode.
-- **PR 1.7 — `feat(api)`** — `/api/v1/auth/*` JSON endpoints +
-  `/login`, `/signup`, `/forgot-password`, `/reset-password`,
-  `/verify-email`, `/invitations/<token>` page routes.
-  No-enumeration responses on signup and forgot-password verified
-  by `tests/api/auth/test_no_enumeration.py`.
-- **PR 1.8 — `feat(api)`** — workspaces, memberships, and
-  invitations endpoints + `/w/<slug>/dashboard` empty-state page.
-- **PR 1.9 — `feat(config)` (Phase 1 close)** — `FEATURE_AUTH`
-  env flag short-circuits the auth surface with 503 (JSON for
-  `/api/v1/auth/*`, "coming soon" HTML for the page routes);
-  sidebar partial rendered inside authenticated shells; theme
-  switcher dormant but wired to `data-theme` and persisted to
-  `localStorage` (FOUC-free initial paint; dark-mode CSS tokens
-  already exist; full activation is Phase 4).
-- **Docs** — every PR row in the v2 implementation ledger now has
-  an in-page jump anchor. New "Programming security checklist"
-  section in `docs/project/spec/v2/security.md` covering secrets,
-  injection, deserialization, auth/session, tenancy, headers,
-  crypto, supply chain, frontend, data, and a "refuse on review"
-  list.
+- **PR 2.1 — `feat(db)` Migration B** — backfill of
+  `feedback_item.workspace_id`, NOT-NULL flip, status rename
+  to v2 values, plus the new workflow tables (`tags`,
+  `feedback_tag`, `submitters`, `feedback_note`). Hand-reviewed;
+  round-trips up/down/up; idempotent backfill.
+- **PR 2.2 — `feat(api)`** — v2 API: tags, notes, submitters,
+  workspace-scoped feedback CRUD with the new statuses.
+  Cross-tenant probes added to `tests/api/test_isolation.py`
+  for every new endpoint.
+- **PR 2.3 — `feat(ui)` triage core** — `/w/<slug>/inbox`,
+  `/w/<slug>/feedback/<id>`, the filter bar, status pills,
+  priority pill, tag chips, notes panel, timeline; `_partials/`
+  for the Jinja styleguide.
+- **PR 2.4 — `feat(api+ui)` public submit** — `/w/<slug>/submit`
+  page + `POST /api/v1/public/feedback`, gated by
+  `workspace.public_submit_enabled`, anti-spam rate-limits per
+  ADR 062, submitter auto-link on email match.
+- **PR 2.5 — `feat(ui)` workspace settings** —
+  `/w/<slug>/settings` with the public-submission toggle and
+  workspace metadata. New canaries in
+  `tests/api/test_workspace_settings.py`.
+- **PR 2.6 — `feat(triage)` Phase 2 close (this commit)** —
+  Should-tier polish:
+  - Submitters list & detail pages
+    (`/w/<slug>/submitters`, `/w/<slug>/submitters/<id>`).
+  - Stale-item highlighting on Inbox: server-side `?stale=true`
+    filter via the new `stale_clause()`, JS row badge mirroring
+    the same predicate, and a "Stale" summary card.
+    Threshold canon-defined as `created_at < now() - interval
+    '14 days' AND status IN ('new', 'needs_info')`.
+  - axe-core (4.10.2, pinned URL) accessibility scan over
+    inbox, feedback detail, settings, submitters list, and
+    public submit. Fails on serious/critical WCAG 2.1 A/AA
+    violations.
 
 **Why you made them:**
 
-Phase 1 in the v2 plan is the spine the rest of the rewrite hangs
-off. Splitting it across nine commits keeps each slice
-review-honest; landing them as one PR keeps the integration
-boundary explicit. The auth surface stays dormant in production
-behind `FEATURE_AUTH=false` until we deliberately flip the flag at
-the alpha → beta boundary.
+- Phase 2 is the biggest semantic jump in v2: Migration B is
+  destructive (status rename) and adds three new tables.
+  Shipping it as a chain of small, individually-revertable PRs
+  keeps each diff reviewable and lets us run the migration
+  round-trip canary on every step.
+- The Should items in PR 2.6 are the bare minimum to make the
+  Beta usable for the people who actually triage feedback: a
+  list of submitters (so you know who to reply to) and a stale
+  badge (so old items don't just disappear into the queue).
+- axe-core in the smoke gate is the cheapest possible lock on
+  "we won't regress accessibility while iterating." It runs on
+  the same Playwright stack already wired up; no new tooling.
 
 ## Related Issue
 
-N/A — tracked by the v2 phase plan in
-[`docs/project/spec/v2/implementation.md`](../../docs/project/spec/v2/implementation.md).
-Phase 1 closed 2026-05-06 in that file.
+N/A — Phase 2 of the v2 implementation plan
+([`spec/v2/implementation.md`](../../docs/project/spec/v2/implementation.md#phase-2--beta)).
 
 ## Type of Change
 
 - [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
 - [x] ✨ New feature (non-breaking change that adds functionality)
-- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [x] 💥 Breaking change (Migration B renames feedback statuses;
+      auto-applied via Alembic; v1 clients will break — but v2
+      is still gated behind Phase 1's `FEATURE_AUTH=false` in
+      production until ratification)
 - [x] 📚 Documentation update
-- [x] 🔧 Refactor (no functional changes) — PR 1.3a models split
+- [x] 🔧 Refactor (services extracted: `stale_detector`,
+      `submitter_link`, `rate_limit`)
 - [x] 🧪 Test update
 
 ## How to Test
 
 **Steps:**
 
-1. Pull the branch, run `uv sync`, then `task up` to start
-   Postgres.
-2. `uv run alembic upgrade head` — Migration A applies cleanly on
-   a fresh DB; `alembic downgrade -1 && alembic upgrade head`
-   round-trips.
-3. With `FEATURE_AUTH=true` (the dev default), boot the app and
-   walk the signup flow: `/signup` → check the `email_log` table
-   for the verification row (`RESEND_DRY_RUN=1` is on by default,
-   so no network call) → grab the synthetic token → visit
-   `/verify-email?token=...` → `/login` → land on
-   `/w/<slug>/dashboard`.
-4. Set `FEATURE_AUTH=false` in `.env`, restart, and confirm
-   `POST /api/v1/auth/signup` returns 503 JSON and `GET /login`
-   renders the "coming soon" page (also 503).
-5. Click the **Theme** button in the dashboard sidebar; the
-   `data-theme` attribute on `<html>` flips and persists across
-   reloads via `localStorage`. (Visual dark-mode QA is Phase 4.)
+1. `uv sync` — picks up the `mako 1.3.11 → 1.3.12` bump for
+   CVE-2026-44307 (transitive via alembic, no API change).
+2. `task up` — Postgres for local + tests.
+3. `task migrate` — runs Migration B; verify with
+   `uv run alembic downgrade -1 && uv run alembic upgrade head`.
+4. `task seed` — populates a workspace with mixed-status
+   feedback so the stale predicate is observable.
+5. `task dev` — sign up, exercise inbox filters
+   (incl. `?stale=true`), open a feedback detail page, flip a
+   status, add a note, add a tag, visit
+   `/w/<slug>/submitters`, visit `/w/<slug>/settings`, toggle
+   public submit, open `/w/<slug>/submit` in a private window
+   and submit.
+6. (Optional) `task test:e2e` — runs Playwright incl. the new
+   axe-core scan. Requires `playwright install chromium` once.
 
 **Test command(s):**
 
-```powershell
-# Full unit + API suite
-uv run pytest -m "not e2e"
-
-# Phase 1 verification commands from the plan
-uv run pytest tests/api/test_isolation.py -v
-uv run pytest tests/api/test_feature_auth_flag.py -v
-task build:css
+```bash
+uv run pytest -m "not e2e"                                       # 248 passed
+uv run pytest -m e2e --ignore=tests/e2e/test_feedback_smoke.py   # 6 passed (5 axe + 1 signup)
 uv run alembic upgrade head
-
-# Optional Playwright smoke (requires browsers installed)
-uv run pytest -m e2e tests/e2e/test_signup_flow.py
+uv run alembic downgrade -1 && uv run alembic upgrade head       # round-trip
+task check                                                       # ruff + mypy + pytest
 ```
 
-Local run on 2026-05-06: **159 passed, 3 skipped, 4 deselected**;
-`task check` green.
+`tests/e2e/test_feedback_smoke.py` (3 v1-era tests) is
+**skipped at module level** — it drives the legacy unauthenticated
+`/`, `/new`, `/feedback/<id>` routes that PR 1.7 broke when cookie
+auth landed. It will be rewritten as `test_inbox_smoke.py` +
+`test_public_submit.py` in Phase 3 per
+[`implementation.md` Phase 3 verification](../../docs/project/spec/v2/implementation.md#phase-3--verification-post-pr-3-5).
 
-**Screenshots / Demo (if applicable):**
-
-N/A — empty-state dashboard + auth forms ship without visual
-polish; the styled pass arrives in Phase 4.
+**Screenshots / Demo:** _(attach when posting on GitHub)_
 
 ## Risk / Impact
 
@@ -166,127 +162,110 @@ polish; the styled pass arrives in Phase 4.
 
 **What could break:**
 
-- **Migration A** is the largest schema change in the v1 → v2
-  jump. Additive only (the `NOT NULL` flip on
-  `feedback_item.workspace_id` is deferred to Migration B in PR
-  2.1 per ADR 062), but reviewers should still walk every table,
-  every native enum, every `CHECK length(...)`, every FK
-  `ON DELETE`, and every `BEFORE UPDATE` trigger.
-- **`FEATURE_AUTH=false` middleware is global.** If the predicate
-  is wrong it could 503 a non-auth route. The 18 cases in
-  `tests/api/test_feature_auth_flag.py` cover the gated paths,
-  the non-auth paths (`/health`, `/api/v1/feedback`), and the
-  enabled-mode preservation.
-- **Argon2 parameters.** Real hashing is on the critical path; a
-  miss tuned parameter set would regress login latency on Railway.
-  Numbers are documented in `auth/hashing.py` and the warm-up
-  hook fires once per cold boot.
-- **Cross-tenant canary** (`test_isolation.py`) is the **#1 v2
-  guarantee** — any change that turns a 404 into a 200 fails the
-  build by design.
+- **Migration B** is the riskiest piece. It rewrites
+  `feedback_item.status` enum values and flips
+  `feedback_item.workspace_id` to NOT NULL. Mitigations: hand-
+  reviewed migration, idempotent backfill, round-trip test in
+  CI, gated behind Phase 1's `FEATURE_AUTH=false` so production
+  traffic isn't yet using the v2 surface.
+- **axe-core fetched at runtime from cdnjs.** The URL is pinned
+  to `axe-core/4.10.2/axe.min.js`, so a CDN-side compromise
+  would have to swap a specific path. A future hardening could
+  vendor `axe.min.js` and SHA-pin it in-repo (parity with ADR 004
+  for action SHAs); calling it out now so it doesn't get lost.
+- **`stale_clause()` is duplicated in JS.** Both sides hard-code
+  the 14-day window and `{new, needs_info}` set. If either
+  drifts the badge will lie. The constants are right next to
+  each other in the source tree
+  (`services/stale_detector.py` and `static/js/inbox.js`);
+  a future PR could generate the JS from the Python via a
+  build step.
 
-**Rollback plan:**
-
-- Runtime: redeploy with `FEATURE_AUTH=false` (the gate is the
-  kill switch; no schema rollback needed).
-- Schema: `alembic downgrade -1` rolls Migration A back. No data
-  has migrated yet — `feedback_item.workspace_id` is nullable
-  through Migration A and only flips in PR 2.1.
+**Rollback plan:** Revert this PR. `alembic downgrade -1`
+restores the v1 schema (round-trip is canary'd). `FEATURE_AUTH`
+gate from Phase 1 means rolling back doesn't expose v2 to public
+traffic.
 
 ## Dependencies (if applicable)
 
-**Depends on:** Phase 0 (already on `main`, ratified 2026-05-04
-with ADR 061).
+**Depends on:** Phase 1 close (PRs 1.3a → 1.9). Already on
+`main` as of `v1.1.0`.
 
-**Blocked by:** Nothing.
+**Blocked by:** None.
 
-Blocks PR 2.1 (`feat(db): migration B`) and the rest of Phase 2.
+**Blocks:** Phase 3 (PRs 3.1 → 3.5) — Resend integration for
+shipped notifications, public changelog, v2.0 ratification.
 
 ## Breaking Changes / Migrations (if applicable)
 
-- [x] Config changes required
-- [x] Data migration needed
-- [x] API changes (document below)
-- [x] Dependency changes
+- [x] Config changes required *(none new in this PR — Phase 1's
+      `FEATURE_AUTH` still gates the surface)*
+- [x] Data migration needed (Alembic Migration B; up/down
+      verified)
+- [x] API changes — v2 endpoints under `/api/v1/`: `feedback`
+      schema gains `workspace_id`, `submitter_id`, `tags`;
+      `status` enum values renamed; new endpoints for `tags`,
+      `submitters`, `notes`, `public/feedback`, workspace
+      `settings`. v1 clients will break.
+- [x] Dependency changes — `mako` bumped `1.3.11 → 1.3.12` in
+      `uv.lock` to clear CVE-2026-44307 reported by `pip-audit`
+      (no API change; transitive via alembic).
 
 **Details:**
 
-- **New env vars:** `FEATURE_AUTH`, `SECURE_COOKIES`,
-  `APP_BASE_URL`, `RESEND_API_KEY`, `RESEND_FROM_ADDRESS`,
-  `RESEND_DRY_RUN`, `RESEND_TIMEOUT_SECONDS`,
-  `RESEND_MAX_RETRIES`. Defaults are dev-safe; production must
-  set `SECURE_COOKIES=true`, `RESEND_DRY_RUN=0`, and a real
-  `RESEND_API_KEY` (enforced by the `_require_*_in_production`
-  model validators in `config.py`).
-- **Data migration:** Migration A
-  (`alembic/versions/<rev>_v2_a_auth_tenancy_email_log.py`).
-  Hand-reviewed; additive only.
-- **New API surface:** `/api/v1/auth/*`, `/api/v1/workspaces`,
-  `/api/v1/memberships`, `/api/v1/invitations`. No existing
-  `/api/v1/feedback` shape changed.
-- **Dependency changes:** `argon2-cffi` added; `httpx` already
-  present; `uv.lock` regenerated.
-
-Production cutover sequence (when Phase 2 is also ready and we
-flip the flag):
-
-1. Deploy with `FEATURE_AUTH=false` first to land Migration A
-   without exposing the auth pages.
-2. Set `SECURE_COOKIES=true`, `RESEND_DRY_RUN=0`,
-   `RESEND_API_KEY=...`, `APP_BASE_URL=...` in Railway.
-3. Flip `FEATURE_AUTH=true` and redeploy.
+- Status enum: v1 `{new, reviewing, actioned, closed}` →
+  v2 `{new, needs_info, planned, in_progress, shipped,
+  wont_do, duplicate}` per ADR 064.
+- `feedback_item.workspace_id` is now NOT NULL.
+- Three new tables: `tags`, `submitters`, `feedback_note`.
 
 ## Checklist
 
-- [x] My code follows the project's style guidelines (ruff + mypy
-      strict)
+- [x] My code follows the project's style guidelines
+      (ruff lint + format, mypy strict, bandit clean)
 - [x] I have performed a self-review of my code
-- [x] I have commented my code, particularly in hard-to-understand
-      areas (middleware ordering, gate predicate, Argon2 warm-up,
-      no-enumeration posture)
+- [x] I have commented my code, particularly in
+      hard-to-understand areas (`stale_clause()`,
+      `_signup()` helper, axe-core fetch rationale)
 - [x] I have made corresponding changes to the documentation
-      (implementation ledger, security checklist, PR-section
-      anchors)
-- [x] No new warnings (or explained in Additional Notes)
-- [x] I have added tests that prove my fix is effective or that
-      my feature works (159 passed total; 18 new gate tests; 6
-      cross-tenant isolation canaries)
-- [x] Relevant tests pass locally
-- [x] No security concerns introduced (or flagged for review) —
-      new "Programming security checklist" section in
-      `v2/security.md` documents the rules this PR was written
-      against
-- [x] No performance regressions expected — Argon2 warm-up runs
-      only when `FEATURE_AUTH=true`
+      (`implementation.md` PR 2.6 row → done; deliverable
+      checkboxes ticked)
+- [x] No new warnings (`task check` is clean)
+- [x] I have added tests that prove my fix is effective or
+      that my feature works
+- [x] Relevant tests pass locally:
+      - Non-e2e: 248 passed
+      - e2e (excluding the v1-era smoke skipped above): 6 passed
+- [x] No security concerns introduced (bandit clean; pip-audit
+      clean after `mako` bump)
+- [x] No performance regressions expected (the stale predicate
+      is covered by the existing
+      `(workspace_id, status, created_at)` composite index)
 
 ## Reviewer Focus (Optional)
 
-- **Migration A** (`alembic/versions/<rev>_v2_a_*.py`) — every
-  table, every native enum, every CHECK, every FK `ON DELETE`,
-  every `updated_at` trigger.
-- **Cross-tenant canary** (`tests/api/test_isolation.py`) — the
-  six cases must all assert 404 (never 403, never 200) and never
-  echo a foreign workspace's row id.
-- **Gate predicate**
-  ([`src/feedback_triage/auth/feature_flag.py`](../../src/feedback_triage/auth/feature_flag.py))
-  — confirm the path set is exhaustive and that the middleware
-  only mounts when `FEATURE_AUTH=false`.
-- **No-enumeration posture**
-  (`tests/api/auth/test_no_enumeration.py`) — signup-with-existing
-  and forgot-password give identical responses for known and
-  unknown addresses.
-- **Cookie attributes** — every `Set-Cookie` for the session
-  comes from `auth/cookies.py`. Grep for stray `set_cookie` call
-  sites before approving.
+- Migration B's `op.execute(...)` blocks for the status rename —
+  please double-check the WHEN clauses cover every legacy value.
+- `tests/e2e/test_a11y.py::_signup` — the helper bypasses email
+  verification by flipping `is_verified` directly in SQL. Worth
+  a sanity check that this is acceptable for the e2e gate
+  (it matches what `test_signup_flow.py` already does for
+  workspace setup).
+- `services/stale_detector.py` uses `sqlmodel.col(...)` wrappers
+  to keep mypy strict happy with the SQLAlchemy 2.x typing.
+  Flag if you'd prefer raw `FeedbackItem.created_at < cutoff`
+  with a targeted `# type: ignore`.
 
 ## Additional Notes
 
-- The PR ledger in
-  [`docs/project/spec/v2/implementation.md`](../../docs/project/spec/v2/implementation.md)
-  now has clickable jump points; each row links to the matching
-  PR section via an in-page anchor.
-- The Phase 1 verification block at the bottom of that file
-  records the run from 2026-05-06 (159 passed, isolation 6
-  passed, css built, alembic at head, `task check` green).
-- Phase 2 (Beta) — Migration B + feedback CRUD on the v2 schema
-  + inbox/list/detail pages — is unblocked.
+- `pip-audit` blocked the first push attempt on
+  `mako 1.3.11` (CVE-2026-44307, sandbox bypass). Resolved by
+  `uv lock --upgrade-package mako` → 1.3.12. No source changes,
+  lockfile-only delta.
+- `tests/e2e/test_feedback_smoke.py` is now `pytest.mark.skip`
+  with a reason pointing at the Phase 3 rewrite plan. Surfacing
+  this as a known issue rather than silently leaving the e2e
+  gate red.
+- After this PR, the v2 triage surface is feature-complete for
+  Beta. Phase 3 is the email loop and the public changelog —
+  neither blocks day-to-day triage.
