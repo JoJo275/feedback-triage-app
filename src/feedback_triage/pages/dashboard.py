@@ -43,5 +43,6 @@ def dashboard_page(
         {
             "workspace_slug": workspace.slug,
             "workspace_name": workspace.name,
+            "active": "dashboard",
         },
     )

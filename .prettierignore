@@ -46,3 +46,6 @@ LICENSE
 # Local data / scratch directories
 var/
 experiments/
+
+# Jinja templates: Prettier mangles {% if x == "y" %} inside HTML attribute lists.
+src/feedback_triage/templates/
