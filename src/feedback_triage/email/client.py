@@ -130,14 +130,24 @@ class EmailClient:
         context: dict[str, Any],
         workspace_id: uuid.UUID | None = None,
         user_id: uuid.UUID | None = None,
+        template_override: str | None = None,
+        subject_override: str | None = None,
     ) -> EmailSendResult:
         """Send a transactional email and log the attempt.
 
         Never raises. Network and provider errors are swallowed after
         the ``email_log`` row reaches a terminal state, so the calling
         request thread cannot leak provider state into its response.
+
+        ``template_override`` / ``subject_override`` let the caller
+        substitute a sibling template that shares a DB-enum purpose.
+        Used by the no-enumeration signup path (``EmailPurpose.VERIFICATION``
+        + ``verification_already.html``); see ``auth.md`` — Email
+        enumeration posture.
         """
-        template_name, subject = _PURPOSE_TEMPLATES[purpose]
+        default_template, default_subject = _PURPOSE_TEMPLATES[purpose]
+        template_name = template_override or default_template
+        subject = subject_override or default_subject
         body = self._render(template_name, context)
 
         log_id = self._write_initial_log(

@@ -46,6 +46,7 @@ dependencies = [
   "psycopg[binary]>=3.3.4",     # Postgres driver (sync)
   "pydantic>=2.7",              # Validation
   "pydantic-settings>=2.4",     # Settings via env vars
+  "email-validator>=2.0",       # Pydantic ``EmailStr`` validator
   "argon2-cffi>=25.1.0",
   "httpx>=0.27",                # Resend HTTP client (ADR 061)
   "jinja2>=3.1",                # Email template rendering (ADR 014, ADR 061)
@@ -275,13 +276,16 @@ package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs
 
 # Per-rule ignores:
 # DEP002 — declared deps that aren't directly imported. ``alembic`` is
-#   invoked via the CLI / Taskfile (`alembic upgrade head`) and ``psycopg``
-#   is loaded by SQLAlchemy via the driver URL, never imported by name.
+#   invoked via the CLI / Taskfile (`alembic upgrade head`), ``psycopg``
+#   is loaded by SQLAlchemy via the driver URL (never imported by name),
+#   and ``email-validator`` is loaded by Pydantic's ``EmailStr`` at runtime
+#   (never imported by name) — declaring it explicitly avoids the implicit
+#   ``pydantic[email]`` extra resolving to a different version.
 # DEP003 — transitive deps imported directly. ``starlette`` types are part
 #   of FastAPI's public API surface (Request/Response/middleware base);
 #   importing them directly is the documented FastAPI pattern.
 [tool.deptry.per_rule_ignores]
-DEP002 = ["alembic", "psycopg"]
+DEP002 = ["alembic", "psycopg", "email-validator"]
 DEP003 = ["starlette"]
 
 # -- Commitizen --
