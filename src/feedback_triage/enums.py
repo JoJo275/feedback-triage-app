@@ -26,16 +26,31 @@ class Source(StrEnum):
     SUPPORT = "support"
     APP_STORE = "app_store"
     TWITTER = "twitter"
+    WEB_FORM = "web_form"
     OTHER = "other"
 
 
 class Status(StrEnum):
-    """Triage state of a feedback item."""
+    """Triage state of a feedback item.
+
+    The v2.0 workflow adds ``needs_info``, ``accepted``, ``in_progress``,
+    ``shipped``, ``closed``, and ``spam`` (per ADR 063). ``rejected``
+    is retained as an enum label only because Postgres has no
+    ``ALTER TYPE … DROP VALUE`` in stable releases; a ``CHECK`` added
+    in Migration B forbids the application from writing it, and the
+    backfill rewrites every legacy row to ``closed``.
+    """
 
     NEW = "new"
+    NEEDS_INFO = "needs_info"
     REVIEWING = "reviewing"
+    ACCEPTED = "accepted"
     PLANNED = "planned"
-    REJECTED = "rejected"
+    IN_PROGRESS = "in_progress"
+    SHIPPED = "shipped"
+    CLOSED = "closed"
+    SPAM = "spam"
+    REJECTED = "rejected"  # deprecated; never written by v2 code (ADR 063)
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +118,37 @@ class EmailPurpose(StrEnum):
     STATUS_CHANGE = "status_change"
 
 
+class FeedbackType(StrEnum):
+    """Classification of a feedback item.
+
+    Values match ``type_enum`` in
+    ``docs/project/spec/v2/schema.md``. Stored on
+    ``feedback_item.type``; ``other`` requires a non-null
+    ``type_other`` free-text field (DB ``CHECK`` constraint).
+    """
+
+    BUG = "bug"
+    FEATURE_REQUEST = "feature_request"
+    COMPLAINT = "complaint"
+    PRAISE = "praise"
+    QUESTION = "question"
+    OTHER = "other"
+
+
+class Priority(StrEnum):
+    """Priority assigned by the team during triage.
+
+    Values match ``priority_enum`` in
+    ``docs/project/spec/v2/schema.md``. Stored on
+    ``feedback_item.priority`` (nullable until set).
+    """
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
 # ---------------------------------------------------------------------------
 # Native Postgres ENUM types for the v2 enums.
 # ---------------------------------------------------------------------------
@@ -135,6 +181,22 @@ EMAIL_STATUS_ENUM = PgEnum(
 EMAIL_PURPOSE_ENUM = PgEnum(
     EmailPurpose,
     name="email_purpose_enum",
+    values_callable=lambda enum_cls: [m.value for m in enum_cls],
+    create_type=False,
+)
+
+# v2 workflow enums on ``feedback_item``. Created by Migration B
+# (``alembic/versions/0003_v2_b_workflow_tables.py``).
+TYPE_ENUM = PgEnum(
+    FeedbackType,
+    name="type_enum",
+    values_callable=lambda enum_cls: [m.value for m in enum_cls],
+    create_type=False,
+)
+
+PRIORITY_ENUM = PgEnum(
+    Priority,
+    name="priority_enum",
     values_callable=lambda enum_cls: [m.value for m in enum_cls],
     create_type=False,
 )
