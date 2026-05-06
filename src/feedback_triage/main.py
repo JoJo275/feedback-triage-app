@@ -18,6 +18,8 @@ from fastapi.staticfiles import StaticFiles
 
 from feedback_triage import __version__
 from feedback_triage.api.v1 import auth as auth_api
+from feedback_triage.api.v1 import invitations as invitations_api
+from feedback_triage.api.v1 import workspaces as workspaces_api
 from feedback_triage.auth import hashing as auth_hashing
 from feedback_triage.config import Settings, get_settings
 from feedback_triage.errors import register_exception_handlers
@@ -27,6 +29,7 @@ from feedback_triage.middleware import (
     RequestLoggingMiddleware,
 )
 from feedback_triage.pages import auth as auth_pages
+from feedback_triage.pages import dashboard as dashboard_pages
 from feedback_triage.routes import feedback, health, pages
 from feedback_triage.routes.pages import STATIC_DIR
 
@@ -106,7 +109,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(feedback.router)
     app.include_router(auth_api.router)
+    app.include_router(workspaces_api.router)
+    app.include_router(invitations_api.ws_invitations_router)
+    app.include_router(invitations_api.accept_router)
     app.include_router(auth_pages.router)
+    app.include_router(dashboard_pages.router)
     app.include_router(pages.router)
 
     register_exception_handlers(app)

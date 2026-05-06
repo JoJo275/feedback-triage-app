@@ -1,0 +1,131 @@
+"""Pydantic schemas for the v2.0 workspace / membership / invitation surfaces.
+
+Co-located under ``api/v1/`` rather than the v1.0 flat
+:mod:`feedback_triage.schemas` module (which owns the feedback shapes)
+because these schemas are tightly coupled to the v2.0 routers and
+shouldn't pollute the v1.0 import surface.
+
+Reuses :class:`feedback_triage.auth.schemas.WorkspaceResponse` for
+single-workspace reads and adds the rename / member-listing /
+invitation-lifecycle shapes that PR 1.8 introduces.
+"""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from feedback_triage.auth.schemas import (
+    MAX_WORKSPACE_NAME_LEN,
+    MIN_WORKSPACE_NAME_LEN,
+)
+from feedback_triage.enums import UserRole, WorkspaceRole
+
+# ---------------------------------------------------------------------------
+# Workspaces
+# ---------------------------------------------------------------------------
+
+
+class WorkspaceUpdateRequest(BaseModel):
+    """``PATCH /api/v1/workspaces/{slug}`` body.
+
+    ``slug`` is intentionally absent: per the v2.0 glossary the slug is
+    immutable. Renaming a workspace only changes the display ``name``.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(
+        min_length=MIN_WORKSPACE_NAME_LEN,
+        max_length=MAX_WORKSPACE_NAME_LEN,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Members
+# ---------------------------------------------------------------------------
+
+
+class MemberUserResponse(BaseModel):
+    """User shape inside a member listing.
+
+    A subset of :class:`feedback_triage.auth.schemas.UserResponse` — we
+    deliberately drop ``is_verified`` because surfacing another
+    workspace member's verification state would be a small information
+    leak with no UI use case in v2.0.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    email: str
+    role: UserRole
+    created_at: datetime
+
+
+class MemberResponse(BaseModel):
+    """One member of a workspace."""
+
+    user: MemberUserResponse
+    role: WorkspaceRole
+    joined_at: datetime
+
+
+class MemberListResponse(BaseModel):
+    """``GET /api/v1/workspaces/{slug}/members`` 200 body."""
+
+    items: list[MemberResponse]
+    total: int
+
+
+# ---------------------------------------------------------------------------
+# Invitations
+# ---------------------------------------------------------------------------
+
+
+class InvitationCreateRequest(BaseModel):
+    """``POST /api/v1/workspaces/{slug}/invitations`` body."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr
+    role: WorkspaceRole = Field(default=WorkspaceRole.TEAM_MEMBER)
+
+
+class InvitationResponse(BaseModel):
+    """One workspace invitation row, sans ``token_hash``.
+
+    The raw token is **only** delivered via email; the JSON surface
+    never echoes it. An attacker with read access to invitation
+    listings must not be able to accept the invite.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    workspace_id: uuid.UUID
+    email: str
+    role: WorkspaceRole
+    invited_by_id: uuid.UUID
+    expires_at: datetime
+    accepted_at: datetime | None
+    revoked_at: datetime | None
+    created_at: datetime
+
+
+class InvitationListResponse(BaseModel):
+    """``GET /api/v1/workspaces/{slug}/invitations`` 200 body."""
+
+    items: list[InvitationResponse]
+    total: int
+
+
+class InvitationAcceptResponse(BaseModel):
+    """``POST /api/v1/invitations/{token}/accept`` 200 body."""
+
+    workspace_id: uuid.UUID
+    workspace_slug: str
+    workspace_name: str
+    role: WorkspaceRole

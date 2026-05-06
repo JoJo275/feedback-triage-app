@@ -116,6 +116,31 @@ docs = [
 dashboard = ["fastapi[standard]>=0.136.1"]
 
 # ============================================================================
+# DEPENDENCY GROUPS (PEP 735)
+# ============================================================================
+# These mirror the ``dev`` and ``docs`` extras above as PEP 735
+# dependency-groups so they survive ``uv sync --extra <X>`` invocations.
+# uv syncs every group listed in ``[tool.uv].default-groups`` automatically
+# unless ``--no-dev`` / ``--no-default-groups`` is passed; without this,
+# any ``uv sync --extra e2e`` would uninstall ``pre-commit`` (and break
+# the next ``git commit``) because uv resolves only the named extras.
+# Keep these in sync with ``[project.optional-dependencies]`` until the
+# extras are removed in a follow-up.
+[dependency-groups]
+dev = [
+  "feedback-triage-app[test]",
+  "ruff>=0.11",
+  "mypy>=1.20",
+  "pre-commit>=4.0",
+  "bandit>=1.9",
+  "commitizen>=4.15.0",
+  "deptry>=0.25",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+# ============================================================================
 # HATCH BUILD CONFIG
 # ============================================================================
 # Hatchling auto-discovers src/feedback_triage/. We do NOT bundle scripts/,
