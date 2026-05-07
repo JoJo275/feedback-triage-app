@@ -60,7 +60,7 @@ task build:css      # one-shot build (CI parity)
 
 ### Existing color
 
-1. Open [`static/css/tokens.css`](../../../src/feedback_triage/static/css/tokens.css).
+1. Open [`static/css/tokens.css`](../../../../src/feedback_triage/static/css/tokens.css).
 2. Find the `--color-*` token. Comments cite the Tailwind shade so
    you can pick its neighbour without guessing hex.
 3. Update the value in the `:root` block (light) **and** the
@@ -310,5 +310,5 @@ information channel doesn't depend on color alone.
   string you add while restyling.
 - [`implementation.md`](implementation.md) — PR 4.5 is the visual
   identity pass that will exercise this guide end-to-end.
-- [`docs/notes/frontend-conventions.md`](../../notes/frontend-conventions.md)
+- [`docs/notes/frontend-conventions.md`](../../../notes/frontend-conventions.md)
   — semantic-HTML rules that pair with the CSS charters.

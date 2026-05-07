@@ -9,11 +9,11 @@ public submission form (``/w/<slug>/submit``). Defaults to ``true``
 so existing workspaces keep their current behaviour after the
 deploy.
 
-The flag is checked both by the page route (renders a "form is
-closed" notice) and by the ``POST /api/v1/public/feedback/{slug}``
-write endpoint (returns 404 — same shape as an unknown slug, so
-flipping the switch off cannot be used as a probe for slug
-existence).
+The flag is checked both by the page route (``GET /w/{slug}/submit``
+returns 404 with the same envelope as an unknown slug) and by the
+``POST /api/v1/public/feedback/{slug}`` write endpoint (also 404
+with that shared shape), so flipping the switch off cannot be used
+as a probe for slug existence.
 """
 
 from __future__ import annotations

@@ -7,7 +7,7 @@ PR, not as follow-ups:
 
 * **Honeypot** -- the form ships a hidden ``website`` text field that
   legitimate submissions leave blank. Filled-in honeypot returns the
-  same 200 envelope as the happy path so a bot can't probe for
+  same 201 envelope as the happy path so a bot can't probe for
   detection, but no row is written.
 * **Rate limit** -- per ``(workspace_id, ip)`` bucket, fixed 60s
   window, max 5 submissions. Tripped requests return 429 with the
@@ -146,8 +146,11 @@ def submit_public_feedback(
     if not workspace.public_submit_enabled:
         raise _NOT_FOUND
 
-    # Honeypot tripped: 200 with the same envelope a real success
-    # would return. Never 4xx -- leaks detection signal to bots.
+    # Honeypot tripped: 201 with the same envelope a real success
+    # would return (the route is declared with status_code=201 so
+    # the silent-discard branch matches the happy path byte-for-byte
+    # apart from the absent ``id``). Never 4xx -- leaks detection
+    # signal to bots.
     if payload.website.strip():
         return _ACCEPTED_BODY
 

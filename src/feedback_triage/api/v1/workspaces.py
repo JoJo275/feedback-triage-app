@@ -102,11 +102,11 @@ def update_workspace(
     ``name`` and ``public_submit_enabled`` are optional but the body
     must contain at least one of them.
     """
-    changes = payload.model_dump(exclude_unset=True)
+    changes = payload.model_dump(exclude_unset=True, exclude_none=True)
     if not changes:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="At least one field must be supplied.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="At least one non-null field must be supplied.",
         )
     workspace = ws_svc.update_workspace_settings(
         db,
