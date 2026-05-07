@@ -73,7 +73,7 @@ Click a PR number to jump to its slice below.
 | [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | done |
 | [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | done |
 | [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | docs done; tag pending |
-| [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | not started |
+| [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | done        |
 | [4.2](#pr-4-2) | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                   | 4     | not started |
 | [4.3](#pr-4-3) | `feat(email): Resend webhook for delivery + bounce events (if available)`                          | 4     | not started |
 | [4.4](#pr-4-4) | `feat(brand): custom favicon + wordmark refresh`                                                   | 4     | not started |
@@ -985,7 +985,7 @@ so the order is reader's choice.
 - `tests/e2e/test_dark_mode.py`
 
 **Deliverables this PR closes**
-- [ ] **Dark mode (FD)** — toggle persisted per user.
+- [x] **Dark mode (FD)** — toggle persisted per user.
 
 ---
 

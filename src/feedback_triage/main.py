@@ -23,6 +23,7 @@ from feedback_triage.api.v1 import invitations as invitations_api
 from feedback_triage.api.v1 import public_feedback as public_feedback_api
 from feedback_triage.api.v1 import submitters as submitters_api
 from feedback_triage.api.v1 import tags as tags_api
+from feedback_triage.api.v1 import users as users_api
 from feedback_triage.api.v1 import workspaces as workspaces_api
 from feedback_triage.auth import hashing as auth_hashing
 from feedback_triage.auth.feature_flag import FeatureAuthGateMiddleware
@@ -141,6 +142,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(workspaces_api.router)
     app.include_router(invitations_api.ws_invitations_router)
     app.include_router(invitations_api.accept_router)
+    app.include_router(users_api.router)
     app.include_router(auth_pages.router)
     app.include_router(landing_pages.router)
     app.include_router(legal_pages.router)
