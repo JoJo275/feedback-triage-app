@@ -70,7 +70,7 @@ Click a PR number to jump to its slice below.
 | [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | done |
 | [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | done        |
 | [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | done        |
-| [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | not started |
+| [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | done |
 | [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | not started |
 | [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | not started |
 | [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | not started |
@@ -855,8 +855,8 @@ owners set the publish flags and edit release notes.
   card, column, release-note editor
 
 **Deliverables this PR closes**
-- [ ] **Management roadmap** kanban with publish toggles.
-- [ ] **Management changelog** with editable release-note field.
+- [x] **Management roadmap** kanban with publish toggles.
+- [x] **Management changelog** with editable release-note field.
 
 **DoD**
 - An owner can drag (or button-click) an item between kanban

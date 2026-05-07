@@ -34,12 +34,14 @@ from feedback_triage.middleware import (
     RequestLoggingMiddleware,
 )
 from feedback_triage.pages import auth as auth_pages
+from feedback_triage.pages import changelog as changelog_pages
 from feedback_triage.pages import dashboard as dashboard_pages
 from feedback_triage.pages import feedback_detail as feedback_detail_pages
 from feedback_triage.pages import inbox as inbox_pages
 from feedback_triage.pages import public_changelog as public_changelog_pages
 from feedback_triage.pages import public_roadmap as public_roadmap_pages
 from feedback_triage.pages import public_submit as public_submit_pages
+from feedback_triage.pages import roadmap as roadmap_pages
 from feedback_triage.pages import settings as settings_pages
 from feedback_triage.pages import submitters as submitters_pages
 from feedback_triage.routes import health, pages
@@ -142,6 +144,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(public_submit_pages.router)
     app.include_router(public_roadmap_pages.router)
     app.include_router(public_changelog_pages.router)
+    app.include_router(roadmap_pages.router)
+    app.include_router(changelog_pages.router)
     app.include_router(feedback_detail_pages.router)
     app.include_router(settings_pages.router)
     app.include_router(submitters_pages.router)
