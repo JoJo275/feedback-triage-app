@@ -38,6 +38,9 @@ from feedback_triage.pages import changelog as changelog_pages
 from feedback_triage.pages import dashboard as dashboard_pages
 from feedback_triage.pages import feedback_detail as feedback_detail_pages
 from feedback_triage.pages import inbox as inbox_pages
+from feedback_triage.pages import insights as insights_pages
+from feedback_triage.pages import landing as landing_pages
+from feedback_triage.pages import legal as legal_pages
 from feedback_triage.pages import public_changelog as public_changelog_pages
 from feedback_triage.pages import public_roadmap as public_roadmap_pages
 from feedback_triage.pages import public_submit as public_submit_pages
@@ -139,6 +142,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(invitations_api.ws_invitations_router)
     app.include_router(invitations_api.accept_router)
     app.include_router(auth_pages.router)
+    app.include_router(landing_pages.router)
+    app.include_router(legal_pages.router)
     app.include_router(dashboard_pages.router)
     app.include_router(inbox_pages.router)
     app.include_router(public_submit_pages.router)
@@ -146,6 +151,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(public_changelog_pages.router)
     app.include_router(roadmap_pages.router)
     app.include_router(changelog_pages.router)
+    app.include_router(insights_pages.router)
     app.include_router(feedback_detail_pages.router)
     app.include_router(settings_pages.router)
     app.include_router(submitters_pages.router)
