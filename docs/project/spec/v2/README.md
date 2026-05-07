@@ -28,6 +28,7 @@ single source of cross-references is [`../spec-v2.md`](../spec-v2.md).
 | [`ui.md`](ui.md)                           | Page routes, JS conventions, accessibility, public submission form   |
 | [`pages.md`](pages.md)                     | Per-page catalog: sections, components, copy strings, empty states   |
 | [`css.md`](css.md)                         | CSS conventions, design tokens, Tailwind config, component vocabulary |
+| [`live-preview.md`](live-preview.md)       | Local inner-loop: edit CSS / templates / routes and see the change without a PR |
 
 ## Cross-cutting
 
