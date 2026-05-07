@@ -68,7 +68,7 @@ Click a PR number to jump to its slice below.
 | [2.4](#pr-2-4) | `feat(public): public submission form at /w/<slug>/submit + honeypot + rate limit`                 | 2     | done        |
 | [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | done        |
 | [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | done |
-| [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | not started |
+| [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | done        |
 | [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | not started |
 | [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | not started |
 | [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | not started |
@@ -790,8 +790,8 @@ ADR 061 is exercised by integration tests for real this time.
 - `scripts/email_replay.py` + `task email:replay`
 
 **Deliverables this PR closes**
-- [ ] **Resend integration end-to-end** — full deliverable.
-- [ ] **Status-change emails** for transitions other than
+- [x] **Resend integration end-to-end** — full deliverable.
+- [x] **Status-change emails** for transitions other than
       `shipped` if configured (Should).
 
 **DoD**

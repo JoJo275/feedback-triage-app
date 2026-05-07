@@ -67,9 +67,15 @@ _PURPOSE_TEMPLATES: dict[EmailPurpose, tuple[str, str]] = {
         "invitation.html",
         "You're invited to a SignalNest workspace",
     ),
-    # status_change.html is a Phase 3 deliverable (PR 3.1). Listed in
-    # ADR 061 / email.md but intentionally absent here so a stray call
-    # raises ``KeyError`` rather than silently using the wrong copy.
+    # Subject for status_change is always overridden at the call site
+    # (``services/status_change_notifier.py``) so the recipient inbox
+    # carries the new status; the literal here is the safe fallback
+    # used by ``EmailClient.replay`` when the original context is no
+    # longer reconstructable.
+    EmailPurpose.STATUS_CHANGE: (
+        "status_change.html",
+        "Update on your feedback",
+    ),
 }
 
 # HTTP statuses where retry has any chance of helping. Auth (401/403)
@@ -185,6 +191,83 @@ class EmailClient:
                 log_id,
                 error_code="unexpected",
                 error_detail="unexpected exception in send loop",
+                attempt_count=self._settings.resend_max_retries + 1,
+            )
+            return EmailSendResult(
+                log_id=log_id,
+                status=EmailStatus.FAILED,
+                provider_id=None,
+            )
+
+    # ------------------------------------------------------------------
+    # Replay — re-issue a previously failed/retrying send
+    # ------------------------------------------------------------------
+    def replay(self, log_id: uuid.UUID) -> EmailSendResult:
+        """Re-send a ``failed`` (or stuck ``retrying``) email_log row.
+
+        Used by :mod:`scripts.email_replay` (``task email:replay <id>``)
+        to drain rows that landed terminal during a Resend outage.
+
+        Limitations: the original render context is not stored on
+        ``email_log`` (no ``context_json`` column in v2.0), so replay
+        re-renders the row's template with an empty context. The
+        templates ship with safe defaults so the body still parses;
+        the inbox copy is generic ("Update on your feedback…") rather
+        than the original detail. Status / verification links are not
+        recoverable on replay — that's a v3.0 deliverable, tracked
+        alongside the dead-letter queue.
+
+        Returns the new send outcome. Never raises (same fail-soft
+        contract as :meth:`send`).
+        """
+        with SessionLocal() as session:
+            row = session.get(EmailLog, log_id)
+        if row is None:
+            msg = f"email_log row {log_id} not found"
+            raise ValueError(msg)
+        if row.status not in {EmailStatus.FAILED, EmailStatus.RETRYING}:
+            msg = (
+                f"email_log row {log_id} is in status {row.status.value!r}; "
+                "only failed/retrying rows can be replayed"
+            )
+            raise ValueError(msg)
+
+        body = self._render(row.template, {})
+        # Reset attempt_count + clear prior error fields before retry.
+        with SessionLocal() as session, session.begin():
+            target = session.get(EmailLog, log_id)
+            if target is None:  # pragma: no cover - defensive
+                msg = f"email_log row {log_id} vanished mid-replay"
+                raise ValueError(msg)
+            target.status = EmailStatus.QUEUED
+            target.error_code = None
+            target.error_detail = None
+            target.attempt_count = 0
+            target.provider_id = None
+            target.sent_at = None
+
+        if self._settings.resend_dry_run:
+            provider_id = f"dry-run-{uuid.uuid4()}"
+            self._mark_sent(log_id, provider_id=provider_id, attempt_count=1)
+            return EmailSendResult(
+                log_id=log_id,
+                status=EmailStatus.SENT,
+                provider_id=provider_id,
+            )
+
+        try:
+            return self._send_with_retry(
+                log_id=log_id,
+                to=row.to_address,
+                subject=row.subject,
+                body=body,
+            )
+        except Exception:  # pragma: no cover - defensive
+            logger.exception("email.replay unexpected error log_id=%s", log_id)
+            self._mark_failed(
+                log_id,
+                error_code="unexpected",
+                error_detail="unexpected exception in replay loop",
                 attempt_count=self._settings.resend_max_retries + 1,
             )
             return EmailSendResult(
