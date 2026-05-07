@@ -18,17 +18,20 @@
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-A small, portfolio-grade FastAPI + PostgreSQL service for triaging
-incoming customer feedback. Create, list, view, update, and delete
-`feedback_item` rows with `source`, `status`, and `pain_level` fields.
+A portfolio-grade FastAPI + PostgreSQL service for triaging customer
+feedback. v1.0 ships single-resource CRUD; **v2.0 (ratified 2026-05-04)**
+adds authentication, multi-tenant workspaces, public submission, a
+server-rendered Jinja2 + Tailwind + htmx UI, public roadmap and
+changelog pages, and closed-loop status-change emails.
 
-> Status: **v1.0 release candidate**. Continuous deploy from `main` to
-> Railway is live; Phase 8 (polish & release) is in flight. See
-> [`docs/project/implementation.md`](docs/project/implementation.md).
+> Status: **v2.0 ratified** — authoritative spec for all current work.
+> v1.0 remains the contract for the shipped v1.0 implementation. See
+> [`docs/project/spec/v2/implementation.md`](docs/project/spec/v2/implementation.md).
 
 - **Live demo:** <https://feedback-triage-app-production.up.railway.app>
 - **API docs:** <https://feedback-triage-app-production.up.railway.app/api/v1/docs>
-- **Spec:** [`docs/project/spec/spec-v1.md`](docs/project/spec/spec-v1.md)
+- **Spec (authoritative):** [`docs/project/spec/spec-v2.md`](docs/project/spec/spec-v2.md)
+- **Spec v1.0 (historical):** [`docs/project/spec/spec-v1.md`](docs/project/spec/spec-v1.md)
 
 ## Screenshots
 
@@ -67,7 +70,7 @@ captured against the live Railway deploy.
 | ORM         | SQLModel on top of SQLAlchemy 2.x                        |
 | Validation  | Pydantic v2 + native Postgres enums + CHECK constraints  |
 | Database    | PostgreSQL 16 + Alembic migrations                       |
-| Frontend    | Static HTML + vanilla JS + Fetch API                     |
+| Frontend    | Server-rendered Jinja2 + Tailwind + htmx + Alpine.js (v2.0) |
 | Tests       | pytest + httpx TestClient + Playwright (e2e smoke)       |
 | Build / env | uv (env, lock, Python install) + hatchling + hatch-vcs   |
 | Tasks       | Task (`Taskfile.yml`)                                    |
@@ -122,14 +125,16 @@ the schema in this README.
 
 ## Future Improvements
 
-A trimmed list — the full set lives in
-[`docs/project/spec/spec-v1.md#future-improvements`](docs/project/spec/spec-v1.md#future-improvements).
+The authoritative roadmap lives in
+[`docs/project/spec/spec-v2.md`](docs/project/spec/spec-v2.md) and the
+phased plan in [`docs/project/spec/v2/implementation.md`](docs/project/spec/v2/implementation.md).
+Polish-phase items still open after v2.0 ratification:
 
-- Authentication and per-user feedback ownership
-- Cursor / keyset pagination for large datasets
-- Full-text search on title + description
-- Duplicate detection on `POST /feedback`
-- AI-assisted summarisation of feedback batches
+- Dark mode (FD) — toggle persisted per user
+- Styleguide preset themes wired up on `/styleguide`
+- Resend webhook for delivery + bounce events
+- Custom favicon and wordmark refresh
+- Production visual identity — palette, motion, effects
 
 ## License
 
