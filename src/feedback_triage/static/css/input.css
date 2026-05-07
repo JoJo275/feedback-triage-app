@@ -1,13 +1,17 @@
 /* input.css — charter: only @tailwind directives + @import statements.
-   No rules, no tokens, no @apply. See docs/project/spec/v2/css.md. */
+   No rules, no tokens, no @apply. See docs/project/spec/v2/css.md.
+
+   Per the CSS spec, every @import must appear before any non-import
+   rule (including @tailwind). The @layer wrappers route each charter
+   file into the right cascade bucket so the four-file architecture
+   (tokens → base → layout → components → effects) survives. */
+
+@import "./tokens.css" layer(base);
+@import "./base.css" layer(base);
+@import "./layout.css" layer(components);
+@import "./components.css" layer(components);
+@import "./effects.css" layer(utilities);
 
 @tailwind base;
-@import "./tokens.css";
-@import "./base.css";
-
 @tailwind components;
-@import "./layout.css";
-@import "./components.css";
-
 @tailwind utilities;
-@import "./effects.css";
