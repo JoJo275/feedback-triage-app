@@ -110,6 +110,19 @@ class Settings(BaseSettings):
     fire only on 429, 5xx, and network errors; auth/validation 4xx is
     terminal."""
 
+    resend_webhook_secret: SecretStr = Field(default=SecretStr(""))
+    """Signing secret for the Resend → ``/api/v1/webhooks/resend``
+    callback (PR 4.3).
+
+    Resend signs every webhook with the Standard Webhooks /
+    Svix scheme: headers ``svix-id`` / ``svix-timestamp`` /
+    ``svix-signature``, plus a ``whsec_…``-prefixed shared secret.
+    When this setting is empty the webhook route still mounts but
+    rejects every request with ``503``; flipping a secret in
+    production enables ingestion without a redeploy of the route
+    itself.
+    """
+
     email_notify_on_statuses: str = Field(default="shipped")
     """Comma-separated set of :class:`feedback_triage.enums.Status`
     values that fire a status-change notification when an item

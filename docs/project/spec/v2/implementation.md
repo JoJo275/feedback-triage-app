@@ -75,7 +75,7 @@ Click a PR number to jump to its slice below.
 | [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | docs done; tag pending |
 | [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | done        |
 | [4.2](#pr-4-2) | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                   | 4     | done        |
-| [4.3](#pr-4-3) | `feat(email): Resend webhook for delivery + bounce events (if available)`                          | 4     | not started |
+| [4.3](#pr-4-3) | `feat(email): Resend webhook for delivery + bounce events (if available)`                          | 4     | done        |
 | [4.4](#pr-4-4) | `feat(brand): custom favicon + wordmark refresh`                                                   | 4     | not started |
 | [4.5](#pr-4-5) | `feat(ui): production visual identity — palette, motion, effects (designer-driven)`                | 4     | not started |
 
@@ -1023,7 +1023,7 @@ depends on it.
 - `tests/api/test_resend_webhook.py`
 
 **Deliverables this PR closes**
-- [ ] **Resend webhook** for delivery / bounce events.
+- [x] **Resend webhook** for delivery / bounce events.
 
 ---
 
