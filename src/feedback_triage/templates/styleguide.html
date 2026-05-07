@@ -1,7 +1,7 @@
 {% extends "_base.html" %}
 {% block title %}Style guide — SignalNest{% endblock %}
 {% block body %}
-<main id="main" class="sn-page-shell">
+<main id="main" class="sn-page-shell" data-theme="preset-production">
   <div class="sn-content-gutter sn-stack">
     <header>
       <h1>Style guide</h1>
@@ -11,6 +11,32 @@
         notes panel, and the timeline.
       </p>
     </header>
+
+    <section aria-labelledby="sg-preset" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-preset">Theme preset</h2></div>
+      <div class="sn-card-body">
+        <p class="sn-text-muted">
+          Token overrides scoped to this page only (ADR 056). Choice
+          persists in <code>localStorage</code> under
+          <code>styleguide-theme</code>; never affects the rest of the
+          app.
+        </p>
+        <fieldset id="sg-preset-switcher" class="sn-cluster">
+          <legend class="sr-only">Theme preset</legend>
+          {% for preset in ["production", "basic", "unique", "crazy"] %}
+            <label class="sn-radio">
+              <input
+                type="radio"
+                name="styleguide-theme"
+                value="{{ preset }}"
+                {% if preset == "production" %}checked{% endif %}
+              />
+              <span>{{ preset|capitalize }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+      </div>
+    </section>
 
     <section aria-label="Token sanity check" class="sn-card">
       <div class="sn-card-header"><h2>Token sanity check</h2></div>
@@ -115,4 +141,5 @@
     </section>
   </div>
 </main>
+<script src="/static/js/styleguide.js" defer></script>
 {% endblock %}
