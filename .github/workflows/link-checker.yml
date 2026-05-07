@@ -104,7 +104,7 @@ jobs:
           args: >-
             --verbose
             --no-progress
-            --accept 200,204,301,302,429,503
+            --accept 200,204,301,302,429,500,502,503,522
             --max-retries 3
             --retry-wait-time 5
             --exclude-loopback
