@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.2.0...v2.0.0) (2026-05-07)
+
+
+### Features
+
+* **docs:** pr 3.5 (phase 3 finished) - update documentation to reflect v2.0 ratification and changes ([6cdfeb2](https://github.com/JoJo275/feedback-triage-app/commit/6cdfeb25d76f89a705dbcf6911d07f246240894d))
+* **email:** pr 3.1 - implement email replay functionality for failed emails ([d9d0df1](https://github.com/JoJo275/feedback-triage-app/commit/d9d0df18db77dbd539fca95c85fffef320330eab))
+* **pages:** pr 3.3 -  implement management changelog and roadmap pages ([c3c2da8](https://github.com/JoJo275/feedback-triage-app/commit/c3c2da8887c09e3fc66025bc776d260631e2ca05))
+* pr 3.4 - add landing page demo and dashboard templates ([6e9c3a3](https://github.com/JoJo275/feedback-triage-app/commit/6e9c3a33117bbd6514342ab558ba38654fdab400))
+* **public-pages:** pr 3.2 - implement public roadmap and changelog pages with routing and templates ([596379f](https://github.com/JoJo275/feedback-triage-app/commit/596379f9266d1b22bffeb1d849e4a7d97a8de106))
+
+
+### Bug Fixes
+
+* add a fuller log of changes into pull-request-draft.md and small fixes across tests ([3b2cd5e](https://github.com/JoJo275/feedback-triage-app/commit/3b2cd5ed35f47600c76e49c99a231f692283bfec))
+
+
+### Miscellaneous
+
+* populate pull-request-draft.md ([c2cd5c4](https://github.com/JoJo275/feedback-triage-app/commit/c2cd5c4319043016c8d55213deb1154b689274c8))
+
 ## [1.2.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.1.0...v1.2.0) (2026-05-07)
 
 
