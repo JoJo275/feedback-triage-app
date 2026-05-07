@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.2.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.1.0...v1.2.0) (2026-05-07)
+
+
+### Features
+
+* **db:** pr 2.1 - implement Migration B — backfill, NOT NULL flip, status rename, and new workflow tables ([fe0ac36](https://github.com/JoJo275/feedback-triage-app/commit/fe0ac36b11473151ac6263ac58b194b3f32637a2))
+* enhance workspace update and feedback submission logic with null checks and status code adjustments ([52811df](https://github.com/JoJo275/feedback-triage-app/commit/52811df797cb8a6507d5678146b837920d9e8f41))
+* pr 2.2 - Add API flow tests for notes, submitters, and tags; enhance error handling tests ([eb87725](https://github.com/JoJo275/feedback-triage-app/commit/eb87725ba619500afafdcc876c445107a0c953f1))
+* pr 2.3 - Add feedback triage UI components and pages ([cf16160](https://github.com/JoJo275/feedback-triage-app/commit/cf1616048d16d2e8546fb1720aa6437aa110fb1e))
+* pr 2.4 - add public feedback submission endpoint and associated features ([c5e5770](https://github.com/JoJo275/feedback-triage-app/commit/c5e57703573814e8af692779e274393ea93d2adc))
+* pr 2.6 (phase 2 finished) - add submitters list and detail pages with stale feedback detection ([f371937](https://github.com/JoJo275/feedback-triage-app/commit/f3719370a1b61a9e6f5e4734dada2937eb726f70))
+* **settings:** pr 2.5 - add workspace settings page with public submission toggle ([2b96257](https://github.com/JoJo275/feedback-triage-app/commit/2b96257ce761d12d6c7a5876898c206337f7847c))
+
+
+### Bug Fixes
+
+* revert to HTTP_422_UNPROCESSABLE_CONTENT (HTTP_422_UNPROCESSABLE_ENTITY is deprecated in starlette) ([37de359](https://github.com/JoJo275/feedback-triage-app/commit/37de3590ac6aec8d2701a06d51efb6fd8477aafb))
+
 ## [1.1.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.0.0...v1.1.0) (2026-05-06)
 
 
