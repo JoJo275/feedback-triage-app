@@ -15,6 +15,7 @@ the spec's grouping is preserved (api.md — Notes).
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -60,6 +61,8 @@ from feedback_triage.tenancy import (
     WorkspaceContextDep,
     require_writable,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/feedback", tags=["feedback"])
 
@@ -305,20 +308,28 @@ def patch_feedback(
     db.refresh(item)
     new_status = item.status
     response = FeedbackResponseV2.model_validate(item)
-    # Status-change notifications (PR 3.1). Commit before the send so
-    # the email_log row's ``workspace_id`` FK sees a durable parent
-    # row, mirroring the auth.py signup flow. ``notify_status_change``
-    # is fail-soft per ADR 061; an outage here cannot roll back the
-    # PATCH the caller already received.
+    # Status-change notifications (PR 3.1). The transaction boundary
+    # lives in ``get_db`` (database.py) — handlers must not commit
+    # themselves. ``EmailClient.send`` is fail-soft per ADR 061 and
+    # uses a separate session for ``email_log`` writes, so a provider
+    # outage cannot roll back this PATCH. Any *unexpected* exception
+    # from the notifier (template render, attribute error, …) is
+    # caught and logged here so it can't either.
     if old_status != new_status:
-        db.commit()
-        notify_status_change(
-            db=db,
-            settings=settings,
-            item=item,
-            old_status=old_status,
-            new_status=new_status,
-        )
+        try:
+            notify_status_change(
+                db=db,
+                settings=settings,
+                item=item,
+                old_status=old_status,
+                new_status=new_status,
+            )
+        except Exception:
+            logger.exception(
+                "feedback.patch: status-change notifier raised; "
+                "PATCH will still commit (item_id=%s)",
+                item_id,
+            )
     return response
 
 

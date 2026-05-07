@@ -16,6 +16,7 @@ numbers within a minute, which is the documented trade-off.
 
 from __future__ import annotations
 
+import threading
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -99,15 +100,22 @@ class DashboardSummary:
 
 # Module-level cache. Tests may call :func:`reset_cache` to start
 # clean; production code never invalidates manually.
+#
+# ``cachetools.TTLCache`` is **not** thread-safe, but FastAPI's sync
+# routes execute on a thread pool, so concurrent dashboard requests
+# can race on the underlying ``OrderedDict``. ``_cache_lock`` guards
+# every read/write/clear so corruption can't happen under load.
 _cache: TTLCache[CacheKey, DashboardSummary] = TTLCache(
     maxsize=CACHE_MAX_ENTRIES,
     ttl=CACHE_TTL_SECONDS,
 )
+_cache_lock = threading.Lock()
 
 
 def reset_cache() -> None:
     """Drop every cached summary. Test-only seam."""
-    _cache.clear()
+    with _cache_lock:
+        _cache.clear()
 
 
 def _summary_cards(db: DbSession, workspace_id: uuid.UUID) -> list[SummaryCard]:
@@ -258,7 +266,8 @@ def get_summary(
     """
     role_value = role.value if isinstance(role, WorkspaceRole) else str(role)
     key: CacheKey = (workspace_id, role_value)
-    cached = _cache.get(key)
+    with _cache_lock:
+        cached = _cache.get(key)
     if cached is not None:
         return cached
 
@@ -276,7 +285,8 @@ def get_summary(
         recent_activity=recent,
         total_items=total,
     )
-    _cache[key] = summary
+    with _cache_lock:
+        _cache[key] = summary
     return summary
 
 

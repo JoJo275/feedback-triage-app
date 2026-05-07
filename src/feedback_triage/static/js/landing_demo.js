@@ -17,7 +17,7 @@
             id: 1,
             title: "Add CSV export of feedback",
             status: "new",
-            priority: "med",
+            priority: "medium",
             pain: 3,
         },
         {
@@ -38,7 +38,7 @@
             id: 4,
             title: "Email digest of weekly intake",
             status: "planned",
-            priority: "med",
+            priority: "medium",
             pain: 3,
         },
         {
@@ -66,14 +66,14 @@
             id: 8,
             title: "Webhook for status changes",
             status: "needs_info",
-            priority: "med",
+            priority: "medium",
             pain: 3,
         },
         {
             id: 9,
             title: "Deletion is too easy to fat-finger",
             status: "new",
-            priority: "med",
+            priority: "medium",
             pain: 4,
         },
         {

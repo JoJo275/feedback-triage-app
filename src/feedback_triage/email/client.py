@@ -217,8 +217,17 @@ class EmailClient:
         recoverable on replay — that's a v3.0 deliverable, tracked
         alongside the dead-letter queue.
 
-        Returns the new send outcome. Never raises (same fail-soft
-        contract as :meth:`send`).
+        Raises:
+            ValueError: if ``log_id`` does not refer to an
+                ``email_log`` row, or if the row is in a status other
+                than ``failed`` / ``retrying`` (only those two are
+                replayable).
+
+        For all *send-time* errors — provider outage, transport
+        failure, unexpected exceptions inside the retry loop — the
+        same fail-soft contract as :meth:`send` applies: the row is
+        marked ``failed`` and a normal :class:`EmailSendResult` is
+        returned (no exception escapes).
         """
         with SessionLocal() as session:
             row = session.get(EmailLog, log_id)
