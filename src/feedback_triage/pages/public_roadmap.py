@@ -19,6 +19,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
+from sqlalchemy import or_
 from sqlalchemy.orm import Session as DbSession
 from sqlmodel import col, select
 from starlette.requests import Request
@@ -79,6 +80,9 @@ def public_roadmap_page(
 
     cutoff = datetime.now(UTC) - _RECENT_SHIPPED_WINDOW
 
+    # Push the 30-day "recently shipped" cutoff into SQL so Postgres
+    # filters before we materialise rows. Planned / in-progress rows
+    # are unbounded; only the SHIPPED column is windowed.
     items = list(
         db.execute(
             select(FeedbackItem)
@@ -89,18 +93,15 @@ def public_roadmap_page(
                     [Status.PLANNED, Status.IN_PROGRESS, Status.SHIPPED],
                 ),
             )
+            .where(
+                or_(
+                    col(FeedbackItem.status) != Status.SHIPPED,
+                    col(FeedbackItem.updated_at) >= cutoff,
+                ),
+            )
             .order_by(col(FeedbackItem.updated_at).desc()),
         ).scalars(),
     )
-
-    # Drop shipped items older than the 30-day window so the column
-    # stays a "recently shipped" highlight reel rather than the full
-    # archive (the public changelog covers history).
-    items = [
-        item
-        for item in items
-        if item.status is not Status.SHIPPED or item.updated_at >= cutoff
-    ]
 
     tags_by_feedback = _load_tags_for(db, [i.id for i in items if i.id is not None])
 
