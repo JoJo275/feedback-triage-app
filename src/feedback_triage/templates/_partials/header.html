@@ -1,0 +1,19 @@
+{# Public header partial -- PR 4.4.
+
+   Used by the landing page (and any future public surface that needs a
+   top-of-page brand). Renders the wordmark as an SVG asset rather than
+   plain text so the dot-of-the-i mark from
+   ``docs/project/spec/v2/core-idea.md`` ("Logo and favicon
+   (placeholder)") is visible. Per the same section, the asset is a
+   placeholder until the designed mark lands. #}
+<header class="sn-public-header">
+  <a class="sn-public-header__brand" href="/" aria-label="SignalNest — home">
+    <img src="/static/img/wordmark.svg" alt="SignalNest" width="156" height="28" />
+  </a>
+  <nav class="sn-public-header__nav" aria-label="Primary">
+    <ul role="list">
+      <li><a href="/login">Log in</a></li>
+      <li><a class="sn-button sn-button-primary" href="/signup">Start free</a></li>
+    </ul>
+  </nav>
+</header>

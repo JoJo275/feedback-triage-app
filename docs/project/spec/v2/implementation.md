@@ -76,7 +76,7 @@ Click a PR number to jump to its slice below.
 | [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | done        |
 | [4.2](#pr-4-2) | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                   | 4     | done        |
 | [4.3](#pr-4-3) | `feat(email): Resend webhook for delivery + bounce events (if available)`                          | 4     | done        |
-| [4.4](#pr-4-4) | `feat(brand): custom favicon + wordmark refresh`                                                   | 4     | not started |
+| [4.4](#pr-4-4) | `feat(brand): custom favicon + wordmark refresh`                                                   | 4     | done        |
 | [4.5](#pr-4-5) | `feat(ui): production visual identity — palette, motion, effects (designer-driven)`                | 4     | not started |
 
 **Twenty-six PRs total** — ten for Phase 1, six for Phase 2,
@@ -1040,7 +1040,7 @@ Design-driven. Lands when the designed mark is ready.
   swap placeholder wordmark for the real one
 
 **Deliverables this PR closes**
-- [ ] **Custom favicon + wordmark refresh.**
+- [x] **Custom favicon + wordmark refresh.**
 
 ---
 
