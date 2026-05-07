@@ -15,7 +15,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from feedback_triage.auth.schemas import (
     MAX_WORKSPACE_NAME_LEN,
@@ -34,7 +34,9 @@ class WorkspaceUpdateRequest(BaseModel):
     ``slug`` is intentionally absent: per the v2.0 glossary the slug is
     immutable. ``name`` and ``public_submit_enabled`` are both
     optional; at least one must be supplied (the route returns 422
-    otherwise).
+    otherwise). Explicit JSON ``null`` is rejected for both fields
+    because the underlying columns are ``NOT NULL`` -- omit a field
+    to leave it unchanged instead.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -45,6 +47,13 @@ class WorkspaceUpdateRequest(BaseModel):
         max_length=MAX_WORKSPACE_NAME_LEN,
     )
     public_submit_enabled: bool | None = None
+
+    @field_validator("name", "public_submit_enabled")
+    @classmethod
+    def _reject_explicit_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("must not be null; omit the field to leave it unchanged")
+        return value
 
 
 # ---------------------------------------------------------------------------
