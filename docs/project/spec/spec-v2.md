@@ -29,14 +29,13 @@
 | Last reviewed     | 2026-05                                                          |
 | Ratification gate | Met: v1.0 Must items green; ADR 061 accepted; Phase 0 closed.    |
 
-Follow-on tasks (not blocking — to be picked up alongside Phase 1):
+Follow-on tasks (completed in PR 3.5, 2026-05-07):
 
-- [`docs/index.md`](../../index.md) and
-  [`README.md`](../../../README.md) updated to point at v2.0 as the
-  active spec when Phase 1 lands its first PR.
-- [`.github/copilot-instructions.md`](../../../.github/copilot-instructions.md)
-  updated to reference v2.0 as the authoritative spec at the same
-  time.
+- [x] [`docs/index.md`](../../index.md) and
+      [`README.md`](../../../README.md) updated to point at v2.0 as
+      the active spec.
+- [x] [`.github/copilot-instructions.md`](../../../.github/copilot-instructions.md)
+      updated to reference v2.0 as the authoritative spec.
 
 ---
 

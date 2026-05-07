@@ -72,7 +72,7 @@ Click a PR number to jump to its slice below.
 | [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | done        |
 | [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | done |
 | [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | done |
-| [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | not started |
+| [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | docs done; tag pending |
 | [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | not started |
 | [4.2](#pr-4-2) | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                   | 4     | not started |
 | [4.3](#pr-4-3) | `feat(email): Resend webhook for delivery + bounce events (if available)`                          | 4     | not started |
@@ -933,8 +933,10 @@ The spec-ratification PR. Documentation + tag only — no code.
 - Tag: `v2.0.0` via `task release`
 
 **Deliverables this PR closes**
-- [ ] **v2.0 spec ratified end-to-end** (the "flip docs to point
-      at v2.0" item from the original Phase 3 DoD).
+- [x] **v2.0 spec ratified end-to-end** (the "flip docs to point
+      at v2.0" item from the original Phase 3 DoD). Docs flipped
+      2026-05-07; `task release` to cut `v2.0.0` is the only
+      remaining step.
 
 **DoD (Phase 3 close)**
 - All Phase 3 Must items checked off across PRs 3.1–3.4.
