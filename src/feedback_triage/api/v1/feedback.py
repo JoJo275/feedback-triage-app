@@ -54,6 +54,7 @@ from feedback_triage.models import (
     Tag,
 )
 from feedback_triage.services.stale_detector import stale_clause
+from feedback_triage.services.status_change_notifier import notify_status_change
 from feedback_triage.tenancy import (
     WorkspaceContext,
     WorkspaceContextDep,
@@ -287,9 +288,11 @@ def patch_feedback(
     payload: FeedbackUpdateV2,
     ctx: Annotated[WorkspaceContext, Depends(require_writable)],
     db: DbDep,
+    settings: SettingsDep,
 ) -> FeedbackResponseV2:
     """Apply a partial update; missing fields are left untouched."""
     item = _scoped_get(db, item_id, ctx.id)
+    old_status = item.status
     changes = payload.model_dump(exclude_unset=True)
     for field, value in changes.items():
         setattr(item, field, value)
@@ -300,7 +303,23 @@ def patch_feedback(
     db.add(item)
     db.flush()
     db.refresh(item)
-    return FeedbackResponseV2.model_validate(item)
+    new_status = item.status
+    response = FeedbackResponseV2.model_validate(item)
+    # Status-change notifications (PR 3.1). Commit before the send so
+    # the email_log row's ``workspace_id`` FK sees a durable parent
+    # row, mirroring the auth.py signup flow. ``notify_status_change``
+    # is fail-soft per ADR 061; an outage here cannot roll back the
+    # PATCH the caller already received.
+    if old_status != new_status:
+        db.commit()
+        notify_status_change(
+            db=db,
+            settings=settings,
+            item=item,
+            old_status=old_status,
+            new_status=new_status,
+        )
+    return response
 
 
 @router.delete(

@@ -110,6 +110,51 @@ class Settings(BaseSettings):
     fire only on 429, 5xx, and network errors; auth/validation 4xx is
     terminal."""
 
+    email_notify_on_statuses: str = Field(default="shipped")
+    """Comma-separated set of :class:`feedback_triage.enums.Status`
+    values that fire a status-change notification when an item
+    transitions into them. Default ``shipped`` matches the Must-have
+    deliverable from PR 3.1; operators can add ``accepted,planned``
+    to opt into the Should-have wider notification surface from
+    ``v2/email.md``. Parsed via :attr:`notify_on_statuses`. Unknown
+    labels fail validation at boot.
+    """
+
+    @property
+    def notify_on_statuses(self) -> frozenset[str]:
+        """Parsed view of :attr:`email_notify_on_statuses`."""
+        return frozenset(
+            s.strip().lower()
+            for s in self.email_notify_on_statuses.split(",")
+            if s.strip()
+        )
+
+    @field_validator("email_notify_on_statuses")
+    @classmethod
+    def _validate_notify_statuses(cls, value: str) -> str:
+        """Reject unknown / unwriteable status labels at boot.
+
+        ``rejected`` is enum-only post-ADR 063 (the application never
+        writes it), so notifying on it would be dead config. Surface
+        the typo at boot rather than as a silent no-op in production.
+        """
+        from feedback_triage.enums import Status  # local: avoid cycle
+
+        writeable = {s.value for s in Status if s is not Status.REJECTED}
+        bad = [
+            label.strip().lower()
+            for label in value.split(",")
+            if label.strip() and label.strip().lower() not in writeable
+        ]
+        if bad:
+            msg = (
+                "EMAIL_NOTIFY_ON_STATUSES contains unknown/unwriteable "
+                f"status label(s): {sorted(bad)}. Allowed: "
+                f"{sorted(writeable)}."
+            )
+            raise ValueError(msg)
+        return value
+
     @field_validator("database_url", mode="before")
     @classmethod
     def _normalize_database_url(cls, value: object) -> object:

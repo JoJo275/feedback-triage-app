@@ -130,6 +130,14 @@ tasks:
     cmds:
       - uv run python scripts/seed.py {{.CLI_ARGS}}
 
+  # ── Email replay ───────────────────────────────────────────
+  # Re-send a failed/retrying email_log row once Resend is back.
+  # Spec: docs/project/spec/v2/implementation.md — PR 3.1.
+  email:replay:
+    desc: "Re-send a failed email_log row: task email:replay -- <log-uuid>"
+    cmds:
+      - uv run python scripts/email_replay.py {{.CLI_ARGS}}
+
   # ── Testing ─────────────────────────────────────────────────
   test:
     desc: Run unit + API tests (excludes e2e)
