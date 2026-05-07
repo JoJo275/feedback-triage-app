@@ -85,6 +85,34 @@
         {% include "_partials/notes_panel.html" %}
       </div>
     </section>
+
+    <section aria-labelledby="sg-kanban-column" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-kanban-column">Kanban column</h2></div>
+      <div class="sn-card-body">
+        {% with column_key="planned", column_title="Planned",
+                empty_text="No planned items." %}
+          {% include "_partials/kanban_column.html" %}
+        {% endwith %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-kanban-card" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-kanban-card">Kanban card</h2></div>
+      <div class="sn-card-body">
+        {% with card_id="sg-kanban-card-demo" %}
+          {% include "_partials/kanban_card.html" %}
+        {% endwith %}
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-release-note" class="sn-card">
+      <div class="sn-card-header"><h2 id="sg-release-note">Release note editor</h2></div>
+      <div class="sn-card-body">
+        {% with editor_id="sg-release-note-demo" %}
+          {% include "_partials/release_note_editor.html" %}
+        {% endwith %}
+      </div>
+    </section>
   </div>
 </main>
 {% endblock %}

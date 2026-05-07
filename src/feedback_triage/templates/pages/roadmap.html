@@ -1,0 +1,47 @@
+{% extends "_base.html" %}
+{% block title %}Roadmap — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-stack">
+        <h1>Roadmap</h1>
+        <p class="sn-text-muted">
+          Drag cards between columns to update their status. Toggle
+          <em>Public roadmap</em> to publish a card to the public view.
+        </p>
+        <p>
+          <a href="/w/{{ workspace_slug }}/roadmap/public" class="sn-link">
+            View public roadmap &rarr;
+          </a>
+        </p>
+      </header>
+
+      <p id="board-status" class="sn-text-muted" role="status" aria-live="polite">Loading…</p>
+      <p id="board-error" class="sn-text-danger" role="alert" hidden></p>
+
+      <div id="kanban-board" class="sn-kanban-board sn-grid-12" hidden>
+        {% with column_key="planned", column_title="Planned",
+                empty_text="No planned items." %}
+          {% include "_partials/kanban_column.html" %}
+        {% endwith %}
+        {% with column_key="in_progress", column_title="In progress",
+                empty_text="Nothing in progress." %}
+          {% include "_partials/kanban_column.html" %}
+        {% endwith %}
+        {% with column_key="shipped", column_title="Recently shipped",
+                empty_text="Nothing shipped yet." %}
+          {% include "_partials/kanban_column.html" %}
+        {% endwith %}
+      </div>
+    </div>
+
+    {# Inert template cloned per-card by static/js/roadmap.js. #}
+    <template id="kanban-card-template">
+      {% include "_partials/kanban_card.html" %}
+    </template>
+  </main>
+</div>
+<script type="module" src="/static/js/roadmap.js" defer></script>
+{% endblock %}

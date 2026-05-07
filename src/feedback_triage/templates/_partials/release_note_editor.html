@@ -1,0 +1,32 @@
+{# Release-note editor -- management changelog (PR 3.3).
+
+Inputs:
+  editor_id  -- optional DOM id (used by the styleguide / inert
+                <template> instance).
+
+The live editors are cloned from a <template> by
+`static/js/changelog.js`; per-row state (id, current value, publish
+flag) is filled in there. The editor commits on blur and on
+submit (Ctrl/Cmd+Enter). 280-char cap matches the DB CHECK from
+PR 2.1's Migration B.
+#}
+<form class="sn-release-note-editor"
+      {% if editor_id %}id="{{ editor_id }}"{% endif %}
+      data-action="release-note-form">
+  <header class="sn-release-note-editor__header">
+    <p class="sn-release-note-editor__date" data-field="date"></p>
+    <h3 class="sn-release-note-editor__title" data-field="title"></h3>
+  </header>
+  <label class="sn-form-row">
+    <span>Release note <span class="sn-text-muted">(280 chars max)</span></span>
+    <textarea data-field="release-note" maxlength="280" rows="3"></textarea>
+  </label>
+  <div class="sn-release-note-editor__footer">
+    <label class="sn-toggle">
+      <input type="checkbox" data-action="toggle-publish" />
+      <span class="sn-toggle__label">Publish to changelog</span>
+    </label>
+    <p class="sn-text-muted sn-release-note-editor__status"
+       data-field="status" role="status" aria-live="polite"></p>
+  </div>
+</form>

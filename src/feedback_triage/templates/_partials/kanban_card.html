@@ -1,0 +1,48 @@
+{# Kanban card -- management roadmap (PR 3.3).
+
+Inputs:
+  card_id              -- DOM id, e.g. "kanban-card-template" for the
+                          inert <template>; omit for live cards.
+  classes              -- extra class names appended after the base.
+  status_label         -- pre-rendered status label (e.g. "Planned").
+  status_tone          -- tone modifier ("info"/"warn"/"ok"/...).
+
+The live cards are cloned from the <template> by
+`static/js/roadmap.js` and the per-row data attributes
+(`data-id`, `data-published`) are filled in there. This file is the
+canonical structure -- the styleguide renders it directly so the
+visual reference stays in sync.
+
+Action set:
+  - move buttons (`data-action="move-prev|move-next"`) for
+    keyboard / reduced-motion users; the JS also wires native HTML5
+    drag-and-drop for pointer users.
+  - publish-to-public-roadmap toggle (`data-action="toggle-publish"`).
+
+Per `docs/project/spec/v2/css.md` -- "Pills carry icon + text + color".
+#}
+<article class="sn-kanban-card{% if classes %} {{ classes }}{% endif %}"
+         {% if card_id %}id="{{ card_id }}"{% endif %}
+         data-action="card"
+         draggable="true">
+  <header class="sn-kanban-card__header">
+    <h3 class="sn-kanban-card__title" data-field="title"></h3>
+  </header>
+  <p class="sn-kanban-card__meta">
+    <span class="sn-pill sn-pill--type" data-field="type-pill" data-type=""></span>
+    <span class="sn-pill-priority" data-field="priority-pill" hidden></span>
+  </p>
+  <ul class="sn-tag-row" role="list" data-field="tags"></ul>
+  <footer class="sn-kanban-card__footer">
+    <div class="sn-kanban-card__moves" role="group" aria-label="Move card">
+      <button type="button" class="sn-button sn-button-ghost sn-button-sm"
+              data-action="move-prev" aria-label="Move to previous column">&larr;</button>
+      <button type="button" class="sn-button sn-button-ghost sn-button-sm"
+              data-action="move-next" aria-label="Move to next column">&rarr;</button>
+    </div>
+    <label class="sn-toggle">
+      <input type="checkbox" data-action="toggle-publish" />
+      <span class="sn-toggle__label">Public roadmap</span>
+    </label>
+  </footer>
+</article>

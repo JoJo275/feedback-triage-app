@@ -1,0 +1,21 @@
+{# Kanban column -- management roadmap (PR 3.3).
+
+Inputs:
+  column_key   -- one of "planned" / "in_progress" / "shipped".
+  column_title -- human label (e.g. "Planned").
+  empty_text   -- shown when no cards.
+
+The body is filled at runtime by `static/js/roadmap.js` (cards are
+cloned from the <template> in `roadmap.html`). The column is a drop
+target for native HTML5 drag-and-drop -- moving a card across
+columns triggers a status PATCH server-side.
+#}
+<section class="sn-kanban-column" data-column="{{ column_key }}"
+         aria-labelledby="kanban-col-{{ column_key }}-h">
+  <header class="sn-kanban-column__header">
+    <h2 id="kanban-col-{{ column_key }}-h">{{ column_title }}</h2>
+    <span class="sn-count-chip" data-field="count">0</span>
+  </header>
+  <ol class="sn-kanban-column__cards sn-stack" role="list" data-field="cards"></ol>
+  <p class="sn-text-muted sn-kanban-column__empty" data-field="empty">{{ empty_text }}</p>
+</section>
