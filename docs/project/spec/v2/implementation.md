@@ -69,7 +69,7 @@ Click a PR number to jump to its slice below.
 | [2.5](#pr-2-5) | `feat(pages): settings v1 — workspace info, members, tags, public-submit toggle`                   | 2     | done        |
 | [2.6](#pr-2-6) | `feat(triage): submitters pages + stale highlighting + axe-core in e2e (Should items + Phase 2 close)` | 2 | done |
 | [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | done        |
-| [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | not started |
+| [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | done        |
 | [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | not started |
 | [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | not started |
 | [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | not started |
@@ -824,8 +824,8 @@ different filters.
 - `tests/e2e/test_public_pages_smoke.py`
 
 **Deliverables this PR closes**
-- [ ] **Public roadmap** at `/w/<slug>/roadmap/public`.
-- [ ] **Public changelog** at `/w/<slug>/changelog/public`.
+- [x] **Public roadmap** at `/w/<slug>/roadmap/public`.
+- [x] **Public changelog** at `/w/<slug>/changelog/public`.
 
 **DoD**
 - Both pages render without authentication.

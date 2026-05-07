@@ -1,0 +1,37 @@
+{% extends "_base.html" %}
+{% block title %}Changelog — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
+  <div class="sn-content-gutter sn-stack">
+    <header class="sn-stack">
+      <h1>{{ workspace_name }} changelog</h1>
+      <p class="sn-text-muted">
+        Recent improvements, in shipping order.
+      </p>
+    </header>
+
+    {% if entries %}
+    <ol class="sn-changelog sn-stack" role="list">
+      {% for entry in entries %}
+      <li class="sn-card sn-changelog-entry" data-id="{{ entry.id }}">
+        <header class="sn-changelog-entry__header">
+          <time datetime="{{ entry.shipped_at_iso }}" class="sn-changelog-entry__date">
+            {{ entry.shipped_at_label }}
+          </time>
+          <h2 class="sn-changelog-entry__title">{{ entry.title }}</h2>
+        </header>
+        {% if entry.release_note %}
+        <p class="sn-changelog-entry__note">{{ entry.release_note }}</p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="sn-empty-state">
+      <strong>Nothing shipped yet.</strong>
+      <span>The first release notes will appear here.</span>
+    </p>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}
