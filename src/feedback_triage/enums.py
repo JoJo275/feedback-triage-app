@@ -94,15 +94,21 @@ class WorkspaceRole(StrEnum):
 class EmailStatus(StrEnum):
     """Delivery state of a row in the ``email_log`` table.
 
-    Values match ``email_status_enum`` in ADR 061; the Resend-webhook
-    surface (delivered / bounced / complained) is intentionally not
-    modelled in v2.0 — webhook ingestion lands later.
+    Values match ``email_status_enum`` in ADR 061. The post-send
+    surface (``delivered`` / ``bounced`` / ``complained``) is written
+    by the Resend webhook handler (PR 4.3 — see
+    :mod:`feedback_triage.api.v1.webhooks.resend`); the in-process
+    send loop only ever writes the ``queued`` → ``sent`` /
+    ``retrying`` / ``failed`` half of the lifecycle.
     """
 
     QUEUED = "queued"
     SENT = "sent"
     RETRYING = "retrying"
     FAILED = "failed"
+    DELIVERED = "delivered"
+    BOUNCED = "bounced"
+    COMPLAINED = "complained"
 
 
 class EmailPurpose(StrEnum):

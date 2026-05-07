@@ -25,6 +25,7 @@ from feedback_triage.api.v1 import submitters as submitters_api
 from feedback_triage.api.v1 import tags as tags_api
 from feedback_triage.api.v1 import users as users_api
 from feedback_triage.api.v1 import workspaces as workspaces_api
+from feedback_triage.api.v1.webhooks import resend as resend_webhook_api
 from feedback_triage.auth import hashing as auth_hashing
 from feedback_triage.auth.feature_flag import FeatureAuthGateMiddleware
 from feedback_triage.config import Settings, get_settings
@@ -143,6 +144,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(invitations_api.ws_invitations_router)
     app.include_router(invitations_api.accept_router)
     app.include_router(users_api.router)
+    app.include_router(resend_webhook_api.router)
     app.include_router(auth_pages.router)
     app.include_router(landing_pages.router)
     app.include_router(legal_pages.router)
