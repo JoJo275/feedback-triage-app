@@ -63,6 +63,13 @@ def test_styleguide_page_renders(client: TestClient) -> None:
     assert "/static/css/app." in body
     # Skip-link present per accessibility floor.
     assert 'class="sn-skip-link"' in body
+    # PR 4.2: preset switcher present and main element carries the
+    # default `preset-production` token block.
+    assert 'data-theme="preset-production"' in body
+    assert 'id="sg-preset-switcher"' in body
+    for preset in ("production", "basic", "unique", "crazy"):
+        assert f'value="{preset}"' in body
+    assert "/static/js/styleguide.js" in body
 
 
 def test_static_js_modules_are_served(client: TestClient) -> None:
@@ -72,6 +79,7 @@ def test_static_js_modules_are_served(client: TestClient) -> None:
         "/static/js/new.js",
         "/static/js/detail.js",
         "/static/js/landing_demo.js",
+        "/static/js/styleguide.js",
     ):
         response = client.get(path)
         assert response.status_code == 200, path
