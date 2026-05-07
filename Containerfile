@@ -50,9 +50,15 @@ WORKDIR /build-fe
 # the repo root; copy it for that purpose only (not for installing).
 COPY pyproject.toml ./
 COPY tailwind.config.cjs ./
-# build_css.py imports _imports → import_sibling("_ui") → _ui imports
-# _colors. Copy the full chain so the container build resolves them.
-COPY scripts/_imports.py scripts/_colors.py scripts/_ui.py scripts/build_css.py scripts/
+# Copy the whole scripts/ directory so build_css.py can resolve every
+# sibling helper it imports (_imports → _ui → _colors today; new
+# helpers added later won't silently break the image build the way
+# a hand-enumerated multi-arg COPY does — that mode aborts the entire
+# layer if any single source path goes missing in the build context,
+# which is exactly how the v2.0.0 release-please deploy failed on
+# Railway with `'/scripts/build_css.py': not found` when the platform
+# snapshotter raced an in-flight commit.
+COPY scripts/ scripts/
 
 # Tailwind's content globs scan templates, the whole static tree
 # (HTML + JS), and routes/*.py for class names. Copy all four so the
