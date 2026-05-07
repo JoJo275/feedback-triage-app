@@ -113,6 +113,7 @@ class UserResponse(BaseModel):
     email: str
     is_verified: bool
     role: UserRole
+    theme_preference: str
     created_at: datetime
 
 

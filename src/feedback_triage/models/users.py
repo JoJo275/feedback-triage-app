@@ -42,6 +42,10 @@ class User(SQLModel, table=True):
             "length(password_hash) <= 256",
             name="users_password_hash_max_len",
         ),
+        CheckConstraint(
+            "theme_preference IN ('light', 'dark', 'system')",
+            name="users_theme_preference_valid",
+        ),
     )
 
     id: uuid.UUID | None = Field(
@@ -69,6 +73,14 @@ class User(SQLModel, table=True):
             USER_ROLE_ENUM,
             nullable=False,
             server_default=text("'team_member'::user_role_enum"),
+        ),
+    )
+    theme_preference: str = Field(
+        default="system",
+        sa_column=Column(
+            "theme_preference",
+            nullable=False,
+            server_default=text("'system'"),
         ),
     )
     created_at: datetime = Field(

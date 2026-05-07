@@ -325,10 +325,16 @@ def patch_feedback(
                 new_status=new_status,
             )
         except Exception:
+            # ``item_id`` is FastAPI-coerced to ``int`` already, but
+            # CodeQL flags any path-derived value as a log-injection
+            # source. Force ``int(...)`` + ``%d`` so the formatter
+            # cannot emit attacker-controlled bytes (CR/LF) into the
+            # log line.
+            safe_item_id = int(item_id)
             logger.exception(
                 "feedback.patch: status-change notifier raised; "
-                "PATCH will still commit (item_id=%s)",
-                item_id,
+                "PATCH will still commit (item_id=%d)",
+                safe_item_id,
             )
     return response
 
