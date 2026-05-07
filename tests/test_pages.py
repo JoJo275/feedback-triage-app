@@ -5,12 +5,17 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 
-def test_index_page_serves_html(client: TestClient) -> None:
+def test_index_page_serves_landing(client: TestClient) -> None:
+    """ "/" now renders the v2 Jinja landing page (PR 3.4)."""
     response = client.get("/")
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
-    assert "<title>SignalNest</title>" in response.text
-    assert "/static/js/index.js" in response.text
+    body = response.text
+    assert "SignalNest" in body
+    assert "Capture the noise. Find the signal." in body
+    assert 'id="landing-demo"' in body
+    assert "/static/js/landing_demo.js" in body
+    assert response.headers.get("cache-control", "").startswith("public, max-age=300")
 
 
 def test_new_page_serves_html(client: TestClient) -> None:
@@ -66,6 +71,7 @@ def test_static_js_modules_are_served(client: TestClient) -> None:
         "/static/js/index.js",
         "/static/js/new.js",
         "/static/js/detail.js",
+        "/static/js/landing_demo.js",
     ):
         response = client.get(path)
         assert response.status_code == 200, path
@@ -80,3 +86,29 @@ def test_pages_excluded_from_openapi_schema(client: TestClient) -> None:
     assert "/" not in paths
     assert "/new" not in paths
     assert "/feedback/{item_id}" not in paths
+    assert "/privacy" not in paths
+    assert "/terms" not in paths
+
+
+def test_privacy_page_renders(client: TestClient) -> None:
+    response = client.get("/privacy")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    body = response.text
+    assert "<h1>Privacy</h1>" in body
+    assert 'href="/terms"' in body
+
+
+def test_terms_page_renders(client: TestClient) -> None:
+    response = client.get("/terms")
+    assert response.status_code == 200
+    body = response.text
+    assert "Terms of service" in body
+    assert 'href="/privacy"' in body
+
+
+def test_landing_links_to_legal_pages(client: TestClient) -> None:
+    response = client.get("/")
+    body = response.text
+    assert 'href="/privacy"' in body
+    assert 'href="/terms"' in body

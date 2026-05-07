@@ -1,0 +1,59 @@
+{% extends "_base.html" %}
+{% block title %}Privacy · SignalNest{% endblock %}
+{% block body %}
+<main id="main" class="sn-page-shell">
+  <article class="sn-content-gutter sn-stack sn-prose">
+    <header class="sn-stack">
+      <p><a href="/">← Back to SignalNest</a></p>
+      <h1>Privacy</h1>
+      <p class="sn-text-muted">Last updated: 2026-05-07.</p>
+    </header>
+
+    <section>
+      <h2>What we collect</h2>
+      <p>
+        SignalNest is a portfolio project. The hosted instance stores
+        only the data you give it: your account email, your workspace
+        name, the feedback items you log, and the submissions made
+        through your public form.
+      </p>
+    </section>
+
+    <section>
+      <h2>What we do not collect</h2>
+      <ul>
+        <li>No third-party analytics.</li>
+        <li>No advertising trackers.</li>
+        <li>No fingerprinting beyond a single first-party session cookie.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Email</h2>
+      <p>
+        Status-change notifications go out through Resend when a
+        submitter has provided an email. Resend is the only third
+        party that ever sees a submitter address. Submitters can opt
+        out from any notification footer.
+      </p>
+    </section>
+
+    <section>
+      <h2>Data retention</h2>
+      <p>
+        Workspaces and their feedback persist until you delete them.
+        Account deletion removes every workspace you own and every
+        feedback row inside them. There is no soft-delete tier.
+      </p>
+    </section>
+
+    <section>
+      <h2>Contact</h2>
+      <p>
+        Questions: <a href="mailto:hello@signalnest.app">hello@signalnest.app</a>.
+      </p>
+    </section>
+  </article>
+  {% include "_partials/footer.html" %}
+</main>
+{% endblock %}

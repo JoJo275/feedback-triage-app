@@ -62,8 +62,7 @@ function renderRow(item) {
     const dateEl = form.querySelector('[data-field="date"]');
     if (date) {
         const iso = item.updated_at;
-        dateEl.innerHTML =
-            `<time datetime="${escapeHtml(iso)}">${escapeHtml(formatDate(iso))}</time>`;
+        dateEl.innerHTML = `<time datetime="${escapeHtml(iso)}">${escapeHtml(formatDate(iso))}</time>`;
     }
 
     form.querySelector('[data-field="title"]').textContent = item.title;
@@ -144,8 +143,8 @@ list.addEventListener(
         const form = ev.target.closest("form");
         if (form) saveReleaseNote(form);
     },
-    true,  // capture -- focusout is the bubbling counterpart but blur
-           // doesn't bubble, so capture phase delegation is required.
+    true, // capture -- focusout is the bubbling counterpart but blur
+    // doesn't bubble, so capture phase delegation is required.
 );
 
 list.addEventListener("change", (ev) => {

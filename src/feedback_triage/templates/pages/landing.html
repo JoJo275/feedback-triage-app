@@ -1,0 +1,151 @@
+{% extends "_base.html" %}
+{% block title %}SignalNest — Capture the noise. Find the signal.{% endblock %}
+{% block body %}
+<header class="sn-public-header">
+  <a class="sn-public-header__brand" href="/">SignalNest</a>
+  <nav class="sn-public-header__nav" aria-label="Primary">
+    <ul role="list">
+      <li><a href="/login">Log in</a></li>
+      <li><a class="sn-button sn-button-primary" href="/signup">Start free</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="sn-hero sn-content-gutter sn-stack">
+    <h1>SignalNest</h1>
+    <p class="sn-hero__tagline"><em>Capture the noise. Find the signal.</em></p>
+    <p class="sn-hero__lede">
+      A feedback triage app for turning user requests, bugs, and product
+      ideas into clear next steps.
+    </p>
+    <p class="sn-hero__ctas">
+      <a class="sn-button sn-button-primary" href="/signup">Start free</a>
+      <a class="sn-button sn-button-secondary" href="#demo">Try the demo</a>
+    </p>
+  </section>
+
+  <section id="demo" class="sn-section sn-content-gutter sn-stack" aria-labelledby="demo-heading">
+    <header class="sn-stack">
+      <h2 id="demo-heading">Try it — no signup required</h2>
+      <p class="sn-text-muted">
+        Search the list, bump a status, and watch the row update.
+        Refreshing the page resets the demo.
+      </p>
+    </header>
+    <div id="landing-demo" class="sn-card sn-demo-card">
+      <div class="sn-card-body sn-stack">
+        <label for="landing-demo-search" class="sn-label">Search</label>
+        <input
+          id="landing-demo-search"
+          type="search"
+          class="sn-input"
+          placeholder="Type to filter…"
+          data-demo="search"
+          autocomplete="off"
+        />
+        <div class="sn-table-wrap">
+          <table class="sn-table">
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Status</th>
+                <th scope="col">Priority</th>
+                <th scope="col">Pain</th>
+                <th scope="col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody data-demo="rows"></tbody>
+          </table>
+        </div>
+        <p data-demo="empty" class="sn-text-muted" hidden>
+          No items match.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sn-section sn-content-gutter sn-stack" aria-labelledby="problem-heading">
+    <h2 id="problem-heading">Feedback gets scattered and repeated.</h2>
+    <p>
+      Support tickets pile up alongside Slack pings, app-store reviews,
+      and that one Reddit thread. The signals are real; the storage
+      is wrong.
+    </p>
+    <p>
+      Without a single inbox, the same bug gets logged three times and
+      the most painful request goes unanswered for a month.
+    </p>
+    <p>
+      The team ends up arguing from memory instead of from data.
+    </p>
+  </section>
+
+  <section class="sn-section sn-content-gutter sn-stack" aria-labelledby="solution-heading">
+    <h2 id="solution-heading">Centralize, tag, prioritize, close the loop.</h2>
+    <div class="sn-grid-3">
+      <article class="sn-card">
+        <div class="sn-card-header"><h3>Centralize</h3></div>
+        <div class="sn-card-body">
+          <p>One inbox per workspace. Submitters can use a public form;
+          your team can log items by hand.</p>
+        </div>
+      </article>
+      <article class="sn-card">
+        <div class="sn-card-header"><h3>Tag &amp; prioritize</h3></div>
+        <div class="sn-card-body">
+          <p>Workspace-scoped tags, priority pills, pain dots. Filters
+          stack so the next thing to work on is one query away.</p>
+        </div>
+      </article>
+      <article class="sn-card">
+        <div class="sn-card-header"><h3>Close the loop</h3></div>
+        <div class="sn-card-body">
+          <p>Mark an item shipped and SignalNest emails the submitter
+          and posts to your public changelog.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sn-section sn-content-gutter sn-stack" aria-labelledby="features-heading">
+    <h2 id="features-heading">Everything in one place</h2>
+    <ul class="sn-feature-grid" role="list">
+      <li><strong>Inbox</strong> — triage queue with stale detection.</li>
+      <li><strong>Tags</strong> — per-workspace palette.</li>
+      <li><strong>Statuses</strong> — new → needs info → reviewing → planned → in progress → shipped.</li>
+      <li><strong>Notes</strong> — append-only thread per item.</li>
+      <li><strong>Submitters</strong> — see every report from one person.</li>
+      <li><strong>Roadmap</strong> — public + private kanban.</li>
+      <li><strong>Changelog</strong> — public release notes.</li>
+      <li><strong>Insights</strong> — top tags, status mix, pain heat.</li>
+    </ul>
+  </section>
+
+  <section class="sn-section sn-content-gutter sn-stack" aria-labelledby="workflow-heading">
+    <h2 id="workflow-heading">Workflow</h2>
+    <ol class="sn-workflow-strip" role="list">
+      <li>Intake</li>
+      <li aria-hidden="true">→</li>
+      <li>Triage</li>
+      <li aria-hidden="true">→</li>
+      <li>Prioritize</li>
+      <li aria-hidden="true">→</li>
+      <li>Act</li>
+      <li aria-hidden="true">→</li>
+      <li>Close the loop</li>
+    </ol>
+  </section>
+
+  <section class="sn-section sn-content-gutter sn-stack" aria-labelledby="portfolio-heading">
+    <h2 id="portfolio-heading" class="sr-only">About</h2>
+    <p class="sn-portfolio-note">
+      Built as a full-stack portfolio project, usable as a real app.
+    </p>
+  </section>
+
+  {% include "_partials/footer.html" %}
+</main>
+
+<script src="/static/js/landing_demo.js" defer></script>
+{% endblock %}

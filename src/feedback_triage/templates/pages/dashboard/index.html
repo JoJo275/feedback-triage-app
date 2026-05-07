@@ -1,0 +1,126 @@
+{% extends "_base.html" %}
+{% block title %}{{ workspace_name }} dashboard · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-stack">
+        <h1>{{ workspace_name }}</h1>
+        <p class="sn-text-muted">
+          Welcome back. Workspace <code>{{ workspace_slug }}</code>.
+        </p>
+        <p>
+          <a class="sn-button sn-button-primary" href="/w/{{ workspace_slug }}/feedback">
+            New feedback
+          </a>
+        </p>
+      </header>
+
+      <section class="sn-summary-cards" aria-labelledby="dashboard-summary-heading">
+        <h2 id="dashboard-summary-heading" class="sr-only">Summary</h2>
+        <div class="sn-grid-12">
+          {% for card in summary.cards %}
+          <article class="sn-card sn-summary-card" data-card="{{ card.key }}">
+            <div class="sn-card-header">
+              <h3>{{ card.label }}</h3>
+            </div>
+            <div class="sn-card-body">
+              <p class="sn-summary-card__count" data-summary-count="{{ card.key }}">
+                {{ card.count }}
+              </p>
+              <p class="sn-summary-card__link">
+                <a href="/w/{{ workspace_slug }}/inbox?card={{ card.key }}">View</a>
+              </p>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="sn-card sn-dashboard-card" aria-labelledby="dashboard-sparkline-heading">
+        <header class="sn-card-header">
+          <h2 id="dashboard-sparkline-heading">Intake — last 30 days</h2>
+        </header>
+        <div class="sn-card-body">
+          {% set max_count = summary.sparkline_max if summary.sparkline_max > 0 else 1 %}
+          <svg
+            class="sn-sparkline"
+            viewBox="0 0 300 60"
+            role="img"
+            aria-label="Daily feedback intake for the last 30 days"
+            preserveAspectRatio="none"
+          >
+            {% for bar in summary.sparkline %}
+            {% set x = loop.index0 * 10 %}
+            {% set h = (bar.count / max_count * 50) | round(2) %}
+            {% set y = 60 - h %}
+            <rect
+              class="sn-sparkline__bar"
+              x="{{ x }}"
+              y="{{ y }}"
+              width="8"
+              height="{{ h if h > 0 else 0 }}"
+            >
+              <title>{{ bar.day.isoformat() }}: {{ bar.count }}</title>
+            </rect>
+            {% endfor %}
+          </svg>
+          <p class="sn-text-muted sn-sparkline__caption">
+            Peak: {{ summary.sparkline_max }} item{{ '' if summary.sparkline_max == 1 else 's' }} in a day.
+          </p>
+        </div>
+      </section>
+
+      <div class="sn-grid-2">
+        <section class="sn-card sn-dashboard-card" aria-labelledby="dashboard-top-tags-heading">
+          <header class="sn-card-header">
+            <h2 id="dashboard-top-tags-heading">Top tags</h2>
+          </header>
+          <div class="sn-card-body">
+            {% if summary.top_tags %}
+            <ul class="sn-tag-list" role="list">
+              {% for tag in summary.top_tags %}
+              <li class="sn-tag-list__item">
+                <span class="sn-tag-chip sn-tag-chip--{{ tag.color }}">{{ tag.name }}</span>
+                <span class="sn-text-muted">{{ tag.count }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="sn-text-muted">No tags yet.</p>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="sn-card sn-dashboard-card" aria-labelledby="dashboard-activity-heading">
+          <header class="sn-card-header">
+            <h2 id="dashboard-activity-heading">Recent activity</h2>
+          </header>
+          <div class="sn-card-body">
+            {% if summary.recent_activity %}
+            <ol class="sn-activity-list" role="list">
+              {% for entry in summary.recent_activity %}
+              <li class="sn-activity-list__item">
+                <a href="/w/{{ workspace_slug }}/feedback/{{ entry.feedback_id }}">
+                  {{ entry.title }}
+                </a>
+                <span class="sn-pill-status sn-pill-status--{{ entry.status.value }}">
+                  {{ entry.status.value | replace('_', ' ') }}
+                </span>
+                <time datetime="{{ entry.updated_at.isoformat() }}" class="sn-text-muted">
+                  {{ entry.updated_at.strftime('%Y-%m-%d') }}
+                </time>
+              </li>
+              {% endfor %}
+            </ol>
+            {% else %}
+            <p class="sn-text-muted">No activity yet.</p>
+            {% endif %}
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

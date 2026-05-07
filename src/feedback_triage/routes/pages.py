@@ -1,9 +1,10 @@
 """Static HTML page routes.
 
-These handlers serve the three vanilla HTML/JS pages that make up the
-v1.0 frontend (see spec — Frontend Delivery Model). They sit on
-unversioned paths because they're user-facing URLs, not part of the
-JSON API contract under ``/api/v1/``.
+These handlers serve the v1.0 vanilla HTML/JS pages that survive
+into v2.0 (the create-feedback form and the feedback-detail editor)
+plus the ``/styleguide`` Jinja stub. The v2.0 landing page at ``/``
+is owned by :mod:`feedback_triage.pages.landing`; this module no
+longer claims it.
 
 The HTML files live in ``feedback_triage/static/`` and are also mounted
 at ``/static`` for their CSS/JS asset siblings — see
@@ -30,12 +31,6 @@ router = APIRouter(include_in_schema=False)
 
 def _page(filename: str) -> FileResponse:
     return FileResponse(STATIC_DIR / filename, media_type="text/html")
-
-
-@router.get("/", summary="Feedback list page")
-def index_page() -> FileResponse:
-    """Serve the feedback list / dashboard HTML."""
-    return _page("index.html")
 
 
 @router.get("/new", summary="Create-feedback page")

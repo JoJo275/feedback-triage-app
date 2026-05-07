@@ -13,11 +13,7 @@
 // keyboard buttons only -- the dragstart handler short-circuits.
 
 import { escapeHtml, formatDetail } from "./api.js";
-import {
-    listFeedbackV2,
-    patchFeedbackV2,
-    workspaceSlug,
-} from "./api_v2.js";
+import { listFeedbackV2, patchFeedbackV2, workspaceSlug } from "./api_v2.js";
 
 const COLUMNS = ["planned", "in_progress", "shipped"];
 const TYPE_LABELS = {
@@ -46,7 +42,9 @@ const board = document.getElementById("kanban-board");
 const statusEl = document.getElementById("board-status");
 const errorEl = document.getElementById("board-error");
 const cardTemplate = document.getElementById("kanban-card-template");
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+).matches;
 
 // In-memory mirror of the rendered cards keyed by feedback id; the
 // move/toggle handlers consult this to compute the next status and
@@ -102,8 +100,11 @@ function renderCard(item) {
     const priorityPill = card.querySelector('[data-field="priority-pill"]');
     if (item.priority) {
         priorityPill.hidden = false;
-        priorityPill.classList.add(`sn-pill-priority--${PRIORITY_TONES[item.priority] || "muted"}`);
-        priorityPill.textContent = PRIORITY_LABELS[item.priority] || item.priority;
+        priorityPill.classList.add(
+            `sn-pill-priority--${PRIORITY_TONES[item.priority] || "muted"}`,
+        );
+        priorityPill.textContent =
+            PRIORITY_LABELS[item.priority] || item.priority;
     }
 
     renderTags(card, item.tags);
@@ -177,7 +178,9 @@ async function patchAndApply(id, body) {
             refreshColumn(previous);
             placeCard(card, updated.status);
         }
-        card.dataset.published = updated.published_to_roadmap ? "true" : "false";
+        card.dataset.published = updated.published_to_roadmap
+            ? "true"
+            : "false";
         const toggle = card.querySelector('[data-action="toggle-publish"]');
         toggle.checked = !!updated.published_to_roadmap;
         return updated;

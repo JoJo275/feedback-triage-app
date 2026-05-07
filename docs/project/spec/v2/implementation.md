@@ -71,7 +71,7 @@ Click a PR number to jump to its slice below.
 | [3.1](#pr-3-1) | `feat(email): status-change emails end-to-end + status_change.html template`                       | 3     | done        |
 | [3.2](#pr-3-2) | `feat(pages): public roadmap + public changelog`                                                   | 3     | done        |
 | [3.3](#pr-3-3) | `feat(pages): management roadmap kanban + management changelog editor`                             | 3     | done |
-| [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | not started |
+| [3.4](#pr-3-4) | `feat(pages): dashboard fully populated + privacy + terms + insights v1 + mini demo`               | 3     | done |
 | [3.5](#pr-3-5) | `chore(release): ratify v2.0 — flip docs/index, README, copilot-instructions to v2 + cut v2.0.0 tag` | 3   | not started |
 | [4.1](#pr-4-1) | `feat(ui): dark mode (FD) — data-theme="dark" activated + persisted per user`                      | 4     | not started |
 | [4.2](#pr-4-2) | `feat(ui): styleguide preset themes (4) wired up on /styleguide`                                   | 4     | not started |
@@ -900,10 +900,10 @@ remaining static + Should + Nice surfaces.
 - `tests/e2e/test_dashboard_smoke.py`
 
 **Deliverables this PR closes**
-- [ ] **Dashboard** filled out — full deliverable.
-- [ ] **Privacy + Terms pages** linked from the landing footer.
-- [ ] **Insights page** v1 (Should).
-- [ ] **Mini demo (FU1)** on the landing page (Nice).
+- [x] **Dashboard** filled out — full deliverable.
+- [x] **Privacy + Terms pages** linked from the landing footer.
+- [x] **Insights page** v1 (Should).
+- [x] **Mini demo (FU1)** on the landing page (Nice).
 
 **DoD**
 - Dashboard renders all four sections.

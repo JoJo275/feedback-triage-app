@@ -1,0 +1,138 @@
+{% extends "_base.html" %}
+{% block title %}Insights — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-stack">
+        <h1>Insights</h1>
+        <p class="sn-text-muted">Aggregations across {{ total_items }} feedback item{{ '' if total_items == 1 else 's' }}.</p>
+      </header>
+
+      {% if insights is none %}
+      <section class="sn-empty-state" aria-labelledby="insights-empty-heading">
+        <h2 id="insights-empty-heading">Not enough data yet</h2>
+        <p>
+          Insights appear once you have at least {{ min_items }}
+          feedback items.
+        </p>
+      </section>
+      {% else %}
+
+      <section class="sn-card sn-insights-card" aria-labelledby="insights-tags-heading">
+        <header class="sn-card-header">
+          <h2 id="insights-tags-heading">Top tags</h2>
+        </header>
+        <div class="sn-card-body">
+          {% if insights.top_tags %}
+          {% set tag_max = insights.top_tags_max if insights.top_tags_max > 0 else 1 %}
+          <ul class="sn-bar-chart" role="list">
+            {% for tag in insights.top_tags %}
+            {% set width = (tag.count / tag_max * 100) | round(1) %}
+            <li class="sn-bar-chart__row">
+              <span class="sn-tag-chip sn-tag-chip--{{ tag.color }}">{{ tag.name }}</span>
+              <span
+                class="sn-bar-chart__bar sn-bar-chart__bar--{{ tag.color }}"
+                style="width: {{ width }}%"
+                role="img"
+                aria-label="{{ tag.name }}: {{ tag.count }}"
+              ></span>
+              <span class="sn-text-muted">{{ tag.count }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="sn-text-muted">No tags applied yet.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="sn-card sn-insights-card" aria-labelledby="insights-status-heading">
+        <header class="sn-card-header">
+          <h2 id="insights-status-heading">Status mix</h2>
+        </header>
+        <div class="sn-card-body sn-insights-card__split">
+          {% if insights.status_mix %}
+          <svg
+            class="sn-donut"
+            viewBox="0 0 200 200"
+            role="img"
+            aria-label="Feedback items per status"
+          >
+            {% for slice, path in donut_arcs %}
+            <path
+              d="{{ path }}"
+              class="sn-donut__slice sn-donut__slice--{{ slice.status }}"
+            >
+              <title>{{ slice.label }}: {{ slice.count }}</title>
+            </path>
+            {% endfor %}
+            <circle
+              cx="{{ donut_cx }}"
+              cy="{{ donut_cy }}"
+              r="{{ donut_inner_r }}"
+              class="sn-donut__hole"
+            />
+          </svg>
+          <ul class="sn-donut-legend" role="list">
+            {% for slice, _ in donut_arcs %}
+            <li>
+              <span class="sn-pill-status sn-pill-status--{{ slice.status }}">
+                {{ slice.label }}
+              </span>
+              <span class="sn-text-muted">
+                {{ slice.count }} ({{ (slice.fraction * 100) | round(0) | int }}%)
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="sn-text-muted">No status data yet.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="sn-card sn-insights-card" aria-labelledby="insights-pain-heading">
+        <header class="sn-card-header">
+          <h2 id="insights-pain-heading">Pain heat</h2>
+        </header>
+        <div class="sn-card-body">
+          {% set pain_max = insights.pain_histogram_max if insights.pain_histogram_max > 0 else 1 %}
+          <svg
+            class="sn-pain-histogram"
+            viewBox="0 0 250 100"
+            role="img"
+            aria-label="Distribution of pain levels"
+            preserveAspectRatio="none"
+          >
+            {% for bucket in insights.pain_histogram %}
+            {% set h = (bucket.count / pain_max * 80) | round(2) %}
+            {% set y = 90 - h %}
+            {% set x = (loop.index0 * 50) + 5 %}
+            <rect
+              class="sn-pain-histogram__bar sn-pain-histogram__bar--{{ bucket.level }}"
+              x="{{ x }}"
+              y="{{ y }}"
+              width="40"
+              height="{{ h if h > 0 else 0 }}"
+            >
+              <title>Pain {{ bucket.level }}: {{ bucket.count }}</title>
+            </rect>
+            <text
+              x="{{ x + 20 }}"
+              y="98"
+              class="sn-pain-histogram__label"
+              text-anchor="middle"
+            >{{ bucket.level }}</text>
+            {% endfor %}
+          </svg>
+          <p class="sn-text-muted">Pain levels run from 1 (low) to 5 (severe).</p>
+        </div>
+      </section>
+
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}
