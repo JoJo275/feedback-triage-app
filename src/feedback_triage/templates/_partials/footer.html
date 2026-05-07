@@ -1,9 +1,12 @@
-{# Public footer partial — PR 3.4.
+{# Public footer partial — PR 3.4 (wordmark refresh: PR 4.4).
 
    Used by the landing page and every legal page. Mirrors the
    "Footer — Privacy, Terms, GitHub, Contact" section spelled out in
    ``docs/project/spec/v2/pages.md`` (Landing) and the per-surface
-   theme checklist in ``docs/project/spec/v2/core-idea.md``. #}
+   theme checklist in ``docs/project/spec/v2/core-idea.md``. The
+   byline now leads with the SVG wordmark so the placeholder mark
+   from ``static/img/wordmark.svg`` ships site-wide; designer-final
+   asset slots into the same path under PR 4.5. #}
 <footer class="sn-public-footer" aria-labelledby="public-footer-heading">
   <h2 id="public-footer-heading" class="sr-only">Site footer</h2>
   <nav class="sn-public-footer__nav" aria-label="Legal and contact">
@@ -19,6 +22,7 @@
     </ul>
   </nav>
   <p class="sn-public-footer__byline sn-text-muted">
-    SignalNest — built as a full-stack portfolio project.
+    <img class="sn-public-footer__wordmark" src="/static/img/wordmark.svg" alt="SignalNest" width="120" height="22" />
+    — built as a full-stack portfolio project.
   </p>
 </footer>

@@ -1,15 +1,7 @@
 {% extends "_base.html" %}
 {% block title %}SignalNest — Capture the noise. Find the signal.{% endblock %}
 {% block body %}
-<header class="sn-public-header">
-  <a class="sn-public-header__brand" href="/">SignalNest</a>
-  <nav class="sn-public-header__nav" aria-label="Primary">
-    <ul role="list">
-      <li><a href="/login">Log in</a></li>
-      <li><a class="sn-button sn-button-primary" href="/signup">Start free</a></li>
-    </ul>
-  </nav>
-</header>
+{% include "_partials/header.html" %}
 
 <main id="main">
   <section class="sn-hero sn-content-gutter sn-stack">
