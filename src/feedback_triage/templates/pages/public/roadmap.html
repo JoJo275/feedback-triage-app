@@ -1,0 +1,75 @@
+{% extends "_base.html" %}
+{% block title %}Roadmap — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+{%- set _type_labels = {
+  "bug": "Bug",
+  "feature_request": "Feature request",
+  "complaint": "Complaint",
+  "praise": "Praise",
+  "question": "Question",
+  "other": "Other",
+} -%}
+<main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
+  <div class="sn-content-gutter sn-stack">
+    <header class="sn-stack">
+      <h1>{{ workspace_name }} roadmap</h1>
+      <p class="sn-text-muted">
+        What we&rsquo;re working on, in plain view.
+      </p>
+    </header>
+
+    {% if is_empty %}
+    <p class="sn-empty-state">
+      <strong>Nothing on the public roadmap yet.</strong>
+      <span>Check back soon.</span>
+    </p>
+    {% else %}
+    <div class="sn-roadmap-board sn-grid-12">
+      {% for column_key, column_title in [
+        ("planned", "Planned"),
+        ("in_progress", "In progress"),
+        ("shipped", "Recently shipped"),
+      ] %}
+      <section class="sn-roadmap-column" aria-labelledby="col-{{ column_key }}-h">
+        <header class="sn-roadmap-column__header">
+          <h2 id="col-{{ column_key }}-h">{{ column_title }}</h2>
+          <span class="sn-count-chip">{{ columns[column_key]|length }}</span>
+        </header>
+        {% if columns[column_key] %}
+        <ul class="sn-stack" role="list">
+          {% for item in columns[column_key] %}
+          <li class="sn-card sn-roadmap-card" data-id="{{ item.id }}">
+            <h3 class="sn-roadmap-card__title">{{ item.title }}</h3>
+            <p class="sn-roadmap-card__meta">
+              <span class="sn-pill sn-pill--type" data-type="{{ item.type }}">
+                {%- if item.type == "other" and item.type_other -%}
+                  {{ item.type_other }}
+                {%- else -%}
+                  {{ _type_labels.get(item.type, item.type) }}
+                {%- endif -%}
+              </span>
+            </p>
+            {% if item.tags %}
+            <ul class="sn-tag-row" role="list">
+              {% for tag in item.tags %}
+              <li>
+                {% with name=tag.name, slug=tag.slug, color=tag.color, removable=False %}
+                  {% include "_partials/tag_chip.html" %}
+                {% endwith %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="sn-text-muted sn-roadmap-column__empty">Nothing here yet.</p>
+        {% endif %}
+      </section>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}
