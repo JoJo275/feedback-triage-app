@@ -28,7 +28,33 @@
     --easing-standard: cubic-bezier(0.2, 0, 0, 1);
 
     --z-sticky: 10;
+    --z-drawer: 40;
     --z-overlay: 50;
+    --z-toast: 60;
+
+    /* App-shell dimensions (PR 4.5).
+       Sidebar collapses to icon-only at the tablet breakpoint via
+       a media query in layout.css; the same token is used in both
+       states so a future "user-collapsed" toggle just rewrites it. */
+    --space-sidebar: 16rem; /* 256px expanded */
+    --space-sidebar-collapsed: 4.5rem; /* 72px icon-only */
+    --space-header: 4rem; /* 64px */
+    --space-page-gutter: 1.5rem; /* 24px desktop */
+
+    /* Status-pill tone tokens. Each tone is a foreground/background
+       pair derived from the semantic palette; the per-status mapping
+       (new → info, needs_info → warn, …) lives in
+       templates/_partials/status_pill.html. */
+    --tone-info-fg: #1e40af; /* blue-800 */
+    --tone-info-bg: #dbeafe; /* blue-100 */
+    --tone-warn-fg: #92400e; /* amber-800 */
+    --tone-warn-bg: #fef3c7; /* amber-100 */
+    --tone-ok-fg: #115e59; /* teal-800 */
+    --tone-ok-bg: #ccfbf1; /* teal-100 */
+    --tone-muted-fg: #334155; /* slate-700 */
+    --tone-muted-bg: #e2e8f0; /* slate-200 */
+    --tone-danger-fg: #9f1239; /* rose-800 */
+    --tone-danger-bg: #ffe4e6; /* rose-100 */
 }
 
 :root[data-theme="dark"] {
@@ -43,6 +69,17 @@
     --color-danger: #fb7185; /* rose-400 */
     --color-border: #334155; /* slate-700 */
     --color-focus: #2dd4bf;
+
+    --tone-info-fg: #bfdbfe; /* blue-200 */
+    --tone-info-bg: #1e3a8a; /* blue-900 */
+    --tone-warn-fg: #fde68a; /* amber-200 */
+    --tone-warn-bg: #78350f; /* amber-900 */
+    --tone-ok-fg: #99f6e4; /* teal-200 */
+    --tone-ok-bg: #134e4a; /* teal-900 */
+    --tone-muted-fg: #cbd5e1; /* slate-300 */
+    --tone-muted-bg: #1e293b; /* slate-800 */
+    --tone-danger-fg: #fecdd3; /* rose-200 */
+    --tone-danger-bg: #881337; /* rose-900 */
 }
 
 /* ---- Styleguide preset themes (ADR 056) ---------------------------

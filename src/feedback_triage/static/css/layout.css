@@ -6,9 +6,42 @@
     @apply min-h-screen bg-bg text-ink flex flex-col;
 }
 
+/* ---- Authenticated app shell (PR 4.5) ----
+   Two-column grid: sidebar (fixed) + main column. Tablet collapses
+   the sidebar to icon-only; mobile hides it behind a slide-in
+   drawer toggled by the header hamburger. */
+.sn-app-shell {
+    display: grid;
+    grid-template-columns: var(--space-sidebar) 1fr;
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+.sn-app-shell__main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* prevent grid blowout from long table cells */
+}
+.sn-app-shell__content {
+    flex: 1 1 auto;
+    overflow-x: hidden;
+}
+
+@media (max-width: 1279px) {
+    .sn-app-shell {
+        grid-template-columns: var(--space-sidebar-collapsed) 1fr;
+    }
+}
+@media (max-width: 767px) {
+    .sn-app-shell {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Legacy alias retained from PR 1.x; new code uses .sn-app-shell. */
 .sn-dashboard-grid {
     display: grid;
-    grid-template-columns: 16rem 1fr;
+    grid-template-columns: var(--space-sidebar) 1fr;
     min-height: 100vh;
 }
 
@@ -33,4 +66,76 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 1rem;
+}
+
+/* Three-up card grid used by the landing page "How it works" row. */
+.sn-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+@media (max-width: 1023px) {
+    .sn-grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 639px) {
+    .sn-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- Dashboard composition (PR 4.5) ----
+   Reference: docs/project/spec/v2/layout.md § "Default dashboard
+   composition". Summary cards stack to 2 then horizontal-snap at
+   the tablet/mobile breakpoints; the main work row pairs the
+   triage queue (~65%) with the attention panel (~35%). */
+.sn-summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+@media (max-width: 1023px) {
+    .sn-summary-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 639px) {
+    .sn-summary-row {
+        grid-auto-flow: column;
+        grid-auto-columns: 80%;
+        grid-template-columns: none;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+    }
+    .sn-summary-row > * {
+        scroll-snap-align: start;
+    }
+}
+
+.sn-work-row {
+    display: grid;
+    grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
+    gap: 1.5rem;
+}
+@media (max-width: 1023px) {
+    .sn-work-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sn-section {
+    @apply py-6;
+}
+
+/* ---- Drawer rail ----
+   Right-side slide-in for feedback detail. Positioning only;
+   appearance lives in components.css (.sn-drawer). */
+.sn-drawer-rail {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(30rem, 100vw);
+    z-index: var(--z-drawer);
+    display: flex;
+    flex-direction: column;
 }
