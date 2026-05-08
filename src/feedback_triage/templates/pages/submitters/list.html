@@ -5,15 +5,21 @@
   {% include "_partials/sidebar.html" %}
   <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
     <div class="sn-content-gutter sn-stack">
-      <header class="sn-stack">
-        <h1>
-          Submitters
-          <span id="result-count-chip" class="sn-count-chip" hidden></span>
-        </h1>
-        <p class="sn-text-muted">
-          People who have submitted feedback to this workspace, grouped by
-          email. Anonymous submissions without an email do not appear here.
-        </p>
+      <header class="sn-page-header">
+        <div>
+          <h1 class="sn-page-header__title">
+            Submitters
+            <span id="result-count-chip" class="sn-count-chip" hidden></span>
+          </h1>
+          <p class="sn-page-header__description">
+            People who have submitted feedback to this workspace, grouped by
+            email. Anonymous submissions without an email do not appear here.
+          </p>
+        </div>
+        <div class="sn-page-header__actions">
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/dashboard">Dashboard</a>
+          <a class="sn-button sn-button-primary" href="/w/{{ workspace_slug }}/feedback/new">+ New feedback</a>
+        </div>
       </header>
 
       <section aria-labelledby="search-heading" class="sn-stack">

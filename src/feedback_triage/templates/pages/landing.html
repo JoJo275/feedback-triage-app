@@ -12,8 +12,15 @@
       ideas into clear next steps.
     </p>
     <p class="sn-hero__ctas">
-      <a class="sn-button sn-button-primary" href="/signup">Start free</a>
-      <a class="sn-button sn-button-secondary" href="#demo">Try the demo</a>
+      {% if primary_workspace_slug %}
+        <a class="sn-button sn-button-primary" href="/w/{{ primary_workspace_slug }}/dashboard">
+          Go to dashboard
+        </a>
+        <a class="sn-button sn-button-secondary" href="#demo">See the demo</a>
+      {% else %}
+        <a class="sn-button sn-button-primary" href="/signup">Start free</a>
+        <a class="sn-button sn-button-secondary" href="#demo">Try the demo</a>
+      {% endif %}
     </p>
   </section>
 

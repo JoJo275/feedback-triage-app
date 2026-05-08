@@ -5,18 +5,24 @@
   {% include "_partials/sidebar.html" %}
   <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}" data-page-mode="{{ page_mode }}">
     <div class="sn-content-gutter sn-stack">
-      <header class="sn-stack">
-        <h1>
-          {% if page_mode == "feedback" %}Feedback{% else %}Inbox{% endif %}
-          <span id="result-count-chip" class="sn-count-chip" hidden></span>
-        </h1>
-        <p class="sn-text-muted">
-          {% if page_mode == "feedback" %}
-            Searchable archive across every status.
-          {% else %}
-            Triage queue: new, needs info, and reviewing items.
-          {% endif %}
-        </p>
+      <header class="sn-page-header">
+        <div>
+          <h1 class="sn-page-header__title">
+            {% if page_mode == "feedback" %}Feedback{% else %}Inbox{% endif %}
+            <span id="result-count-chip" class="sn-count-chip" hidden></span>
+          </h1>
+          <p class="sn-page-header__description">
+            {% if page_mode == "feedback" %}
+              Searchable archive across every status.
+            {% else %}
+              Triage queue: new, needs info, and reviewing items.
+            {% endif %}
+          </p>
+        </div>
+        <div class="sn-page-header__actions">
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/dashboard">Dashboard</a>
+          <a class="sn-button sn-button-primary" href="/w/{{ workspace_slug }}/feedback/new">+ New feedback</a>
+        </div>
       </header>
 
       <section class="sn-summary-cards" aria-labelledby="summary-heading">

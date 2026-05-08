@@ -130,6 +130,14 @@ tasks:
     cmds:
       - uv run python scripts/seed.py {{.CLI_ARGS}}
 
+  seed:workspace:
+    desc: "Seed a v2 workspace with rich demo data: task seed:workspace -- --slug husky5084 --reset"
+    cmds:
+      - uv run python scripts/seed_workspace.py {{.CLI_ARGS}}
+  seed:husky:
+    desc: "Reset husky5084 demo workspace (creates user husky5084@gmail.com / ChangeMe-Demo!23 if missing)"
+    cmds:
+      - uv run python scripts/seed_workspace.py --slug husky5084 --create-if-missing --owner-email husky5084@gmail.com --owner-password ChangeMe-Demo!23 --reset --count 150
   # ── Email replay ───────────────────────────────────────────
   # Re-send a failed/retrying email_log row once Resend is back.
   # Spec: docs/project/spec/v2/implementation.md — PR 3.1.

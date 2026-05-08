@@ -3,11 +3,17 @@
 {% block body %}
 <div class="sn-app-shell">
   {% include "_partials/sidebar.html" %}
-  <main id="main" class="sn-page-shell">
+  <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
     <div class="sn-content-gutter sn-stack">
-      <header class="sn-stack">
-        <h1>Insights</h1>
-        <p class="sn-text-muted">Aggregations across {{ total_items }} feedback item{{ '' if total_items == 1 else 's' }}.</p>
+      <header class="sn-page-header">
+        <div>
+          <h1 class="sn-page-header__title">Insights</h1>
+          <p class="sn-page-header__description">Aggregations across {{ total_items }} feedback item{{ '' if total_items == 1 else 's' }}.</p>
+        </div>
+        <div class="sn-page-header__actions">
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/dashboard">Dashboard</a>
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/inbox">Open inbox</a>
+        </div>
       </header>
 
       {% if insights is none %}

@@ -10,11 +10,16 @@
     data-is-owner="{{ 'true' if is_owner else 'false' }}"
   >
     <div class="sn-content-gutter sn-stack">
-      <header class="sn-stack">
-        <h1>Settings</h1>
-        <p class="sn-text-muted">
-          Workspace <code>{{ workspace_slug }}</code>
-        </p>
+      <header class="sn-page-header">
+        <div>
+          <h1 class="sn-page-header__title">Settings</h1>
+          <p class="sn-page-header__description">
+            Workspace <code>{{ workspace_slug }}</code>
+          </p>
+        </div>
+        <div class="sn-page-header__actions">
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/dashboard">Dashboard</a>
+        </div>
       </header>
 
       <p

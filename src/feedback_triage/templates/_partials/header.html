@@ -12,8 +12,16 @@
   </a>
   <nav class="sn-public-header__nav" aria-label="Primary">
     <ul role="list">
-      <li><a href="/login">Log in</a></li>
-      <li><a class="sn-button sn-button-primary" href="/signup">Start free</a></li>
+      {% if primary_workspace_slug %}
+        <li>
+          <a class="sn-button sn-button-primary" href="/w/{{ primary_workspace_slug }}/dashboard">
+            Go to dashboard
+          </a>
+        </li>
+      {% else %}
+        <li><a href="/login">Log in</a></li>
+        <li><a class="sn-button sn-button-primary" href="/signup">Start free</a></li>
+      {% endif %}
     </ul>
   </nav>
 </header>

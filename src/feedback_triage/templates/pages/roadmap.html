@@ -5,17 +5,18 @@
   {% include "_partials/sidebar.html" %}
   <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
     <div class="sn-content-gutter sn-stack">
-      <header class="sn-stack">
-        <h1>Roadmap</h1>
-        <p class="sn-text-muted">
-          Drag cards between columns to update their status. Toggle
-          <em>Public roadmap</em> to publish a card to the public view.
-        </p>
-        <p>
-          <a href="/w/{{ workspace_slug }}/roadmap/public" class="sn-link">
-            View public roadmap &rarr;
-          </a>
-        </p>
+      <header class="sn-page-header">
+        <div>
+          <h1 class="sn-page-header__title">Roadmap</h1>
+          <p class="sn-page-header__description">
+            Drag cards between columns to update their status. Toggle
+            <em>Public roadmap</em> to publish a card to the public view.
+          </p>
+        </div>
+        <div class="sn-page-header__actions">
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/roadmap/public">View public roadmap →</a>
+          <a class="sn-button sn-button-primary" href="/w/{{ workspace_slug }}/feedback/new">+ New feedback</a>
+        </div>
       </header>
 
       <p id="board-status" class="sn-text-muted" role="status" aria-live="polite">Loading…</p>
