@@ -43,9 +43,49 @@
 /* ---- Pills ---- */
 .sn-pill-status {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+    background: var(--tone-muted-bg);
+    color: var(--tone-muted-fg);
+}
+.sn-pill-status--info {
+    background: var(--tone-info-bg);
+    color: var(--tone-info-fg);
+}
+.sn-pill-status--warn {
+    background: var(--tone-warn-bg);
+    color: var(--tone-warn-fg);
+}
+.sn-pill-status--ok {
+    background: var(--tone-ok-bg);
+    color: var(--tone-ok-fg);
+}
+.sn-pill-status--muted {
+    background: var(--tone-muted-bg);
+    color: var(--tone-muted-fg);
+}
+.sn-pill-status--danger {
+    background: var(--tone-danger-bg);
+    color: var(--tone-danger-fg);
 }
 .sn-pill-priority {
     @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold;
+    background: var(--tone-muted-bg);
+    color: var(--tone-muted-fg);
+}
+.sn-pill-priority--low {
+    background: var(--tone-muted-bg);
+    color: var(--tone-muted-fg);
+}
+.sn-pill-priority--medium {
+    background: var(--tone-info-bg);
+    color: var(--tone-info-fg);
+}
+.sn-pill-priority--high {
+    background: var(--tone-warn-bg);
+    color: var(--tone-warn-fg);
+}
+.sn-pill-priority--critical {
+    background: var(--tone-danger-bg);
+    color: var(--tone-danger-fg);
 }
 /* Decorative leading glyph inside any pill -- ensures the icon never
    inherits the label's text decoration and stays at a consistent
@@ -152,4 +192,446 @@
 }
 tr[data-stale="true"] {
     background: color-mix(in srgb, var(--color-warning) 6%, transparent);
+}
+
+/* ---- Sidebar (PR 4.5) ----
+   Authenticated workspace navigation. Sticky-positioned within the
+   shell grid; the full-width version uses labels + icons, the
+   collapsed (≤1279px) and mobile-drawer variants override below. */
+.sn-sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    padding: 1rem 0.75rem;
+    gap: 1rem;
+    z-index: var(--z-sticky);
+}
+.sn-sidebar__brand {
+    @apply flex items-center gap-2 px-2 py-1 font-semibold;
+    color: var(--color-text);
+    text-decoration: none;
+}
+.sn-sidebar__brand-mark {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    display: inline-block;
+}
+.sn-sidebar__create {
+    @apply mx-2 my-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium;
+    background: var(--color-primary);
+    color: #ffffff;
+    text-decoration: none;
+}
+.sn-sidebar__create:hover {
+    background: var(--color-primary-hover);
+}
+.sn-sidebar-nav {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+.sn-sidebar-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+.sn-sidebar-nav a {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium;
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+.sn-sidebar-nav a:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+.sn-sidebar-nav a[aria-current="page"] {
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    color: var(--color-primary);
+}
+.sn-sidebar-nav .sn-sidebar-badge {
+    margin-left: auto;
+    @apply inline-flex items-center justify-center rounded-full px-2 text-xs font-semibold;
+    background: var(--tone-info-bg);
+    color: var(--tone-info-fg);
+    min-width: 1.25rem;
+}
+.sn-sidebar-footer {
+    border-top: 1px solid var(--color-border);
+    padding-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.sn-theme-switcher {
+    @apply flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium;
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+}
+.sn-theme-switcher:hover {
+    background: var(--color-surface);
+}
+
+/* Collapsed (icon-only) variant — kicks in on tablet by default and
+   anywhere `data-sidebar="collapsed"` is set. Item text falls back
+   to the `title` tooltip. */
+@media (max-width: 1279px) {
+    .sn-sidebar {
+        padding: 1rem 0.375rem;
+    }
+    .sn-sidebar__brand-label,
+    .sn-sidebar-nav a > span:not(.sn-sidebar-badge):not(.sn-sidebar-icon),
+    .sn-sidebar__create span,
+    .sn-theme-switcher span {
+        display: none;
+    }
+    .sn-sidebar-nav a {
+        justify-content: center;
+        padding: 0.625rem;
+    }
+}
+
+/* Mobile: hide the sidebar; a future mobile-nav drawer takes over. */
+@media (max-width: 767px) {
+    .sn-sidebar {
+        display: none;
+    }
+}
+
+/* ---- App header (PR 4.5) ----
+   Sits above .sn-app-shell__content. Holds breadcrumb, global
+   search, and the right-side menu cluster. Sticky so it stays
+   visible while the queue scrolls. */
+.sn-app-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: var(--space-header);
+    padding: 0 var(--space-page-gutter);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+.sn-app-header__breadcrumb {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    flex: 0 0 auto;
+}
+.sn-app-header__breadcrumb a {
+    color: inherit;
+    text-decoration: none;
+}
+.sn-app-header__breadcrumb a:hover {
+    color: var(--color-text);
+}
+.sn-app-header__search {
+    flex: 1 1 auto;
+    max-width: 32rem;
+}
+.sn-app-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+/* ---- Page header (per-page) ---- */
+.sn-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.sn-page-header__title {
+    @apply text-2xl font-semibold;
+    margin: 0;
+}
+.sn-page-header__description {
+    color: var(--color-text-muted);
+    margin: 0.25rem 0 0;
+}
+.sn-page-header__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ---- Summary card (PR 4.5) ----
+   Compact metric tile for the dashboard summary row. Single
+   number, single delta — anything richer goes to Insights. */
+.sn-summary-card {
+    @apply sn-card;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.sn-summary-card__label {
+    @apply text-xs font-medium uppercase tracking-wide;
+    color: var(--color-text-muted);
+}
+.sn-summary-card__value {
+    @apply text-2xl font-semibold;
+    color: var(--color-text);
+    line-height: 1.1;
+}
+.sn-summary-card__delta {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+.sn-summary-card__delta--up {
+    color: var(--tone-ok-fg);
+}
+.sn-summary-card__delta--down {
+    color: var(--tone-danger-fg);
+}
+
+/* ---- Attention panel (PR 4.5) ----
+   Right-of-queue card. Each row is a clickable filter shortcut
+   into the triage queue; the CTA at the bottom is the primary
+   "next action" surface for the dashboard. */
+.sn-attention-panel {
+    @apply sn-card;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.sn-attention-panel__title {
+    @apply text-lg font-medium;
+    margin: 0;
+}
+.sn-attention-panel__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+.sn-attention-panel__list li {
+    border-top: 1px solid var(--color-border);
+}
+.sn-attention-panel__list li:first-child {
+    border-top: 0;
+}
+.sn-attention-panel__list a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.625rem 0;
+    color: var(--color-text);
+    text-decoration: none;
+}
+.sn-attention-panel__list a:hover {
+    color: var(--color-primary);
+}
+.sn-attention-panel__count {
+    @apply text-base font-semibold;
+    min-width: 2.25rem;
+}
+.sn-attention-panel__cta {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+}
+
+/* ---- Drawer (PR 4.5) ----
+   Right-side slide-in for feedback detail. Positioning lives in
+   .sn-drawer-rail (layout.css); this rule paints the surface. */
+.sn-drawer {
+    background: var(--color-surface);
+    border-left: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+.sn-drawer__header {
+    @apply flex items-center justify-between gap-2 px-6 py-4;
+    border-bottom: 1px solid var(--color-border);
+}
+.sn-drawer__body {
+    @apply px-6 py-4;
+    flex: 1 1 auto;
+}
+.sn-drawer__footer {
+    @apply flex items-center justify-end gap-2 px-6 py-4;
+    border-top: 1px solid var(--color-border);
+}
+.sn-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 0.4);
+    z-index: calc(var(--z-drawer) - 1);
+}
+@media (max-width: 767px) {
+    .sn-drawer {
+        border-left: 0;
+    }
+}
+
+/* ---- Public header (PR 4.4 / refined PR 4.5) ----
+   Used on landing + auth pages. Single row; right-side nav
+   collapses to icons-only on small viewports. */
+.sn-public-header {
+    @apply flex items-center justify-between gap-4;
+    padding: 1rem var(--space-page-gutter);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+.sn-public-header__brand {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+.sn-public-header__nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.sn-public-header__nav a {
+    color: var(--color-text);
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+}
+.sn-public-header__nav a:hover {
+    background: var(--color-surface-alt);
+}
+
+/* ---- Hero (landing page) ---- */
+.sn-hero {
+    text-align: center;
+    padding-top: 4rem;
+    padding-bottom: 3rem;
+}
+.sn-hero h1 {
+    @apply text-4xl font-semibold;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+.sn-hero__tagline {
+    @apply text-lg;
+    color: var(--color-text-muted);
+    margin: 0.75rem 0 0;
+}
+.sn-hero__lede {
+    max-width: 36rem;
+    margin: 1rem auto 0;
+    color: var(--color-text-muted);
+}
+.sn-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+/* ---- Landing-page utility classes ----
+   Several elements on landing.html and the auth pages reference
+   these classes; they belong to the public-marketing surface and
+   are kept simple deliberately. */
+.sn-text-muted {
+    color: var(--color-text-muted);
+}
+.sn-label {
+    @apply block text-sm font-medium;
+    color: var(--color-text);
+    margin-bottom: 0.25rem;
+}
+.sn-input {
+    @apply block w-full rounded-xl border px-3 py-2 text-sm;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+.sn-input:focus-visible {
+    border-color: var(--color-focus);
+}
+
+.sn-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+}
+.sn-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.sn-table th,
+.sn-table td {
+    text-align: left;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.sn-table th {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.sn-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+.sn-table tbody tr:hover {
+    background: var(--color-surface-alt);
+}
+
+.sn-demo-card {
+    max-width: 56rem;
+    margin: 0 auto;
+}
+
+.sn-feature-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 0.75rem;
+}
+.sn-feature-grid li {
+    @apply rounded-xl border px-4 py-3 text-sm;
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.sn-workflow-strip {
+    list-style: none;
+    margin: 0;
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-lg);
+    color: var(--color-text);
+}
+
+.sn-portfolio-note {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
 }
