@@ -1,0 +1,103 @@
+{% extends "_base.html" %}
+{% block title %}New feedback — {{ workspace_name }} · SignalNest{% endblock %}
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell" data-workspace-slug="{{ workspace_slug }}">
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-page-header">
+        <div>
+          <h1 class="sn-page-header__title">New feedback</h1>
+          <p class="sn-page-header__description">
+            Capture an internal observation, support ticket, or interview note for {{ workspace_name }}.
+          </p>
+        </div>
+        <div class="sn-page-header__actions">
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/inbox">Cancel</a>
+        </div>
+      </header>
+
+      <form id="feedback-new-form" class="sn-card sn-stack" novalidate>
+        <p id="form-status" class="sn-text-muted" role="status" aria-live="polite" hidden></p>
+        <p id="form-error" class="sn-text-danger" role="alert" hidden></p>
+
+        <div class="sn-form-row">
+          <label for="f-title">Title</label>
+          <input id="f-title" name="title" type="text" required maxlength="200" autocomplete="off" />
+        </div>
+
+        <div class="sn-form-row">
+          <label for="f-description">Description <span class="sn-text-muted">(optional)</span></label>
+          <textarea id="f-description" name="description" rows="6" maxlength="5000"></textarea>
+        </div>
+
+        <div class="sn-grid-12">
+          <div class="sn-form-row" style="grid-column: span 6;">
+            <label for="f-source">Source</label>
+            <select id="f-source" name="source" class="sn-input" required>
+              <option value="email">Email</option>
+              <option value="interview">Interview</option>
+              <option value="reddit">Reddit</option>
+              <option value="support">Support</option>
+              <option value="app_store">App store</option>
+              <option value="twitter">Twitter</option>
+              <option value="public_form">Public form</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="sn-form-row" style="grid-column: span 6;">
+            <label for="f-type">Type</label>
+            <select id="f-type" name="type" class="sn-input">
+              <option value="bug">Bug</option>
+              <option value="feature_request">Feature request</option>
+              <option value="question">Question</option>
+              <option value="praise">Praise</option>
+              <option value="other" selected>Other</option>
+            </select>
+          </div>
+
+          <div class="sn-form-row" style="grid-column: span 4;">
+            <label for="f-pain">Pain level</label>
+            <select id="f-pain" name="pain_level" class="sn-input" required>
+              <option value="1">1 — minor</option>
+              <option value="2">2</option>
+              <option value="3" selected>3 — moderate</option>
+              <option value="4">4</option>
+              <option value="5">5 — severe</option>
+            </select>
+          </div>
+
+          <div class="sn-form-row" style="grid-column: span 4;">
+            <label for="f-status">Status</label>
+            <select id="f-status" name="status" class="sn-input">
+              <option value="new" selected>New</option>
+              <option value="needs_info">Needs info</option>
+              <option value="reviewing">Reviewing</option>
+              <option value="planned">Planned</option>
+              <option value="accepted">Accepted</option>
+            </select>
+          </div>
+
+          <div class="sn-form-row" style="grid-column: span 4;">
+            <label for="f-priority">Priority <span class="sn-text-muted">(optional)</span></label>
+            <select id="f-priority" name="priority" class="sn-input">
+              <option value="">—</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sn-form-actions">
+          <a class="sn-button sn-button-ghost" href="/w/{{ workspace_slug }}/inbox">Cancel</a>
+          <button type="submit" class="sn-button sn-button-primary">Create feedback</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+<script type="module" src="/static/js/feedback_new.js"></script>
+{% endblock %}

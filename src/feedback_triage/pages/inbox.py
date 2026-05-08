@@ -68,3 +68,23 @@ def feedback_list_page(
             "page_mode": "feedback",
         },
     )
+
+
+@router.get("/w/{slug}/feedback/new", summary="Create-feedback page (workspace-scoped)")
+def feedback_new_page(
+    request: Request,
+    ctx: WorkspaceContextDep,
+    db: DbDep,
+) -> HTMLResponse:
+    """Render the workspace-scoped create-feedback form."""
+    workspace = db.get(Workspace, ctx.id)
+    assert workspace is not None
+    return templates.TemplateResponse(
+        request,
+        "pages/feedback_new.html",
+        {
+            "workspace_slug": workspace.slug,
+            "workspace_name": workspace.name,
+            "active": "inbox",
+        },
+    )

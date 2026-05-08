@@ -56,7 +56,19 @@
                 password: form.password.value,
             });
             if (result.ok) {
-                window.location.assign(SAFE_REDIRECT);
+                // Prefer landing the user on their workspace dashboard
+                // so they don't have to type the route into the URL bar.
+                // Fall back to "/" if the response didn't include any
+                // memberships (shouldn't happen for normal users, but
+                // failing closed keeps the auth happy-path safe).
+                const memberships =
+                    (result.data && result.data.memberships) || [];
+                if (memberships.length > 0) {
+                    const slug = memberships[0].workspace_slug;
+                    window.location.assign("/w/" + slug + "/dashboard");
+                } else {
+                    window.location.assign(SAFE_REDIRECT);
+                }
                 return;
             }
             const detail =
