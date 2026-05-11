@@ -344,7 +344,7 @@ repos:
   # With rebase+merge, every commit message matters — this ensures
   # well-formed messages that feed into release-please's CHANGELOG.
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.15.0
+    rev: v4.15.1
     hooks:
       - id: commitizen
         stages: [commit-msg]
