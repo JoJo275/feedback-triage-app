@@ -76,6 +76,6 @@ jobs:
       # Reads .github/labeler.yml and applies matching labels
       # to the PR based on which files were changed.
       - name: Apply labels
-        uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # Automatically label new pull requests based on… (v6.0.1)
+        uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # Automatically label new pull requests based on… (v6.0.1)
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
