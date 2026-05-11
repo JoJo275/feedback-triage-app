@@ -44,8 +44,8 @@ dependencies = [
   "sqlalchemy>=2.0",            # Pin floor; sqlmodel pulls a 2.x
   "alembic>=1.13",              # Migrations
   "psycopg[binary]>=3.3.4",     # Postgres driver (sync)
-  "pydantic>=2.7",              # Validation
-  "pydantic-settings>=2.4",     # Settings via env vars
+  "pydantic>=2.13.4",              # Validation
+  "pydantic-settings>=2.14.1",     # Settings via env vars
   "email-validator>=2.0",       # Pydantic ``EmailStr`` validator
   "argon2-cffi>=25.1.0",
   "httpx>=0.27",                # Resend HTTP client (ADR 061)
@@ -103,7 +103,7 @@ dev = [
   "mypy>=1.20",
   "pre-commit>=4.0",
   "bandit>=1.9",
-  "commitizen>=4.15.0",
+  "commitizen>=4.15.1",
   "deptry>=0.25",
 ]
 docs = [
@@ -134,7 +134,7 @@ dev = [
   "mypy>=1.20",
   "pre-commit>=4.0",
   "bandit>=1.9",
-  "commitizen>=4.15.0",
+  "commitizen>=4.15.1",
   "deptry>=0.25",
 ]
 
