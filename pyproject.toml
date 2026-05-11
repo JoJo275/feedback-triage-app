@@ -100,7 +100,7 @@ e2e = ["playwright>=1.59.0", "pytest-playwright>=0.5"]
 dev = [
   "feedback-triage-app[test]",
   "ruff>=0.11",
-  "mypy>=1.20",
+  "mypy>=2.1.0",
   "pre-commit>=4.0",
   "bandit>=1.9",
   "commitizen>=4.15.0",
@@ -131,7 +131,7 @@ dashboard = ["fastapi[standard]>=0.136.1"]
 dev = [
   "feedback-triage-app[test]",
   "ruff>=0.11",
-  "mypy>=1.20",
+  "mypy>=2.1.0",
   "pre-commit>=4.0",
   "bandit>=1.9",
   "commitizen>=4.15.0",
