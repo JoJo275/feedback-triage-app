@@ -13,7 +13,7 @@
 > **Source of truth, in order of authority:**
 > [`core-idea.md`](core-idea.md) (locked strings, sidebar order,
 > visual non-negotiables) →
-> [`pages.md`](pages.md) (per-page composition) →
+> [`information-architecture.md`](information-architecture.md) (per-page composition) →
 > [`ui.md`](ui.md) (route map, accessibility) →
 > [`css.md`](css.md) + [`theming.md`](theming.md) (CSS plumbing) →
 > this file (synthesis + dashboard-specific decisions).
@@ -51,7 +51,7 @@ do next."*
 
 The hierarchy goal: **action first, analytics second.** A polished
 donut chart that doesn't drive a decision sits on
-[`/w/<slug>/insights`](pages.md), not on the dashboard.
+[`/w/<slug>/insights`](information-architecture.md), not on the dashboard.
 
 ---
 
@@ -248,7 +248,7 @@ Every authenticated page opens with the same three elements:
 [primary action button — optional, right-aligned on desktop]
 ```
 
-Examples (canonical copy lives in [`pages.md`](pages.md), repeated
+Examples (canonical copy lives in [`information-architecture.md`](information-architecture.md), repeated
 here for layout context):
 
 | Page      | `<h1>`     | Description                                                          | Primary action       |
@@ -525,7 +525,7 @@ up-front, not retrofit.
 
 ## Page composition — non-dashboard surfaces
 
-Per-page detail lives in [`pages.md`](pages.md). The shapes below
+Per-page detail lives in [`information-architecture.md`](information-architecture.md). The shapes below
 are the layout-level summary so this document is self-contained.
 
 ### Inbox (`/w/<slug>/inbox`)
@@ -655,7 +655,7 @@ page template.
 
 - [`core-idea.md`](core-idea.md) — locked strings, sidebar order,
   visual non-negotiables, role model.
-- [`pages.md`](pages.md) — per-page composition and copy.
+- [`information-architecture.md`](information-architecture.md) — per-page composition and copy.
 - [`ui.md`](ui.md) — full route map, JS conventions, accessibility
   hooks.
 - [`css.md`](css.md) — four-charter rules, specificity ceiling,

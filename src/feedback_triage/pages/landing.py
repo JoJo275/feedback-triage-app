@@ -2,7 +2,7 @@
 
 Mounted at ``/`` and served unauthenticated. Hosts the FU1 mini
 demo and the public marketing surface described in
-``docs/project/spec/v2/pages.md`` -- Landing.
+``docs/project/spec/v2/information-architecture.md`` -- Landing.
 
 Per ``docs/project/spec/v2/performance-budgets.md`` -- Public-page
 caching: ``Cache-Control: public, max-age=300,

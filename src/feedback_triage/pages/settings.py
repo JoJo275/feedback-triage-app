@@ -11,7 +11,7 @@ the *Members* table and the *Public submit* toggle when the
 caller's role is ``owner`` (or site-wide ``admin``). Non-owners get
 a single read-only *Workspace* card. This mirrors the spec's
 "hidden, not just disabled, for non-owners" requirement
-(``docs/project/spec/v2/pages.md`` — Settings).
+(``docs/project/spec/v2/information-architecture.md`` — Settings).
 """
 
 from __future__ import annotations

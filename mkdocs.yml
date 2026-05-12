@@ -102,7 +102,7 @@ nav:
           - Multi-tenancy: project/spec/v2/multi-tenancy.md
           - Repo structure: project/spec/v2/repo-structure.md
           - UI: project/spec/v2/ui.md
-          - Pages: project/spec/v2/pages.md
+          - Information architecture: project/spec/v2/information-architecture.md
           - CSS: project/spec/v2/css.md
           - Email: project/spec/v2/email.md
           - Security: project/spec/v2/security.md

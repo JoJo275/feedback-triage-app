@@ -96,7 +96,7 @@ The inbox supports independent sort/filter on both fields. The
 default sort is `priority DESC, pain_level DESC, created_at
 ASC` — team decision first, customer signal as tiebreaker, age
 as final tiebreaker. Workspaces can override via saved filters
-(spec'd in [`v2/pages.md`](../project/spec/v2/pages.md)).
+(spec'd in [`v2/information-architecture.md`](../project/spec/v2/information-architecture.md)).
 
 ### Composite metrics live elsewhere
 
@@ -195,7 +195,7 @@ the submitter's report — that divergence is the data we want.
 - [`docs/project/spec/v2/schema.md`](../project/spec/v2/schema.md)
   — `priority_enum`, the `priority` column DDL,
   `pain_level` `CHECK` (unchanged from v1.0).
-- [`docs/project/spec/v2/pages.md`](../project/spec/v2/pages.md)
+- [`docs/project/spec/v2/information-architecture.md`](../project/spec/v2/information-architecture.md)
   — feedback-detail layout (pain meter + priority chip).
 - [`docs/project/spec/v2/api.md`](../project/spec/v2/api.md) —
   request/response shapes for `pain_level` and `priority`.

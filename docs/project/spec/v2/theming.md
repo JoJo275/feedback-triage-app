@@ -304,7 +304,7 @@ information channel doesn't depend on color alone.
 ## Cross-references
 
 - [`css.md`](css.md) — the rules these recipes implement.
-- [`pages.md`](pages.md) — page-level layouts and component
+- [`information-architecture.md`](information-architecture.md) — page-level layouts and component
   inventory.
 - [`copy-style-guide.md`](copy-style-guide.md) — for any visible
   string you add while restyling.

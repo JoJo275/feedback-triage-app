@@ -6,7 +6,7 @@ state are populated client-side by ``static/js/inbox.js`` against
 the v2 ``GET /api/v1/feedback`` endpoint shipped in PR 2.2.
 
 The default filter is ``status IN ('new', 'needs_info', 'reviewing')``
-per ``docs/project/spec/v2/pages.md`` — Inbox.
+per ``docs/project/spec/v2/information-architecture.md`` — Inbox.
 """
 
 from __future__ import annotations

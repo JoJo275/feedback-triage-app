@@ -9,7 +9,7 @@ the three roadmap statuses (``planned`` / ``in_progress`` /
 ``shipped``), renders cards, and wires the column-move + publish
 toggle controls against ``PATCH /api/v1/feedback/{id}``.
 
-Per ``docs/project/spec/v2/pages.md`` -- Roadmap (management).
+Per ``docs/project/spec/v2/information-architecture.md`` -- Roadmap (management).
 """
 
 from __future__ import annotations

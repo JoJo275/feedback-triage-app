@@ -5,7 +5,7 @@ Renders ``/w/{slug}/submitters`` (list) and
 server-rendered shells; the table body and the recent-feedback list
 are populated client-side against the v2 submitters and feedback
 endpoints (see ``static/js/submitters.js`` and
-``submitter_detail.js``). Spec: ``docs/project/spec/v2/pages.md`` —
+``submitter_detail.js``). Spec: ``docs/project/spec/v2/information-architecture.md`` —
 Submitters list / Submitter detail.
 """
 
