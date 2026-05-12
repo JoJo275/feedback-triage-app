@@ -140,6 +140,8 @@ do need this round-trip to pass on each PR that adds a revision.
 - Email addresses use `@example.test` (RFC 6761).
 - Passwords use the literal string `"correct horse battery staple"`
   (XKCD reference; passes the password-policy validator).
+- Canonical account identity/credential references are centralized in
+  [`accounts.md`](accounts.md).
 
 ---
 

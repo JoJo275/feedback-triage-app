@@ -26,8 +26,8 @@ Notes:
   request came from.
 - `reset-password` revokes **every** session including the active one
   (the assumption is account compromise; user logs in fresh).
-- The `demo` user cannot reset passwords or change email — the demo
-  password lives in the seed and rotates per release.
+- The `demo` user cannot reset passwords or change email. Canonical
+  demo/admin/example account references live in [`accounts.md`](accounts.md).
 
 ---
 
