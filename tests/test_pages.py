@@ -62,6 +62,21 @@ def test_login_and_signup_redirect_authenticated_users_to_dashboard(
     assert response.headers.get("cache-control") == "private, no-store"
 
 
+@pytest.mark.parametrize("path", ["/login", "/signup"])
+def test_auth_pages_include_password_toggle_controls(
+    client: TestClient,
+    path: str,
+) -> None:
+    response = client.get(path)
+    assert response.status_code == 200
+    body = response.text
+    assert "sn-auth-card" in body
+    assert "sn-auth-input" in body
+    assert "data-password-toggle" in body
+    assert 'data-target-input="password"' in body
+    assert "/static/js/auth.js" in body
+
+
 def test_new_page_serves_html(client: TestClient) -> None:
     response = client.get("/new")
     assert response.status_code == 200

@@ -49,6 +49,27 @@
     @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8;
 }
 
+.sn-auth-page .sn-content-gutter {
+    width: 100%;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+}
+
+.sn-auth-layout {
+    width: 100%;
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (min-width: 1024px) {
+    .sn-auth-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 40rem);
+        align-items: center;
+    }
+}
+
 .sn-stack {
     display: flex;
     flex-direction: column;
