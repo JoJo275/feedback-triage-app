@@ -126,10 +126,10 @@ tasks:
     desc: "Seed a v2 workspace with rich demo data: task seed:workspace -- --slug demo-owner --reset"
     cmds:
       - uv run python scripts/seed_workspace.py {{.CLI_ARGS}}
-  seed:husky:
-    desc: "Reset demo-owner workspace (creates user demo-owner@example.test / ChangeMe-Demo!23 if missing)"
+  seed:demo:
+    desc: "Reset demo-owner workspace (creates user demo-owner@signalnest.app / ChangeMe-Demo!23 if missing)"
     cmds:
-      - uv run python scripts/seed_workspace.py --slug demo-owner --create-if-missing --owner-email demo-owner@example.test --owner-password ChangeMe-Demo!23 --reset --count 150
+      - uv run python scripts/seed_workspace.py --slug demo-owner --create-if-missing --owner-email demo-owner@signalnest.app --owner-password ChangeMe-Demo!23 --reset --count 150
   # ── Email replay ───────────────────────────────────────────
   # Re-send a failed/retrying email_log row once Resend is back.
   # Spec: docs/project/spec/v2/implementation.md — PR 3.1.

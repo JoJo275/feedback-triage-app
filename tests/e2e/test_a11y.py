@@ -85,9 +85,8 @@ def _signup(page: Page, base_url: str, email: str) -> str:
     page.get_by_label("Email").fill(email)
     page.get_by_label("Password").fill(VALID_PASSWORD)
     page.get_by_role("button", name="Sign in").click()
-    # Login lands the user at "/"; the page renders once the session
-    # cookie is set. Wait for navigation away from /login.
-    page.wait_for_url(f"{base_url}/")
+    # Login lands the user on their workspace dashboard.
+    page.wait_for_url(f"{base_url}/w/*/dashboard")
     return str(slug)
 
 

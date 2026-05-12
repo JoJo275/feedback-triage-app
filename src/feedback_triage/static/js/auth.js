@@ -105,10 +105,6 @@
         input.type = reveal ? "text" : "password";
         toggle.textContent = reveal ? "Hide" : "Show";
         toggle.setAttribute("aria-pressed", reveal ? "true" : "false");
-        toggle.setAttribute(
-            "aria-label",
-            reveal ? "Hide password" : "Show password",
-        );
     }
 
     function resetPasswordToggles(scope) {
