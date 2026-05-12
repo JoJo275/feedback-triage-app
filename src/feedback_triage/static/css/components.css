@@ -21,7 +21,11 @@
     @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium;
 }
 .sn-button-primary {
-    @apply bg-brand text-white hover:bg-brand-hover;
+    @apply text-slate-950;
+    background: var(--color-primary);
+}
+.sn-button-primary:hover {
+    background: color-mix(in srgb, var(--color-primary) 88%, #ffffff);
 }
 .sn-button-secondary {
     @apply bg-surface border border-line text-ink hover:bg-surface-alt;
@@ -335,8 +339,8 @@
 .sn-stale-badge {
     @apply inline-flex items-center rounded-full px-2 py-0.5
            ml-2 text-[0.6875rem] font-semibold uppercase tracking-wide;
-    color: var(--color-warning);
-    background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+    color: var(--tone-warn-fg);
+    background: var(--tone-warn-bg);
 }
 tr[data-stale="true"] {
     background: color-mix(in srgb, var(--color-warning) 6%, transparent);
@@ -374,11 +378,11 @@ tr[data-stale="true"] {
 .sn-sidebar__create {
     @apply mx-2 my-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium;
     background: var(--color-primary);
-    color: #ffffff;
+    color: #020617;
     text-decoration: none;
 }
 .sn-sidebar__create:hover {
-    background: var(--color-primary-hover);
+    background: color-mix(in srgb, var(--color-primary) 88%, #ffffff);
 }
 .sn-sidebar-nav {
     flex: 1 1 auto;
@@ -403,7 +407,7 @@ tr[data-stale="true"] {
 }
 .sn-sidebar-nav a[aria-current="page"] {
     background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-    color: var(--color-primary);
+    color: var(--color-text);
 }
 .sn-sidebar-nav .sn-sidebar-badge {
     margin-left: auto;
@@ -904,7 +908,7 @@ tr[data-stale="true"] {
 }
 .sn-table th {
     font-weight: 600;
-    color: var(--color-text-muted);
+    color: var(--tone-muted-fg);
     background: var(--color-surface-alt);
     font-size: 0.75rem;
     text-transform: uppercase;

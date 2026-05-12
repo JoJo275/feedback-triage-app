@@ -23,7 +23,7 @@ Scope rules:
 | --- | ----------- | ------------- | -------- | ----------------- | ----- |
 | `bootstrap_admin` | prod / staging at first deploy | platform `admin` bootstrap user | Email comes from `ADMIN_BOOTSTRAP_EMAIL` | Password comes from `ADMIN_BOOTSTRAP_PASSWORD` | One-time bootstrap identity used in v1->v2 cut-over; rotate/reset immediately after first sign-in. |
 | `legacy_synthetic_admin` | migration + local/test fixtures | synthetic `admin` owner for legacy workspace | `legacy@signalnest.local` | Password hash sentinel: `!disabled-legacy-v1-admin!` | Not a valid Argon2 hash; login intentionally disabled. Owns `signalnest-legacy` during migration compatibility flows. |
-| `demo_owner_seed` | local dev convenience seed | `team_member` user + workspace `owner` membership | `demo-owner@example.test` | `ChangeMe-Demo!23` (Task task `seed:husky`) | Created only when `seed_workspace.py --create-if-missing` is used by `task seed:husky`. Local/dev only. |
+| `demo_owner_seed` | local dev convenience seed | `team_member` user + workspace `owner` membership | `demo-owner@signalnest.app` | `ChangeMe-Demo!23` (Task task `seed:demo`) | Created only when `seed_workspace.py --create-if-missing` is used by `task seed:demo`. Local/dev only. |
 | `shared_demo_user` | product demo surface | platform `demo` (read-only workspace access) | release-seeded shared login (value not hard-coded in repo) | rotated per release seed process | Demo account cannot write; all write routes return `code=demo_read_only`. |
 | `test_auth_pattern` | automated tests | disposable auth test users | `*@example.com` and `*@example.test` | test password baseline: `correct horse battery staple` | Pattern-level entry; tests generate many concrete addresses under these domains. |
 
@@ -37,7 +37,7 @@ Scope rules:
   [`../../../../alembic/versions/0002_v2_a_auth_tenancy_email_log.py`](../../../../alembic/versions/0002_v2_a_auth_tenancy_email_log.py),
   [`../../../../tests/conftest.py`](../../../../tests/conftest.py),
   [`../../../../src/feedback_triage/auth/hashing.py`](../../../../src/feedback_triage/auth/hashing.py)
-- Local husky seed account:
+- Local demo-owner seed account:
   [`../../../../Taskfile.yml`](../../../../Taskfile.yml),
   [`../../../../scripts/seed_workspace.py`](../../../../scripts/seed_workspace.py)
 - Test password and identity-domain conventions:
