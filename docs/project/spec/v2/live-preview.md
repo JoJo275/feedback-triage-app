@@ -21,16 +21,28 @@ That runs three things in the right order:
 
 1. `task build:css` — one-shot Tailwind build so the first request
    renders correctly.
-2. `uv run fastapi dev …` — FastAPI in **dev mode**, which auto-reloads
+2. Starts the local FastAPI app in **dev mode**, which auto-reloads
    on Python and template changes.
-3. `task watch:css` — Tailwind in watch mode, rebuilding `app.css`
-   on every save under `static/css/` and `templates/`.
+3. Starts the Tailwind watcher so `app.css` is rebuilt on every save
+   under `static/css/` and `templates/`.
 
 Open <http://127.0.0.1:8000/> (or `/styleguide` for the design
 sandbox), edit, **save**, hit reload. That's the whole loop.
 
 If `task dev:all` is too noisy in one terminal, run `task dev` in
 one and `task watch:css` in a second — same outcome, two panes.
+
+### VS Code integrated browser + Copilot share
+
+For an in-editor preview loop:
+
+1. Keep `task dev:all` running.
+2. Open <http://127.0.0.1:8000/> in a VS Code browser tab.
+3. Click **Sharing with Agent** in the tab toolbar when you want
+   Copilot to inspect the page.
+
+If you see a "Server Offline" screen in that tab, the browser is fine
+and only the local server is down. Start the server again and refresh.
 
 ---
 
