@@ -44,13 +44,19 @@ def _workspace_id(membership: dict[str, Any]) -> uuid.UUID:
     return uuid.UUID(membership["workspace_id"])
 
 
-def _post_feedback(client: TestClient, slug: str, title: str) -> dict[str, Any]:
+def _post_feedback(
+    client: TestClient,
+    slug: str,
+    title: str,
+    *,
+    source: str = "email",
+) -> dict[str, Any]:
     resp = client.post(
         "/api/v1/feedback",
         json={
             "title": title,
             "description": "body",
-            "source": "email",
+            "source": source,
             "pain_level": 3,
         },
         headers={"X-Workspace-Slug": slug},
@@ -168,3 +174,29 @@ def test_summary_cache_is_per_workspace(
     assert bob_summary.total_items == 1
     # And neither summary is the other (no key collision).
     assert alice_summary is not bob_summary
+
+
+def test_summary_includes_source_breakdown(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+    workspace_id = _workspace_id(body["memberships"][0])
+
+    _post_feedback(auth_client, slug, "email one", source="email")
+    _post_feedback(auth_client, slug, "email two", source="email")
+    _post_feedback(auth_client, slug, "support one", source="support")
+
+    with SessionLocal() as db:
+        summary = dashboard_aggregator.get_summary(
+            db,
+            workspace_id=workspace_id,
+            role=WorkspaceRole.OWNER,
+        )
+
+    breakdown = {item.source: item for item in summary.source_breakdown}
+    assert breakdown["email"].count == 2
+    assert breakdown["support"].count == 1
+    assert breakdown["email"].percent == 67
+    assert breakdown["support"].percent == 33
