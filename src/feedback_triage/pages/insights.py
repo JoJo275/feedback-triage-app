@@ -2,7 +2,7 @@
 
 Mounted at ``/w/{slug}/insights``. Three inline-SVG charts (no JS
 chart library): top tags bar, status mix donut, pain-level
-histogram. Per ``docs/project/spec/v2/pages.md`` -- Insights.
+histogram. Per ``docs/project/spec/v2/information-architecture.md`` -- Insights.
 
 The page is server-rendered: insights are read-once on each
 request rather than going through the dashboard cache. The query

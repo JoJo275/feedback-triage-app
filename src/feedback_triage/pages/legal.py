@@ -4,7 +4,7 @@ Plain Jinja-rendered HTML, served unauthenticated. Linked from the
 landing footer; the same footer partial is included on these pages
 so navigation between them works without bouncing through ``/``.
 
-Per ``docs/project/spec/v2/pages.md`` -- Landing footer.
+Per ``docs/project/spec/v2/information-architecture.md`` -- Landing footer.
 """
 
 from __future__ import annotations

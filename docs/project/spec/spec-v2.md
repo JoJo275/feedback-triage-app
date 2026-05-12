@@ -180,7 +180,7 @@ Deferred (with rationale in [Future Improvements](#future-improvements-after-v20
 | File                                            | Topic                                                          |
 | ----------------------------------------------- | -------------------------------------------------------------- |
 | [`v2/ui.md`](v2/ui.md)                          | Page routes, JS conventions, sidebar order, public submission, JS XSS contract |
-| [`v2/pages.md`](v2/pages.md)                    | Per-page catalog: sections, components, copy strings, empty states |
+| [`v2/information-architecture.md`](v2/information-architecture.md) | Sitemap, route map, navigation, user flows, and per-page catalog |
 | [`v2/css.md`](v2/css.md)                        | CSS conventions, design tokens, Tailwind config, component vocabulary |
 
 **Cross-cutting:**

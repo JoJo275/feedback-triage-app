@@ -8,7 +8,7 @@
 > code follows.
 >
 > **Why we made the jump now:** v2.0 ships ~22 distinct pages
-> ([`../project/spec/v2/pages.md`](../project/spec/v2/pages.md)),
+> ([`../project/spec/v2/information-architecture.md`](../project/spec/v2/information-architecture.md)),
 > a deliberate visual identity, and intent for custom effects.
 > The original "single `input.css`" model was sized for the
 > v1.0 surface (~5 pages); at the v2.0 scale, splitting was

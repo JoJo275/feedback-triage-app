@@ -3,7 +3,7 @@
 > Topical detail file. Entry point: [`../spec-v2.md`](../spec-v2.md).
 > See also: [`core-idea.md`](core-idea.md),
 > [`error-catalog.md`](error-catalog.md),
-> [`pages.md`](pages.md), [`email.md`](email.md).
+> [`information-architecture.md`](information-architecture.md), [`email.md`](email.md).
 
 This file is **how SignalNest sounds** in product UI, error
 messages, marketing copy, and email. It promotes the brand voice

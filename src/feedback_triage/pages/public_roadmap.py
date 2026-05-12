@@ -4,7 +4,7 @@ Mounted at ``/w/{slug}/roadmap/public``. Unauthenticated, read-only.
 
 Renders three columns -- *Planned*, *In progress*, *Recently shipped
 (last 30 days)* -- of feedback items where ``published_to_roadmap``
-is ``true``. Per ``docs/project/spec/v2/pages.md`` -- Public roadmap.
+is ``true``. Per ``docs/project/spec/v2/information-architecture.md`` -- Public roadmap.
 
 Cards show title, type, and tags only -- never submitter info. The
 spec security model treats the roadmap as a fully public surface, so
@@ -37,7 +37,7 @@ DbDep = Annotated[DbSession, Depends(get_db)]
 # caching. 5 min fresh, 10 min stale-while-revalidate.
 _CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=600"
 
-# "Recently shipped" window per ``pages.md`` -- Public roadmap.
+# "Recently shipped" window per ``information-architecture.md`` -- Public roadmap.
 _RECENT_SHIPPED_WINDOW = timedelta(days=30)
 
 

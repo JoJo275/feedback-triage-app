@@ -4,7 +4,7 @@ Mounted at ``/w/{slug}/changelog/public``. Unauthenticated, read-only.
 
 Reverse-chronological list of feedback items where ``status =
 'shipped'`` *and* ``published_to_changelog = true``. Per
-``docs/project/spec/v2/pages.md`` -- Public changelog.
+``docs/project/spec/v2/information-architecture.md`` -- Public changelog.
 
 The shipped date is sourced from ``updated_at`` -- v2.0 does not
 maintain a separate ``shipped_at`` timestamp (the trigger keeps

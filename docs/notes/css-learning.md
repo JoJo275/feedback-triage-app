@@ -1984,7 +1984,7 @@ A single file works up to ~600 lines or so. After that:
 
 The original v2.0 plan kept everything in `input.css`. With
 ~22 pages catalogued in
-[`../project/spec/v2/pages.md`](../project/spec/v2/pages.md)
+[`../project/spec/v2/information-architecture.md`](../project/spec/v2/information-architecture.md)
 and a deliberate visual identity, the single-file model
 would have grown to ~1000+ lines mixing tokens, components,
 layout, and effects. Splitting up front:

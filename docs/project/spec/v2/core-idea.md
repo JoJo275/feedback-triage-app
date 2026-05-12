@@ -12,7 +12,7 @@
 > here.
 >
 > **Companions:** CSS plumbing in [`css.md`](css.md); per-page
-> composition in [`pages.md`](pages.md); product/business posture
+> composition in [`information-architecture.md`](information-architecture.md); product/business posture
 > in [`business.md`](business.md). Frontend rationale and
 > accessibility checklist in
 > [`../../../notes/frontend-conventions.md`](../../../notes/frontend-conventions.md).
@@ -653,7 +653,7 @@ Use during implementation review of each surface.
 - [`../spec-v2.md`](../spec-v2.md) — v2.0 spec entry point.
 - [`../spec-v1.md`](../spec-v1.md) — shipped v1.0 spec.
 - [`css.md`](css.md) — CSS conventions, design tokens, Tailwind config.
-- [`pages.md`](pages.md) — per-page UI catalog.
+- [`information-architecture.md`](information-architecture.md) — per-page UI catalog.
 - [`business.md`](business.md) — product positioning and pricing.
 - [`../../../notes/frontend-conventions.md`](../../../notes/frontend-conventions.md) — frontend rationale + accessibility checklist.
 - [ADR 056 — Style guide page](../../../adr/056-style-guide-page.md)

@@ -62,7 +62,7 @@ The system rests on three discipline rules that bind every layer:
 
 ## File organization
 
-v2.0 ships ~22 distinct pages ([`pages.md`](pages.md)) and a
+v2.0 ships ~22 distinct pages ([`information-architecture.md`](information-architecture.md)) and a
 deliberate visual identity. Putting all CSS source in one file
 makes diffs noisy and hides the *kind* of change behind
 line-level edits. v2.0 therefore splits CSS source into five
@@ -536,7 +536,7 @@ utility strings:
 | `sn-grid-12`         | 12-column CSS grid                                      |
 
 Why these are promoted now: the v2.0 page surface is ~22
-distinct screens ([`pages.md`](pages.md)). Composing each from
+distinct screens ([`information-architecture.md`](information-architecture.md)). Composing each from
 raw utility strings at the call site duplicates the same
 six-utility shells dozens of times. Layout primitives in
 `layout.css` make page templates read as structure
@@ -620,7 +620,7 @@ does not contain the CLI binary.
 ## Cross-references
 
 - [`core-idea.md`](core-idea.md) — palette, components shorthand.
-- [`pages.md`](pages.md) — per-page composition using these classes.
+- [`information-architecture.md`](information-architecture.md) — per-page composition using these classes.
 - [`theming.md`](theming.md) — practical recipes for changing
   colors, components, layout, motion, and adding theme presets
   without breaking these rules.

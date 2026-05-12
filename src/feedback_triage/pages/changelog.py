@@ -8,7 +8,7 @@ inline release-note editor and a publish-to-changelog toggle. The
 shell is server-rendered; ``static/js/changelog.js`` boots the
 fetch + edit-on-blur flow against ``PATCH /api/v1/feedback/{id}``.
 
-Per ``docs/project/spec/v2/pages.md`` -- Changelog (management).
+Per ``docs/project/spec/v2/information-architecture.md`` -- Changelog (management).
 """
 
 from __future__ import annotations
