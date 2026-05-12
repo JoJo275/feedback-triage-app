@@ -86,3 +86,4 @@ def test_dashboard_cross_tenant_returns_404(auth_client: TestClient) -> None:
 
     resp = auth_client.get("/w/some-other-slug/dashboard")
     assert resp.status_code == 404
+    assert "Not found." in resp.text

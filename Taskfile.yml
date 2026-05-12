@@ -63,17 +63,9 @@ tasks:
     deps:
       - build:css
     cmds:
-      # `deps:` finishes before `cmds:`, so build:css completes first;
-      # then dev:server and watch:css run in parallel via the second
-      # `deps:` block in a wrapper task.
-      - task: dev:parallel
-
-  dev:parallel:
-    desc: Run dev:server + watch:css concurrently (internal)
-    internal: true
-    deps:
-      - dev:server
-      - watch:css
+      # Run both long-lived processes under a single supervisor so
+      # Ctrl+C reliably tears down both trees on Windows as well.
+      - uv run python tools/dev_tools/dev_all_supervisor.py
 
   # ── Docker Compose (Postgres) ───────────────────────────────
   up:

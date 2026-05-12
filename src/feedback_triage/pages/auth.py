@@ -14,23 +14,65 @@ amendment), Jinja is allowed for application HTML in v2.0 — the
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Request, status
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from sqlalchemy.orm import Session as DbSession
+
+from feedback_triage.auth.deps import CurrentUserOptionalDep
+from feedback_triage.auth.service import primary_workspace_slug
+from feedback_triage.database import get_db
 from feedback_triage.templating import templates
 
 router = APIRouter(include_in_schema=False)
 
+DbDep = Annotated[DbSession, Depends(get_db)]
+
+
+def _dashboard_redirect(
+    user: CurrentUserOptionalDep,
+    db: DbDep,
+) -> Response | None:
+    """Return a dashboard redirect for signed-in callers when possible."""
+    if user is None:
+        return None
+
+    slug = primary_workspace_slug(db, user_id=user.id)  # type: ignore[arg-type]
+    if slug is None:
+        return None
+
+    response = RedirectResponse(
+        url=f"/w/{slug}/dashboard",
+        status_code=status.HTTP_302_FOUND,
+    )
+    response.headers["Cache-Control"] = "private, no-store"
+    return response
+
 
 @router.get("/login", summary="Sign-in page")
-def login_page(request: Request) -> HTMLResponse:
+def login_page(
+    request: Request,
+    user: CurrentUserOptionalDep,
+    db: DbDep,
+) -> Response:
     """Render the sign-in form."""
+    redirect = _dashboard_redirect(user, db)
+    if redirect is not None:
+        return redirect
     return templates.TemplateResponse(request, "pages/auth/login.html")
 
 
 @router.get("/signup", summary="Sign-up page")
-def signup_page(request: Request) -> HTMLResponse:
+def signup_page(
+    request: Request,
+    user: CurrentUserOptionalDep,
+    db: DbDep,
+) -> Response:
     """Render the sign-up form."""
+    redirect = _dashboard_redirect(user, db)
+    if redirect is not None:
+        return redirect
     return templates.TemplateResponse(request, "pages/auth/signup.html")
 
 

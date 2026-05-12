@@ -180,3 +180,28 @@ def list_memberships(
         .where(col(WorkspaceMembership.user_id) == user_id),
     ).all()
     return [(m, w) for m, w in rows]
+
+
+def primary_workspace_slug(
+    db: DbSession,
+    *,
+    user_id: uuid.UUID,
+) -> str | None:
+    """Return a deterministic workspace slug for user-facing redirects.
+
+    Prefer an owner membership when present; otherwise fall back to
+    the first workspace slug in lexical order.
+    """
+    rows = list_memberships(db, user_id=user_id)
+    if not rows:
+        return None
+
+    owner_slugs = sorted(
+        workspace.slug
+        for membership, workspace in rows
+        if membership.role == WorkspaceRole.OWNER
+    )
+    if owner_slugs:
+        return owner_slugs[0]
+
+    return sorted(workspace.slug for _, workspace in rows)[0]

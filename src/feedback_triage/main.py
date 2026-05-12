@@ -49,6 +49,7 @@ from feedback_triage.pages import public_submit as public_submit_pages
 from feedback_triage.pages import roadmap as roadmap_pages
 from feedback_triage.pages import settings as settings_pages
 from feedback_triage.pages import submitters as submitters_pages
+from feedback_triage.pages import system as system_pages
 from feedback_triage.routes import health, pages
 from feedback_triage.routes.pages import STATIC_DIR
 
@@ -159,6 +160,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(feedback_detail_pages.router)
     app.include_router(settings_pages.router)
     app.include_router(submitters_pages.router)
+    app.include_router(system_pages.router)
     app.include_router(pages.router)
 
     register_exception_handlers(app)
