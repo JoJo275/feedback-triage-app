@@ -154,6 +154,11 @@ tasks:
     cmds:
       - uv run pytest -m e2e {{.CLI_ARGS}}
 
+  test:db:reset:
+    desc: Drop/recreate isolated pytest DB and migrate to head
+    cmds:
+      - uv run python tools/dev_tools/test_db_reset.py {{.CLI_ARGS}}
+
   # ── Frontend (Tailwind via Standalone CLI) ─────────────────
   # See docs/project/spec/v2/css.md and ADR 058. Output is the
   # hashed app.<hash>.css plus manifest.json under

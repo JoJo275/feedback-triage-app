@@ -10,6 +10,8 @@ processes and supervises them as a unit:
 On Windows, each child is started in its own process group so Ctrl+C
 can be forwarded as ``CTRL_BREAK_EVENT`` and the entire tree is
 terminated (reloader + worker), avoiding orphaned ``watchfiles`` logs.
+An intentional Ctrl+C exits with status 0 so ``task dev:all`` closes
+without a failed-task banner.
 """
 
 from __future__ import annotations
@@ -27,11 +29,14 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 
 _IS_WINDOWS = os.name == "nt"
 _INTERRUPT_WAIT_SECONDS = 3.0
 _TERMINATE_WAIT_SECONDS = 2.0
+_FAST_INTERRUPT_WAIT_SECONDS = 0.8
+_FAST_TERMINATE_WAIT_SECONDS = 0.6
+_WIN_CTRL_C_EXIT_CODE = 3221225786
 
 
 @dataclass(slots=True)
@@ -89,7 +94,7 @@ def _smoke() -> int:
     if missing:
         logger.error("Missing required files: %s", ", ".join(missing))
         return 2
-    print(f"dev_all_supervisor {SCRIPT_VERSION}: smoke ok")
+    print(f"dev_all_supervisor {SCRIPT_VERSION}: smoke ok")  # noqa: T201
     return 0
 
 
@@ -147,15 +152,22 @@ def _wait_for_exit(processes: list[ManagedProcess], timeout: float) -> bool:
     return all(proc.popen.poll() is not None for proc in processes)
 
 
-def _shutdown(processes: list[ManagedProcess]) -> None:
+def _shutdown(processes: list[ManagedProcess], *, fast: bool = False) -> None:
+    interrupt_wait = (
+        _FAST_INTERRUPT_WAIT_SECONDS if fast else _INTERRUPT_WAIT_SECONDS
+    )
+    terminate_wait = (
+        _FAST_TERMINATE_WAIT_SECONDS if fast else _TERMINATE_WAIT_SECONDS
+    )
+
     for proc in processes:
         _send_interrupt(proc)
-    if _wait_for_exit(processes, _INTERRUPT_WAIT_SECONDS):
+    if _wait_for_exit(processes, interrupt_wait):
         return
 
     for proc in processes:
         _send_terminate(proc)
-    if _wait_for_exit(processes, _TERMINATE_WAIT_SECONDS):
+    if _wait_for_exit(processes, terminate_wait):
         return
 
     for proc in processes:
@@ -163,7 +175,12 @@ def _shutdown(processes: list[ManagedProcess]) -> None:
     _wait_for_exit(processes, 1.0)
 
 
+def _is_interrupt_exit(rc: int) -> bool:
+    return rc in {130, -int(signal.SIGINT), _WIN_CTRL_C_EXIT_CODE}
+
+
 def main(argv: list[str] | None = None) -> int:
+    """Run the supervisor entrypoint and return a shell-friendly exit code."""
     parser = _build_parser()
     args = parser.parse_args(argv)
 
@@ -174,7 +191,6 @@ def main(argv: list[str] | None = None) -> int:
         return _smoke()
 
     signal_seen: int | None = None
-
     def _signal_handler(signum: int, _frame: object) -> None:
         nonlocal signal_seen
         signal_seen = signum
@@ -199,22 +215,31 @@ def main(argv: list[str] | None = None) -> int:
                 rc = proc.popen.poll()
                 if rc is None:
                     continue
-                other_name = [p.name for p in processes if p is not proc][0]
+                other_name = next(
+                    p.name for p in processes if p is not proc
+                )
                 logger.warning(
                     "%s exited with code %s; stopping %s.",
                     proc.name,
                     rc,
                     other_name,
                 )
-                exit_code = rc if rc != 0 else 1
-                signal_seen = signal.SIGTERM
+                if _is_interrupt_exit(rc):
+                    exit_code = 0
+                    signal_seen = signal.SIGINT
+                else:
+                    exit_code = rc if rc != 0 else 1
+                    signal_seen = signal.SIGTERM
                 break
             time.sleep(0.2)
     finally:
-        _shutdown(processes)
+        # User-triggered Ctrl+C should return control to the shell quickly.
+        _shutdown(processes, fast=signal_seen == signal.SIGINT)
 
     if signal_seen == signal.SIGINT:
-        return 130
+        # ``task dev:all`` should stop cleanly on an intentional Ctrl+C
+        # instead of printing a failed-task banner.
+        return 0
     return exit_code
 
 
