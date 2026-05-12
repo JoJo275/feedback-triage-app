@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from feedback_triage.middleware import REQUEST_ID_HEADER, get_request_id
@@ -55,9 +55,24 @@ def _error_response(
 async def http_exception_handler(
     request: Request,
     exc: Exception,
-) -> JSONResponse:
+) -> Response:
     """Return the standard error envelope for any ``HTTPException``."""
     assert isinstance(exc, StarletteHTTPException)
+
+    # Per information architecture: cross-tenant page probes should
+    # land on the explicit ``/404`` surface, while JSON API routes keep
+    # the structured envelope.
+    if (
+        exc.status_code == 404
+        and request.method == "GET"
+        and request.url.path.startswith("/w/")
+    ):
+        request_id = _request_id_for(request)
+        response = RedirectResponse(url="/404", status_code=302)
+        if request_id:
+            response.headers[REQUEST_ID_HEADER] = request_id
+        return response
+
     return _error_response(
         request,
         status_code=exc.status_code,

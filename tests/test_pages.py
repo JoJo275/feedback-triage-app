@@ -2,7 +2,27 @@
 
 from __future__ import annotations
 
+import html
+
+import pytest
 from fastapi.testclient import TestClient
+
+VALID_PASSWORD = "correct horse battery staple"  # pragma: allowlist secret
+
+
+def _signup_and_login(client: TestClient, email: str) -> str:
+    signup = client.post(
+        "/api/v1/auth/signup",
+        json={"email": email, "password": VALID_PASSWORD},
+    )
+    assert signup.status_code == 201
+
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": VALID_PASSWORD},
+    )
+    assert login.status_code == 200
+    return str(login.json()["memberships"][0]["workspace_slug"])
 
 
 def test_index_page_serves_landing(client: TestClient) -> None:
@@ -16,6 +36,30 @@ def test_index_page_serves_landing(client: TestClient) -> None:
     assert 'id="landing-demo"' in body
     assert "/static/js/landing_demo.js" in body
     assert response.headers.get("cache-control", "").startswith("public, max-age=300")
+
+
+def test_landing_redirects_authenticated_users_to_dashboard(
+    auth_client: TestClient,
+) -> None:
+    slug = _signup_and_login(auth_client, "owner@example.com")
+
+    response = auth_client.get("/", follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == f"/w/{slug}/dashboard"
+    assert response.headers.get("cache-control") == "private, no-store"
+
+
+@pytest.mark.parametrize("path", ["/login", "/signup"])
+def test_login_and_signup_redirect_authenticated_users_to_dashboard(
+    auth_client: TestClient,
+    path: str,
+) -> None:
+    slug = _signup_and_login(auth_client, "owner@example.com")
+
+    response = auth_client.get(path, follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == f"/w/{slug}/dashboard"
+    assert response.headers.get("cache-control") == "private, no-store"
 
 
 def test_new_page_serves_html(client: TestClient) -> None:
@@ -72,6 +116,38 @@ def test_styleguide_page_renders(client: TestClient) -> None:
     assert "/static/js/styleguide.js" in body
 
 
+@pytest.mark.parametrize(
+    ("path", "status_code", "expected_copy"),
+    [
+        ("/404", 404, "Not found."),
+        ("/403", 403, "You don't have access to that."),
+        ("/500", 500, "Something went wrong. The team has been notified."),
+    ],
+)
+def test_system_error_pages_render(
+    client: TestClient,
+    path: str,
+    status_code: int,
+    expected_copy: str,
+) -> None:
+    response = client.get(path, headers={"X-Request-ID": "rid-test-123"})
+    assert response.status_code == status_code
+    assert response.headers["content-type"].startswith("text/html")
+    assert expected_copy in html.unescape(response.text)
+    if path == "/500":
+        assert "rid-test-123" in response.text
+
+
+def test_404_page_links_to_dashboard_when_authenticated(
+    auth_client: TestClient,
+) -> None:
+    slug = _signup_and_login(auth_client, "owner@example.com")
+
+    response = auth_client.get("/404")
+    assert response.status_code == 404
+    assert f'href="/w/{slug}/dashboard"' in response.text
+
+
 def test_static_js_modules_are_served(client: TestClient) -> None:
     for path in (
         "/static/js/api.js",
@@ -94,6 +170,9 @@ def test_pages_excluded_from_openapi_schema(client: TestClient) -> None:
     assert "/" not in paths
     assert "/new" not in paths
     assert "/feedback/{item_id}" not in paths
+    assert "/404" not in paths
+    assert "/403" not in paths
+    assert "/500" not in paths
     assert "/privacy" not in paths
     assert "/terms" not in paths
 

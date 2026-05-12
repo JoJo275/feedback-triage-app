@@ -1,0 +1,18 @@
+{% extends "_base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block body %}
+<main id="main" class="sn-page-shell">
+  <div class="sn-content-gutter sn-stack">
+    <header>
+      <h1>{{ heading }}</h1>
+      <p>{{ message }}</p>
+    </header>
+    <p>
+      <a class="sn-button sn-button-primary" href="{{ cta_href }}">{{ cta_label }}</a>
+    </p>
+    {% if request_id %}
+    <p class="sn-text-muted">Request id: <code>{{ request_id }}</code></p>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}
