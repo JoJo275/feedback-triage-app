@@ -5,8 +5,8 @@ PR 3.4 fills it in. The route resolves the slug through
 :class:`WorkspaceContextDep` (cross-tenant probes 404 per ADR 060)
 and asks
 :func:`feedback_triage.services.dashboard_aggregator.get_summary`
-for the five summary counts, the 30-day intake sparkline, the top
-five tags, and the ten most recent activity entries.
+for the five summary counts, source breakdown, 30-day intake
+sparkline, top five tags, and the ten most recent activity entries.
 
 When the workspace has no feedback yet we keep the original
 empty-state template -- it's a richer surface than five zero-cards.

@@ -499,6 +499,24 @@ tr[data-stale="true"] {
     margin-left: auto;
 }
 
+.sn-dashboard-search {
+    min-height: 2.5rem;
+}
+
+@media (max-width: 1023px) {
+    .sn-app-header {
+        height: auto;
+        flex-wrap: wrap;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+    .sn-app-header__search {
+        order: 3;
+        width: 100%;
+        max-width: none;
+    }
+}
+
 /* ---- Page header (per-page) ---- */
 .sn-page-header {
     display: flex;
@@ -521,6 +539,66 @@ tr[data-stale="true"] {
     gap: 0.5rem;
 }
 
+/* ---- Dashboard controls ---- */
+.sn-dashboard-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sn-filter-chip {
+    @apply inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+.sn-filter-chip:hover {
+    background: var(--color-surface-alt);
+}
+.sn-filter-chip.is-active {
+    background: color-mix(
+        in srgb,
+        var(--color-primary) 12%,
+        var(--color-surface)
+    );
+    border-color: color-mix(
+        in srgb,
+        var(--color-primary) 40%,
+        var(--color-border)
+    );
+}
+.sn-dashboard-filters__clear {
+    margin-left: auto;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.sn-dashboard-filters__clear:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+    .sn-dashboard-filters__clear {
+        margin-left: 0;
+    }
+}
+
+/* Legacy summary-card wrapper used by inbox/feedback list shell. */
+.sn-summary-cards .sn-grid-12 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+@media (max-width: 1023px) {
+    .sn-summary-cards .sn-grid-12 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 639px) {
+    .sn-summary-cards .sn-grid-12 {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ---- Summary card (PR 4.5) ----
    Compact metric tile for the dashboard summary row. Single
    number, single delta — anything richer goes to Insights. */
@@ -535,6 +613,11 @@ tr[data-stale="true"] {
     color: var(--color-text-muted);
 }
 .sn-summary-card__value {
+    @apply text-2xl font-semibold;
+    color: var(--color-text);
+    line-height: 1.1;
+}
+.sn-summary-card__count {
     @apply text-2xl font-semibold;
     color: var(--color-text);
     line-height: 1.1;
@@ -595,6 +678,173 @@ tr[data-stale="true"] {
 .sn-attention-panel__cta {
     align-self: flex-start;
     margin-top: 0.5rem;
+}
+
+.sn-dashboard-queue__table-wrap {
+    max-height: 24rem;
+}
+.sn-dashboard-queue__link {
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+}
+.sn-dashboard-queue__link:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.sn-sparkline {
+    width: 100%;
+    height: 10rem;
+}
+.sn-sparkline__bar {
+    fill: color-mix(in srgb, var(--color-primary) 78%, #ffffff);
+}
+.sn-sparkline__caption {
+    font-size: 0.8125rem;
+}
+
+.sn-tag-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.sn-tag-list__item {
+    display: grid;
+    grid-template-columns: minmax(0, auto) 1fr auto;
+    gap: 0.625rem;
+    align-items: center;
+}
+.sn-tag-list__meter {
+    height: 0.4rem;
+    border-radius: 9999px;
+    background: var(--color-surface-alt);
+    overflow: hidden;
+}
+.sn-tag-list__meter-fill {
+    display: block;
+    height: 100%;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--color-primary) 84%, #ffffff);
+}
+.sn-tag-list__count {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    min-width: 2.25rem;
+    text-align: right;
+}
+
+.sn-breakdown-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+.sn-breakdown-list__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.5rem;
+    align-items: baseline;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.5rem;
+}
+.sn-breakdown-list__item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+.sn-breakdown-list__label {
+    color: var(--color-text);
+}
+.sn-breakdown-list__count,
+.sn-breakdown-list__percent {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+}
+
+.sn-activity-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+.sn-activity-list__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.5rem;
+    align-items: center;
+}
+.sn-activity-list__title {
+    color: var(--color-text);
+    text-decoration: none;
+}
+.sn-activity-list__title:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.sn-tag-chip {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+    background: var(--tone-muted-bg);
+    color: var(--tone-muted-fg);
+}
+.sn-tag-chip--slate {
+    background: var(--tone-muted-bg);
+    color: var(--tone-muted-fg);
+}
+.sn-tag-chip--red {
+    background: color-mix(
+        in srgb,
+        var(--color-danger) 18%,
+        var(--color-surface)
+    );
+    color: color-mix(in srgb, var(--color-danger) 86%, var(--color-text));
+}
+.sn-tag-chip--orange {
+    background: color-mix(
+        in srgb,
+        var(--color-warning) 20%,
+        var(--color-surface)
+    );
+    color: color-mix(in srgb, var(--color-warning) 88%, #78350f);
+}
+.sn-tag-chip--yellow {
+    background: color-mix(
+        in srgb,
+        var(--color-warning) 15%,
+        var(--color-surface)
+    );
+    color: color-mix(in srgb, var(--color-warning) 88%, #854d0e);
+}
+.sn-tag-chip--green {
+    background: color-mix(
+        in srgb,
+        var(--color-primary) 18%,
+        var(--color-surface)
+    );
+    color: color-mix(in srgb, var(--color-primary) 86%, #134e4a);
+}
+.sn-tag-chip--blue {
+    background: color-mix(
+        in srgb,
+        var(--tone-info-bg) 72%,
+        var(--color-surface)
+    );
+    color: var(--tone-info-fg);
+}
+.sn-tag-chip--purple {
+    background: color-mix(in srgb, #a855f7 16%, var(--color-surface));
+    color: color-mix(in srgb, #7e22ce 78%, var(--color-text));
+}
+.sn-tag-chip--pink {
+    background: color-mix(in srgb, #ec4899 14%, var(--color-surface));
+    color: color-mix(in srgb, #be185d 82%, var(--color-text));
 }
 
 /* ---- Drawer (PR 4.5) ----

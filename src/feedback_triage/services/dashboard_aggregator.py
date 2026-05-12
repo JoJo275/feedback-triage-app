@@ -1,10 +1,10 @@
 """Dashboard aggregation service (PR 3.4).
 
 Single read-side surface for the workspace dashboard at
-``/w/<slug>/dashboard``. The page renders five summary counts, an
-intake sparkline (last 30 days), the top five tags, and the ten
-most recent activity events; all of those are computed here so the
-template stays dumb.
+``/w/<slug>/dashboard``. The page renders five summary counts, a
+source breakdown, an intake sparkline (last 30 days), the top five
+tags, and the ten most recent activity events; all of those are
+computed here so the template stays dumb.
 
 Per ``docs/project/spec/v2/performance-budgets.md`` -- *Dashboard
 cache*: results are memoised in a per-process
@@ -39,6 +39,9 @@ TOP_TAGS_LIMIT = 5
 
 #: Number of activity rows shown in the *Recent activity* card.
 RECENT_ACTIVITY_LIMIT = 10
+
+#: Number of source rows shown in the *Source breakdown* card.
+SOURCE_BREAKDOWN_LIMIT = 6
 
 #: TTL in seconds for the per-workspace summary cache.
 CACHE_TTL_SECONDS = 60
@@ -87,12 +90,23 @@ class RecentActivityEntry:
 
 
 @dataclass(frozen=True, slots=True)
+class SourceBreakdownEntry:
+    """One row in the *Source breakdown* card."""
+
+    source: str
+    label: str
+    count: int
+    percent: int
+
+
+@dataclass(frozen=True, slots=True)
 class DashboardSummary:
     """Bundle of every value the dashboard template needs."""
 
     cards: list[SummaryCard]
     sparkline: list[SparklineBar]
     sparkline_max: int
+    source_breakdown: list[SourceBreakdownEntry]
     top_tags: list[TopTag]
     recent_activity: list[RecentActivityEntry]
     total_items: int
@@ -215,6 +229,49 @@ def _top_tags(db: DbSession, workspace_id: uuid.UUID) -> list[TopTag]:
     ]
 
 
+def _source_label(source_value: str) -> str:
+    labels = {
+        "app_store": "App Store",
+        "web_form": "Public form",
+    }
+    if source_value in labels:
+        return labels[source_value]
+    return source_value.replace("_", " ").title()
+
+
+def _source_breakdown(
+    db: DbSession,
+    workspace_id: uuid.UUID,
+    *,
+    total_items: int,
+) -> list[SourceBreakdownEntry]:
+    if total_items == 0:
+        return []
+
+    rows = db.execute(
+        select(col(FeedbackItem.source), func.count())
+        .where(col(FeedbackItem.workspace_id) == workspace_id)
+        .group_by(col(FeedbackItem.source))
+        .order_by(func.count().desc(), col(FeedbackItem.source))
+        .limit(SOURCE_BREAKDOWN_LIMIT),
+    ).all()
+
+    out: list[SourceBreakdownEntry] = []
+    for source_value, count in rows:
+        source_key = str(source_value)
+        count_int = count
+        percent = round((count_int / total_items) * 100)
+        out.append(
+            SourceBreakdownEntry(
+                source=source_key,
+                label=_source_label(source_key),
+                count=count_int,
+                percent=percent,
+            )
+        )
+    return out
+
+
 def _recent_activity(
     db: DbSession,
     workspace_id: uuid.UUID,
@@ -273,14 +330,16 @@ def get_summary(
 
     cards = _summary_cards(db, workspace_id)
     sparkline, sparkline_max = _sparkline(db, workspace_id)
+    total = _total_items(db, workspace_id)
+    source_breakdown = _source_breakdown(db, workspace_id, total_items=total)
     top_tags = _top_tags(db, workspace_id)
     recent = _recent_activity(db, workspace_id)
-    total = _total_items(db, workspace_id)
 
     summary = DashboardSummary(
         cards=cards,
         sparkline=sparkline,
         sparkline_max=sparkline_max,
+        source_breakdown=source_breakdown,
         top_tags=top_tags,
         recent_activity=recent,
         total_items=total,
@@ -294,10 +353,12 @@ __all__ = [
     "CACHE_MAX_ENTRIES",
     "CACHE_TTL_SECONDS",
     "RECENT_ACTIVITY_LIMIT",
+    "SOURCE_BREAKDOWN_LIMIT",
     "SPARKLINE_DAYS",
     "TOP_TAGS_LIMIT",
     "DashboardSummary",
     "RecentActivityEntry",
+    "SourceBreakdownEntry",
     "SparklineBar",
     "SummaryCard",
     "TopTag",
