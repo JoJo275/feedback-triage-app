@@ -1,52 +1,115 @@
-{% extends "_base.html" %} {% block title %}Sign up — Feedback Triage{% endblock
-%} {% block body %}
-<main id="main" class="sn-page-shell">
-    <div class="sn-content-gutter sn-stack">
-        <header>
-            <h1>Create an account</h1>
-        </header>
-        <form id="signup-form" class="sn-stack" novalidate>
-            <div>
-                <label for="email">Email</label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autocomplete="email"
-                    required
-                />
-            </div>
-            <div>
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="new-password"
-                    minlength="12"
-                    required
-                />
-                <small>Minimum 12 characters.</small>
-            </div>
-            <div>
-                <label for="workspace_name"
-                    >Workspace name <small>(optional)</small></label
-                >
-                <input
-                    id="workspace_name"
-                    name="workspace_name"
-                    type="text"
-                    maxlength="60"
-                />
-            </div>
-            <button type="submit">Create account</button>
-            <p id="signup-error" class="sn-form-error" role="alert" hidden></p>
-            <p id="signup-success" role="status" hidden>
-                Check your inbox to confirm your email address.
-            </p>
-        </form>
-        <p>Already registered? <a href="/login">Sign in</a>.</p>
+{% extends "_base.html" %}
+{% block title %}Sign up — Feedback Triage{% endblock %}
+{% block body %}
+<main id="main" class="sn-page-shell sn-auth-page">
+    <div class="sn-content-gutter">
+        <section class="sn-auth-layout">
+            <aside class="sn-auth-intro" aria-label="Create account benefits">
+                <h2>Launch your feedback workspace</h2>
+                <p class="sn-text-muted">
+                    Start collecting product feedback in minutes and prioritize
+                    what matters most.
+                </p>
+                <ul class="sn-auth-intro-list">
+                    <li>One inbox for every feedback source</li>
+                    <li>Built-in tags, priorities, and status tracking</li>
+                    <li>Share roadmap and changelog updates publicly</li>
+                </ul>
+            </aside>
+
+            <section class="sn-auth-card" aria-labelledby="signup-title">
+                <p>
+                    <a class="sn-button sn-button-ghost" href="/">← Back to home</a>
+                </p>
+                <header class="sn-stack">
+                    <h1 id="signup-title">Create an account</h1>
+                    <p class="sn-text-muted">
+                        Use a work email and we will create your first workspace.
+                    </p>
+                </header>
+
+                <form id="signup-form" class="sn-auth-form" novalidate>
+                    <div class="sn-form-row">
+                        <label class="sn-label" for="email">Email</label>
+                        <input
+                            id="email"
+                            class="sn-input sn-auth-input"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            required
+                        />
+                    </div>
+
+                    <div class="sn-form-row">
+                        <label class="sn-label" for="password">Password</label>
+                        <div class="sn-auth-password-row">
+                            <input
+                                id="password"
+                                class="sn-input sn-auth-input"
+                                name="password"
+                                type="password"
+                                autocomplete="new-password"
+                                minlength="12"
+                                required
+                            />
+                            <button
+                                type="button"
+                                class="sn-button sn-button-secondary sn-auth-password-toggle"
+                                data-password-toggle
+                                data-target-input="password"
+                                aria-controls="password"
+                                aria-pressed="false"
+                                aria-label="Show password"
+                            >
+                                Show
+                            </button>
+                        </div>
+                        <small class="sn-text-muted">Minimum 12 characters.</small>
+                    </div>
+
+                    <div class="sn-form-row">
+                        <label class="sn-label" for="workspace_name"
+                            >Workspace name <small>(optional)</small></label
+                        >
+                        <input
+                            id="workspace_name"
+                            class="sn-input sn-auth-input"
+                            name="workspace_name"
+                            type="text"
+                            autocomplete="organization"
+                            maxlength="60"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="sn-button sn-button-primary sn-auth-submit"
+                    >
+                        Create account
+                    </button>
+                    <p
+                        id="signup-error"
+                        class="sn-auth-alert sn-auth-alert-error"
+                        role="alert"
+                        hidden
+                    ></p>
+                    <p
+                        id="signup-success"
+                        class="sn-auth-alert sn-auth-alert-success"
+                        role="status"
+                        hidden
+                    >
+                        Check your inbox to confirm your email address.
+                    </p>
+                </form>
+
+                <p class="sn-text-muted">Already registered? <a href="/login">Sign in</a>.</p>
+            </section>
+        </section>
     </div>
 </main>
-<script src="/static/js/auth.js" defer></script>
+<script src="{{ static_url('js/auth.js') }}?v=20260512" defer></script>
 {% endblock %}

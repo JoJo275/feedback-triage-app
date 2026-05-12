@@ -1,43 +1,95 @@
-{% extends "_base.html" %} {% block title %}Sign in — Feedback Triage{% endblock
-%} {% block body %}
-<main id="main" class="sn-page-shell">
-    <div class="sn-content-gutter sn-stack">
-        <p>
-            <a class="sn-button sn-button-ghost" href="/">← Back to home</a>
-        </p>
-        <header>
-            <h1>Sign in</h1>
-        </header>
-        <form id="login-form" class="sn-stack" novalidate>
-            <div>
-                <label for="email">Email</label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autocomplete="email"
-                    required
-                />
-            </div>
-            <div>
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
-                    required
-                />
-            </div>
-            <button type="submit" class="sn-button sn-button-primary">Sign in</button>
-            <p id="login-error" class="sn-form-error" role="alert" hidden></p>
-        </form>
-        <p>
-            New here? <a href="/signup">Create an account</a>.
-            <br />
-            Forgot your password? <a href="/forgot-password">Reset it</a>.
-        </p>
+{% extends "_base.html" %}
+{% block title %}Sign in — Feedback Triage{% endblock %}
+{% block body %}
+<main id="main" class="sn-page-shell sn-auth-page">
+    <div class="sn-content-gutter">
+        <section class="sn-auth-layout">
+            <aside class="sn-auth-intro" aria-label="Sign in benefits">
+                <h2>Pick up where you left off</h2>
+                <p class="sn-text-muted">
+                    Review incoming feedback, update roadmap items, and keep your
+                    team aligned from one workspace.
+                </p>
+                <ul class="sn-auth-intro-list">
+                    <li>Fast workspace switching</li>
+                    <li>Inbox, roadmap, and changelog in one flow</li>
+                    <li>Built-in verification and password recovery</li>
+                </ul>
+            </aside>
+
+            <section class="sn-auth-card" aria-labelledby="login-title">
+                <p>
+                    <a class="sn-button sn-button-ghost" href="/">← Back to home</a>
+                </p>
+                <header class="sn-stack">
+                    <h1 id="login-title">Sign in</h1>
+                    <p class="sn-text-muted">
+                        Use your workspace credentials to continue.
+                    </p>
+                </header>
+
+                <form id="login-form" class="sn-auth-form" novalidate>
+                    <div class="sn-form-row">
+                        <label class="sn-label" for="email">Email</label>
+                        <input
+                            id="email"
+                            class="sn-input sn-auth-input"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            required
+                        />
+                    </div>
+
+                    <div class="sn-form-row">
+                        <label class="sn-label" for="password">Password</label>
+                        <div class="sn-auth-password-row">
+                            <input
+                                id="password"
+                                class="sn-input sn-auth-input"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                class="sn-button sn-button-secondary sn-auth-password-toggle"
+                                data-password-toggle
+                                data-target-input="password"
+                                aria-controls="password"
+                                aria-pressed="false"
+                                aria-label="Show password"
+                            >
+                                Show
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="sn-button sn-button-primary sn-auth-submit"
+                    >
+                        Sign in
+                    </button>
+                    <p
+                        id="login-error"
+                        class="sn-auth-alert sn-auth-alert-error"
+                        role="alert"
+                        hidden
+                    ></p>
+                </form>
+
+                <p class="sn-text-muted">
+                    New here? <a href="/signup">Create an account</a>.
+                    <br />
+                    Forgot your password? <a href="/forgot-password">Reset it</a>.
+                </p>
+            </section>
+        </section>
     </div>
 </main>
-<script src="/static/js/auth.js" defer></script>
+<script src="{{ static_url('js/auth.js') }}?v=20260512" defer></script>
 {% endblock %}

@@ -23,9 +23,9 @@ and feedback items first; ``--force`` adds on top.
 
 Usage:
 
-    python scripts/seed_workspace.py --slug husky5084
-    python scripts/seed_workspace.py --slug husky5084 --reset
-    python scripts/seed_workspace.py --slug husky5084 --count 200
+    python scripts/seed_workspace.py --slug demo-owner
+    python scripts/seed_workspace.py --slug demo-owner --reset
+    python scripts/seed_workspace.py --slug demo-owner --count 200
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ from feedback_triage.models import (
 
 logger = logging.getLogger(__name__)
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 
 # ---------------------------------------------------------------------------
 # Demo content libraries
@@ -952,17 +952,17 @@ def main(argv: list[str] | None = None) -> int:
         description="Populate a workspace with realistic demo data.",
         epilog=(
             "Examples:\n"
-            "  python scripts/seed_workspace.py --slug husky5084\n"
-            "  python scripts/seed_workspace.py --slug husky5084 --reset\n"
-            "  python scripts/seed_workspace.py --slug husky5084 --count 200\n"
+            "  python scripts/seed_workspace.py --slug demo-owner\n"
+            "  python scripts/seed_workspace.py --slug demo-owner --reset\n"
+            "  python scripts/seed_workspace.py --slug demo-owner --count 200\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--slug",
         required=False,
-        default="husky5084",
-        help="Target workspace slug (default: husky5084).",
+        default="demo-owner",
+        help="Target workspace slug (default: demo-owner).",
     )
     parser.add_argument(
         "--count",

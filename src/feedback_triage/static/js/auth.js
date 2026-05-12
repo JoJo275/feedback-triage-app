@@ -19,7 +19,8 @@
 
     function showError(node, msg) {
         if (!node) return;
-        node.textContent = msg;
+        node.textContent =
+            typeof msg === "string" && msg.trim() ? msg : "Request failed.";
         node.hidden = false;
     }
 
@@ -44,13 +45,111 @@
         return { ok: resp.ok, status: resp.status, data };
     }
 
+    function detailObjectToText(detail) {
+        if (!detail || typeof detail !== "object") return "";
+        if (typeof detail.message === "string" && detail.message.trim()) {
+            return detail.message;
+        }
+        if (typeof detail.msg === "string" && detail.msg.trim()) {
+            return detail.msg;
+        }
+        try {
+            return JSON.stringify(detail);
+        } catch (_) {
+            return "";
+        }
+    }
+
+    function detailToText(detail) {
+        if (!detail) return "";
+        if (typeof detail === "string") return detail;
+        if (Array.isArray(detail)) {
+            return detail
+                .map(function (entry) {
+                    if (!entry) return "";
+                    if (typeof entry === "string") return entry;
+                    if (typeof entry !== "object") return String(entry);
+
+                    const loc = Array.isArray(entry.loc)
+                        ? entry.loc
+                              .filter(function (part) {
+                                  return part !== "body";
+                              })
+                              .join(".")
+                        : "";
+                    const msg =
+                        typeof entry.msg === "string"
+                            ? entry.msg
+                            : detailObjectToText(entry);
+                    return loc && msg ? loc + ": " + msg : msg;
+                })
+                .filter(Boolean)
+                .join("; ");
+        }
+        if (typeof detail === "object") {
+            return detailObjectToText(detail);
+        }
+        return String(detail);
+    }
+
+    function errorMessageFromPayload(payload, fallback) {
+        const detail =
+            payload && Object.prototype.hasOwnProperty.call(payload, "detail")
+                ? payload.detail
+                : payload;
+        const message = detailToText(detail);
+        return message || fallback;
+    }
+
+    function setPasswordToggleState(toggle, input, reveal) {
+        input.type = reveal ? "text" : "password";
+        toggle.textContent = reveal ? "Hide" : "Show";
+        toggle.setAttribute("aria-pressed", reveal ? "true" : "false");
+        toggle.setAttribute(
+            "aria-label",
+            reveal ? "Hide password" : "Show password",
+        );
+    }
+
+    function resetPasswordToggles(scope) {
+        if (!scope) return;
+        const toggles = scope.querySelectorAll("[data-password-toggle]");
+        toggles.forEach(function (node) {
+            if (!(node instanceof HTMLButtonElement)) return;
+            const targetId = node.getAttribute("data-target-input");
+            if (!targetId) return;
+            const input = document.getElementById(targetId);
+            if (!(input instanceof HTMLInputElement)) return;
+            setPasswordToggleState(node, input, false);
+        });
+    }
+
+    function bindPasswordToggles() {
+        const toggles = document.querySelectorAll("[data-password-toggle]");
+        toggles.forEach(function (node) {
+            if (!(node instanceof HTMLButtonElement)) return;
+            const targetId = node.getAttribute("data-target-input");
+            if (!targetId) return;
+            const input = document.getElementById(targetId);
+            if (!(input instanceof HTMLInputElement)) return;
+
+            setPasswordToggleState(node, input, input.type === "text");
+            node.addEventListener("click", function () {
+                setPasswordToggleState(node, input, input.type === "password");
+                input.focus();
+            });
+        });
+    }
+
     function bindLogin() {
         const form = document.getElementById("login-form");
         if (!form) return;
         const errorNode = document.getElementById("login-error");
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
-            errorNode.hidden = true;
+            if (errorNode) {
+                errorNode.hidden = true;
+            }
             const result = await postJson("/api/v1/auth/login", {
                 email: form.email.value,
                 password: form.password.value,
@@ -71,9 +170,10 @@
                 }
                 return;
             }
-            const detail =
-                (result.data && result.data.detail) || "Sign-in failed.";
-            showError(errorNode, detail);
+            showError(
+                errorNode,
+                errorMessageFromPayload(result.data, "Sign-in failed."),
+            );
         });
     }
 
@@ -84,8 +184,12 @@
         const successNode = document.getElementById("signup-success");
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
-            errorNode.hidden = true;
-            successNode.hidden = true;
+            if (errorNode) {
+                errorNode.hidden = true;
+            }
+            if (successNode) {
+                successNode.hidden = true;
+            }
             const body = {
                 email: form.email.value,
                 password: form.password.value,
@@ -96,13 +200,12 @@
             if (result.ok) {
                 showSuccess(successNode);
                 form.reset();
+                resetPasswordToggles(form);
                 return;
             }
-            const detail =
-                (result.data && result.data.detail) || "Sign-up failed.";
             showError(
                 errorNode,
-                typeof detail === "string" ? detail : "Sign-up failed.",
+                errorMessageFromPayload(result.data, "Sign-up failed."),
             );
         });
     }
@@ -130,8 +233,12 @@
         const successNode = document.getElementById("reset-success");
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
-            errorNode.hidden = true;
-            successNode.hidden = true;
+            if (errorNode) {
+                errorNode.hidden = true;
+            }
+            if (successNode) {
+                successNode.hidden = true;
+            }
             const result = await postJson("/api/v1/auth/reset-password", {
                 token: form.token.value,
                 new_password: form.new_password.value,
@@ -141,9 +248,10 @@
                 form.reset();
                 return;
             }
-            const detail =
-                (result.data && result.data.detail) || "Reset failed.";
-            showError(errorNode, detail);
+            showError(
+                errorNode,
+                errorMessageFromPayload(result.data, "Reset failed."),
+            );
         });
     }
 
@@ -170,6 +278,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        bindPasswordToggles();
         bindLogin();
         bindSignup();
         bindForgot();
