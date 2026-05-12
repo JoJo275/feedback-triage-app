@@ -4,24 +4,32 @@
 {% include "_partials/header.html" %}
 
 <main id="main">
-  <section class="sn-hero sn-content-gutter sn-stack">
-    <h1>SignalNest</h1>
-    <p class="sn-hero__tagline"><em>Capture the noise. Find the signal.</em></p>
-    <p class="sn-hero__lede">
-      A feedback triage app for turning user requests, bugs, and product
-      ideas into clear next steps.
-    </p>
-    <p class="sn-hero__ctas">
-      {% if primary_workspace_slug %}
-        <a class="sn-button sn-button-primary" href="/w/{{ primary_workspace_slug }}/dashboard">
-          Go to dashboard
-        </a>
-        <a class="sn-button sn-button-secondary" href="#demo">See the demo</a>
-      {% else %}
-        <a class="sn-button sn-button-primary" href="/signup">Start free</a>
-        <a class="sn-button sn-button-secondary" href="#demo">Try the demo</a>
-      {% endif %}
-    </p>
+  <section class="sn-hero sn-content-gutter">
+    <div class="sn-hero__panel sn-stack">
+      <p class="sn-hero__eyebrow">Built for product teams shipping weekly</p>
+      <h1>SignalNest</h1>
+      <p class="sn-hero__tagline"><em>Capture the noise. Find the signal.</em></p>
+      <p class="sn-hero__lede">
+        A feedback triage app for turning user requests, bugs, and product
+        ideas into clear next steps.
+      </p>
+      <p class="sn-hero__ctas">
+        {% if primary_workspace_slug %}
+          <a class="sn-button sn-button-primary" href="/w/{{ primary_workspace_slug }}/dashboard">
+            Go to dashboard
+          </a>
+          <a class="sn-button sn-button-secondary" href="#demo">See the demo</a>
+        {% else %}
+          <a class="sn-button sn-button-primary" href="/signup">Start free</a>
+          <a class="sn-button sn-button-secondary" href="#demo">Try the demo</a>
+        {% endif %}
+      </p>
+      <ul class="sn-hero__metrics" role="list">
+        <li><strong>1 inbox</strong><span>for every channel</span></li>
+        <li><strong>8 statuses</strong><span>from intake to shipped</span></li>
+        <li><strong>Public roadmap</strong><span>without extra tooling</span></li>
+      </ul>
+    </div>
   </section>
 
   <section id="demo" class="sn-section sn-content-gutter sn-stack" aria-labelledby="demo-heading">
@@ -83,21 +91,21 @@
   <section class="sn-section sn-content-gutter sn-stack" aria-labelledby="solution-heading">
     <h2 id="solution-heading">Centralize, tag, prioritize, close the loop.</h2>
     <div class="sn-grid-3">
-      <article class="sn-card">
+      <article class="sn-card sn-value-card">
         <div class="sn-card-header"><h3>Centralize</h3></div>
         <div class="sn-card-body">
           <p>One inbox per workspace. Submitters can use a public form;
           your team can log items by hand.</p>
         </div>
       </article>
-      <article class="sn-card">
+      <article class="sn-card sn-value-card">
         <div class="sn-card-header"><h3>Tag &amp; prioritize</h3></div>
         <div class="sn-card-body">
           <p>Workspace-scoped tags, priority pills, pain dots. Filters
           stack so the next thing to work on is one query away.</p>
         </div>
       </article>
-      <article class="sn-card">
+      <article class="sn-card sn-value-card">
         <div class="sn-card-header"><h3>Close the loop</h3></div>
         <div class="sn-card-body">
           <p>Mark an item shipped and SignalNest emails the submitter
@@ -121,7 +129,7 @@
     </ul>
   </section>
 
-  <section class="sn-section sn-content-gutter sn-stack" aria-labelledby="workflow-heading">
+  <section class="sn-section sn-content-gutter sn-stack sn-section--workflow" aria-labelledby="workflow-heading">
     <h2 id="workflow-heading">Workflow</h2>
     <ol class="sn-workflow-strip" role="list">
       <li>Intake</li>

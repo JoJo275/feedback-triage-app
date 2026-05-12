@@ -13,6 +13,7 @@ checks, and more.
 ## Quick Start
 
 ```bash
+task dashboard:serve             # preferred task wrapper
 hatch run dashboard:serve        # Start at http://127.0.0.1:8000
 # or, if installed globally:
 fta-dashboard                    # Works from any repo
@@ -20,6 +21,19 @@ fta-dashboard                    # Works from any repo
 
 Open <http://127.0.0.1:8000> in your browser. Press **Ctrl+C** in the
 terminal to stop.
+
+### VS Code integrated preview workflow
+
+If you want the dashboard in-editor (with quick handoff to Copilot):
+
+1. Start the server with `task dashboard:serve`.
+2. Open <http://127.0.0.1:8000> in a VS Code browser tab.
+3. Click **Sharing with Agent** in the browser toolbar when you want
+  Copilot to inspect the live page.
+
+If the server stops while the tab is open, the service worker serves
+`offline.html` ("Server Offline" + **Reconnect** button) instead of a
+network error page. Restart the server, then click **Reconnect**.
 
 ---
 
@@ -440,6 +454,13 @@ The dashboard is designed as a **local-only** development tool:
 The dashboard includes a service worker (`sw.js`) that caches the last
 successful page load. If the server is stopped while the browser tab is
 open, it shows an offline fallback page instead of a browser error.
+
+That fallback is intentional and useful in VS Code previews:
+
+- It confirms the browser tab and URL are correct.
+- It means only the backend process is down.
+- It gives restart commands and a **Reconnect** button so you can
+  recover without reopening the tab.
 
 ---
 
