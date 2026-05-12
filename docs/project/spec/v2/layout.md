@@ -656,6 +656,7 @@ page template.
 - [`core-idea.md`](core-idea.md) — locked strings, sidebar order,
   visual non-negotiables, role model.
 - [`information-architecture.md`](information-architecture.md) — per-page composition and copy.
+- [`layouts/README.md`](layouts/README.md) — per-page layout contracts (what is on each page and what populates it).
 - [`ui.md`](ui.md) — full route map, JS conventions, accessibility
   hooks.
 - [`css.md`](css.md) — four-charter rules, specificity ceiling,
