@@ -195,6 +195,7 @@ Deferred (with rationale in [Future Improvements](#future-improvements-after-v20
 | [`v2/observability.md`](v2/observability.md)    | Log fields, request-id, metrics                                |
 | [`v2/performance-budgets.md`](v2/performance-budgets.md) | Latency, page weight, JS, cache TTLs                  |
 | [`v2/testing-strategy.md`](v2/testing-strategy.md) | Unit / API / e2e matrix, canaries, fixtures                 |
+| [`v2/accounts.md`](v2/accounts.md)              | Canonical admin/demo/example account identities and credential sources |
 | [`v2/copy-style-guide.md`](v2/copy-style-guide.md) | Locked strings, voice rules, error tone                     |
 
 **Operations:**

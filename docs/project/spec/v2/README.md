@@ -42,6 +42,7 @@ single source of cross-references is [`../spec-v2.md`](../spec-v2.md).
 | [`observability.md`](observability.md)     | Log fields, request-id propagation, metrics, alerts                  |
 | [`performance-budgets.md`](performance-budgets.md) | P95 latency targets, page weight, JS budget, cache TTLs       |
 | [`testing-strategy.md`](testing-strategy.md) | Unit / API / e2e split, canaries, fixtures, axe-core, round-trip migration |
+| [`accounts.md`](accounts.md)               | Canonical admin/demo/example account identities and credential sources |
 | [`copy-style-guide.md`](copy-style-guide.md) | Locked-strings master list, voice rules, error-message tone        |
 | [`migration-from-v1.md`](migration-from-v1.md) | User-facing v1.0 → v2.0 cut-over (companion to ADR 062)          |
 | [`railway-optimization.md`](railway-optimization.md) | Railway cost & resource posture, dev / prod knobs          |
