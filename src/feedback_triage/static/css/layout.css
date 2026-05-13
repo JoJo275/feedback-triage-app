@@ -50,15 +50,12 @@
 }
 
 .sn-content-gutter--dashboard {
-    max-width: min(100%, 96rem);
+    width: 100%;
+    max-width: none;
     padding-top: 1.5rem;
     padding-bottom: 2rem;
-}
-
-@media (min-width: 1536px) {
-    .sn-content-gutter--dashboard {
-        max-width: min(100%, 106rem);
-    }
+    padding-left: clamp(1rem, 1.75vw, 2.25rem);
+    padding-right: clamp(1rem, 1.75vw, 2.25rem);
 }
 
 .sn-auth-page .sn-content-gutter {
