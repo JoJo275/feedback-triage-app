@@ -37,6 +37,14 @@ _TERMINATE_WAIT_SECONDS = 2.0
 _FAST_INTERRUPT_WAIT_SECONDS = 0.8
 _FAST_TERMINATE_WAIT_SECONDS = 0.6
 _WIN_CTRL_C_EXIT_CODE = 3221225786
+_INTERRUPT_SIGNALS: tuple[int, ...] = tuple(
+    sig
+    for sig in (
+        signal.SIGINT,
+        getattr(signal, "SIGBREAK", None),
+    )
+    if sig is not None
+)
 
 
 @dataclass(slots=True)
@@ -176,7 +184,9 @@ def _shutdown(processes: list[ManagedProcess], *, fast: bool = False) -> None:
 
 
 def _is_interrupt_exit(rc: int) -> bool:
-    return rc in {130, -int(signal.SIGINT), _WIN_CTRL_C_EXIT_CODE}
+    interrupt_codes = {130, _WIN_CTRL_C_EXIT_CODE}
+    interrupt_codes.update(-int(sig) for sig in _INTERRUPT_SIGNALS)
+    return rc in interrupt_codes
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -195,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
         nonlocal signal_seen
         signal_seen = signum
 
-    for sig in (signal.SIGINT, signal.SIGTERM):
+    for sig in (*_INTERRUPT_SIGNALS, signal.SIGTERM):
         with contextlib.suppress(OSError, ValueError):
             signal.signal(sig, _signal_handler)
 
@@ -234,9 +244,9 @@ def main(argv: list[str] | None = None) -> int:
             time.sleep(0.2)
     finally:
         # User-triggered Ctrl+C should return control to the shell quickly.
-        _shutdown(processes, fast=signal_seen == signal.SIGINT)
+        _shutdown(processes, fast=signal_seen in _INTERRUPT_SIGNALS)
 
-    if signal_seen == signal.SIGINT:
+    if signal_seen in _INTERRUPT_SIGNALS:
         # ``task dev:all`` should stop cleanly on an intentional Ctrl+C
         # instead of printing a failed-task banner.
         return 0
