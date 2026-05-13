@@ -163,6 +163,14 @@ class FeedbackItem(SQLModel, table=True):
             nullable=True,
         ),
     )
+    assignee_user_id: uuid.UUID | None = Field(
+        default=None,
+        sa_column=Column(
+            PgUUID(as_uuid=True),
+            ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+    )
     type: FeedbackType = Field(
         default=FeedbackType.OTHER,
         sa_column=Column(

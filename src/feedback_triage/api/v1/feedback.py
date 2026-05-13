@@ -53,6 +53,7 @@ from feedback_triage.models import (
     FeedbackNote,
     FeedbackTag,
     Tag,
+    WorkspaceMembership,
 )
 from feedback_triage.services.stale_detector import stale_clause
 from feedback_triage.services.status_change_notifier import notify_status_change
@@ -128,6 +129,35 @@ def _scoped_get(
     return item
 
 
+def _ensure_assignee_member(
+    db: DbSession,
+    *,
+    workspace_id: uuid.UUID,
+    assignee_user_id: uuid.UUID | None,
+) -> None:
+    """Validate that an assignee belongs to the target workspace."""
+    if assignee_user_id is None:
+        return
+    exists = db.execute(
+        select(func.count())
+        .select_from(WorkspaceMembership)
+        .where(col(WorkspaceMembership.workspace_id) == workspace_id)
+        .where(col(WorkspaceMembership.user_id) == assignee_user_id)
+    ).scalar_one()
+    if int(exists) > 0:
+        return
+    raise HTTPException(
+        status_code=422,
+        detail=[
+            {
+                "loc": ["body", "assignee_user_id"],
+                "msg": "assignee_user_id must be a member of this workspace",
+                "type": "value_error",
+            }
+        ],
+    )
+
+
 # ---------------------------------------------------------------------------
 # Feedback CRUD
 # ---------------------------------------------------------------------------
@@ -146,6 +176,11 @@ def create_feedback(
     db: DbDep,
 ) -> FeedbackResponseV2:
     """Insert a new feedback item scoped to the caller's workspace."""
+    _ensure_assignee_member(
+        db,
+        workspace_id=ctx.id,
+        assignee_user_id=payload.assignee_user_id,
+    )
     item = FeedbackItem(
         **payload.model_dump(),
         workspace_id=ctx.id,
@@ -174,6 +209,7 @@ def list_feedback(
     priority: Annotated[Priority | None, Query()] = None,
     tag: Annotated[uuid.UUID | None, Query()] = None,
     submitter_id: Annotated[uuid.UUID | None, Query()] = None,
+    assignee_user_id: Annotated[uuid.UUID | None, Query()] = None,
     q: Annotated[str | None, Query(min_length=1, max_length=200)] = None,
     published_to_roadmap: Annotated[bool | None, Query()] = None,
     published_to_changelog: Annotated[bool | None, Query()] = None,
@@ -223,6 +259,8 @@ def list_feedback(
             query = query.where(col(FeedbackItem.priority) == priority)
         if submitter_id is not None:
             query = query.where(col(FeedbackItem.submitter_id) == submitter_id)
+        if assignee_user_id is not None:
+            query = query.where(col(FeedbackItem.assignee_user_id) == assignee_user_id)
         if published_to_roadmap is not None:
             query = query.where(
                 col(FeedbackItem.published_to_roadmap) == published_to_roadmap,
@@ -297,6 +335,12 @@ def patch_feedback(
     item = _scoped_get(db, item_id, ctx.id)
     old_status = item.status
     changes = payload.model_dump(exclude_unset=True)
+    if "assignee_user_id" in changes:
+        _ensure_assignee_member(
+            db,
+            workspace_id=ctx.id,
+            assignee_user_id=changes["assignee_user_id"],
+        )
     for field, value in changes.items():
         setattr(item, field, value)
     if not changes:

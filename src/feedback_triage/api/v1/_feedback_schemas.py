@@ -66,6 +66,7 @@ class FeedbackCreateV2(BaseModel):
     type: FeedbackType = FeedbackType.OTHER
     type_other: Annotated[str | None, Field(default=None, max_length=60)] = None
     priority: Priority | None = None
+    assignee_user_id: uuid.UUID | None = None
 
     @field_validator("title")
     @classmethod
@@ -100,6 +101,7 @@ class FeedbackUpdateV2(BaseModel):
     type: FeedbackType | None = None
     type_other: Annotated[str | None, Field(default=None, max_length=60)] = None
     priority: Priority | None = None
+    assignee_user_id: uuid.UUID | None = None
     published_to_roadmap: bool | None = None
     published_to_changelog: bool | None = None
     release_note: Annotated[str | None, Field(default=None, max_length=280)] = None
@@ -127,6 +129,7 @@ class FeedbackResponseV2(BaseModel):
     id: int
     workspace_id: uuid.UUID
     submitter_id: uuid.UUID | None
+    assignee_user_id: uuid.UUID | None
     title: str
     description: str | None
     source: Source

@@ -1,22 +1,10 @@
 {% extends "_base.html" %}
 {% block title %}{{ workspace_name }} dashboard · SignalNest{% endblock %}
 {% block body %}
-{% set counts = namespace(new=0, needs_info=0, reviewing=0, high_priority=0, stale=0) %}
-{% for card in summary.cards %}
-  {% if card.key == "new" %}
-    {% set counts.new = card.count %}
-  {% elif card.key == "needs_info" %}
-    {% set counts.needs_info = card.count %}
-  {% elif card.key == "reviewing" %}
-    {% set counts.reviewing = card.count %}
-  {% elif card.key == "high_priority" %}
-    {% set counts.high_priority = card.count %}
-  {% elif card.key == "stale" %}
-    {% set counts.stale = card.count %}
-  {% endif %}
-{% endfor %}
-{% set needs_attention = counts.new + counts.needs_info + counts.reviewing %}
 {% set top_tag_max = summary.top_tags[0].count if summary.top_tags else 1 %}
+{% set throughput_peak = summary.throughput.peak if summary.throughput.peak > 0 else 1 %}
+{% set throughput_points = summary.throughput.points|length %}
+{% set throughput_denominator = (throughput_points - 1) if throughput_points > 1 else 1 %}
 {% set status_tones = {
   "new": "info",
   "needs_info": "warn",
@@ -29,6 +17,16 @@
   "spam": "danger",
   "rejected": "muted",
 } %}
+{% set throughput_line = namespace(received='', triaged='', resolved='') %}
+{% for point in summary.throughput.points %}
+  {% set x = (loop.index0 / throughput_denominator * 320) %}
+  {% set received_y = 96 - (point.received / throughput_peak * 84) %}
+  {% set triaged_y = 96 - (point.triaged / throughput_peak * 84) %}
+  {% set resolved_y = 96 - (point.resolved / throughput_peak * 84) %}
+  {% set throughput_line.received = throughput_line.received ~ (x|round(2)) ~ ',' ~ (received_y|round(2)) ~ ' ' %}
+  {% set throughput_line.triaged = throughput_line.triaged ~ (x|round(2)) ~ ',' ~ (triaged_y|round(2)) ~ ' ' %}
+  {% set throughput_line.resolved = throughput_line.resolved ~ (x|round(2)) ~ ',' ~ (resolved_y|round(2)) ~ ' ' %}
+{% endfor %}
 <div class="sn-app-shell">
   {% include "_partials/sidebar.html" %}
   <main id="main" class="sn-page-shell">
@@ -52,12 +50,12 @@
       </div>
     </header>
 
-    <div class="sn-content-gutter sn-stack sn-dashboard-layout">
+    <div class="sn-content-gutter sn-content-gutter--dashboard sn-stack sn-dashboard-layout" data-dashboard-layout data-density="dense">
       <header class="sn-page-header">
         <div>
           <h1 class="sn-page-header__title">Dashboard</h1>
           <p class="sn-page-header__description">
-            Triage feedback, spot trends, and decide what needs attention.
+            Immediate operational awareness for triage health, throughput, and next actions.
           </p>
         </div>
         <div class="sn-page-header__actions">
@@ -65,119 +63,170 @@
         </div>
       </header>
 
-      <section class="sn-dashboard-filters" aria-label="Dashboard filters">
-        <button type="button" class="sn-filter-chip is-active">Last 7 days</button>
-        <button type="button" class="sn-filter-chip">Source: All</button>
-        <button type="button" class="sn-filter-chip">Tag: All</button>
-        <button type="button" class="sn-filter-chip">Status: All</button>
-        <button type="button" class="sn-filter-chip">More filters</button>
-        <a class="sn-dashboard-filters__clear" href="/w/{{ workspace_slug }}/dashboard">Clear</a>
+      <section class="sn-dashboard-toolbar" aria-label="Dashboard scope controls">
+        <div class="sn-dashboard-toolbar__filters" aria-label="Dashboard filters">
+          <button type="button" class="sn-filter-chip is-active">Date range: Last 30 days</button>
+          <button type="button" class="sn-filter-chip">Source: All</button>
+          <button type="button" class="sn-filter-chip">Product area: All</button>
+          <button type="button" class="sn-filter-chip">Tag: All</button>
+          <button type="button" class="sn-filter-chip">Segment: All</button>
+          <button type="button" class="sn-filter-chip">Status: All</button>
+          <a class="sn-dashboard-filters__clear" href="/w/{{ workspace_slug }}/dashboard">Clear</a>
+        </div>
+        <div class="sn-dashboard-toolbar__controls" aria-label="Dashboard view controls">
+          <label class="sn-dashboard-toolbar__density" for="dashboard-density">
+            View density
+            <select id="dashboard-density" class="sn-form-field-input" autocomplete="off">
+              <option value="dense">Dense (default)</option>
+              <option value="medium">Medium</option>
+              <option value="light">Light</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/insights">Saved views</a>
+          <details class="sn-dashboard-customize">
+            <summary>Customize widgets</summary>
+            <div class="sn-dashboard-customize__grid" role="group" aria-label="Custom widget visibility">
+              <label><input type="checkbox" data-widget="status-mix" checked> Status mix</label>
+              <label><input type="checkbox" data-widget="aging-health" checked> Aging / SLA</label>
+              <label><input type="checkbox" data-widget="top-tags" checked> Top tags</label>
+              <label><input type="checkbox" data-widget="pain-distribution" checked> Pain distribution</label>
+              <label><input type="checkbox" data-widget="segment-impact" checked> Segment impact</label>
+              <label><input type="checkbox" data-widget="source-breakdown" checked> Source breakdown</label>
+              <label><input type="checkbox" data-widget="team-workload" checked> Team workload</label>
+            </div>
+          </details>
+        </div>
       </section>
 
       <section aria-labelledby="dashboard-summary-heading">
-        <h2 id="dashboard-summary-heading" class="sr-only">Summary</h2>
+        <h2 id="dashboard-summary-heading" class="sr-only">KPI strip</h2>
         <div class="sn-summary-row">
           <article class="sn-summary-card">
-            <p class="sn-summary-card__label">Needs attention</p>
-            <p class="sn-summary-card__value">{{ needs_attention }}</p>
+            <p class="sn-summary-card__label">Total signals</p>
+            <p class="sn-summary-card__value">{{ summary.kpi.total_signals }}</p>
+            <p class="sn-summary-card__delta">workspace total</p>
+          </article>
+          <article class="sn-summary-card">
+            <p class="sn-summary-card__label">Needs action</p>
+            <p class="sn-summary-card__value">{{ summary.kpi.needs_action }}</p>
             <p class="sn-summary-card__delta">new + needs info + reviewing</p>
           </article>
           <article class="sn-summary-card">
-            <p class="sn-summary-card__label">High priority</p>
-            <p class="sn-summary-card__value">{{ counts.high_priority }}</p>
-            <p class="sn-summary-card__delta">items tagged high</p>
+            <p class="sn-summary-card__label">High pain signals</p>
+            <p class="sn-summary-card__value">{{ summary.kpi.high_pain_signals }}</p>
+            <p class="sn-summary-card__delta">pain level 4+</p>
           </article>
           <article class="sn-summary-card">
-            <p class="sn-summary-card__label">New this week</p>
-            <p class="sn-summary-card__value" data-summary-count="new">{{ counts.new }}</p>
-            <p class="sn-summary-card__delta">fresh intake</p>
+            <p class="sn-summary-card__label">Median time to triage</p>
+            <p class="sn-summary-card__value">
+              {% if summary.kpi.median_time_to_triage_hours is none %}
+                —
+              {% elif summary.kpi.median_time_to_triage_hours < 24 %}
+                {{ '%.1f h' % summary.kpi.median_time_to_triage_hours }}
+              {% else %}
+                {{ '%.1f d' % (summary.kpi.median_time_to_triage_hours / 24) }}
+              {% endif %}
+            </p>
+            <p class="sn-summary-card__delta">created → last triage update</p>
           </article>
           <article class="sn-summary-card">
-            <p class="sn-summary-card__label">Stale</p>
-            <p class="sn-summary-card__value" data-summary-count="stale">{{ counts.stale }}</p>
-            <p class="sn-summary-card__delta">older than 14 days</p>
+            <p class="sn-summary-card__label">Net backlog change</p>
+            <p class="sn-summary-card__value">{{ '%+d' % summary.kpi.net_backlog_change }}</p>
+            <p class="sn-summary-card__delta {% if summary.kpi.net_backlog_change > 0 %}sn-summary-card__delta--up{% elif summary.kpi.net_backlog_change < 0 %}sn-summary-card__delta--down{% endif %}">
+              received minus resolved ({{ throughput_points }}d)
+            </p>
           </article>
         </div>
       </section>
 
-      <section class="sn-work-row" aria-label="Main work row">
-        <section class="sn-card sn-dashboard-queue" aria-labelledby="dashboard-queue-heading">
+      <section class="sn-dashboard-health-row" aria-label="Operational health">
+        <section class="sn-card" aria-labelledby="dashboard-throughput-heading">
           <header class="sn-card-header">
-            <h2 id="dashboard-queue-heading">Triage queue</h2>
-            <a href="/w/{{ workspace_slug }}/inbox">View all</a>
+            <h2 id="dashboard-throughput-heading">Signals over time</h2>
+            <span class="sn-text-muted">Received · Triaged · Resolved</span>
           </header>
-          {% if summary.recent_activity %}
-          <div class="sn-table-wrap sn-dashboard-queue__table-wrap">
-            <table class="sn-table sn-dashboard-queue__table">
-              <thead>
-                <tr>
-                  <th scope="col">Title</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for entry in summary.recent_activity[:6] %}
-                <tr>
-                  <td>
-                    <a class="sn-dashboard-queue__link" href="/w/{{ workspace_slug }}/feedback/{{ entry.feedback_id }}">{{ entry.title }}</a>
-                  </td>
-                  <td>
-                    <span class="sn-pill-status sn-pill-status--{{ status_tones.get(entry.status.value, 'muted') }}">
-                      {{ entry.status.value | replace('_', ' ') }}
-                    </span>
-                  </td>
-                  <td>
-                    <time datetime="{{ entry.updated_at.isoformat() }}" class="sn-text-muted">
-                      {{ entry.updated_at.strftime('%Y-%m-%d') }}
-                    </time>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          <div class="sn-card-body">
+            <svg
+              class="sn-throughput-chart"
+              viewBox="0 0 320 100"
+              role="img"
+              aria-label="Received, triaged, and resolved signals over the last {{ throughput_points }} days"
+              preserveAspectRatio="none"
+            >
+              <polyline class="sn-throughput-line sn-throughput-line--received" fill="none" points="{{ throughput_line.received | trim }}"></polyline>
+              <polyline class="sn-throughput-line sn-throughput-line--triaged" fill="none" points="{{ throughput_line.triaged | trim }}"></polyline>
+              <polyline class="sn-throughput-line sn-throughput-line--resolved" fill="none" points="{{ throughput_line.resolved | trim }}"></polyline>
+            </svg>
+            <ul class="sn-metric-list" role="list">
+              <li><span>Received</span><strong>{{ summary.throughput.received_total }}</strong></li>
+              <li><span>Triaged</span><strong>{{ summary.throughput.triaged_total }}</strong></li>
+              <li><span>Resolved</span><strong>{{ summary.throughput.resolved_total }}</strong></li>
+            </ul>
           </div>
-          {% else %}
-          <p class="sn-text-muted">No queue items yet.</p>
-          {% endif %}
         </section>
 
-        <aside class="sn-attention-panel" aria-labelledby="dashboard-attention-heading">
-          <h2 id="dashboard-attention-heading" class="sn-attention-panel__title">Backlog / Needs attention</h2>
-          <ul class="sn-attention-panel__list" role="list">
-            <li>
-              <a href="/w/{{ workspace_slug }}/inbox?card=high_priority">
-                <span class="sn-attention-panel__count">{{ counts.high_priority }}</span>
-                <span>High priority</span>
-              </a>
-            </li>
-            <li>
-              <a href="/w/{{ workspace_slug }}/inbox?card=new">
-                <span class="sn-attention-panel__count">{{ counts.new }}</span>
-                <span>New and untriaged</span>
-              </a>
-            </li>
-            <li>
-              <a href="/w/{{ workspace_slug }}/inbox?card=needs_info">
-                <span class="sn-attention-panel__count">{{ counts.needs_info }}</span>
-                <span>Waiting on submitter</span>
-              </a>
-            </li>
-            <li>
-              <a href="/w/{{ workspace_slug }}/inbox?card=stale">
-                <span class="sn-attention-panel__count">{{ counts.stale }}</span>
-                <span>Stale for 14+ days</span>
-              </a>
-            </li>
-          </ul>
-          <a class="sn-button sn-button-primary sn-attention-panel__cta" href="/w/{{ workspace_slug }}/inbox">
-            Start triage
-          </a>
-        </aside>
+        <section class="sn-card sn-density-hide-light" data-widget-section="status-mix" aria-labelledby="dashboard-status-mix-heading">
+          <header class="sn-card-header">
+            <h2 id="dashboard-status-mix-heading">Status mix</h2>
+          </header>
+          <div class="sn-card-body">
+            <ul class="sn-status-mix" role="list">
+              {% for slice in summary.status_mix %}
+              <li class="sn-status-mix__item">
+                <div class="sn-status-mix__meta">
+                  <span>{{ slice.status.value | replace('_', ' ') }}</span>
+                  <span>{{ slice.count }} · {{ slice.percent }}%</span>
+                </div>
+                <span class="sn-status-mix__meter" aria-hidden="true">
+                  <span class="sn-status-mix__fill" style="width: {{ slice.percent }}%"></span>
+                </span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
+
+        <section class="sn-card sn-density-hide-light" data-widget-section="aging-health" aria-labelledby="dashboard-aging-heading">
+          <header class="sn-card-header">
+            <h2 id="dashboard-aging-heading">Aging / SLA</h2>
+          </header>
+          <div class="sn-card-body sn-stack">
+            <ul class="sn-metric-list" role="list">
+              <li>
+                <span>Average age (open)</span>
+                <strong>
+                  {% if summary.aging_health.average_age_hours is none %}—{% else %}{{ '%.1f h' % summary.aging_health.average_age_hours }}{% endif %}
+                </strong>
+              </li>
+              <li>
+                <span>Median age (open)</span>
+                <strong>
+                  {% if summary.aging_health.median_age_hours is none %}—{% else %}{{ '%.1f h' % summary.aging_health.median_age_hours }}{% endif %}
+                </strong>
+              </li>
+              <li>
+                <span>Oldest untriaged</span>
+                <strong>
+                  {% if summary.aging_health.oldest_untriaged_hours is none %}—{% else %}{{ '%.1f h' % summary.aging_health.oldest_untriaged_hours }}{% endif %}
+                </strong>
+              </li>
+              <li>
+                <span>High pain over SLA</span>
+                <strong>{{ summary.aging_health.high_pain_over_sla }}</strong>
+              </li>
+            </ul>
+            <ul class="sn-bucket-list" role="list">
+              {% for bucket in summary.aging_health.buckets %}
+              <li><span>{{ bucket.label }}</span><strong>{{ bucket.count }}</strong></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
       </section>
 
-      <div class="sn-dashboard-duo-row">
-        <section class="sn-card" aria-labelledby="dashboard-top-tags-heading">
+      <section class="sn-dashboard-themes-row sn-density-hide-light" aria-label="Themes and impact">
+        <section class="sn-card" data-widget-section="top-tags" aria-labelledby="dashboard-top-tags-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-top-tags-heading">Top tags</h2>
             <a href="/w/{{ workspace_slug }}/insights">View all</a>
@@ -191,7 +240,13 @@
                 <span class="sn-tag-list__meter" aria-hidden="true">
                   <span class="sn-tag-list__meter-fill" style="width: {{ ((tag.count / top_tag_max) * 100) | round(0, 'floor') }}%"></span>
                 </span>
-                <span class="sn-tag-list__count">{{ tag.count }}</span>
+                <span class="sn-tag-list__count">
+                  {{ tag.count }} ({{ tag.percentage }}%)
+                  <small>
+                    {% if tag.period_delta >= 0 %}+{% endif %}{{ tag.period_delta }}
+                    · unresolved {{ tag.unresolved_count }}
+                  </small>
+                </span>
               </li>
               {% endfor %}
             </ul>
@@ -201,43 +256,65 @@
           </div>
         </section>
 
-        <section class="sn-card" aria-labelledby="dashboard-sparkline-heading">
+        <section class="sn-card" data-widget-section="pain-distribution" aria-labelledby="dashboard-pain-heading">
           <header class="sn-card-header">
-            <h2 id="dashboard-sparkline-heading">Intake — last 30 days</h2>
+            <h2 id="dashboard-pain-heading">Pain distribution</h2>
           </header>
-          <div class="sn-card-body">
-            {% set max_count = summary.sparkline_max if summary.sparkline_max > 0 else 1 %}
-            <svg
-              class="sn-sparkline"
-              viewBox="0 0 300 60"
-              role="img"
-              aria-label="Daily feedback intake for the last 30 days"
-              preserveAspectRatio="none"
-            >
-              {% for bar in summary.sparkline %}
-              {% set x = loop.index0 * 10 %}
-              {% set h = (bar.count / max_count * 50) | round(2) %}
-              {% set y = 60 - h %}
-              <rect
-                class="sn-sparkline__bar"
-                x="{{ x }}"
-                y="{{ y }}"
-                width="8"
-                height="{{ h if h > 0 else 0 }}"
-              >
-                <title>{{ bar.day.isoformat() }}: {{ bar.count }}</title>
-              </rect>
-              {% endfor %}
-            </svg>
-            <p class="sn-text-muted sn-sparkline__caption">
-              Peak: {{ summary.sparkline_max }} item{{ '' if summary.sparkline_max == 1 else 's' }} in a day.
+          <div class="sn-card-body sn-stack">
+            {% set pain_total = summary.pain_distribution.low + summary.pain_distribution.medium + summary.pain_distribution.high %}
+            {% set pain_divisor = pain_total if pain_total > 0 else 1 %}
+            <ul class="sn-bucket-list" role="list">
+              <li>
+                <span>Low (1-2)</span>
+                <strong>{{ summary.pain_distribution.low }}</strong>
+              </li>
+              <li>
+                <span>Medium (3)</span>
+                <strong>{{ summary.pain_distribution.medium }}</strong>
+              </li>
+              <li>
+                <span>High (4-5)</span>
+                <strong>{{ summary.pain_distribution.high }}</strong>
+              </li>
+            </ul>
+            <div class="sn-pain-meter" aria-hidden="true">
+              <span class="sn-pain-meter__low" style="width: {{ (summary.pain_distribution.low / pain_divisor * 100) | round(2) }}%"></span>
+              <span class="sn-pain-meter__medium" style="width: {{ (summary.pain_distribution.medium / pain_divisor * 100) | round(2) }}%"></span>
+              <span class="sn-pain-meter__high" style="width: {{ (summary.pain_distribution.high / pain_divisor * 100) | round(2) }}%"></span>
+            </div>
+            <p class="sn-text-muted">
+              High pain unresolved: <strong>{{ summary.pain_distribution.high_pain_unresolved }}</strong>
+              · High pain unassigned: <strong>{{ summary.pain_distribution.high_pain_unassigned }}</strong>
             </p>
           </div>
         </section>
-      </div>
 
-      <div class="sn-dashboard-duo-row">
-        <section class="sn-card" aria-labelledby="dashboard-source-breakdown-heading">
+        <section class="sn-card sn-density-hide-medium" data-widget-section="segment-impact" aria-labelledby="dashboard-segment-heading">
+          <header class="sn-card-header">
+            <h2 id="dashboard-segment-heading">Segment impact</h2>
+            <span class="sn-text-muted">source proxy</span>
+          </header>
+          <div class="sn-card-body">
+            {% if summary.segment_impact.rows %}
+            <ul class="sn-bucket-list" role="list">
+              {% for row in summary.segment_impact.rows[:5] %}
+              <li>
+                <span>{{ row.segment }}</span>
+                <strong>{{ row.high_pain }} / {{ row.total }}</strong>
+              </li>
+              {% endfor %}
+            </ul>
+            <p class="sn-text-muted">
+              Top affected segment: <strong>{{ summary.segment_impact.top_affected_segment or '—' }}</strong>
+              · Repeat submitter concentration: <strong>{{ summary.segment_impact.repeat_submitter_pain_percent }}%</strong>
+            </p>
+            {% else %}
+            <p class="sn-text-muted">No segment impact data yet.</p>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="sn-card sn-density-hide-medium" data-widget-section="source-breakdown" aria-labelledby="dashboard-source-breakdown-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-source-breakdown-heading">Source breakdown</h2>
             <a href="/w/{{ workspace_slug }}/feedback">View all</a>
@@ -258,35 +335,124 @@
             {% endif %}
           </div>
         </section>
+      </section>
 
-        <section class="sn-card" aria-labelledby="dashboard-activity-heading">
+      <section class="sn-dashboard-execution-row" aria-label="Execution">
+        <section class="sn-card sn-density-hide-light" data-widget-section="team-workload" aria-labelledby="dashboard-workload-heading">
           <header class="sn-card-header">
-            <h2 id="dashboard-activity-heading">Recent activity</h2>
+            <h2 id="dashboard-workload-heading">Team workload</h2>
           </header>
           <div class="sn-card-body">
-            {% if summary.recent_activity %}
-            <ol class="sn-activity-list" role="list">
-              {% for entry in summary.recent_activity %}
-              <li class="sn-activity-list__item">
-                <a class="sn-activity-list__title" href="/w/{{ workspace_slug }}/feedback/{{ entry.feedback_id }}">
-                  {{ entry.title }}
-                </a>
-                <span class="sn-pill-status sn-pill-status--{{ status_tones.get(entry.status.value, 'muted') }}">
-                  {{ entry.status.value | replace('_', ' ') }}
-                </span>
-                <time datetime="{{ entry.updated_at.isoformat() }}" class="sn-text-muted">
-                  {{ entry.updated_at.strftime('%Y-%m-%d') }}
-                </time>
-              </li>
-              {% endfor %}
-            </ol>
-            {% else %}
-            <p class="sn-text-muted">No activity yet.</p>
-            {% endif %}
+            <div class="sn-table-wrap">
+              <table class="sn-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Owner</th>
+                    <th scope="col">Open</th>
+                    <th scope="col">High pain</th>
+                    <th scope="col">Overdue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in summary.team_workload.rows %}
+                  <tr>
+                    <td>{{ row.owner }}</td>
+                    <td>{{ row.open_count }}</td>
+                    <td>{{ row.high_pain_count }}</td>
+                    <td>{{ row.overdue_count }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
-      </div>
+
+        <aside class="sn-attention-panel" aria-labelledby="dashboard-attention-heading">
+          <h2 id="dashboard-attention-heading" class="sn-attention-panel__title">Backlog / Needs attention</h2>
+          <ul class="sn-attention-panel__list" role="list">
+            {% for category in summary.backlog_categories %}
+            <li>
+              <a href="/w/{{ workspace_slug }}/inbox?card={{ category.key }}">
+                <span class="sn-attention-panel__count">{{ category.count }}</span>
+                <span>{{ category.label }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+          <a class="sn-button sn-button-primary sn-attention-panel__cta" href="/w/{{ workspace_slug }}/inbox">
+            Start triage
+          </a>
+        </aside>
+      </section>
+
+      <section class="sn-card sn-dashboard-queue" aria-labelledby="dashboard-queue-heading">
+        <header class="sn-card-header">
+          <h2 id="dashboard-queue-heading">Action queue</h2>
+          <a href="/w/{{ workspace_slug }}/inbox">View all</a>
+        </header>
+        <p class="sn-text-muted">
+          Urgency order: high pain → unassigned → over SLA → needs info/reviewing → recency.
+        </p>
+        <div class="sn-dashboard-queue__quick-views" aria-label="Action queue quick views">
+          {% for view in summary.action_queue.quick_views %}
+          <a class="sn-filter-chip" href="/w/{{ workspace_slug }}/inbox?view={{ view.key }}">{{ view.label }} ({{ view.count }})</a>
+          {% endfor %}
+        </div>
+
+        {% if summary.action_queue.entries %}
+        <div class="sn-table-wrap sn-dashboard-queue__table-wrap">
+          <table class="sn-table sn-dashboard-queue__table">
+            <thead>
+              <tr>
+                <th scope="col">Type</th>
+                <th scope="col">Title</th>
+                <th scope="col">Submitter</th>
+                <th scope="col">Source</th>
+                <th scope="col">Pain</th>
+                <th scope="col">Priority</th>
+                <th scope="col">Status</th>
+                <th scope="col">Owner</th>
+                <th scope="col">Age</th>
+                <th scope="col">Tags</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in summary.action_queue.entries[:summary.action_queue.default_rows] %}
+              <tr>
+                <td>{{ entry.type_label }}</td>
+                <td>
+                  <a class="sn-dashboard-queue__link" href="/w/{{ workspace_slug }}/feedback/{{ entry.feedback_id }}">{{ entry.title }}</a>
+                </td>
+                <td>{{ entry.submitter }}</td>
+                <td>{{ entry.source_label }}</td>
+                <td>{{ entry.pain_level }}</td>
+                <td>{{ entry.priority_label }}</td>
+                <td>
+                  <span class="sn-pill-status sn-pill-status--{{ status_tones.get(entry.status.value, 'muted') }}">
+                    {{ entry.status.value | replace('_', ' ') }}
+                  </span>
+                </td>
+                <td>{{ entry.owner }}</td>
+                <td>{{ entry.age_label }}</td>
+                <td>
+                  {% if entry.tags %}
+                    {{ entry.tags | join(', ') }}
+                  {% else %}
+                    <span class="sn-text-muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="sn-text-muted">No queue items yet.</p>
+        {% endif %}
+      </section>
     </div>
   </main>
 </div>
+<script type="module" src="/static/js/dashboard.js" defer></script>
 {% endblock %}
