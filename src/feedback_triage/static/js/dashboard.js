@@ -27,12 +27,14 @@ if (!layout || !canvas) {
 
     const GRID_COLUMNS = 12;
     const GRID_MAX_ROWS = 120;
-    const RESIZE_MIN_ROWS = 3;
+    const RESIZE_MIN_ROWS = 2;
     const RESIZE_MAX_ROWS = 40;
     const RESIZE_HIT_SLOP = 12;
     const DRAG_ELEVATION = 20;
     const DRAG_START_THRESHOLD_PX = 10;
     const DRAG_SHADOW_CLASS = "sn-widget-drop-shadow";
+    const CUSTOM_GRID_GAP_REM = 1.2;
+    const CUSTOM_ROW_UNIT_REM = 1;
 
     const DEFAULT_SPANS = {
         "kpi-total-signals": { cols: 2, rows: 4 },
@@ -53,11 +55,11 @@ if (!layout || !canvas) {
     };
 
     const MIN_SPANS = {
-        "kpi-total-signals": { cols: 2, rows: 4 },
-        "kpi-needs-action": { cols: 2, rows: 4 },
-        "kpi-high-pain-signals": { cols: 2, rows: 4 },
-        "kpi-median-triage-time": { cols: 2, rows: 4 },
-        "kpi-net-backlog-change": { cols: 2, rows: 4 },
+        "kpi-total-signals": { cols: 1, rows: 2 },
+        "kpi-needs-action": { cols: 1, rows: 2 },
+        "kpi-high-pain-signals": { cols: 1, rows: 2 },
+        "kpi-median-triage-time": { cols: 1, rows: 2 },
+        "kpi-net-backlog-change": { cols: 1, rows: 2 },
         "signals-over-time": { cols: 4, rows: 7 },
         "status-mix": { cols: 3, rows: 7 },
         "aging-health": { cols: 3, rows: 7 },
@@ -347,11 +349,43 @@ if (!layout || !canvas) {
         return buildPackedLayout(resolvedOrder, spanMap);
     }
 
+    function getPlannedGridMetrics() {
+        const canvasRect = canvas.getBoundingClientRect();
+        const rootFontPx =
+            Number.parseFloat(
+                window.getComputedStyle(document.documentElement).fontSize,
+            ) || 16;
+        const columnGap = rootFontPx * CUSTOM_GRID_GAP_REM;
+        const rowGap = rootFontPx * CUSTOM_GRID_GAP_REM;
+        const rowUnit = rootFontPx * CUSTOM_ROW_UNIT_REM;
+        const availableWidth =
+            canvasRect.width - (GRID_COLUMNS - 1) * columnGap;
+        const colUnit = availableWidth / GRID_COLUMNS;
+
+        return {
+            colUnit,
+            rowUnit,
+            colGap: columnGap,
+            rowGap,
+        };
+    }
+
     function getGridMetrics() {
         const canvasRect = canvas.getBoundingClientRect();
+        const plannedMetrics = getPlannedGridMetrics();
+        if (canvas.dataset.layoutMode !== "custom") {
+            return plannedMetrics;
+        }
+
         const styles = window.getComputedStyle(canvas);
-        const columnGap = Number.parseFloat(styles.columnGap) || 0;
-        const rowGap = Number.parseFloat(styles.rowGap) || 0;
+        const computedColumnGap = Number.parseFloat(styles.columnGap);
+        const computedRowGap = Number.parseFloat(styles.rowGap);
+        const columnGap = Number.isFinite(computedColumnGap)
+            ? computedColumnGap
+            : plannedMetrics.colGap;
+        const rowGap = Number.isFinite(computedRowGap)
+            ? computedRowGap
+            : plannedMetrics.rowGap;
         const availableWidth =
             canvasRect.width - (GRID_COLUMNS - 1) * columnGap;
         const colUnit = availableWidth / GRID_COLUMNS;
@@ -360,7 +394,7 @@ if (!layout || !canvas) {
             Number.parseFloat(
                 styles.getPropertyValue("--sn-widget-row-unit"),
             ) ||
-            18;
+            plannedMetrics.rowUnit;
 
         return {
             colUnit,
@@ -368,6 +402,72 @@ if (!layout || !canvas) {
             colGap: columnGap,
             rowGap,
         };
+    }
+
+    function seedLayoutFromDom() {
+        const canvasRect = canvas.getBoundingClientRect();
+        const metrics = getPlannedGridMetrics();
+        const seeded = {};
+
+        defaultOrder.forEach((widgetId) => {
+            const widget = widgetById.get(widgetId);
+            if (!widget || widget.hidden) {
+                return;
+            }
+
+            const rect = widget.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) {
+                return;
+            }
+
+            seeded[widgetId] = geometryFromRect(
+                widgetId,
+                rect,
+                metrics,
+                canvasRect,
+            );
+        });
+
+        return seeded;
+    }
+
+    function geometryFromRect(widgetId, rect, metrics, canvasRect) {
+        const mins = getMinSpan(widgetId);
+        const colStep = metrics.colUnit + metrics.colGap;
+        const rowStep = metrics.rowUnit + metrics.rowGap;
+
+        const cols = clamp(
+            Math.round((rect.width + metrics.colGap) / Math.max(colStep, 1)),
+            mins.cols,
+            GRID_COLUMNS,
+        );
+        const rows = clamp(
+            Math.round((rect.height + metrics.rowGap) / Math.max(rowStep, 1)),
+            mins.rows,
+            RESIZE_MAX_ROWS,
+        );
+
+        const maxColStart = Math.max(1, GRID_COLUMNS - cols + 1);
+        const maxRowStart = Math.max(1, GRID_MAX_ROWS - rows + 1);
+
+        const col = clamp(
+            Math.round((rect.left - canvasRect.left) / Math.max(colStep, 1)) +
+                1,
+            1,
+            maxColStart,
+        );
+        const row = clamp(
+            Math.round((rect.top - canvasRect.top) / Math.max(rowStep, 1)) + 1,
+            1,
+            maxRowStart,
+        );
+
+        return normalizeWidgetGeometry(widgetId, {
+            col,
+            row,
+            cols,
+            rows,
+        });
     }
 
     function readWidgetState() {
@@ -536,9 +636,15 @@ if (!layout || !canvas) {
             return;
         }
 
+        const seededLayout = seedLayoutFromDom();
+        const candidateLayout = {
+            ...layoutState.widgets,
+            ...seededLayout,
+        };
+
         customLayoutEnabled = true;
         layoutState.widgets = resolveWidgetLayout(
-            layoutState.widgets,
+            candidateLayout,
             lockWidgetId,
         );
         applyLayoutMode();
@@ -741,11 +847,15 @@ if (!layout || !canvas) {
         const widget = widgetById.get(widgetId);
         if (!widget) return;
 
-        const startGeometry = normalizeWidgetGeometry(
-            widgetId,
-            layoutState.widgets[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
-        );
         const widgetRect = widget.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        const metrics = getGridMetrics();
+        const startGeometry = geometryFromRect(
+            widgetId,
+            widgetRect,
+            metrics,
+            canvasRect,
+        );
         const pointerOffsetX = clamp(
             event.clientX - widgetRect.left,
             0,
@@ -814,10 +924,11 @@ if (!layout || !canvas) {
                     return;
                 }
                 const reflowedRect = reflowedWidget.getBoundingClientRect();
-                dragState.startGeometry = normalizeWidgetGeometry(
+                dragState.startGeometry = geometryFromRect(
                     dragState.widgetId,
-                    layoutState.widgets[dragState.widgetId] ||
-                        DEFAULT_WIDGET_LAYOUT[dragState.widgetId],
+                    reflowedRect,
+                    getGridMetrics(),
+                    canvas.getBoundingClientRect(),
                 );
                 dragState.startRect = {
                     left: reflowedRect.left,
@@ -917,11 +1028,14 @@ if (!layout || !canvas) {
         const widget = widgetById.get(widgetId);
         if (!widget) return;
 
-        const startGeometry = normalizeWidgetGeometry(
-            widgetId,
-            layoutState.widgets[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
-        );
+        const widgetRect = widget.getBoundingClientRect();
         const metrics = getGridMetrics();
+        const startGeometry = geometryFromRect(
+            widgetId,
+            widgetRect,
+            metrics,
+            canvas.getBoundingClientRect(),
+        );
 
         resizeState = {
             widgetId,
