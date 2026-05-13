@@ -4,159 +4,214 @@
 
 ![Dashboard reference mockup](../images/Dashboard%20Mockup%201.jpg)
 
-The image above is the visual direction reference for layout and
-information density.
+This image is the visual direction for density and composition.
 
 ## Route and audience
 
 - Route: `/w/<slug>/dashboard`
 - Audience: authenticated workspace members
-- Primary goal: immediate operational awareness plus direct next actions
+- Goal: immediate operational awareness plus direct next actions
 
-## Dashboard success criteria
-
-The default dashboard must let a user answer these questions quickly:
+## Dashboard questions this page must answer
 
 1. What is happening now?
 2. What changed recently?
 3. What needs action now?
-4. Where is pain concentrated?
-5. Is the triage process healthy?
+4. Where is the biggest pain?
+5. Is the process healthy?
 6. Who owns the next action?
 
-## Recommended default composition (dense mode)
+## Design stance
+
+- Keep the dense default.
+- Improve operational usefulness by emphasizing execution health,
+  timeliness, throughput, and ownership.
+- Do not reduce the page to analytics-only summary cards.
+
+## Recommended dense default layout
 
 | Row | Purpose | Widgets |
 | --- | --- | --- |
-| 1 | Fast scan KPI strip | Total signals, needs attention, high pain, median pain, median time to triage, net backlog change |
-| 2 | Process health | Signals over time, status mix, aging health, backlog pressure |
-| 3 | Thematic and business impact | Top tags, pain distribution, team workload, segment impact |
-| 4 | Action surface | Action queue table |
+| Toolbar | Scope and controls | Search, date range, filters, saved views, new signal |
+| 1 | Fast scan KPI strip | Total signals, needs action, high pain signals, median time to triage, net backlog change |
+| 2 | Operational health | Signals over time, status mix, aging or SLA |
+| 3 | Themes and impact | Top tags, pain distribution, segment impact, source breakdown (optional priority) |
+| 4 | Execution | Team workload, backlog or needs attention |
+| 5 | Workbench surface | Action queue table |
 
-This keeps the power-user density while improving execution health,
-ownership, and timeliness visibility.
+## Toolbar contract
 
-## Section contracts
+Keep the existing filter model and add explicit view controls:
 
-### 1) KPI strip
+- Filters: date range, source, product area, tag, segment, status
+- Controls: view density selector, customize widgets, saved views
+- Primary action: new signal
 
-Required metrics:
+## Row contracts
+
+### Row 1: KPI strip
+
+Required KPIs:
 
 - Total signals
-- Needs attention
+- Needs action
 - High pain signals
-- Median pain score
 - Median time to triage
 - Net backlog change
 
-Why: this row should answer "what changed" and "are we keeping up" in one
-scan.
+Notes:
 
-### 2) Process health row
+- "Needs action" is preferred over "Needs attention" for operational clarity.
+- Median pain score can remain on the page, but it is secondary to median
+  time to triage for default KPI prominence.
 
-Required widgets:
+### Row 2: Operational health
 
-- Signals over time (intake trend)
-- Status mix (workflow distribution)
-- Aging health (open item age profile)
-- Backlog pressure (attention classes)
+#### Signals over time
 
-Why: this row closes the current gap between descriptive volume and
-execution health.
+Use three lines in the same chart:
 
-### 3) Thematic and business impact row
+- Received
+- Triaged
+- Resolved
 
-Required widgets:
+Reason: intake-only trend lines hide whether the team is keeping up.
 
-- Top tags
-- Pain distribution
-- Team workload
-- Segment impact
+#### Status mix
 
-Why: this row shows what is hurting, who is carrying load, and which
-segments matter most.
+Show distribution across the v2 status workflow to reveal bottlenecks.
 
-### 4) Action queue row
+#### Aging or SLA
 
-Rename "Recent signals" to "Action queue" and default-sort by urgency.
+Required fields:
+
+- Average age of open items
+- Median age of open items
+- Buckets: 0-24h, 1-3d, 4-7d, 8-14d, 14d+
+- Oldest untriaged
+- High pain over SLA
+
+Reason: backlog count alone can hide stale, high-severity risk.
+
+### Row 3: Themes and impact
+
+#### Top tags
+
+Show:
+
+- count
+- percentage
+- period delta
+- unresolved count (if available)
+
+#### Pain distribution
+
+Show low/medium/high distribution and call out:
+
+- high pain unresolved
+- high pain unassigned
+
+#### Segment impact
+
+Show impact by segment and severity, for example:
+
+- high pain by segment
+- top affected segment
+- repeat submitter pain concentration
+
+#### Source breakdown
+
+Keep this visible in dense mode, but treat it as lower priority than
+status, aging, and ownership widgets.
+
+### Row 4: Execution
+
+#### Team workload
+
+Required columns:
+
+- owner
+- open
+- high pain
+- overdue
+
+Always include unassigned totals.
+
+#### Backlog or needs attention
+
+Recommended categories:
+
+- unassigned high pain
+- new and untriaged
+- over SLA
+- returning customer pain
+- escalated
+- potential duplicates
+- waiting on submitter
+
+### Row 5: Action queue
+
+Rename the table from "Recent signals" to "Action queue".
 
 Recommended defaults:
 
-- 8-10 rows visible
-- Sort: needs action first
-- Quick views: recent, high pain, unassigned, stale
+- 8-10 rows
+- urgency-first sorting
+- quick views: needs action, recent, high pain, unassigned, stale, duplicates
 
-Why: this keeps dashboard context but drives immediate action.
+Recommended columns:
 
-## Highest-value additions (priority order)
+- type
+- title
+- submitter
+- source
+- pain
+- priority
+- status
+- owner
+- age
+- tags
 
-### A) Aging and timeliness
+Default sort strategy should prioritize:
 
-Add an "Aging health" panel with:
+1. high pain
+2. unassigned
+3. over SLA
+4. needs_info and reviewing
+5. recency within those groups
 
-- Average age of open signals
-- Median age of open signals
-- Age buckets: 0-24h, 1-3d, 4-7d, 8-14d, 14d+
-- High pain open age
-- Oldest untriaged item
+## Preset behavior
 
-### B) Throughput and process output
+| Preset | Behavior |
+| --- | --- |
+| Dense (default) | Full operational dashboard |
+| Medium | Hide lower-priority widgets (often source breakdown, some impact widgets) |
+| Light | KPI strip + signals over time + needs action + action queue |
+| Custom | User-controlled widget visibility and order |
 
-Add throughput metrics for the active period:
+## Default visibility guidance
 
-- Triaged
-- Resolved or closed
-- Moved to planned
-- Shipped
-- Triage rate vs intake rate
-- Net backlog change
-
-### C) Ownership and accountability
-
-Add a "Team workload" widget with:
-
-- Unassigned signals
-- Open by owner
-- High pain by owner
-- Overdue by owner
-- No owner and high pain count
-
-### D) Status mix
-
-Add a status distribution widget and prioritize it above source
-breakdown on the default dashboard.
-
-### E) Segment impact
-
-Add segment-weighted impact indicators:
-
-- Top affected segment
-- High pain by segment
-- High-value account impact
-- Repeat submitter pain concentration
-
-### F) Signal quality and dedupe
-
-Add quality metrics:
-
-- Duplicate rate
-- Duplicates merged this period
-- Unique signals vs raw submissions
-- Spam or invalid rate
-
-### G) Trend deltas across breakdowns
-
-Add period-over-period deltas to:
-
-- Top tags
-- Backlog categories
-- Source breakdown
-- Pain distribution
-- Status distribution
+| Area | Widget | Default visibility |
+| --- | --- | --- |
+| KPI | Total signals | Required |
+| KPI | Needs action | Required |
+| KPI | High pain signals | Required |
+| KPI | Median time to triage | Required |
+| KPI | Net backlog change | Required |
+| Health | Signals over time | Required |
+| Health | Status mix | Required |
+| Health | Aging or SLA | Required |
+| Themes | Top tags | Required |
+| Themes | Pain distribution | Recommended |
+| Themes | Segment impact | Recommended |
+| Themes | Source breakdown | Optional in non-dense modes |
+| Execution | Team workload | Recommended |
+| Execution | Backlog or needs attention | Required |
+| Workbench | Action queue | Required |
 
 ## Canonical v2 status set
 
-Status widgets should use the v2 status enum from the spec:
+Status widgets and filters should use:
 
 - `new`
 - `needs_info`
@@ -170,36 +225,26 @@ Status widgets should use the v2 status enum from the spec:
 
 See [../glossary.md](../glossary.md) and [../schema.md](../schema.md).
 
-## Preset modes (optional)
+## Data contract additions
 
-Use layout presets without weakening the opinionated default.
+To support this layout, extend dashboard summary payloads with:
 
-- Dense: full operational dashboard (default)
-- Medium: fewer widgets, reduced table footprint
-- Light: KPI strip + trend + one action widget
-
-The default should remain dense because it reflects SignalNest triage
-behavior expectations.
-
-## Data contract additions (recommended)
-
-To support the additions above, extend dashboard summary payloads with
-structured blocks:
-
-- `aging_health`
-- `throughput`
-- `team_workload`
+- `kpi` including `needs_action`, `median_time_to_triage`, `net_backlog_change`
+- `throughput` including received, triaged, resolved period totals
 - `status_mix`
+- `aging_health`
+- `team_workload`
 - `segment_impact`
 - `signal_quality`
+- `action_queue` with urgency sort metadata
 
 ## Acceptance checks
 
-1. A user can answer all six dashboard success questions in under 10 seconds.
-2. Process health (throughput, aging, status mix, ownership) is visible above
-   the fold on desktop.
-3. Action queue defaults to needs-action ordering and supports quick switching.
-4. Trend deltas are present in at least KPI, status, and thematic breakdowns.
+1. The six dashboard questions are answerable in under 10 seconds.
+2. Process health is visible above the fold on desktop.
+3. Action queue defaults to urgency-first ordering.
+4. Aging, status mix, and ownership are all represented in the default dense view.
+5. Dense, medium, and light presets can switch without breaking page semantics.
 
 ## Related specs
 
