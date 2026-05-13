@@ -249,11 +249,11 @@ if (!layout || !canvas) {
         const resolved = {};
         const occupied = [];
 
-        const activeWidgetIds = defaultOrder.filter((widgetId) => {
+        const isActive = (widgetId) => {
             const widget = widgetById.get(widgetId);
             return Boolean(widget && !widget.hidden);
-        });
-        const effectiveLockedId = activeWidgetIds.includes(lockedWidgetId)
+        };
+        const effectiveLockedId = isActive(lockedWidgetId)
             ? lockedWidgetId
             : null;
 
@@ -267,7 +267,7 @@ if (!layout || !canvas) {
             occupied.push(lockedGeometry);
         }
 
-        activeWidgetIds.forEach((widgetId) => {
+        defaultOrder.forEach((widgetId) => {
             if (widgetId === effectiveLockedId) {
                 return;
             }
@@ -276,24 +276,15 @@ if (!layout || !canvas) {
                 widgetId,
                 candidateWidgets?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
             );
-            const placed = findFreePlacement(occupied, {
-                ...preferred,
-                col: 1,
-                row: 1,
-            });
-            resolved[widgetId] = placed;
-            occupied.push(placed);
-        });
 
-        defaultOrder.forEach((widgetId) => {
-            if (resolved[widgetId]) {
+            if (!isActive(widgetId)) {
+                resolved[widgetId] = preferred;
                 return;
             }
 
-            resolved[widgetId] = normalizeWidgetGeometry(
-                widgetId,
-                candidateWidgets?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
-            );
+            const placed = findFreePlacement(occupied, preferred);
+            resolved[widgetId] = placed;
+            occupied.push(placed);
         });
 
         return resolved;
@@ -695,9 +686,6 @@ if (!layout || !canvas) {
         const clampedLeft = clamp(desiredLeft, minLeft, maxLeft);
         const clampedTop = clamp(desiredTop, minTop, maxTop);
 
-        const deltaX = clampedLeft - dragState.startRect.left;
-        const deltaY = clampedTop - dragState.startRect.top;
-
         const colStep = metrics.colUnit + metrics.colGap;
         const rowStep = metrics.rowUnit + metrics.rowGap;
         const maxColStart = Math.max(
@@ -732,11 +720,16 @@ if (!layout || !canvas) {
             previewLayout,
             dragState.widgetId,
         );
+        const geometry = resolvedLayout[dragState.widgetId];
+        const snappedLeft =
+            canvasRect.left + (geometry.col - 1) * Math.max(colStep, 1);
+        const snappedTop =
+            canvasRect.top + (geometry.row - 1) * Math.max(rowStep, 1);
 
         return {
-            deltaX,
-            deltaY,
-            geometry: resolvedLayout[dragState.widgetId],
+            deltaX: snappedLeft - dragState.startRect.left,
+            deltaY: snappedTop - dragState.startRect.top,
+            geometry,
         };
     }
 
