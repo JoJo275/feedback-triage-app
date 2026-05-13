@@ -365,9 +365,11 @@ if (!layout || !canvas) {
             canvasRect.width - (GRID_COLUMNS - 1) * columnGap;
         const colUnit = availableWidth / GRID_COLUMNS;
         const rowUnit =
+            Number.parseFloat(styles.gridAutoRows) ||
             Number.parseFloat(
                 styles.getPropertyValue("--sn-widget-row-unit"),
-            ) || 18;
+            ) ||
+            18;
 
         return {
             colUnit,
@@ -538,6 +540,20 @@ if (!layout || !canvas) {
         applyWidgetLayout();
     }
 
+    function activateCustomLayout(lockWidgetId = null) {
+        if (customLayoutEnabled) {
+            return;
+        }
+
+        customLayoutEnabled = true;
+        layoutState.widgets = resolveWidgetLayout(
+            layoutState.widgets,
+            lockWidgetId,
+        );
+        applyLayoutMode();
+        applyWidgetLayout();
+    }
+
     function ensureDragShadow() {
         if (dragShadow?.isConnected) {
             return dragShadow;
@@ -552,6 +568,10 @@ if (!layout || !canvas) {
     }
 
     function showDragShadow(widgetId, geometry) {
+        if (!customLayoutEnabled) {
+            return;
+        }
+
         const shadow = ensureDragShadow();
         const baseSpan = getDefaultSpan(widgetId);
         const scale = clamp(
@@ -655,6 +675,7 @@ if (!layout || !canvas) {
 
     function resolveDragPlacement(clientX, clientY) {
         if (!dragState) return null;
+        if (!customLayoutEnabled) return null;
 
         const canvasRect = canvas.getBoundingClientRect();
         const metrics = getGridMetrics();
@@ -755,6 +776,9 @@ if (!layout || !canvas) {
             },
             pointerOffsetX,
             pointerOffsetY,
+            anchorPointerX: event.clientX,
+            anchorPointerY: event.clientY,
+            needsActivation: !customLayoutEnabled,
             engaged: false,
             dirty: false,
             pendingGeometry: startGeometry,
@@ -781,19 +805,54 @@ if (!layout || !canvas) {
         const draggedWidget = widgetById.get(dragState.widgetId);
         if (!draggedWidget) return;
 
+        if (!dragState.engaged) {
+            const pointerTravel = Math.hypot(
+                event.clientX - dragState.anchorPointerX,
+                event.clientY - dragState.anchorPointerY,
+            );
+            if (pointerTravel < DRAG_START_THRESHOLD_PX) {
+                return;
+            }
+
+            if (dragState.needsActivation) {
+                activateCustomLayout(dragState.widgetId);
+                const reflowedWidget = widgetById.get(dragState.widgetId);
+                if (!reflowedWidget) {
+                    return;
+                }
+                const reflowedRect = reflowedWidget.getBoundingClientRect();
+                dragState.startGeometry = normalizeWidgetGeometry(
+                    dragState.widgetId,
+                    layoutState.widgets[dragState.widgetId] ||
+                        DEFAULT_WIDGET_LAYOUT[dragState.widgetId],
+                );
+                dragState.startRect = {
+                    left: reflowedRect.left,
+                    top: reflowedRect.top,
+                    width: reflowedRect.width,
+                    height: reflowedRect.height,
+                };
+                dragState.pointerOffsetX = clamp(
+                    event.clientX - reflowedRect.left,
+                    0,
+                    reflowedRect.width,
+                );
+                dragState.pointerOffsetY = clamp(
+                    event.clientY - reflowedRect.top,
+                    0,
+                    reflowedRect.height,
+                );
+                dragState.pendingGeometry = dragState.startGeometry;
+                dragState.needsActivation = false;
+            }
+
+            dragState.engaged = true;
+        }
+
         const placement = resolveDragPlacement(event.clientX, event.clientY);
         if (!placement) return;
 
         draggedWidget.style.transform = `translate3d(${placement.deltaX}px, ${placement.deltaY}px, 0)`;
-
-        if (
-            !dragState.engaged &&
-            Math.hypot(placement.deltaX, placement.deltaY) <
-                DRAG_START_THRESHOLD_PX
-        ) {
-            return;
-        }
-        dragState.engaged = true;
 
         dragState.pendingGeometry = placement.geometry;
         showDragShadow(dragState.widgetId, dragState.pendingGeometry);
@@ -859,6 +918,8 @@ if (!layout || !canvas) {
         if (!editMode || dragState) return;
         if (event.button !== 0) return;
         event.preventDefault();
+
+        activateCustomLayout(widgetId);
 
         const widget = widgetById.get(widgetId);
         if (!widget) return;
@@ -1049,8 +1110,6 @@ if (!layout || !canvas) {
             hideDragShadow();
             syncWidgetPointerModes();
         } else {
-            customLayoutEnabled = true;
-            writeLayoutState();
             syncWidgetPointerModes();
         }
 
