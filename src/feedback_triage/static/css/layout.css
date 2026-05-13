@@ -221,7 +221,7 @@
     .sn-dashboard-canvas[data-layout-mode="custom"] {
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
-        grid-auto-flow: row dense;
+        grid-auto-flow: row;
         --sn-widget-row-unit: 1rem;
         grid-auto-rows: var(--sn-widget-row-unit);
         gap: 0.75rem;
@@ -237,12 +237,13 @@
     }
 
     .sn-dashboard-canvas[data-layout-mode="custom"] [data-widget-id] {
-        order: var(--widget-order, 0);
-        grid-column: span var(--widget-col-span, 3);
-        grid-row: span var(--widget-row-span, 8);
+        grid-column: var(--widget-col-start, 1) / span var(--widget-col-span, 3);
+        grid-row: var(--widget-row-start, 1) / span var(--widget-row-span, 8);
         min-width: 0;
         min-height: 0;
         position: relative;
+        overflow: hidden;
+        contain: layout paint;
     }
 }
 

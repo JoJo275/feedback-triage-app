@@ -26,10 +26,13 @@ if (!layout || !canvas) {
     const LAYOUT_KEY = `${STORAGE_PREFIX}.layout`;
 
     const GRID_COLUMNS = 12;
+    const GRID_MAX_ROWS = 120;
     const RESIZE_MIN_ROWS = 3;
     const RESIZE_MAX_ROWS = 40;
     const RESIZE_HIT_SLOP = 12;
     const DRAG_ELEVATION = 20;
+    const DRAG_START_THRESHOLD_PX = 10;
+    const DRAG_APPLY_DELAY_MS = 85;
 
     const DEFAULT_SPANS = {
         "kpi-total-signals": { cols: 2, rows: 4 },
@@ -49,6 +52,24 @@ if (!layout || !canvas) {
         "action-queue": { cols: 12, rows: 11 },
     };
 
+    const MIN_SPANS = {
+        "kpi-total-signals": { cols: 2, rows: 4 },
+        "kpi-needs-action": { cols: 2, rows: 4 },
+        "kpi-high-pain-signals": { cols: 2, rows: 4 },
+        "kpi-median-triage-time": { cols: 2, rows: 4 },
+        "kpi-net-backlog-change": { cols: 2, rows: 4 },
+        "signals-over-time": { cols: 4, rows: 7 },
+        "status-mix": { cols: 3, rows: 7 },
+        "aging-health": { cols: 3, rows: 7 },
+        "top-tags": { cols: 3, rows: 6 },
+        "pain-distribution": { cols: 3, rows: 6 },
+        "segment-impact": { cols: 3, rows: 6 },
+        "source-breakdown": { cols: 3, rows: 6 },
+        "team-workload": { cols: 5, rows: 8 },
+        "backlog-needs-attention": { cols: 3, rows: 8 },
+        "action-queue": { cols: 8, rows: 9 },
+    };
+
     const widgetById = new Map();
     widgets.forEach((widget) => {
         const widgetId = widget.dataset.widgetId;
@@ -57,16 +78,13 @@ if (!layout || !canvas) {
     });
 
     const defaultOrder = Array.from(widgetById.keys());
-    const defaultSpans = defaultOrder.reduce((accumulator, widgetId) => {
-        accumulator[widgetId] = {
-            cols: DEFAULT_SPANS[widgetId]?.cols || 3,
-            rows: DEFAULT_SPANS[widgetId]?.rows || 8,
-        };
-        return accumulator;
-    }, {});
+    const DEFAULT_WIDGET_LAYOUT = buildPackedLayout(
+        defaultOrder,
+        DEFAULT_SPANS,
+    );
+
     let layoutState = {
-        order: [...defaultOrder],
-        spans: JSON.parse(JSON.stringify(defaultSpans)),
+        widgets: cloneWidgetLayout(DEFAULT_WIDGET_LAYOUT),
     };
     let customLayoutEnabled = false;
     let editMode = false;
@@ -101,6 +119,240 @@ if (!layout || !canvas) {
         return Math.min(Math.max(value, min), max);
     }
 
+    function getDefaultSpan(widgetId) {
+        const defaults = DEFAULT_SPANS[widgetId];
+        return {
+            cols: defaults?.cols || 3,
+            rows: defaults?.rows || 8,
+        };
+    }
+
+    function getMinSpan(widgetId) {
+        const mins = MIN_SPANS[widgetId];
+        return {
+            cols: mins?.cols || 1,
+            rows: clamp(
+                mins?.rows || RESIZE_MIN_ROWS,
+                RESIZE_MIN_ROWS,
+                RESIZE_MAX_ROWS,
+            ),
+        };
+    }
+
+    function cloneWidgetLayout(layoutMap) {
+        const clone = {};
+        defaultOrder.forEach((widgetId) => {
+            const widget = layoutMap?.[widgetId] || {};
+            clone[widgetId] = {
+                col: Number(widget.col) || 1,
+                row: Number(widget.row) || 1,
+                cols: Number(widget.cols) || getDefaultSpan(widgetId).cols,
+                rows: Number(widget.rows) || getDefaultSpan(widgetId).rows,
+            };
+        });
+        return clone;
+    }
+
+    function normalizeWidgetGeometry(widgetId, geometry) {
+        const defaults = getDefaultSpan(widgetId);
+        const mins = getMinSpan(widgetId);
+
+        const cols = clamp(
+            Number(geometry?.cols) || defaults.cols,
+            mins.cols,
+            GRID_COLUMNS,
+        );
+        const rows = clamp(
+            Number(geometry?.rows) || defaults.rows,
+            mins.rows,
+            RESIZE_MAX_ROWS,
+        );
+        const maxColStart = Math.max(1, GRID_COLUMNS - cols + 1);
+        const maxRowStart = Math.max(1, GRID_MAX_ROWS - rows + 1);
+
+        return {
+            col: clamp(Number(geometry?.col) || 1, 1, maxColStart),
+            row: clamp(Number(geometry?.row) || 1, 1, maxRowStart),
+            cols,
+            rows,
+        };
+    }
+
+    function rectanglesOverlap(a, b) {
+        return (
+            a.col < b.col + b.cols &&
+            a.col + a.cols > b.col &&
+            a.row < b.row + b.rows &&
+            a.row + a.rows > b.row
+        );
+    }
+
+    function isPlacementFree(occupied, placement) {
+        return occupied.every((rect) => !rectanglesOverlap(rect, placement));
+    }
+
+    function findFreePlacement(occupied, preferred) {
+        const maxColStart = Math.max(1, GRID_COLUMNS - preferred.cols + 1);
+        const maxRowStart = Math.max(1, GRID_MAX_ROWS - preferred.rows + 1);
+        const preferredCol = clamp(preferred.col, 1, maxColStart);
+        const preferredRow = clamp(preferred.row, 1, maxRowStart);
+
+        for (let row = preferredRow; row <= maxRowStart; row += 1) {
+            for (let col = preferredCol; col <= maxColStart; col += 1) {
+                const candidate = {
+                    col,
+                    row,
+                    cols: preferred.cols,
+                    rows: preferred.rows,
+                };
+                if (isPlacementFree(occupied, candidate)) {
+                    return candidate;
+                }
+            }
+            for (let col = 1; col < preferredCol; col += 1) {
+                const candidate = {
+                    col,
+                    row,
+                    cols: preferred.cols,
+                    rows: preferred.rows,
+                };
+                if (isPlacementFree(occupied, candidate)) {
+                    return candidate;
+                }
+            }
+        }
+
+        for (let row = 1; row < preferredRow; row += 1) {
+            for (let col = 1; col <= maxColStart; col += 1) {
+                const candidate = {
+                    col,
+                    row,
+                    cols: preferred.cols,
+                    rows: preferred.rows,
+                };
+                if (isPlacementFree(occupied, candidate)) {
+                    return candidate;
+                }
+            }
+        }
+
+        return {
+            col: 1,
+            row: maxRowStart,
+            cols: preferred.cols,
+            rows: preferred.rows,
+        };
+    }
+
+    function resolveWidgetLayout(candidateWidgets, lockedWidgetId = null) {
+        const resolved = {};
+        const occupied = [];
+
+        if (lockedWidgetId && widgetById.has(lockedWidgetId)) {
+            const lockedGeometry = normalizeWidgetGeometry(
+                lockedWidgetId,
+                candidateWidgets?.[lockedWidgetId] ||
+                    DEFAULT_WIDGET_LAYOUT[lockedWidgetId],
+            );
+            resolved[lockedWidgetId] = lockedGeometry;
+            occupied.push(lockedGeometry);
+        }
+
+        defaultOrder.forEach((widgetId) => {
+            if (widgetId === lockedWidgetId) {
+                return;
+            }
+
+            const preferred = normalizeWidgetGeometry(
+                widgetId,
+                candidateWidgets?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+            );
+            const placed = findFreePlacement(occupied, preferred);
+            resolved[widgetId] = placed;
+            occupied.push(placed);
+        });
+
+        return resolved;
+    }
+
+    function buildPackedLayout(order, spanMap) {
+        const packed = {};
+        let cursorCol = 1;
+        let cursorRow = 1;
+        let rowHeight = 1;
+
+        order.forEach((widgetId) => {
+            const defaults = getDefaultSpan(widgetId);
+            const mins = getMinSpan(widgetId);
+            const source = spanMap?.[widgetId] || defaults;
+            const cols = clamp(
+                Number(source.cols) || defaults.cols,
+                mins.cols,
+                GRID_COLUMNS,
+            );
+            const rows = clamp(
+                Number(source.rows) || defaults.rows,
+                mins.rows,
+                RESIZE_MAX_ROWS,
+            );
+
+            if (cursorCol + cols - 1 > GRID_COLUMNS) {
+                cursorRow += rowHeight;
+                cursorCol = 1;
+                rowHeight = 1;
+            }
+
+            packed[widgetId] = {
+                col: cursorCol,
+                row: cursorRow,
+                cols,
+                rows,
+            };
+
+            cursorCol += cols;
+            rowHeight = Math.max(rowHeight, rows);
+        });
+
+        return packed;
+    }
+
+    function legacyLayoutToWidgets(legacyOrder, legacySpans) {
+        const preferredOrder = Array.isArray(legacyOrder)
+            ? legacyOrder.filter((id) => widgetById.has(id))
+            : [];
+        const resolvedOrder = [
+            ...preferredOrder,
+            ...defaultOrder.filter((id) => !preferredOrder.includes(id)),
+        ];
+        const spanMap = {};
+        resolvedOrder.forEach((widgetId) => {
+            spanMap[widgetId] =
+                legacySpans?.[widgetId] || getDefaultSpan(widgetId);
+        });
+        return buildPackedLayout(resolvedOrder, spanMap);
+    }
+
+    function getGridMetrics() {
+        const canvasRect = canvas.getBoundingClientRect();
+        const styles = window.getComputedStyle(canvas);
+        const columnGap = Number.parseFloat(styles.columnGap) || 0;
+        const rowGap = Number.parseFloat(styles.rowGap) || 0;
+        const availableWidth =
+            canvasRect.width - (GRID_COLUMNS - 1) * columnGap;
+        const colUnit = availableWidth / GRID_COLUMNS;
+        const rowUnit =
+            Number.parseFloat(
+                styles.getPropertyValue("--sn-widget-row-unit"),
+            ) || 18;
+
+        return {
+            colUnit,
+            rowUnit,
+            colGap: columnGap,
+            rowGap,
+        };
+    }
+
     function readWidgetState() {
         const raw = safeGetItem(WIDGETS_KEY);
         if (!raw) return {};
@@ -124,47 +376,31 @@ if (!layout || !canvas) {
     function normalizeLayoutState(candidate) {
         if (!candidate || typeof candidate !== "object") {
             return {
-                order: [...defaultOrder],
-                spans: JSON.parse(JSON.stringify(defaultSpans)),
+                widgets: cloneWidgetLayout(DEFAULT_WIDGET_LAYOUT),
             };
         }
 
-        const providedOrder = Array.isArray(candidate.order)
-            ? candidate.order.filter((id) => widgetById.has(id))
-            : [];
-        const finalOrder = [
-            ...providedOrder,
-            ...defaultOrder.filter((id) => !providedOrder.includes(id)),
-        ];
-
-        const candidateSpans =
-            candidate.spans && typeof candidate.spans === "object"
-                ? candidate.spans
-                : {};
-
-        const finalSpans = {};
-        defaultOrder.forEach((widgetId) => {
-            const defaults = DEFAULT_SPANS[widgetId] || { cols: 3, rows: 8 };
-            const stored = candidateSpans[widgetId];
-            const cols = clamp(
-                Number(stored?.cols) || defaults.cols,
-                1,
-                GRID_COLUMNS,
-            );
-            const rows = clamp(
-                Number(stored?.rows) || defaults.rows,
-                RESIZE_MIN_ROWS,
-                RESIZE_MAX_ROWS,
-            );
-            finalSpans[widgetId] = {
-                cols,
-                rows,
+        if (candidate.widgets && typeof candidate.widgets === "object") {
+            return {
+                widgets: resolveWidgetLayout(candidate.widgets),
             };
-        });
+        }
+
+        if (
+            Array.isArray(candidate.order) ||
+            (candidate.spans && typeof candidate.spans === "object")
+        ) {
+            const legacyWidgets = legacyLayoutToWidgets(
+                candidate.order,
+                candidate.spans,
+            );
+            return {
+                widgets: resolveWidgetLayout(legacyWidgets),
+            };
+        }
 
         return {
-            order: finalOrder,
-            spans: finalSpans,
+            widgets: cloneWidgetLayout(DEFAULT_WIDGET_LAYOUT),
         };
     }
 
@@ -219,16 +455,57 @@ if (!layout || !canvas) {
     }
 
     function applyWidgetLayout() {
-        layoutState.order.forEach((widgetId, index) => {
+        defaultOrder.forEach((widgetId) => {
             const widget = widgetById.get(widgetId);
             if (!widget) return;
-            const span = layoutState.spans[widgetId] || { cols: 3, rows: 8 };
-            const cols = clamp(span.cols, 1, GRID_COLUMNS);
-            const rows = clamp(span.rows, RESIZE_MIN_ROWS, RESIZE_MAX_ROWS);
-            widget.style.setProperty("--widget-order", String(index + 1));
-            widget.style.setProperty("--widget-col-span", String(cols));
-            widget.style.setProperty("--widget-row-span", String(rows));
+            const geometry = normalizeWidgetGeometry(
+                widgetId,
+                layoutState.widgets[widgetId] ||
+                    DEFAULT_WIDGET_LAYOUT[widgetId],
+            );
+            layoutState.widgets[widgetId] = geometry;
+
+            const baseSpan = getDefaultSpan(widgetId);
+            const scale = clamp(
+                Math.min(
+                    geometry.cols / Math.max(baseSpan.cols, 1),
+                    geometry.rows / Math.max(baseSpan.rows, 1),
+                ),
+                0.82,
+                1.15,
+            );
+
+            widget.style.setProperty(
+                "--widget-col-start",
+                String(geometry.col),
+            );
+            widget.style.setProperty(
+                "--widget-row-start",
+                String(geometry.row),
+            );
+            widget.style.setProperty(
+                "--widget-content-scale",
+                scale.toFixed(3),
+            );
+            widget.style.setProperty(
+                "--widget-col-span",
+                String(geometry.cols),
+            );
+            widget.style.setProperty(
+                "--widget-row-span",
+                String(geometry.rows),
+            );
         });
+    }
+
+    function applyWidgetPlacement(widgetId, nextGeometry) {
+        const currentLayout = cloneWidgetLayout(layoutState.widgets);
+        currentLayout[widgetId] = normalizeWidgetGeometry(
+            widgetId,
+            nextGeometry,
+        );
+        layoutState.widgets = resolveWidgetLayout(currentLayout, widgetId);
+        applyWidgetLayout();
     }
 
     function refreshEditButton() {
@@ -303,54 +580,6 @@ if (!layout || !canvas) {
         return null;
     }
 
-    function reorderWidget(widgetId, targetWidgetId, placeAfter) {
-        const currentOrder = [...layoutState.order];
-        const sourceIndex = currentOrder.indexOf(widgetId);
-        const targetIndex = currentOrder.indexOf(targetWidgetId);
-
-        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
-            return;
-        }
-
-        currentOrder.splice(sourceIndex, 1);
-        const adjustedTarget =
-            sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
-        const insertionIndex = placeAfter ? adjustedTarget + 1 : adjustedTarget;
-        currentOrder.splice(insertionIndex, 0, widgetId);
-        layoutState.order = currentOrder;
-        applyWidgetLayout();
-    }
-
-    function getClosestDropTarget(widgetId, clientX, clientY) {
-        let closest = null;
-
-        layoutState.order.forEach((candidateId) => {
-            if (candidateId === widgetId) return;
-
-            const candidate = widgetById.get(candidateId);
-            if (!candidate || candidate.hidden) return;
-
-            const rect = candidate.getBoundingClientRect();
-            if (rect.width <= 0 || rect.height <= 0) return;
-
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const distance = Math.hypot(clientX - centerX, clientY - centerY);
-
-            if (!closest || distance < closest.distance) {
-                closest = {
-                    widgetId: candidateId,
-                    rect,
-                    centerX,
-                    centerY,
-                    distance,
-                };
-            }
-        });
-
-        return closest;
-    }
-
     function startDrag(event, widgetId) {
         if (!editMode || resizeState) return;
         if (event.button !== 0) return;
@@ -359,13 +588,23 @@ if (!layout || !canvas) {
         const widget = widgetById.get(widgetId);
         if (!widget) return;
 
+        const startGeometry = normalizeWidgetGeometry(
+            widgetId,
+            layoutState.widgets[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+        );
+
         dragState = {
             widgetId,
             pointerId: event.pointerId,
             startX: event.clientX,
             startY: event.clientY,
-            lastTargetId: null,
-            lastPlaceAfter: null,
+            startGeometry,
+            metrics: getGridMetrics(),
+            engaged: false,
+            dirty: false,
+            pendingCol: startGeometry.col,
+            pendingRow: startGeometry.row,
+            lastAppliedAt: 0,
         };
 
         widget.classList.add("is-widget-dragging");
@@ -381,41 +620,83 @@ if (!layout || !canvas) {
         if (!dragState || event.pointerId !== dragState.pointerId) return;
 
         const draggedWidget = widgetById.get(dragState.widgetId);
-        if (draggedWidget) {
-            const deltaX = event.clientX - dragState.startX;
-            const deltaY = event.clientY - dragState.startY;
-            draggedWidget.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
-        }
+        if (!draggedWidget) return;
 
-        const target = getClosestDropTarget(
-            dragState.widgetId,
-            event.clientX,
-            event.clientY,
-        );
-        if (!target) return;
-
-        const normalizedX =
-            (event.clientX - target.centerX) / Math.max(target.rect.width, 1);
-        const normalizedY =
-            (event.clientY - target.centerY) / Math.max(target.rect.height, 1);
-        const placeAfter =
-            Math.abs(normalizedX) > Math.abs(normalizedY)
-                ? normalizedX >= 0
-                : normalizedY >= 0;
+        const deltaX = event.clientX - dragState.startX;
+        const deltaY = event.clientY - dragState.startY;
+        draggedWidget.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
 
         if (
-            target.widgetId !== dragState.lastTargetId ||
-            placeAfter !== dragState.lastPlaceAfter
+            !dragState.engaged &&
+            Math.hypot(deltaX, deltaY) < DRAG_START_THRESHOLD_PX
         ) {
-            reorderWidget(dragState.widgetId, target.widgetId, placeAfter);
-            dragState.lastTargetId = target.widgetId;
-            dragState.lastPlaceAfter = placeAfter;
+            return;
         }
+        dragState.engaged = true;
+
+        const colStep = dragState.metrics.colUnit + dragState.metrics.colGap;
+        const rowStep = dragState.metrics.rowUnit + dragState.metrics.rowGap;
+        const colDelta = Math.round(deltaX / Math.max(colStep, 1));
+        const rowDelta = Math.round(deltaY / Math.max(rowStep, 1));
+
+        const maxColStart = Math.max(
+            1,
+            GRID_COLUMNS - dragState.startGeometry.cols + 1,
+        );
+        const maxRowStart = Math.max(
+            1,
+            GRID_MAX_ROWS - dragState.startGeometry.rows + 1,
+        );
+        const nextCol = clamp(
+            dragState.startGeometry.col + colDelta,
+            1,
+            maxColStart,
+        );
+        const nextRow = clamp(
+            dragState.startGeometry.row + rowDelta,
+            1,
+            maxRowStart,
+        );
+
+        dragState.pendingCol = nextCol;
+        dragState.pendingRow = nextRow;
+
+        const now = performance.now();
+        if (now - dragState.lastAppliedAt < DRAG_APPLY_DELAY_MS) {
+            return;
+        }
+
+        dragState.lastAppliedAt = now;
+        applyWidgetPlacement(dragState.widgetId, {
+            ...dragState.startGeometry,
+            col: nextCol,
+            row: nextRow,
+        });
+        dragState.dirty = true;
     }
 
     function stopDrag(event) {
         if (!dragState) return;
         if (event && event.pointerId !== dragState.pointerId) return;
+
+        if (dragState.engaged) {
+            const current = normalizeWidgetGeometry(
+                dragState.widgetId,
+                layoutState.widgets[dragState.widgetId] ||
+                    dragState.startGeometry,
+            );
+            if (
+                current.col !== dragState.pendingCol ||
+                current.row !== dragState.pendingRow
+            ) {
+                applyWidgetPlacement(dragState.widgetId, {
+                    ...current,
+                    col: dragState.pendingCol,
+                    row: dragState.pendingRow,
+                });
+                dragState.dirty = true;
+            }
+        }
 
         const widget = widgetById.get(dragState.widgetId);
         if (widget) {
@@ -425,11 +706,14 @@ if (!layout || !canvas) {
             setWidgetPointerMode(widget, editMode ? "move" : null);
         }
 
+        const shouldPersist = dragState.dirty;
         dragState = null;
         document.removeEventListener("pointermove", onDragMove);
         document.removeEventListener("pointerup", stopDrag);
         document.removeEventListener("pointercancel", stopDrag);
-        writeLayoutState();
+        if (shouldPersist) {
+            writeLayoutState();
+        }
         applyLayoutMode();
     }
 
@@ -441,31 +725,22 @@ if (!layout || !canvas) {
         const widget = widgetById.get(widgetId);
         if (!widget) return;
 
-        const span = layoutState.spans[widgetId] || { cols: 3, rows: 8 };
-        const canvasRect = canvas.getBoundingClientRect();
-        const styles = window.getComputedStyle(canvas);
-        const columnGap = Number.parseFloat(styles.columnGap) || 0;
-        const rowGap = Number.parseFloat(styles.rowGap) || 0;
-        const availableWidth =
-            canvasRect.width - (GRID_COLUMNS - 1) * columnGap;
-        const colUnit = availableWidth / GRID_COLUMNS;
-        const rowUnit =
-            Number.parseFloat(
-                styles.getPropertyValue("--sn-widget-row-unit"),
-            ) || 18;
+        const startGeometry = normalizeWidgetGeometry(
+            widgetId,
+            layoutState.widgets[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+        );
+        const metrics = getGridMetrics();
 
         resizeState = {
             widgetId,
             pointerId: event.pointerId,
             startX: event.clientX,
             startY: event.clientY,
-            startCols: span.cols,
-            startRows: span.rows,
-            colUnit,
-            rowUnit,
-            colGap: columnGap,
-            rowGap,
+            startGeometry,
+            metrics,
             direction,
+            lastGeometry: startGeometry,
+            dirty: false,
         };
 
         widget.classList.add("is-widget-resizing");
@@ -486,45 +761,83 @@ if (!layout || !canvas) {
         const deltaX = event.clientX - resizeState.startX;
         const deltaY = event.clientY - resizeState.startY;
 
-        const colStep = resizeState.colUnit + resizeState.colGap;
-        const rowStep = resizeState.rowUnit + resizeState.rowGap;
+        const colStep =
+            resizeState.metrics.colUnit + resizeState.metrics.colGap;
+        const rowStep =
+            resizeState.metrics.rowUnit + resizeState.metrics.rowGap;
         const colDelta = Math.round(deltaX / Math.max(colStep, 1));
         const rowDelta = Math.round(deltaY / Math.max(rowStep, 1));
 
         const direction = resizeState.direction;
-        const horizontalFactor = direction.includes("w")
-            ? -1
-            : direction.includes("e")
-              ? 1
-              : 0;
-        const verticalFactor = direction.includes("n")
-            ? -1
-            : direction.includes("s")
-              ? 1
-              : 0;
+        const start = resizeState.startGeometry;
+        const mins = getMinSpan(resizeState.widgetId);
 
-        const nextCols =
-            horizontalFactor === 0
-                ? resizeState.startCols
-                : clamp(
-                      resizeState.startCols + horizontalFactor * colDelta,
-                      1,
-                      GRID_COLUMNS,
-                  );
-        const nextRows =
-            verticalFactor === 0
-                ? resizeState.startRows
-                : clamp(
-                      resizeState.startRows + verticalFactor * rowDelta,
-                      RESIZE_MIN_ROWS,
-                      RESIZE_MAX_ROWS,
-                  );
+        let nextCol = start.col;
+        let nextRow = start.row;
+        let nextCols = start.cols;
+        let nextRows = start.rows;
 
-        layoutState.spans[resizeState.widgetId] = {
+        if (direction.includes("e")) {
+            const maxColsFromLeft = GRID_COLUMNS - start.col + 1;
+            nextCols = clamp(start.cols + colDelta, mins.cols, maxColsFromLeft);
+        }
+
+        if (direction.includes("w")) {
+            const rightEdge = start.col + start.cols - 1;
+            const desiredLeft = start.col + colDelta;
+            const desiredCols = rightEdge - desiredLeft + 1;
+            nextCols = clamp(desiredCols, mins.cols, rightEdge);
+            nextCol = clamp(
+                rightEdge - nextCols + 1,
+                1,
+                GRID_COLUMNS - nextCols + 1,
+            );
+        }
+
+        if (direction.includes("s")) {
+            const maxRowsFromTop = GRID_MAX_ROWS - start.row + 1;
+            nextRows = clamp(
+                start.rows + rowDelta,
+                mins.rows,
+                Math.min(RESIZE_MAX_ROWS, maxRowsFromTop),
+            );
+        }
+
+        if (direction.includes("n")) {
+            const bottomEdge = start.row + start.rows - 1;
+            const desiredTop = start.row + rowDelta;
+            const desiredRows = bottomEdge - desiredTop + 1;
+            nextRows = clamp(
+                desiredRows,
+                mins.rows,
+                Math.min(RESIZE_MAX_ROWS, bottomEdge),
+            );
+            nextRow = clamp(
+                bottomEdge - nextRows + 1,
+                1,
+                GRID_MAX_ROWS - nextRows + 1,
+            );
+        }
+
+        const nextGeometry = normalizeWidgetGeometry(resizeState.widgetId, {
+            col: nextCol,
+            row: nextRow,
             cols: nextCols,
             rows: nextRows,
-        };
-        applyWidgetLayout();
+        });
+
+        if (
+            nextGeometry.col === resizeState.lastGeometry.col &&
+            nextGeometry.row === resizeState.lastGeometry.row &&
+            nextGeometry.cols === resizeState.lastGeometry.cols &&
+            nextGeometry.rows === resizeState.lastGeometry.rows
+        ) {
+            return;
+        }
+
+        resizeState.lastGeometry = nextGeometry;
+        applyWidgetPlacement(resizeState.widgetId, nextGeometry);
+        resizeState.dirty = true;
     }
 
     function stopResize(event) {
@@ -538,11 +851,14 @@ if (!layout || !canvas) {
             setWidgetPointerMode(widget, editMode ? "move" : null);
         }
 
+        const shouldPersist = resizeState.dirty;
         resizeState = null;
         document.removeEventListener("pointermove", onResizeMove);
         document.removeEventListener("pointerup", stopResize);
         document.removeEventListener("pointercancel", stopResize);
-        writeLayoutState();
+        if (shouldPersist) {
+            writeLayoutState();
+        }
         applyLayoutMode();
     }
 
