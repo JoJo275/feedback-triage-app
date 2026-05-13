@@ -1,83 +1,210 @@
 # Dashboard page layout
 
+## Reference image
+
+![Dashboard reference mockup](../images/Dashboard%20Mockup%201.jpg)
+
+The image above is the visual direction reference for layout and
+information density.
+
 ## Route and audience
 
 - Route: `/w/<slug>/dashboard`
-- Audience: authenticated workspace members (owner, team member)
-- Goal: show what needs attention now, then support drill-down into inbox
+- Audience: authenticated workspace members
+- Primary goal: immediate operational awareness plus direct next actions
 
-## Page purpose
+## Dashboard success criteria
 
-The dashboard is the operational summary for one workspace. It should
-prioritize action first and analytics second.
+The default dashboard must let a user answer these questions quickly:
 
-## Section layout map
+1. What is happening now?
+2. What changed recently?
+3. What needs action now?
+4. Where is pain concentrated?
+5. Is the triage process healthy?
+6. Who owns the next action?
 
-1. App header
-- Workspace breadcrumb
-- Search field
-- Right-side actions
+## Recommended default composition (dense mode)
 
-2. Page header
-- `h1` title
-- One-line description
-- Secondary action link to inbox
-
-3. Filter row
-- Date/source/tag/status chips
-- More-filters placeholder
-- Clear link
-
-4. Summary row (4 cards)
-- Needs attention
-- High priority
-- New this week
-- Stale
-
-5. Main work row (2 columns desktop)
-- Left: triage queue preview table
-- Right: attention panel shortcuts + primary CTA
-
-6. Insight row (2 columns desktop)
-- Top tags with relative bars
-- Intake sparkline (last 30 days)
-
-7. Utility row (2 columns desktop)
-- Source breakdown
-- Recent activity
-
-## Data population contract
-
-| Page section | Template field(s) | Service source |
+| Row | Purpose | Widgets |
 | --- | --- | --- |
-| Summary cards | `summary.cards` | `dashboard_aggregator._summary_cards` |
-| Needs-attention total | derived from `summary.cards` (`new + needs_info + reviewing`) | template computation |
-| Triage queue preview | `summary.recent_activity[:6]` | `dashboard_aggregator._recent_activity` |
-| Attention panel counts | derived from `summary.cards` | template computation |
-| Top tags | `summary.top_tags` | `dashboard_aggregator._top_tags` |
-| Intake sparkline | `summary.sparkline`, `summary.sparkline_max` | `dashboard_aggregator._sparkline` |
-| Source breakdown | `summary.source_breakdown` | `dashboard_aggregator._source_breakdown` |
-| Recent activity | `summary.recent_activity` | `dashboard_aggregator._recent_activity` |
+| 1 | Fast scan KPI strip | Total signals, needs attention, high pain, median pain, median time to triage, net backlog change |
+| 2 | Process health | Signals over time, status mix, aging health, backlog pressure |
+| 3 | Thematic and business impact | Top tags, pain distribution, team workload, segment impact |
+| 4 | Action surface | Action queue table |
 
-## States
+This keeps the power-user density while improving execution health,
+ownership, and timeliness visibility.
 
-- Empty workspace: render `pages/dashboard/empty.html`
-- Populated workspace: render `pages/dashboard/index.html`
-- Anonymous access: 401
-- Cross-tenant slug: 404
+## Section contracts
 
-## Implementation surfaces
+### 1) KPI strip
 
-- Route handler: `src/feedback_triage/pages/dashboard.py`
-- Aggregation service: `src/feedback_triage/services/dashboard_aggregator.py`
-- Page template: `src/feedback_triage/templates/pages/dashboard/index.html`
-- Empty template: `src/feedback_triage/templates/pages/dashboard/empty.html`
-- Layout CSS: `src/feedback_triage/static/css/layout.css`
-- Component CSS: `src/feedback_triage/static/css/components.css`
+Required metrics:
+
+- Total signals
+- Needs attention
+- High pain signals
+- Median pain score
+- Median time to triage
+- Net backlog change
+
+Why: this row should answer "what changed" and "are we keeping up" in one
+scan.
+
+### 2) Process health row
+
+Required widgets:
+
+- Signals over time (intake trend)
+- Status mix (workflow distribution)
+- Aging health (open item age profile)
+- Backlog pressure (attention classes)
+
+Why: this row closes the current gap between descriptive volume and
+execution health.
+
+### 3) Thematic and business impact row
+
+Required widgets:
+
+- Top tags
+- Pain distribution
+- Team workload
+- Segment impact
+
+Why: this row shows what is hurting, who is carrying load, and which
+segments matter most.
+
+### 4) Action queue row
+
+Rename "Recent signals" to "Action queue" and default-sort by urgency.
+
+Recommended defaults:
+
+- 8-10 rows visible
+- Sort: needs action first
+- Quick views: recent, high pain, unassigned, stale
+
+Why: this keeps dashboard context but drives immediate action.
+
+## Highest-value additions (priority order)
+
+### A) Aging and timeliness
+
+Add an "Aging health" panel with:
+
+- Average age of open signals
+- Median age of open signals
+- Age buckets: 0-24h, 1-3d, 4-7d, 8-14d, 14d+
+- High pain open age
+- Oldest untriaged item
+
+### B) Throughput and process output
+
+Add throughput metrics for the active period:
+
+- Triaged
+- Resolved or closed
+- Moved to planned
+- Shipped
+- Triage rate vs intake rate
+- Net backlog change
+
+### C) Ownership and accountability
+
+Add a "Team workload" widget with:
+
+- Unassigned signals
+- Open by owner
+- High pain by owner
+- Overdue by owner
+- No owner and high pain count
+
+### D) Status mix
+
+Add a status distribution widget and prioritize it above source
+breakdown on the default dashboard.
+
+### E) Segment impact
+
+Add segment-weighted impact indicators:
+
+- Top affected segment
+- High pain by segment
+- High-value account impact
+- Repeat submitter pain concentration
+
+### F) Signal quality and dedupe
+
+Add quality metrics:
+
+- Duplicate rate
+- Duplicates merged this period
+- Unique signals vs raw submissions
+- Spam or invalid rate
+
+### G) Trend deltas across breakdowns
+
+Add period-over-period deltas to:
+
+- Top tags
+- Backlog categories
+- Source breakdown
+- Pain distribution
+- Status distribution
+
+## Canonical v2 status set
+
+Status widgets should use the v2 status enum from the spec:
+
+- `new`
+- `needs_info`
+- `reviewing`
+- `accepted`
+- `planned`
+- `in_progress`
+- `shipped`
+- `closed`
+- `spam`
+
+See [../glossary.md](../glossary.md) and [../schema.md](../schema.md).
+
+## Preset modes (optional)
+
+Use layout presets without weakening the opinionated default.
+
+- Dense: full operational dashboard (default)
+- Medium: fewer widgets, reduced table footprint
+- Light: KPI strip + trend + one action widget
+
+The default should remain dense because it reflects SignalNest triage
+behavior expectations.
+
+## Data contract additions (recommended)
+
+To support the additions above, extend dashboard summary payloads with
+structured blocks:
+
+- `aging_health`
+- `throughput`
+- `team_workload`
+- `status_mix`
+- `segment_impact`
+- `signal_quality`
+
+## Acceptance checks
+
+1. A user can answer all six dashboard success questions in under 10 seconds.
+2. Process health (throughput, aging, status mix, ownership) is visible above
+   the fold on desktop.
+3. Action queue defaults to needs-action ordering and supports quick switching.
+4. Trend deltas are present in at least KPI, status, and thematic breakdowns.
 
 ## Related specs
 
-- [information-architecture.md](../information-architecture.md)
-- [layout.md](../layout.md)
-- [ui.md](../ui.md)
-- [css.md](../css.md)
+- [README.md](README.md)
+- [../information-architecture.md](../information-architecture.md)
+- [../layout.md](../layout.md)
+- [../ui.md](../ui.md)
+- [../css.md](../css.md)
