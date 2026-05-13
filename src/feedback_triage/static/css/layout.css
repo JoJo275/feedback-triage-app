@@ -49,6 +49,18 @@
     @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8;
 }
 
+.sn-content-gutter--dashboard {
+    max-width: min(100%, 98rem);
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
+}
+
+@media (min-width: 1536px) {
+    .sn-content-gutter--dashboard {
+        max-width: min(100%, 108rem);
+    }
+}
+
 .sn-auth-page .sn-content-gutter {
     width: 100%;
     flex: 1 1 auto;
@@ -113,10 +125,15 @@
    triage queue (~65%) with the attention panel (~35%). */
 .sn-summary-row {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 1rem;
 }
 @media (max-width: 1023px) {
+    .sn-summary-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+@media (max-width: 767px) {
     .sn-summary-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -131,6 +148,46 @@
     }
     .sn-summary-row > * {
         scroll-snap-align: start;
+    }
+}
+
+.sn-dashboard-health-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.sn-dashboard-themes-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.sn-dashboard-execution-row {
+    display: grid;
+    grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+    gap: 1.5rem;
+}
+
+@media (min-width: 1400px) {
+    .sn-dashboard-health-row {
+        grid-template-columns: minmax(0, 2.2fr) repeat(2, minmax(0, 1fr));
+    }
+
+    .sn-dashboard-themes-row {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .sn-dashboard-execution-row {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 1023px) {
+    .sn-dashboard-health-row,
+    .sn-dashboard-themes-row,
+    .sn-dashboard-execution-row {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -158,6 +215,29 @@
 
 .sn-dashboard-layout {
     gap: 1.5rem;
+}
+
+.sn-dashboard-layout[data-density="dense"] {
+    gap: 1rem;
+}
+
+.sn-dashboard-layout[data-density="dense"] .sn-summary-row {
+    gap: 0.75rem;
+}
+
+.sn-dashboard-layout[data-density="dense"] .sn-dashboard-health-row,
+.sn-dashboard-layout[data-density="dense"] .sn-dashboard-themes-row,
+.sn-dashboard-layout[data-density="dense"] .sn-dashboard-execution-row {
+    gap: 1rem;
+}
+
+.sn-dashboard-layout[data-density="medium"] .sn-density-hide-medium {
+    display: none;
+}
+
+.sn-dashboard-layout[data-density="light"] .sn-density-hide-medium,
+.sn-dashboard-layout[data-density="light"] .sn-density-hide-light {
+    display: none;
 }
 
 .sn-section {

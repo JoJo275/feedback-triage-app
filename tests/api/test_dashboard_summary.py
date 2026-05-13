@@ -20,7 +20,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from feedback_triage.database import SessionLocal
-from feedback_triage.enums import WorkspaceRole
+from feedback_triage.enums import Status, WorkspaceRole
 from feedback_triage.services import dashboard_aggregator
 
 VALID_PASSWORD = "correct horse battery staple"  # pragma: allowlist secret
@@ -50,6 +50,8 @@ def _post_feedback(
     title: str,
     *,
     source: str = "email",
+    pain_level: int = 3,
+    assignee_user_id: str | None = None,
 ) -> dict[str, Any]:
     resp = client.post(
         "/api/v1/feedback",
@@ -57,11 +59,27 @@ def _post_feedback(
             "title": title,
             "description": "body",
             "source": source,
-            "pain_level": 3,
+            "pain_level": pain_level,
+            "assignee_user_id": assignee_user_id,
         },
         headers={"X-Workspace-Slug": slug},
     )
     assert resp.status_code == 201, resp.text
+    return resp.json()
+
+
+def _patch_feedback(
+    client: TestClient,
+    slug: str,
+    item_id: int,
+    payload: dict[str, object],
+) -> dict[str, Any]:
+    resp = client.patch(
+        f"/api/v1/feedback/{item_id}",
+        json=payload,
+        headers={"X-Workspace-Slug": slug},
+    )
+    assert resp.status_code == 200, resp.text
     return resp.json()
 
 
@@ -200,3 +218,90 @@ def test_summary_includes_source_breakdown(
     assert breakdown["support"].count == 1
     assert breakdown["email"].percent == 67
     assert breakdown["support"].percent == 33
+
+
+def test_summary_exposes_kpis_and_urgency_queue(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+    workspace_id = _workspace_id(body["memberships"][0])
+
+    low = _post_feedback(auth_client, slug, "low pain item", pain_level=2)
+    _patch_feedback(
+        auth_client,
+        slug,
+        int(low["id"]),
+        {"status": Status.REVIEWING.value},
+    )
+    _post_feedback(auth_client, slug, "high pain item", pain_level=5)
+
+    with SessionLocal() as db:
+        summary = dashboard_aggregator.get_summary(
+            db,
+            workspace_id=workspace_id,
+            role=WorkspaceRole.OWNER,
+        )
+
+    assert summary.kpi.total_signals == 2
+    assert summary.kpi.needs_action == 2
+    assert summary.kpi.high_pain_signals == 1
+    assert summary.action_queue.default_rows == dashboard_aggregator.ACTION_QUEUE_LIMIT
+    assert summary.action_queue.urgency_rules[0] == "high_pain"
+    assert summary.action_queue.entries[0].title == "high pain item"
+    assert summary.action_queue.entries[0].is_high_pain is True
+    assert summary.team_workload.unassigned_open == 2
+
+    canonical = [slice_.status.value for slice_ in summary.status_mix]
+    assert canonical == [
+        "new",
+        "needs_info",
+        "reviewing",
+        "accepted",
+        "planned",
+        "in_progress",
+        "shipped",
+        "closed",
+        "spam",
+    ]
+
+
+def test_summary_team_workload_and_queue_use_assignee(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+    workspace_id = _workspace_id(body["memberships"][0])
+    assignee_user_id = body["user"]["id"]
+    assignee_email = body["user"]["email"]
+
+    _post_feedback(
+        auth_client,
+        slug,
+        "assigned high pain",
+        pain_level=5,
+        assignee_user_id=assignee_user_id,
+    )
+    _post_feedback(auth_client, slug, "unassigned item", pain_level=2)
+
+    with SessionLocal() as db:
+        summary = dashboard_aggregator.get_summary(
+            db,
+            workspace_id=workspace_id,
+            role=WorkspaceRole.OWNER,
+        )
+
+    assigned_row = next(
+        row for row in summary.team_workload.rows if row.owner == assignee_email
+    )
+    assert assigned_row.open_count == 1
+    assert assigned_row.high_pain_count == 1
+    assert summary.team_workload.unassigned_open == 1
+
+    queue_by_title = {entry.title: entry for entry in summary.action_queue.entries}
+    assert queue_by_title["assigned high pain"].owner == assignee_email
+    assert queue_by_title["assigned high pain"].is_unassigned is False
+    assert queue_by_title["unassigned item"].owner == "Unassigned"
+    assert queue_by_title["unassigned item"].is_unassigned is True

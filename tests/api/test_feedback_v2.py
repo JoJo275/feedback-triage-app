@@ -17,8 +17,8 @@ from fastapi.testclient import TestClient
 VALID_PASSWORD = "correct horse battery staple"  # pragma: allowlist secret
 
 
-def _signup_and_login(client: TestClient, email: str) -> str:
-    """Sign up + log in. Return the workspace slug."""
+def _signup_and_login(client: TestClient, email: str) -> dict[str, Any]:
+    """Sign up + log in. Return the login response body."""
     resp = client.post(
         "/api/v1/auth/signup",
         json={"email": email, "password": VALID_PASSWORD},
@@ -29,12 +29,19 @@ def _signup_and_login(client: TestClient, email: str) -> str:
         json={"email": email, "password": VALID_PASSWORD},
     )
     assert login.status_code == 200, login.text
-    return login.json()["memberships"][0]["workspace_slug"]
+    return login.json()
+
+
+def _current_user_id(client: TestClient) -> str:
+    resp = client.get("/api/v1/auth/me")
+    assert resp.status_code == 200, resp.text
+    return str(resp.json()["user"]["id"])
 
 
 @pytest.fixture
 def workspace_slug(auth_client: TestClient) -> str:
-    return _signup_and_login(auth_client, "alice@example.com")
+    login = _signup_and_login(auth_client, "alice@example.com")
+    return str(login["memberships"][0]["workspace_slug"])
 
 
 @pytest.fixture
@@ -162,6 +169,39 @@ def test_create_rejected_status_returns_422(
     assert resp.status_code == 422
 
 
+def test_create_with_assignee_in_workspace_returns_201(
+    auth_client: TestClient, headers: dict[str, str]
+) -> None:
+    assignee_user_id = _current_user_id(auth_client)
+    resp = auth_client.post(
+        "/api/v1/feedback",
+        json=_valid_payload(assignee_user_id=assignee_user_id),
+        headers=headers,
+    )
+    assert resp.status_code == 201, resp.text
+    assert resp.json()["assignee_user_id"] == assignee_user_id
+
+
+def test_create_assignee_outside_workspace_returns_422(auth_client: TestClient) -> None:
+    owner_login = _signup_and_login(auth_client, "owner@example.com")
+    owner_slug = str(owner_login["memberships"][0]["workspace_slug"])
+
+    auth_client.cookies.clear()
+    outsider_login = _signup_and_login(auth_client, "outsider@example.com")
+    outsider_user_id = str(outsider_login["user"]["id"])
+
+    auth_client.cookies.clear()
+    _signup_and_login(auth_client, "owner@example.com")
+    resp = auth_client.post(
+        "/api/v1/feedback",
+        json=_valid_payload(assignee_user_id=outsider_user_id),
+        headers={"X-Workspace-Slug": owner_slug},
+    )
+    assert resp.status_code == 422
+    detail = resp.json()["detail"]
+    assert detail[0]["loc"] == ["body", "assignee_user_id"]
+
+
 # --- List -----------------------------------------------------------------
 
 
@@ -260,6 +300,31 @@ def test_list_q_searches_title_and_description(
     )
     resp = auth_client.get("/api/v1/feedback?q=checkout", headers=headers)
     assert resp.json()["total"] == 2
+
+
+def test_list_filter_by_assignee_user_id(
+    auth_client: TestClient, headers: dict[str, str]
+) -> None:
+    assignee_user_id = _current_user_id(auth_client)
+    auth_client.post(
+        "/api/v1/feedback",
+        json=_valid_payload(title="assigned", assignee_user_id=assignee_user_id),
+        headers=headers,
+    )
+    auth_client.post(
+        "/api/v1/feedback",
+        json=_valid_payload(title="unassigned"),
+        headers=headers,
+    )
+
+    resp = auth_client.get(
+        f"/api/v1/feedback?assignee_user_id={assignee_user_id}",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["items"][0]["title"] == "assigned"
 
 
 # --- Get one --------------------------------------------------------------
@@ -362,6 +427,31 @@ def test_patch_v2_fields(auth_client: TestClient, headers: dict[str, str]) -> No
     assert body["priority"] == "high"
     assert body["published_to_roadmap"] is True
     assert body["release_note"] == "Fixed cold-start latency."
+
+
+def test_patch_assignee_and_clear_assignee(
+    auth_client: TestClient, headers: dict[str, str]
+) -> None:
+    assignee_user_id = _current_user_id(auth_client)
+    created = auth_client.post(
+        "/api/v1/feedback", json=_valid_payload(), headers=headers
+    ).json()
+
+    assign = auth_client.patch(
+        f"/api/v1/feedback/{created['id']}",
+        json={"assignee_user_id": assignee_user_id},
+        headers=headers,
+    )
+    assert assign.status_code == 200, assign.text
+    assert assign.json()["assignee_user_id"] == assignee_user_id
+
+    clear = auth_client.patch(
+        f"/api/v1/feedback/{created['id']}",
+        json={"assignee_user_id": None},
+        headers=headers,
+    )
+    assert clear.status_code == 200, clear.text
+    assert clear.json()["assignee_user_id"] is None
 
 
 # --- Delete ---------------------------------------------------------------

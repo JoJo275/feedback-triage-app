@@ -66,14 +66,21 @@ def test_dashboard_renders_populated_view_when_items_exist(
     assert resp.status_code == 200, resp.text
     body_text = resp.text
     # Summary cards plus main dashboard sections appear.
-    assert 'data-summary-count="new"' in body_text
-    assert 'data-summary-count="stale"' in body_text
-    assert "Triage queue" in body_text
+    assert "Total signals" in body_text
+    assert "Needs action" in body_text
+    assert "High pain signals" in body_text
+    assert "Median time to triage" in body_text
+    assert "Net backlog change" in body_text
+    assert "Signals over time" in body_text
+    assert "Status mix" in body_text
+    assert "Aging / SLA" in body_text
     assert "Backlog / Needs attention" in body_text
-    assert "Intake — last 30 days" in body_text
+    assert "Action queue" in body_text
     assert "Top tags" in body_text
+    assert "Pain distribution" in body_text
+    assert "Segment impact" in body_text
+    assert "Team workload" in body_text
     assert "Source breakdown" in body_text
-    assert "Recent activity" in body_text
     assert "Logging stalls in safari" in body_text
 
 
