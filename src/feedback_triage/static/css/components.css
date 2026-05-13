@@ -747,6 +747,7 @@ tr[data-stale="true"] {
                 color-mix(in srgb, var(--color-primary) 38%, transparent),
             0 12px 24px
                 color-mix(in srgb, var(--color-primary) 20%, transparent);
+        transition: none;
         pointer-events: none;
         z-index: 4;
     }
