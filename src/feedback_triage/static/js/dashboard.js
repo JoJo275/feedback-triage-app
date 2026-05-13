@@ -32,7 +32,6 @@ if (!layout || !canvas) {
     const RESIZE_HIT_SLOP = 12;
     const DRAG_ELEVATION = 20;
     const DRAG_START_THRESHOLD_PX = 10;
-    const DRAG_APPLY_DELAY_MS = 85;
     const DRAG_SHADOW_CLASS = "sn-widget-drop-shadow";
 
     const DEFAULT_SPANS = {
@@ -250,18 +249,26 @@ if (!layout || !canvas) {
         const resolved = {};
         const occupied = [];
 
-        if (lockedWidgetId && widgetById.has(lockedWidgetId)) {
+        const activeWidgetIds = defaultOrder.filter((widgetId) => {
+            const widget = widgetById.get(widgetId);
+            return Boolean(widget && !widget.hidden);
+        });
+        const effectiveLockedId = activeWidgetIds.includes(lockedWidgetId)
+            ? lockedWidgetId
+            : null;
+
+        if (effectiveLockedId && widgetById.has(effectiveLockedId)) {
             const lockedGeometry = normalizeWidgetGeometry(
-                lockedWidgetId,
-                candidateWidgets?.[lockedWidgetId] ||
-                    DEFAULT_WIDGET_LAYOUT[lockedWidgetId],
+                effectiveLockedId,
+                candidateWidgets?.[effectiveLockedId] ||
+                    DEFAULT_WIDGET_LAYOUT[effectiveLockedId],
             );
-            resolved[lockedWidgetId] = lockedGeometry;
+            resolved[effectiveLockedId] = lockedGeometry;
             occupied.push(lockedGeometry);
         }
 
-        defaultOrder.forEach((widgetId) => {
-            if (widgetId === lockedWidgetId) {
+        activeWidgetIds.forEach((widgetId) => {
+            if (widgetId === effectiveLockedId) {
                 return;
             }
 
@@ -269,9 +276,24 @@ if (!layout || !canvas) {
                 widgetId,
                 candidateWidgets?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
             );
-            const placed = findFreePlacement(occupied, preferred);
+            const placed = findFreePlacement(occupied, {
+                ...preferred,
+                col: 1,
+                row: 1,
+            });
             resolved[widgetId] = placed;
             occupied.push(placed);
+        });
+
+        defaultOrder.forEach((widgetId) => {
+            if (resolved[widgetId]) {
+                return;
+            }
+
+            resolved[widgetId] = normalizeWidgetGeometry(
+                widgetId,
+                candidateWidgets?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+            );
         });
 
         return resolved;
@@ -439,6 +461,12 @@ if (!layout || !canvas) {
             if (!section) return;
             section.hidden = isCustom ? !input.checked : false;
         });
+
+        layoutState.widgets = resolveWidgetLayout(layoutState.widgets);
+        applyWidgetLayout();
+        if (customLayoutEnabled) {
+            writeLayoutState();
+        }
     }
 
     function applyDensity(value) {
@@ -718,8 +746,6 @@ if (!layout || !canvas) {
         dragState = {
             widgetId,
             pointerId: event.pointerId,
-            startX: event.clientX,
-            startY: event.clientY,
             startGeometry,
             startRect: {
                 left: widgetRect.left,
@@ -732,7 +758,6 @@ if (!layout || !canvas) {
             engaged: false,
             dirty: false,
             pendingGeometry: startGeometry,
-            lastAppliedAt: 0,
         };
 
         widget.classList.add("is-widget-dragging");
@@ -770,12 +795,6 @@ if (!layout || !canvas) {
         }
         dragState.engaged = true;
 
-        const now = performance.now();
-        if (now - dragState.lastAppliedAt < DRAG_APPLY_DELAY_MS) {
-            return;
-        }
-
-        dragState.lastAppliedAt = now;
         dragState.pendingGeometry = placement.geometry;
         showDragShadow(dragState.widgetId, dragState.pendingGeometry);
     }
