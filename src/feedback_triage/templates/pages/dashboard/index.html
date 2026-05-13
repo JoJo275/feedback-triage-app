@@ -50,7 +50,12 @@
       </div>
     </header>
 
-    <div class="sn-content-gutter sn-content-gutter--dashboard sn-stack sn-dashboard-layout" data-dashboard-layout data-density="dense">
+    <div
+      class="sn-content-gutter sn-content-gutter--dashboard sn-stack sn-dashboard-layout"
+      data-dashboard-layout
+      data-density="dense"
+      data-workspace-slug="{{ workspace_slug }}"
+    >
       <header class="sn-page-header">
         <div>
           <h1 class="sn-page-header__title">Dashboard</h1>
@@ -83,6 +88,22 @@
               <option value="custom">Custom</option>
             </select>
           </label>
+          <button
+            type="button"
+            class="sn-button sn-button-secondary"
+            data-dashboard-edit-toggle
+            aria-pressed="false"
+          >
+            Edit widgets
+          </button>
+          <button
+            type="button"
+            class="sn-button sn-button-secondary"
+            data-dashboard-reset-layout
+            hidden
+          >
+            Reset layout
+          </button>
           <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/insights">Saved views</a>
           <details class="sn-dashboard-customize">
             <summary>Customize widgets</summary>
@@ -99,25 +120,27 @@
         </div>
       </section>
 
+      <div class="sn-dashboard-canvas" data-dashboard-canvas data-layout-mode="default">
+
       <section aria-labelledby="dashboard-summary-heading">
         <h2 id="dashboard-summary-heading" class="sr-only">KPI strip</h2>
         <div class="sn-summary-row">
-          <article class="sn-summary-card">
+          <article class="sn-summary-card" data-widget-id="kpi-total-signals">
             <p class="sn-summary-card__label">Total signals</p>
             <p class="sn-summary-card__value">{{ summary.kpi.total_signals }}</p>
             <p class="sn-summary-card__delta">workspace total</p>
           </article>
-          <article class="sn-summary-card">
+          <article class="sn-summary-card" data-widget-id="kpi-needs-action">
             <p class="sn-summary-card__label">Needs action</p>
             <p class="sn-summary-card__value">{{ summary.kpi.needs_action }}</p>
             <p class="sn-summary-card__delta">new + needs info + reviewing</p>
           </article>
-          <article class="sn-summary-card">
+          <article class="sn-summary-card" data-widget-id="kpi-high-pain-signals">
             <p class="sn-summary-card__label">High pain signals</p>
             <p class="sn-summary-card__value">{{ summary.kpi.high_pain_signals }}</p>
             <p class="sn-summary-card__delta">pain level 4+</p>
           </article>
-          <article class="sn-summary-card">
+          <article class="sn-summary-card" data-widget-id="kpi-median-triage-time">
             <p class="sn-summary-card__label">Median time to triage</p>
             <p class="sn-summary-card__value">
               {% if summary.kpi.median_time_to_triage_hours is none %}
@@ -130,7 +153,7 @@
             </p>
             <p class="sn-summary-card__delta">created → last triage update</p>
           </article>
-          <article class="sn-summary-card">
+          <article class="sn-summary-card" data-widget-id="kpi-net-backlog-change">
             <p class="sn-summary-card__label">Net backlog change</p>
             <p class="sn-summary-card__value">{{ '%+d' % summary.kpi.net_backlog_change }}</p>
             <p class="sn-summary-card__delta {% if summary.kpi.net_backlog_change > 0 %}sn-summary-card__delta--up{% elif summary.kpi.net_backlog_change < 0 %}sn-summary-card__delta--down{% endif %}">
@@ -141,7 +164,7 @@
       </section>
 
       <section class="sn-dashboard-health-row" aria-label="Operational health">
-        <section class="sn-card" aria-labelledby="dashboard-throughput-heading">
+        <section class="sn-card" data-widget-id="signals-over-time" aria-labelledby="dashboard-throughput-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-throughput-heading">Signals over time</h2>
             <span class="sn-text-muted">Received · Triaged · Resolved</span>
@@ -166,7 +189,7 @@
           </div>
         </section>
 
-        <section class="sn-card sn-density-hide-light" data-widget-section="status-mix" aria-labelledby="dashboard-status-mix-heading">
+        <section class="sn-card sn-density-hide-light" data-widget-id="status-mix" data-widget-section="status-mix" aria-labelledby="dashboard-status-mix-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-status-mix-heading">Status mix</h2>
           </header>
@@ -187,7 +210,7 @@
           </div>
         </section>
 
-        <section class="sn-card sn-density-hide-light" data-widget-section="aging-health" aria-labelledby="dashboard-aging-heading">
+        <section class="sn-card sn-density-hide-light" data-widget-id="aging-health" data-widget-section="aging-health" aria-labelledby="dashboard-aging-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-aging-heading">Aging / SLA</h2>
           </header>
@@ -226,7 +249,7 @@
       </section>
 
       <section class="sn-dashboard-themes-row sn-density-hide-light" aria-label="Themes and impact">
-        <section class="sn-card" data-widget-section="top-tags" aria-labelledby="dashboard-top-tags-heading">
+        <section class="sn-card" data-widget-id="top-tags" data-widget-section="top-tags" aria-labelledby="dashboard-top-tags-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-top-tags-heading">Top tags</h2>
             <a href="/w/{{ workspace_slug }}/insights">View all</a>
@@ -256,7 +279,7 @@
           </div>
         </section>
 
-        <section class="sn-card" data-widget-section="pain-distribution" aria-labelledby="dashboard-pain-heading">
+        <section class="sn-card" data-widget-id="pain-distribution" data-widget-section="pain-distribution" aria-labelledby="dashboard-pain-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-pain-heading">Pain distribution</h2>
           </header>
@@ -289,7 +312,7 @@
           </div>
         </section>
 
-        <section class="sn-card sn-density-hide-medium" data-widget-section="segment-impact" aria-labelledby="dashboard-segment-heading">
+        <section class="sn-card sn-density-hide-medium" data-widget-id="segment-impact" data-widget-section="segment-impact" aria-labelledby="dashboard-segment-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-segment-heading">Segment impact</h2>
             <span class="sn-text-muted">source proxy</span>
@@ -314,7 +337,7 @@
           </div>
         </section>
 
-        <section class="sn-card sn-density-hide-medium" data-widget-section="source-breakdown" aria-labelledby="dashboard-source-breakdown-heading">
+        <section class="sn-card sn-density-hide-medium" data-widget-id="source-breakdown" data-widget-section="source-breakdown" aria-labelledby="dashboard-source-breakdown-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-source-breakdown-heading">Source breakdown</h2>
             <a href="/w/{{ workspace_slug }}/feedback">View all</a>
@@ -338,7 +361,7 @@
       </section>
 
       <section class="sn-dashboard-execution-row" aria-label="Execution">
-        <section class="sn-card sn-density-hide-light" data-widget-section="team-workload" aria-labelledby="dashboard-workload-heading">
+        <section class="sn-card sn-density-hide-light" data-widget-id="team-workload" data-widget-section="team-workload" aria-labelledby="dashboard-workload-heading">
           <header class="sn-card-header">
             <h2 id="dashboard-workload-heading">Team workload</h2>
           </header>
@@ -368,7 +391,7 @@
           </div>
         </section>
 
-        <aside class="sn-attention-panel" aria-labelledby="dashboard-attention-heading">
+        <aside class="sn-attention-panel" data-widget-id="backlog-needs-attention" aria-labelledby="dashboard-attention-heading">
           <h2 id="dashboard-attention-heading" class="sn-attention-panel__title">Backlog / Needs attention</h2>
           <ul class="sn-attention-panel__list" role="list">
             {% for category in summary.backlog_categories %}
@@ -386,7 +409,7 @@
         </aside>
       </section>
 
-      <section class="sn-card sn-dashboard-queue" aria-labelledby="dashboard-queue-heading">
+      <section class="sn-card sn-dashboard-queue" data-widget-id="action-queue" aria-labelledby="dashboard-queue-heading">
         <header class="sn-card-header">
           <h2 id="dashboard-queue-heading">Action queue</h2>
           <a href="/w/{{ workspace_slug }}/inbox">View all</a>
@@ -451,6 +474,7 @@
         <p class="sn-text-muted">No queue items yet.</p>
         {% endif %}
       </section>
+      </div>
     </div>
   </main>
 </div>
