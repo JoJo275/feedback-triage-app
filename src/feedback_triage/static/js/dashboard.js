@@ -33,6 +33,7 @@ if (!layout || !canvas) {
     const DRAG_ELEVATION = 20;
     const DRAG_START_THRESHOLD_PX = 10;
     const DRAG_APPLY_DELAY_MS = 85;
+    const DRAG_SHADOW_CLASS = "sn-widget-drop-shadow";
 
     const DEFAULT_SPANS = {
         "kpi-total-signals": { cols: 2, rows: 4 },
@@ -90,6 +91,7 @@ if (!layout || !canvas) {
     let editMode = false;
     let dragState = null;
     let resizeState = null;
+    let dragShadow = null;
 
     function safeGetItem(key) {
         try {
@@ -508,6 +510,49 @@ if (!layout || !canvas) {
         applyWidgetLayout();
     }
 
+    function ensureDragShadow() {
+        if (dragShadow?.isConnected) {
+            return dragShadow;
+        }
+
+        const shadow = document.createElement("div");
+        shadow.className = DRAG_SHADOW_CLASS;
+        shadow.setAttribute("aria-hidden", "true");
+        canvas.append(shadow);
+        dragShadow = shadow;
+        return shadow;
+    }
+
+    function showDragShadow(widgetId, geometry) {
+        const shadow = ensureDragShadow();
+        const baseSpan = getDefaultSpan(widgetId);
+        const scale = clamp(
+            Math.min(
+                geometry.cols / Math.max(baseSpan.cols, 1),
+                geometry.rows / Math.max(baseSpan.rows, 1),
+            ),
+            0.82,
+            1.15,
+        );
+
+        shadow.classList.add("is-visible");
+        shadow.style.setProperty("--widget-col-start", String(geometry.col));
+        shadow.style.setProperty("--widget-row-start", String(geometry.row));
+        shadow.style.setProperty("--widget-col-span", String(geometry.cols));
+        shadow.style.setProperty("--widget-row-span", String(geometry.rows));
+        shadow.style.setProperty("--widget-content-scale", scale.toFixed(3));
+    }
+
+    function hideDragShadow() {
+        if (!dragShadow) return;
+        dragShadow.classList.remove("is-visible");
+        dragShadow.style.removeProperty("--widget-col-start");
+        dragShadow.style.removeProperty("--widget-row-start");
+        dragShadow.style.removeProperty("--widget-col-span");
+        dragShadow.style.removeProperty("--widget-row-span");
+        dragShadow.style.removeProperty("--widget-content-scale");
+    }
+
     function refreshEditButton() {
         if (!editToggle) return;
         editToggle.setAttribute("aria-pressed", editMode ? "true" : "false");
@@ -580,6 +625,72 @@ if (!layout || !canvas) {
         return null;
     }
 
+    function resolveDragPlacement(clientX, clientY) {
+        if (!dragState) return null;
+
+        const canvasRect = canvas.getBoundingClientRect();
+        const metrics = getGridMetrics();
+        const minLeft = canvasRect.left;
+        const maxLeft = Math.max(
+            minLeft,
+            canvasRect.right - dragState.startRect.width,
+        );
+        const minTop = canvasRect.top;
+        const maxTop = Math.max(
+            minTop,
+            canvasRect.bottom - dragState.startRect.height,
+        );
+
+        const desiredLeft = clientX - dragState.pointerOffsetX;
+        const desiredTop = clientY - dragState.pointerOffsetY;
+        const clampedLeft = clamp(desiredLeft, minLeft, maxLeft);
+        const clampedTop = clamp(desiredTop, minTop, maxTop);
+
+        const deltaX = clampedLeft - dragState.startRect.left;
+        const deltaY = clampedTop - dragState.startRect.top;
+
+        const colStep = metrics.colUnit + metrics.colGap;
+        const rowStep = metrics.rowUnit + metrics.rowGap;
+        const maxColStart = Math.max(
+            1,
+            GRID_COLUMNS - dragState.startGeometry.cols + 1,
+        );
+        const maxRowStart = Math.max(
+            1,
+            GRID_MAX_ROWS - dragState.startGeometry.rows + 1,
+        );
+        const nextCol = clamp(
+            Math.round((clampedLeft - canvasRect.left) / Math.max(colStep, 1)) +
+                1,
+            1,
+            maxColStart,
+        );
+        const nextRow = clamp(
+            Math.round((clampedTop - canvasRect.top) / Math.max(rowStep, 1)) +
+                1,
+            1,
+            maxRowStart,
+        );
+
+        const candidate = {
+            ...dragState.startGeometry,
+            col: nextCol,
+            row: nextRow,
+        };
+        const previewLayout = cloneWidgetLayout(layoutState.widgets);
+        previewLayout[dragState.widgetId] = candidate;
+        const resolvedLayout = resolveWidgetLayout(
+            previewLayout,
+            dragState.widgetId,
+        );
+
+        return {
+            deltaX,
+            deltaY,
+            geometry: resolvedLayout[dragState.widgetId],
+        };
+    }
+
     function startDrag(event, widgetId) {
         if (!editMode || resizeState) return;
         if (event.button !== 0) return;
@@ -592,6 +703,17 @@ if (!layout || !canvas) {
             widgetId,
             layoutState.widgets[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
         );
+        const widgetRect = widget.getBoundingClientRect();
+        const pointerOffsetX = clamp(
+            event.clientX - widgetRect.left,
+            0,
+            widgetRect.width,
+        );
+        const pointerOffsetY = clamp(
+            event.clientY - widgetRect.top,
+            0,
+            widgetRect.height,
+        );
 
         dragState = {
             widgetId,
@@ -599,17 +721,29 @@ if (!layout || !canvas) {
             startX: event.clientX,
             startY: event.clientY,
             startGeometry,
-            metrics: getGridMetrics(),
+            startRect: {
+                left: widgetRect.left,
+                top: widgetRect.top,
+                width: widgetRect.width,
+                height: widgetRect.height,
+            },
+            pointerOffsetX,
+            pointerOffsetY,
             engaged: false,
             dirty: false,
-            pendingCol: startGeometry.col,
-            pendingRow: startGeometry.row,
+            pendingGeometry: startGeometry,
             lastAppliedAt: 0,
         };
 
         widget.classList.add("is-widget-dragging");
         widget.style.setProperty("z-index", String(DRAG_ELEVATION));
         widget.dataset.pointerMode = "move";
+
+        try {
+            widget.setPointerCapture(event.pointerId);
+        } catch {
+            // Pointer capture is optional and may fail on some elements/browsers.
+        }
 
         document.addEventListener("pointermove", onDragMove);
         document.addEventListener("pointerup", stopDrag);
@@ -622,44 +756,19 @@ if (!layout || !canvas) {
         const draggedWidget = widgetById.get(dragState.widgetId);
         if (!draggedWidget) return;
 
-        const deltaX = event.clientX - dragState.startX;
-        const deltaY = event.clientY - dragState.startY;
-        draggedWidget.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+        const placement = resolveDragPlacement(event.clientX, event.clientY);
+        if (!placement) return;
+
+        draggedWidget.style.transform = `translate3d(${placement.deltaX}px, ${placement.deltaY}px, 0)`;
 
         if (
             !dragState.engaged &&
-            Math.hypot(deltaX, deltaY) < DRAG_START_THRESHOLD_PX
+            Math.hypot(placement.deltaX, placement.deltaY) <
+                DRAG_START_THRESHOLD_PX
         ) {
             return;
         }
         dragState.engaged = true;
-
-        const colStep = dragState.metrics.colUnit + dragState.metrics.colGap;
-        const rowStep = dragState.metrics.rowUnit + dragState.metrics.rowGap;
-        const colDelta = Math.round(deltaX / Math.max(colStep, 1));
-        const rowDelta = Math.round(deltaY / Math.max(rowStep, 1));
-
-        const maxColStart = Math.max(
-            1,
-            GRID_COLUMNS - dragState.startGeometry.cols + 1,
-        );
-        const maxRowStart = Math.max(
-            1,
-            GRID_MAX_ROWS - dragState.startGeometry.rows + 1,
-        );
-        const nextCol = clamp(
-            dragState.startGeometry.col + colDelta,
-            1,
-            maxColStart,
-        );
-        const nextRow = clamp(
-            dragState.startGeometry.row + rowDelta,
-            1,
-            maxRowStart,
-        );
-
-        dragState.pendingCol = nextCol;
-        dragState.pendingRow = nextRow;
 
         const now = performance.now();
         if (now - dragState.lastAppliedAt < DRAG_APPLY_DELAY_MS) {
@@ -667,46 +776,56 @@ if (!layout || !canvas) {
         }
 
         dragState.lastAppliedAt = now;
-        applyWidgetPlacement(dragState.widgetId, {
-            ...dragState.startGeometry,
-            col: nextCol,
-            row: nextRow,
-        });
-        dragState.dirty = true;
+        dragState.pendingGeometry = placement.geometry;
+        showDragShadow(dragState.widgetId, dragState.pendingGeometry);
     }
 
     function stopDrag(event) {
         if (!dragState) return;
         if (event && event.pointerId !== dragState.pointerId) return;
 
-        if (dragState.engaged) {
+        const activeDragState = dragState;
+        if (activeDragState.engaged) {
+            const finalPlacement = event
+                ? resolveDragPlacement(event.clientX, event.clientY)
+                : null;
+            const finalGeometry =
+                finalPlacement?.geometry || activeDragState.pendingGeometry;
+
             const current = normalizeWidgetGeometry(
-                dragState.widgetId,
-                layoutState.widgets[dragState.widgetId] ||
-                    dragState.startGeometry,
+                activeDragState.widgetId,
+                layoutState.widgets[activeDragState.widgetId] ||
+                    activeDragState.startGeometry,
             );
             if (
-                current.col !== dragState.pendingCol ||
-                current.row !== dragState.pendingRow
+                finalGeometry &&
+                (current.col !== finalGeometry.col ||
+                    current.row !== finalGeometry.row ||
+                    current.cols !== finalGeometry.cols ||
+                    current.rows !== finalGeometry.rows)
             ) {
-                applyWidgetPlacement(dragState.widgetId, {
-                    ...current,
-                    col: dragState.pendingCol,
-                    row: dragState.pendingRow,
-                });
-                dragState.dirty = true;
+                applyWidgetPlacement(activeDragState.widgetId, finalGeometry);
+                activeDragState.dirty = true;
             }
         }
 
-        const widget = widgetById.get(dragState.widgetId);
+        const widget = widgetById.get(activeDragState.widgetId);
         if (widget) {
             widget.classList.remove("is-widget-dragging");
             widget.style.removeProperty("transform");
             widget.style.removeProperty("z-index");
             setWidgetPointerMode(widget, editMode ? "move" : null);
+
+            try {
+                widget.releasePointerCapture(activeDragState.pointerId);
+            } catch {
+                // Pointer capture release is best-effort only.
+            }
         }
 
-        const shouldPersist = dragState.dirty;
+        hideDragShadow();
+
+        const shouldPersist = activeDragState.dirty;
         dragState = null;
         document.removeEventListener("pointermove", onDragMove);
         document.removeEventListener("pointerup", stopDrag);
@@ -908,6 +1027,7 @@ if (!layout || !canvas) {
         if (!editMode) {
             stopDrag();
             stopResize();
+            hideDragShadow();
             syncWidgetPointerModes();
         } else {
             customLayoutEnabled = true;

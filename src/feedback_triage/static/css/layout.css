@@ -224,7 +224,8 @@
         grid-auto-flow: row;
         --sn-widget-row-unit: 1rem;
         grid-auto-rows: var(--sn-widget-row-unit);
-        gap: 0.75rem;
+        column-gap: 1rem;
+        row-gap: 1rem;
         align-items: stretch;
     }
 
