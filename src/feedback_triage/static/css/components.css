@@ -908,6 +908,25 @@ tr[data-stale="true"] {
     gap: 0.5rem;
 }
 
+@media (min-width: 1024px) {
+    .sn-dashboard-canvas[data-layout-mode="default"] .sn-summary-row {
+        align-items: start;
+    }
+
+    .sn-dashboard-canvas[data-layout-mode="default"]
+        .sn-summary-row
+        > .sn-summary-card {
+        align-self: start;
+    }
+
+    .sn-dashboard-canvas[data-layout-mode="default"]
+        .sn-summary-card--total-signals {
+        inline-size: min(100%, 11rem);
+        aspect-ratio: 1 / 1;
+        justify-self: start;
+    }
+}
+
 .sn-summary-card__top {
     display: flex;
     align-items: flex-start;
