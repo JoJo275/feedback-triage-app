@@ -292,6 +292,87 @@ if (!layout || !canvas) {
         return resolved;
     }
 
+    function normalizeLayoutWidgets(candidateWidgets) {
+        const normalized = {};
+        defaultOrder.forEach((widgetId) => {
+            normalized[widgetId] = normalizeWidgetGeometry(
+                widgetId,
+                candidateWidgets?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+            );
+        });
+        return normalized;
+    }
+
+    function collectOccupiedWidgets(layoutMap, excludedWidgetId) {
+        const occupied = [];
+        defaultOrder.forEach((widgetId) => {
+            if (widgetId === excludedWidgetId) {
+                return;
+            }
+
+            const widget = widgetById.get(widgetId);
+            if (!widget || widget.hidden) {
+                return;
+            }
+
+            const geometry = normalizeWidgetGeometry(
+                widgetId,
+                layoutMap?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+            );
+            occupied.push(geometry);
+        });
+        return occupied;
+    }
+
+    function findNearestAvailablePlacement(widgetId, preferred, layoutMap) {
+        const normalizedPreferred = normalizeWidgetGeometry(
+            widgetId,
+            preferred,
+        );
+        const occupied = collectOccupiedWidgets(layoutMap, widgetId);
+
+        if (isPlacementFree(occupied, normalizedPreferred)) {
+            return normalizedPreferred;
+        }
+
+        const maxColStart = Math.max(
+            1,
+            GRID_COLUMNS - normalizedPreferred.cols + 1,
+        );
+        const maxRowStart = Math.max(
+            1,
+            GRID_MAX_ROWS - normalizedPreferred.rows + 1,
+        );
+
+        let bestPlacement = null;
+        let bestScore = Number.POSITIVE_INFINITY;
+
+        for (let row = 1; row <= maxRowStart; row += 1) {
+            for (let col = 1; col <= maxColStart; col += 1) {
+                const candidate = {
+                    col,
+                    row,
+                    cols: normalizedPreferred.cols,
+                    rows: normalizedPreferred.rows,
+                };
+
+                if (!isPlacementFree(occupied, candidate)) {
+                    continue;
+                }
+
+                const score =
+                    Math.abs(col - normalizedPreferred.col) +
+                    Math.abs(row - normalizedPreferred.row) * 1.75;
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestPlacement = candidate;
+                }
+            }
+        }
+
+        return bestPlacement || normalizedPreferred;
+    }
+
     function buildPackedLayout(order, spanMap) {
         const packed = {};
         let cursorCol = 1;
@@ -499,7 +580,7 @@ if (!layout || !canvas) {
 
         if (candidate.widgets && typeof candidate.widgets === "object") {
             return {
-                widgets: resolveWidgetLayout(candidate.widgets),
+                widgets: normalizeLayoutWidgets(candidate.widgets),
             };
         }
 
@@ -512,7 +593,7 @@ if (!layout || !canvas) {
                 candidate.spans,
             );
             return {
-                widgets: resolveWidgetLayout(legacyWidgets),
+                widgets: normalizeLayoutWidgets(legacyWidgets),
             };
         }
 
@@ -555,7 +636,6 @@ if (!layout || !canvas) {
             section.hidden = isCustom ? !input.checked : false;
         });
 
-        layoutState.widgets = resolveWidgetLayout(layoutState.widgets);
         applyWidgetLayout();
         if (customLayoutEnabled) {
             writeLayoutState();
@@ -623,11 +703,13 @@ if (!layout || !canvas) {
 
     function applyWidgetPlacement(widgetId, nextGeometry) {
         const currentLayout = cloneWidgetLayout(layoutState.widgets);
-        currentLayout[widgetId] = normalizeWidgetGeometry(
+        const preferred = normalizeWidgetGeometry(widgetId, nextGeometry);
+        currentLayout[widgetId] = findNearestAvailablePlacement(
             widgetId,
-            nextGeometry,
+            preferred,
+            currentLayout,
         );
-        layoutState.widgets = resolveWidgetLayout(currentLayout, widgetId);
+        layoutState.widgets = normalizeLayoutWidgets(currentLayout);
         applyWidgetLayout();
     }
 
@@ -643,10 +725,7 @@ if (!layout || !canvas) {
         };
 
         customLayoutEnabled = true;
-        layoutState.widgets = resolveWidgetLayout(
-            candidateLayout,
-            lockWidgetId,
-        );
+        layoutState.widgets = normalizeLayoutWidgets(candidateLayout);
         applyLayoutMode();
         applyWidgetLayout();
     }
@@ -822,11 +901,11 @@ if (!layout || !canvas) {
         };
         const previewLayout = cloneWidgetLayout(layoutState.widgets);
         previewLayout[dragState.widgetId] = candidate;
-        const resolvedLayout = resolveWidgetLayout(
-            previewLayout,
+        const geometry = findNearestAvailablePlacement(
             dragState.widgetId,
+            candidate,
+            previewLayout,
         );
-        const geometry = resolvedLayout[dragState.widgetId];
         const snappedLeft =
             canvasRect.left + (geometry.col - 1) * Math.max(colStep, 1);
         const snappedTop =
@@ -848,14 +927,18 @@ if (!layout || !canvas) {
         if (!widget) return;
 
         const widgetRect = widget.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        const metrics = getGridMetrics();
-        const startGeometry = geometryFromRect(
-            widgetId,
-            widgetRect,
-            metrics,
-            canvasRect,
-        );
+        const startGeometry = customLayoutEnabled
+            ? normalizeWidgetGeometry(
+                  widgetId,
+                  layoutState.widgets[widgetId] ||
+                      DEFAULT_WIDGET_LAYOUT[widgetId],
+              )
+            : geometryFromRect(
+                  widgetId,
+                  widgetRect,
+                  getGridMetrics(),
+                  canvas.getBoundingClientRect(),
+              );
         const pointerOffsetX = clamp(
             event.clientX - widgetRect.left,
             0,
@@ -924,11 +1007,10 @@ if (!layout || !canvas) {
                     return;
                 }
                 const reflowedRect = reflowedWidget.getBoundingClientRect();
-                dragState.startGeometry = geometryFromRect(
+                dragState.startGeometry = normalizeWidgetGeometry(
                     dragState.widgetId,
-                    reflowedRect,
-                    getGridMetrics(),
-                    canvas.getBoundingClientRect(),
+                    layoutState.widgets[dragState.widgetId] ||
+                        DEFAULT_WIDGET_LAYOUT[dragState.widgetId],
                 );
                 dragState.startRect = {
                     left: reflowedRect.left,
@@ -1028,13 +1110,10 @@ if (!layout || !canvas) {
         const widget = widgetById.get(widgetId);
         if (!widget) return;
 
-        const widgetRect = widget.getBoundingClientRect();
         const metrics = getGridMetrics();
-        const startGeometry = geometryFromRect(
+        const startGeometry = normalizeWidgetGeometry(
             widgetId,
-            widgetRect,
-            metrics,
-            canvas.getBoundingClientRect(),
+            layoutState.widgets[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
         );
 
         resizeState = {
