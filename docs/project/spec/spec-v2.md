@@ -237,6 +237,7 @@ and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
 | 062 | v1.0 → v2.0 data migration (legacy workspace + status rename) | ✅ Accepted | 2 (Beta)         | cut-over         |
 | 063 | Status enum extension + `rejected` deprecation                | ✅ Accepted | 2 (Beta)         | FX               |
 | 064 | Pain vs. Priority dual-field rationale                        | ✅ Accepted | 2 (Beta)         | FX               |
+| 076 | React island for dashboard widget editing pilot               | ✅ Accepted | 3 (Final)        | FY follow-on UI  |
 
 ---
 
@@ -245,6 +246,7 @@ and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
 Items considered and explicitly punted to v3.0+:
 
 - **F2** — React/Vite/TS SPA rewrite. Redundant with FT + FX.
+  (Note: ADR 076 introduces a scoped React island only; not a full SPA rewrite.)
 - **Voting / severity / impact** scoring on feedback.
 - **Bulk actions, side drawer, keyboard navigation** on the inbox.
 - **Real-time updates** (SSE or WebSockets).

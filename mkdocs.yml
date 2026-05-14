@@ -199,6 +199,7 @@ nav:
       - 062 – v1→v2 Data Migration: adr/062-v1-to-v2-data-migration.md
       - 063 – Status Enum Extension: adr/063-status-enum-extension.md
       - 064 – Pain vs Priority: adr/064-pain-vs-priority-dual-fields.md
+      - 076 – React Island Widgets Pilot: adr/076-use-react-island-for-dashboard-widgets.md
       - Archive:
           - Archive Index: adr/archive/README.md
           - 011 – Repository Guard: adr/archive/011-repository-guard-pattern.md
