@@ -65,7 +65,6 @@
         </div>
         <div class="sn-page-header__actions">
           <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/inbox">Open inbox</a>
-          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/dashboard/react">React widgets pilot</a>
         </div>
       </header>
 
@@ -89,14 +88,14 @@
               <option value="custom">Custom</option>
             </select>
           </label>
-          <a
+          <button
+            type="button"
             class="sn-button sn-button-secondary"
-            href="/w/{{ workspace_slug }}/dashboard/react"
             data-dashboard-edit-toggle
-            data-react-editor-url="/w/{{ workspace_slug }}/dashboard/react"
+            aria-pressed="false"
           >
-            Edit widgets in React
-          </a>
+            Edit widgets
+          </button>
           <button
             type="button"
             class="sn-button sn-button-secondary"

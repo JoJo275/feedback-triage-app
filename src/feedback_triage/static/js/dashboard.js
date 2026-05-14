@@ -17,7 +17,6 @@ if (!layout || !canvas) {
     const resetLayoutButton = document.querySelector(
         "[data-dashboard-reset-layout]",
     );
-    const reactEditorUrl = editToggle?.dataset.reactEditorUrl || "";
     const widgets = Array.from(canvas.querySelectorAll("[data-widget-id]"));
 
     const workspaceSlug = layout.dataset.workspaceSlug || "default";
@@ -25,6 +24,7 @@ if (!layout || !canvas) {
     const DENSITY_KEY = `${STORAGE_PREFIX}.density`;
     const WIDGETS_KEY = `${STORAGE_PREFIX}.widgets`;
     const LAYOUT_KEY = `${STORAGE_PREFIX}.layout`;
+    const LAYOUT_SCHEMA_VERSION = 1;
 
     const GRID_COLUMNS = 12;
     const GRID_MAX_ROWS = 120;
@@ -155,6 +155,44 @@ if (!layout || !canvas) {
             };
         });
         return clone;
+    }
+
+    function toInteger(value, fallback = 0) {
+        const parsed = Number.parseInt(String(value), 10);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function coordinateItemToGeometry(widgetId, item) {
+        return normalizeWidgetGeometry(widgetId, {
+            col: toInteger(item?.x, 0) + 1,
+            row: toInteger(item?.y, 0) + 1,
+            cols: toInteger(item?.w, getDefaultSpan(widgetId).cols),
+            rows: toInteger(item?.h, getDefaultSpan(widgetId).rows),
+        });
+    }
+
+    function geometryToCoordinateItem(widgetId, geometry) {
+        const normalized = normalizeWidgetGeometry(widgetId, geometry);
+        return {
+            id: widgetId,
+            x: normalized.col - 1,
+            y: normalized.row - 1,
+            w: normalized.cols,
+            h: normalized.rows,
+        };
+    }
+
+    function layoutStateToPayload(state) {
+        return {
+            version: LAYOUT_SCHEMA_VERSION,
+            widgets: defaultOrder.map((widgetId) =>
+                geometryToCoordinateItem(
+                    widgetId,
+                    state?.widgets?.[widgetId] ||
+                        DEFAULT_WIDGET_LAYOUT[widgetId],
+                ),
+            ),
+        };
     }
 
     function normalizeWidgetGeometry(widgetId, geometry) {
@@ -579,6 +617,29 @@ if (!layout || !canvas) {
             };
         }
 
+        if (Array.isArray(candidate.widgets)) {
+            const widgetsFromCoordinates = {};
+            candidate.widgets.forEach((item) => {
+                if (!item || typeof item !== "object") {
+                    return;
+                }
+
+                const widgetId = typeof item.id === "string" ? item.id : "";
+                if (!widgetById.has(widgetId)) {
+                    return;
+                }
+
+                widgetsFromCoordinates[widgetId] = coordinateItemToGeometry(
+                    widgetId,
+                    item,
+                );
+            });
+
+            return {
+                widgets: normalizeLayoutWidgets(widgetsFromCoordinates),
+            };
+        }
+
         if (candidate.widgets && typeof candidate.widgets === "object") {
             return {
                 widgets: normalizeLayoutWidgets(candidate.widgets),
@@ -616,7 +677,10 @@ if (!layout || !canvas) {
 
     function writeLayoutState() {
         customLayoutEnabled = true;
-        safeSetItem(LAYOUT_KEY, JSON.stringify(layoutState));
+        safeSetItem(
+            LAYOUT_KEY,
+            JSON.stringify(layoutStateToPayload(layoutState)),
+        );
     }
 
     function resetLayoutState() {
@@ -654,9 +718,7 @@ if (!layout || !canvas) {
         canvas.dataset.layoutMode = customLayoutEnabled ? "custom" : "default";
         layout.dataset.editMode = editMode ? "true" : "false";
         if (resetLayoutButton) {
-            resetLayoutButton.hidden = reactEditorUrl
-                ? true
-                : !customLayoutEnabled;
+            resetLayoutButton.hidden = !customLayoutEnabled;
         }
     }
 
@@ -701,6 +763,10 @@ if (!layout || !canvas) {
                 "--widget-row-span",
                 String(geometry.rows),
             );
+            widget.dataset.gridX = String(geometry.col - 1);
+            widget.dataset.gridY = String(geometry.row - 1);
+            widget.dataset.gridW = String(geometry.cols);
+            widget.dataset.gridH = String(geometry.rows);
         });
     }
 
@@ -782,14 +848,8 @@ if (!layout || !canvas) {
 
     function refreshEditButton() {
         if (!editToggle) return;
-        if (reactEditorUrl) {
-            editToggle.removeAttribute("aria-pressed");
-            editToggle.textContent = "Edit widgets in React";
-            editToggle.title = "Opens the React widget editor";
-            return;
-        }
         editToggle.setAttribute("aria-pressed", editMode ? "true" : "false");
-        editToggle.textContent = editMode ? "Finish editing" : "Edit widgets";
+        editToggle.textContent = editMode ? "Done editing" : "Edit widgets";
     }
 
     function resizeCursorForDirection(direction) {
@@ -1346,10 +1406,6 @@ if (!layout || !canvas) {
 
     if (editToggle) {
         editToggle.addEventListener("click", () => {
-            if (reactEditorUrl) {
-                window.location.assign(reactEditorUrl);
-                return;
-            }
             setEditMode(!editMode);
         });
     }
