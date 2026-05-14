@@ -1,5 +1,53 @@
 # Changelog
 
+## [2.1.0](https://github.com/JoJo275/feedback-triage-app/compare/v2.0.0...v2.1.0) (2026-05-14)
+
+
+### Features
+
+* add accounts.md for centralized account identity management and update references in related spec files ([0a080a1](https://github.com/JoJo275/feedback-triage-app/commit/0a080a1dba62636133b67e07fbe3b0d02240e043))
+* add React widgets pilot to dashboard ([8c7ed34](https://github.com/JoJo275/feedback-triage-app/commit/8c7ed3491a445114551ce131f52e97a88e084422))
+* add workspace-scoped feedback creation and enhance landing page ([cf49567](https://github.com/JoJo275/feedback-triage-app/commit/cf4956773a4636f83d5adb8f005d3eca83e70d27))
+* **branding:** pr 4.4 - add custom favicon and wordmark SVG; update templates for new assets ([ba55b4c](https://github.com/JoJo275/feedback-triage-app/commit/ba55b4c108ad4db4531f958f585827c60ca21aa0))
+* **container:** update COPY command to include entire scripts directory for build consistency ([751e456](https://github.com/JoJo275/feedback-triage-app/commit/751e4567801e21cbe5a6f63604807ddfdc1a4514))
+* **dashboard:** integrate React island for widget editing and sync layouts ([2108426](https://github.com/JoJo275/feedback-triage-app/commit/2108426847259bf77e79cd59d00c88943eabca4c))
+* **dashboard:** update edit button to link to React widget editor and enhance accessibility ([7c1d5e6](https://github.com/JoJo275/feedback-triage-app/commit/7c1d5e6e8f2fa1c02cecc52e4607c958868ac159))
+* **docs:** add live-preview loop documentation for local development workflow ([e39ff2f](https://github.com/JoJo275/feedback-triage-app/commit/e39ff2f77f864ce78164dbbdc7e598e36cf8641c))
+* **email:** pr 4.3 - implement Resend webhook for delivery status ingestion and update email_log status ([0879b56](https://github.com/JoJo275/feedback-triage-app/commit/0879b56668307fba08f2fb4b6f466d01e8ee4f3a))
+* enhance dashboard and landing page with integrated VS Code workflow and new footer design ([17c613a](https://github.com/JoJo275/feedback-triage-app/commit/17c613a80f01b49e05afde3ed663ddcb852b5e4a))
+* enhance dashboard layout and functionality ([851ec0f](https://github.com/JoJo275/feedback-triage-app/commit/851ec0f53e05362ef5356e886d755f0d7edf9b1d))
+* Enhance dashboard layout and interactivity ([c04422f](https://github.com/JoJo275/feedback-triage-app/commit/c04422ff57221f68dc50c09041961514b9829936))
+* enhance dashboard layout and widget management; improve drag-and-drop functionality and responsiveness ([14e00b6](https://github.com/JoJo275/feedback-triage-app/commit/14e00b6a070885bfde942e7662cd4c5399f74da9))
+* enhance dashboard layout customization; improve drag-and-drop activation and widget placement logic ([e3935b0](https://github.com/JoJo275/feedback-triage-app/commit/e3935b00c7489ccf12a73cd6609323d2a4523e27))
+* enhance dashboard with source breakdown, new filters, and improved layout; update tests for new functionality ([a9f683c](https://github.com/JoJo275/feedback-triage-app/commit/a9f683c6587acb5d0ce84ad3a8e9f102d4fe0c98))
+* enhance drag-and-drop functionality; improve widget drag shadow and layout responsiveness ([39c231a](https://github.com/JoJo275/feedback-triage-app/commit/39c231a6235dd956d7e2e5479535d2a5f7992726))
+* Enhance sidebar and layout for authenticated app shell (PR 4.5) ([e690764](https://github.com/JoJo275/feedback-triage-app/commit/e690764050d468733da0960f0904d29b7cdf9caa))
+* enhance testing infrastructure with new test database reset script and configuration; update .env.example for test database URL ([535be37](https://github.com/JoJo275/feedback-triage-app/commit/535be3731011608c043f980cac6c583f80b78519))
+* enhance webhook logging and add new tests for feedback and email log updater ([aa727fc](https://github.com/JoJo275/feedback-triage-app/commit/aa727fc36ecb4d7a872a7a879758dc79f2a770e0))
+* enhance widget layout normalization; improve placement logic and geometry handling ([272f4d8](https://github.com/JoJo275/feedback-triage-app/commit/272f4d85748a8a9b919ba7874db8435dbc90d9b2))
+* **env:** add APP_BASE_URL and SECURE_COOKIES variables for configuration ([751e456](https://github.com/JoJo275/feedback-triage-app/commit/751e4567801e21cbe5a6f63604807ddfdc1a4514))
+* implement dashboard widget system; establish layout management and responsive behavior ([3a79dc7](https://github.com/JoJo275/feedback-triage-app/commit/3a79dc7edc96e2ddf75fd4060a5624196083326a))
+* implement system error pages and enhance dashboard redirection for authenticated users. Improved dev workflow with improved "task dev:all" command ([8d1e7a9](https://github.com/JoJo275/feedback-triage-app/commit/8d1e7a942f847646b29bd8d97e22a60fb51f8896))
+* improve layout spacing and responsiveness; enhance CSS for dashboard components ([198a041](https://github.com/JoJo275/feedback-triage-app/commit/198a041ed1c169953b09c51029bf994676aafd73))
+* improve widget placement logic; enhance active widget identification and snapping behavior ([a4ecb10](https://github.com/JoJo275/feedback-triage-app/commit/a4ecb10e132a58d2b44ce0ecb7cdcc1d1cdfdf7e))
+* pr 4.1 - add user theme preference functionality with API endpoint and persistence ([d882163](https://github.com/JoJo275/feedback-triage-app/commit/d882163f02540c563ca6dab44261f693e539cb1b))
+* refine dashboard layout and content; enhance clarity on operational metrics and user actions ([6cc19c2](https://github.com/JoJo275/feedback-triage-app/commit/6cc19c2315a6791765f9e8891c3bb1329a9f7ee3))
+* refine dashboard widget layout logic; improve drag-and-drop handling and spacing ([780a0fc](https://github.com/JoJo275/feedback-triage-app/commit/780a0fc623220efd609ab562f0843d0a96425db9))
+* refine widget resizing logic; adjust minimum row sizes and enhance grid metrics calculations ([2c523c5](https://github.com/JoJo275/feedback-triage-app/commit/2c523c56752f889d6f0a7a4fe171e4e4de758bf0))
+* **ui:** pr 4.2 - implement styleguide theme preset switcher with localStorage persistence ([60c979e](https://github.com/JoJo275/feedback-triage-app/commit/60c979eecaf0c3354fc6a2be85133098c04a7352))
+* update authentication pages with new design and password toggle functionality; enhance workspace seeding with demo owner ([ee5e185](https://github.com/JoJo275/feedback-triage-app/commit/ee5e1853c1495db12682f0684bab6d1eb792ec6a))
+* update dashboard content gutter styles; adjust width and padding for improved layout ([511b9c8](https://github.com/JoJo275/feedback-triage-app/commit/511b9c82fe62689909da41f4c64a06ebe2542490))
+* update dashboard layout and success criteria; enhance clarity on metrics and action priorities ([26a99bb](https://github.com/JoJo275/feedback-triage-app/commit/26a99bb89ed9198b23d34767ca86d77635b40a05))
+* update dashboard widget documentation; clarify React implementation and layout configuration ([4234f59](https://github.com/JoJo275/feedback-triage-app/commit/4234f59544f16c760dc926e0ff898b293b52fdd3))
+* update demo owner email in workspace seeding and documentation; enhance button styles and accessibility in auth pages ([12de5b2](https://github.com/JoJo275/feedback-triage-app/commit/12de5b23447ab4e36da0ba44aff8c7e5fa043a98))
+* update documentation and tests for React migration; remove redundant 404 detail assertions ([f0fbf60](https://github.com/JoJo275/feedback-triage-app/commit/f0fbf60991d2551f88fa1fff0a9653c3bf88ba95))
+
+
+### Bug Fixes
+
+* **css:** adjust import order and comments in input.css to comply with CSS spec ([751e456](https://github.com/JoJo275/feedback-triage-app/commit/751e4567801e21cbe5a6f63604807ddfdc1a4514))
+* **deps:** upgrade urllib3 to 2.7.0 for pip-audit ([52fcb00](https://github.com/JoJo275/feedback-triage-app/commit/52fcb001f6236f5a1d3b058b8212aca76258b046))
+
 ## [2.0.0](https://github.com/JoJo275/feedback-triage-app/compare/v1.2.0...v2.0.0) (2026-05-07)
 
 
