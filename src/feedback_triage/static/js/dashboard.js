@@ -927,18 +927,12 @@ if (!layout || !canvas) {
         if (!widget) return;
 
         const widgetRect = widget.getBoundingClientRect();
-        const startGeometry = customLayoutEnabled
-            ? normalizeWidgetGeometry(
-                  widgetId,
-                  layoutState.widgets[widgetId] ||
-                      DEFAULT_WIDGET_LAYOUT[widgetId],
-              )
-            : geometryFromRect(
-                  widgetId,
-                  widgetRect,
-                  getGridMetrics(),
-                  canvas.getBoundingClientRect(),
-              );
+        const startGeometry = geometryFromRect(
+            widgetId,
+            widgetRect,
+            getGridMetrics(),
+            canvas.getBoundingClientRect(),
+        );
         const pointerOffsetX = clamp(
             event.clientX - widgetRect.left,
             0,
@@ -1007,10 +1001,11 @@ if (!layout || !canvas) {
                     return;
                 }
                 const reflowedRect = reflowedWidget.getBoundingClientRect();
-                dragState.startGeometry = normalizeWidgetGeometry(
+                dragState.startGeometry = geometryFromRect(
                     dragState.widgetId,
-                    layoutState.widgets[dragState.widgetId] ||
-                        DEFAULT_WIDGET_LAYOUT[dragState.widgetId],
+                    reflowedRect,
+                    getGridMetrics(),
+                    canvas.getBoundingClientRect(),
                 );
                 dragState.startRect = {
                     left: reflowedRect.left,
@@ -1110,10 +1105,13 @@ if (!layout || !canvas) {
         const widget = widgetById.get(widgetId);
         if (!widget) return;
 
+        const widgetRect = widget.getBoundingClientRect();
         const metrics = getGridMetrics();
-        const startGeometry = normalizeWidgetGeometry(
+        const startGeometry = geometryFromRect(
             widgetId,
-            layoutState.widgets[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+            widgetRect,
+            metrics,
+            canvas.getBoundingClientRect(),
         );
 
         resizeState = {
