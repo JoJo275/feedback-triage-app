@@ -71,6 +71,15 @@ def test_feedback_list_renders_for_member(auth_client: TestClient) -> None:
     assert "inbox.js" in resp.text
 
 
+def test_feedback_new_renders_for_member(auth_client: TestClient) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+
+    resp = auth_client.get(f"/w/{slug}/feedback/new")
+    assert resp.status_code == 200, resp.text
+    assert "create feedback" in resp.text.lower()
+
+
 def test_inbox_anonymous_returns_401(auth_client: TestClient) -> None:
     resp = auth_client.get("/w/whatever/inbox")
     assert resp.status_code == 401

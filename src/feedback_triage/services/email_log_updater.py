@@ -100,30 +100,17 @@ def apply_provider_event(
         select(EmailLog).where(col(EmailLog.provider_id) == provider_id),
     ).scalar_one_or_none()
     if row is None:
-        logger.info(
-            "resend.webhook.no_match provider_id=%s status=%s",
-            provider_id,
-            new_status.value,
-        )
+        logger.info("resend.webhook.no_match")
         return EmailLogUpdateOutcome.NOT_FOUND
 
     incoming_rank = _POST_SEND_PRECEDENCE[new_status]
     current_rank = _POST_SEND_PRECEDENCE.get(row.status, 0)
     if current_rank >= incoming_rank:
-        logger.info(
-            "resend.webhook.ignored log_id=%s current=%s incoming=%s",
-            row.id,
-            row.status.value,
-            new_status.value,
-        )
+        logger.info("resend.webhook.ignored")
         return EmailLogUpdateOutcome.IGNORED
 
     row.status = new_status
     db.add(row)
     db.flush()
-    logger.info(
-        "resend.webhook.updated log_id=%s status=%s",
-        row.id,
-        new_status.value,
-    )
+    logger.info("resend.webhook.updated")
     return EmailLogUpdateOutcome.UPDATED

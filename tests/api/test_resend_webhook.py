@@ -31,6 +31,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from feedback_triage import config as config_mod
+from feedback_triage.api.v1.webhooks import resend as resend_mod
 from feedback_triage.config import Settings
 from feedback_triage.database import SessionLocal, engine
 from feedback_triage.enums import EmailPurpose, EmailStatus
@@ -144,6 +145,24 @@ def _event_body(event_type: str, provider_id: str) -> bytes:
     ).encode()
 
 
+def test_decode_secret_falls_back_to_raw_when_not_base64() -> None:
+    assert resend_mod._decode_secret("plain-secret-value") == b"plain-secret-value"
+
+
+def test_verify_signature_skips_invalid_candidates_before_match() -> None:
+    body = _event_body("email.delivered", "msg_provider_1")
+    headers = _sign(body)
+    signature = headers["svix-signature"].split(",", maxsplit=1)[1]
+
+    assert resend_mod._verify_signature(
+        secret=RAW_SECRET,
+        msg_id=headers["svix-id"],
+        timestamp=headers["svix-timestamp"],
+        body=body,
+        signature_header=f"v1, v0,wrong v1,{signature}",
+    )
+
+
 # ---------------------------------------------------------------------------
 # 1. Not-configured
 # ---------------------------------------------------------------------------
@@ -194,6 +213,15 @@ def test_returns_401_when_timestamp_is_old(webhook_client: TestClient) -> None:
     assert resp.status_code == 401
 
 
+def test_returns_400_when_timestamp_is_not_integer(webhook_client: TestClient) -> None:
+    body = _event_body("email.delivered", "msg_provider_1")
+    headers = _sign(body)
+    headers["svix-timestamp"] = "not-an-int"
+    resp = webhook_client.post(WEBHOOK_PATH, content=body, headers=headers)
+    assert resp.status_code == 400
+    assert resp.json()["detail"]["code"] == "bad_webhook_payload"
+
+
 def test_returns_400_when_body_is_not_json(webhook_client: TestClient) -> None:
     body = b"not json"
     headers = _sign(body)
@@ -210,8 +238,45 @@ def test_returns_400_when_body_is_not_json(webhook_client: TestClient) -> None:
     assert resp.status_code in {400, 401}
 
 
+def test_returns_400_when_body_is_not_object(webhook_client: TestClient) -> None:
+    body = b"[]"
+    headers = _sign(body)
+    resp = webhook_client.post(WEBHOOK_PATH, content=body, headers=headers)
+    assert resp.status_code == 400
+    assert resp.json()["detail"]["code"] == "bad_webhook_payload"
+
+
 def test_returns_400_when_data_object_missing(webhook_client: TestClient) -> None:
     body = json.dumps({"type": "email.delivered"}).encode()
+    headers = _sign(body)
+    resp = webhook_client.post(WEBHOOK_PATH, content=body, headers=headers)
+    assert resp.status_code == 400
+    assert resp.json()["detail"]["code"] == "bad_webhook_payload"
+
+
+def test_returns_400_when_type_field_missing(webhook_client: TestClient) -> None:
+    body = json.dumps({"data": {"email_id": "msg_provider_1"}}).encode()
+    headers = _sign(body)
+    resp = webhook_client.post(WEBHOOK_PATH, content=body, headers=headers)
+    assert resp.status_code == 400
+    assert resp.json()["detail"]["code"] == "bad_webhook_payload"
+
+
+@pytest.mark.parametrize(
+    "email_id",
+    [None, ""],
+)
+def test_returns_400_when_email_id_missing_or_empty(
+    webhook_client: TestClient,
+    email_id: str | None,
+) -> None:
+    payload: dict[str, object] = {
+        "type": "email.delivered",
+        "data": {},
+    }
+    if email_id is not None:
+        payload["data"] = {"email_id": email_id}
+    body = json.dumps(payload).encode()
     headers = _sign(body)
     resp = webhook_client.post(WEBHOOK_PATH, content=body, headers=headers)
     assert resp.status_code == 400

@@ -454,6 +454,39 @@ def test_patch_assignee_and_clear_assignee(
     assert clear.json()["assignee_user_id"] is None
 
 
+def test_patch_status_change_notifier_failure_is_fail_soft(
+    auth_client: TestClient,
+    headers: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    created = auth_client.post(
+        "/api/v1/feedback", json=_valid_payload(), headers=headers
+    ).json()
+
+    def _boom(**_: object) -> None:
+        raise RuntimeError("simulated notifier outage")
+
+    monkeypatch.setattr(
+        "feedback_triage.api.v1.feedback.notify_status_change",
+        _boom,
+    )
+
+    with caplog.at_level("ERROR", logger="feedback_triage.api.v1.feedback"):
+        resp = auth_client.patch(
+            f"/api/v1/feedback/{created['id']}",
+            json={"status": "reviewing"},
+            headers=headers,
+        )
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "reviewing"
+    assert any(
+        "status-change notifier raised" in record.getMessage()
+        for record in caplog.records
+    )
+
+
 # --- Delete ---------------------------------------------------------------
 
 

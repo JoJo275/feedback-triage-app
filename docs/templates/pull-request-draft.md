@@ -1,9 +1,13 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Branch:  -->
+<!-- Branch: wip/2026-05-07-scratch -->
 <!--
   Suggested PR title (conventional commit format — type: description):
 
+  fix: clear CodeQL log-injection alerts and backfill webhook/page/dashboard coverage
+
+  Alternative:
+  test: add targeted coverage for resend webhook, dashboard aggregator, and auth/page edge cases
 
 
   Available prefixes:
@@ -20,7 +24,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels:  -->
+<!-- Suggested labels: bug, area: api, area: logging, area: tests, type: security, type: test, status: ready-for-review -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
