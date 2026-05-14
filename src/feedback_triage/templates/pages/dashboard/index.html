@@ -89,15 +89,14 @@
               <option value="custom">Custom</option>
             </select>
           </label>
-          <button
-            type="button"
+          <a
             class="sn-button sn-button-secondary"
+            href="/w/{{ workspace_slug }}/dashboard/react"
             data-dashboard-edit-toggle
             data-react-editor-url="/w/{{ workspace_slug }}/dashboard/react"
-            aria-pressed="false"
           >
-            Edit widgets
-          </button>
+            Edit widgets in React
+          </a>
           <button
             type="button"
             class="sn-button sn-button-secondary"
@@ -480,5 +479,5 @@
     </div>
   </main>
 </div>
-<script type="module" src="/static/js/dashboard.js" defer></script>
+<script type="module" src="{{ static_url('js/dashboard.js') }}?v=20260514" defer></script>
 {% endblock %}

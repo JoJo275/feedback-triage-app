@@ -783,8 +783,8 @@ if (!layout || !canvas) {
     function refreshEditButton() {
         if (!editToggle) return;
         if (reactEditorUrl) {
-            editToggle.setAttribute("aria-pressed", "false");
-            editToggle.textContent = "Edit widgets";
+            editToggle.removeAttribute("aria-pressed");
+            editToggle.textContent = "Edit widgets in React";
             editToggle.title = "Opens the React widget editor";
             return;
         }
