@@ -231,7 +231,7 @@ async def resend_webhook(
     new_status = _EVENT_TYPE_MAP.get(event_type)
     if new_status is None:
         # Acknowledge so Resend stops redelivering, but no-op.
-        logger.info("resend.webhook.skip type=%s", event_type)
+        logger.info("resend.webhook.skip unmapped-event")
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     data = payload.get("data")
@@ -241,15 +241,10 @@ async def resend_webhook(
     if not isinstance(provider_id, str) or not provider_id:
         raise _bad_request("Missing 'data.email_id'.")
 
-    outcome = apply_provider_event(
+    apply_provider_event(
         db,
         provider_id=provider_id,
         new_status=new_status,
     )
-    logger.info(
-        "resend.webhook type=%s provider_id=%s outcome=%s",
-        event_type,
-        provider_id,
-        outcome.value,
-    )
+    logger.info("resend.webhook.processed")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

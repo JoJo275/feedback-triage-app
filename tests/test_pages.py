@@ -6,6 +6,9 @@ import html
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+
+from feedback_triage.database import engine
 
 VALID_PASSWORD = "correct horse battery staple"  # pragma: allowlist secret
 
@@ -23,6 +26,22 @@ def _signup_and_login(client: TestClient, email: str) -> str:
     )
     assert login.status_code == 200
     return str(login.json()["memberships"][0]["workspace_slug"])
+
+
+def _remove_workspace_access(email: str) -> None:
+    with engine.begin() as conn:
+        user_id = conn.execute(
+            text("SELECT id FROM users WHERE email = :email"),
+            {"email": email},
+        ).scalar_one()
+        conn.execute(
+            text("DELETE FROM workspace_memberships WHERE user_id = :user_id"),
+            {"user_id": user_id},
+        )
+        conn.execute(
+            text("DELETE FROM workspaces WHERE owner_id = :user_id"),
+            {"user_id": user_id},
+        )
 
 
 def test_index_page_serves_landing(client: TestClient) -> None:
@@ -214,3 +233,40 @@ def test_landing_links_to_legal_pages(client: TestClient) -> None:
     body = response.text
     assert 'href="/privacy"' in body
     assert 'href="/terms"' in body
+
+
+def test_landing_renders_for_authenticated_user_without_workspace(
+    auth_client: TestClient,
+) -> None:
+    email = "orphan-owner@example.com"
+    _signup_and_login(auth_client, email)
+    _remove_workspace_access(email)
+
+    response = auth_client.get("/", follow_redirects=False)
+    assert response.status_code == 200
+    assert response.headers.get("cache-control") == "private, no-store"
+    assert "SignalNest" in response.text
+
+
+def test_login_renders_for_authenticated_user_without_workspace(
+    auth_client: TestClient,
+) -> None:
+    email = "orphan-login@example.com"
+    _signup_and_login(auth_client, email)
+    _remove_workspace_access(email)
+
+    response = auth_client.get("/login", follow_redirects=False)
+    assert response.status_code == 200
+    assert "sn-auth-card" in response.text
+
+
+def test_system_page_links_home_for_authenticated_user_without_workspace(
+    auth_client: TestClient,
+) -> None:
+    email = "orphan-system@example.com"
+    _signup_and_login(auth_client, email)
+    _remove_workspace_access(email)
+
+    response = auth_client.get("/404", follow_redirects=False)
+    assert response.status_code == 404
+    assert 'href="/"' in response.text

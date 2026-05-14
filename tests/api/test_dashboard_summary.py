@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Iterator
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -21,6 +22,7 @@ from fastapi.testclient import TestClient
 
 from feedback_triage.database import SessionLocal
 from feedback_triage.enums import Status, WorkspaceRole
+from feedback_triage.models import FeedbackItem, FeedbackTag, Tag
 from feedback_triage.services import dashboard_aggregator
 
 VALID_PASSWORD = "correct horse battery staple"  # pragma: allowlist secret
@@ -305,3 +307,81 @@ def test_summary_team_workload_and_queue_use_assignee(
     assert queue_by_title["assigned high pain"].is_unassigned is False
     assert queue_by_title["unassigned item"].owner == "Unassigned"
     assert queue_by_title["unassigned item"].is_unassigned is True
+
+
+def test_dashboard_helper_functions_cover_numeric_and_label_edges() -> None:
+    assert dashboard_aggregator._to_int(None) == 0
+    assert dashboard_aggregator._to_int(True) == 1
+    assert dashboard_aggregator._to_int(7) == 7
+    assert dashboard_aggregator._to_int(3.0) == 3
+    assert dashboard_aggregator._to_int("9") == 9
+    with pytest.raises(TypeError):
+        dashboard_aggregator._to_int(object())
+
+    assert dashboard_aggregator._format_age_label(6.5) == "6h"
+    assert dashboard_aggregator._format_age_label(49.0) == "2d"
+    assert dashboard_aggregator._source_label("app_store") == "App Store"
+    assert dashboard_aggregator._source_label("community_forum") == "Community Forum"
+
+
+def test_summary_aging_buckets_top_tags_and_queue_tag_hydration(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+    workspace_id = _workspace_id(body["memberships"][0])
+
+    created_ids = [
+        int(_post_feedback(auth_client, slug, f"item {idx}", pain_level=idx + 1)["id"])
+        for idx in range(5)
+    ]
+
+    now = datetime.now(UTC)
+    age_hours = [5, 48, 100, 200, 400]
+
+    with SessionLocal() as db:
+        for item_id, hours in zip(created_ids, age_hours, strict=False):
+            row = db.get(FeedbackItem, item_id)
+            assert row is not None
+            row.created_at = now - timedelta(hours=hours)
+            row.updated_at = now - timedelta(hours=max(hours - 1, 0))
+            db.add(row)
+
+        tag = Tag(
+            workspace_id=workspace_id,
+            name="Billing",
+            slug="billing",
+            color="teal",
+        )
+        db.add(tag)
+        db.flush()
+        assert tag.id is not None
+        db.add(
+            FeedbackTag(
+                feedback_id=created_ids[0],
+                tag_id=tag.id,
+            )
+        )
+        db.commit()
+
+    with SessionLocal() as db:
+        summary = dashboard_aggregator.get_summary(
+            db,
+            workspace_id=workspace_id,
+            role=WorkspaceRole.OWNER,
+        )
+
+    buckets = {bucket.label: bucket.count for bucket in summary.aging_health.buckets}
+    assert buckets["0-24h"] == 1
+    assert buckets["1-3d"] == 1
+    assert buckets["4-7d"] == 1
+    assert buckets["8-14d"] == 1
+    assert buckets["14d+"] == 1
+    assert summary.aging_health.high_pain_over_sla == 1
+
+    assert summary.top_tags
+    assert summary.top_tags[0].name == "Billing"
+
+    queue_by_id = {entry.feedback_id: entry for entry in summary.action_queue.entries}
+    assert "Billing" in queue_by_id[created_ids[0]].tags
