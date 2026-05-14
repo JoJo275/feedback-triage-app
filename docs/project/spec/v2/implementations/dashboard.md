@@ -5,8 +5,8 @@
 > Status in this repository: implemented as a pilot React island at
 > `/w/<slug>/dashboard/react`.
 > The primary dashboard route (`/w/<slug>/dashboard`) remains the
-> vanilla JS implementation, and its "Edit widgets" action now opens
-> the React editor flow.
+> vanilla JS implementation with inline edit mode. "Edit widgets" stays
+> on the same page and enables drag/resize interactions in place.
 
 ## Scope and status
 
@@ -19,7 +19,7 @@
 	- `src/feedback_triage/pages/dashboard.py`
 	- `src/feedback_triage/templates/pages/dashboard/react_widgets.html`
 	- `src/feedback_triage/static/js/dashboard_react_widgets.js`
-	- `src/feedback_triage/static/js/dashboard.js` (classic edit button routing)
+	- `src/feedback_triage/static/js/dashboard.js` (classic inline edit mode)
 	- `tests/api/auth/test_dashboard_page.py`
 
 ## Recommendation
@@ -47,8 +47,10 @@ such as non-rectangular widgets or advanced algorithmic packing rules.
 
 For the existing SignalNest v2 stack, choose a vanilla-capable grid engine
 (for example GridStack.js) and keep the same persisted layout shape
-`{ id, x, y, w, h }`. That gives equivalent behavior without changing the
-project-wide frontend architecture. A concrete plan is documented in
+`{ id, x, y, w, h }` on a free-form numeric grid, with edits handled inline
+on `/w/<slug>/dashboard` (no editor route transition). That gives equivalent
+behavior without changing the project-wide frontend architecture. A concrete
+plan is documented in
 [`dashboard-vanilla-js.md`](dashboard-vanilla-js.md).
 
 ## Requirement mapping
