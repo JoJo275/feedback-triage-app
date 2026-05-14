@@ -81,6 +81,10 @@ def test_dashboard_renders_populated_view_when_items_exist(
     assert "Segment impact" in body_text
     assert "Team workload" in body_text
     assert "Source breakdown" in body_text
+    assert "Open total signals widget options" in body_text
+    assert "Total signals trend over the last" in body_text
+    assert "workspace total" not in body_text
+    assert "vs " in body_text
     assert "Edit widgets" in body_text
     assert "Edit widgets in React" not in body_text
     assert "data-react-editor-url" not in body_text
