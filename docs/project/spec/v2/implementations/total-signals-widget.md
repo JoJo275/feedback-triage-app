@@ -13,6 +13,26 @@
 
 ![Total signals reference widget](../images/Photos_f0DnP5JH5S.png)
 
+## Widget wireframe
+
+```text
++--------------------------------------------------+
+| Total signals                               [o] |
+|                                                  |
+| 1,248                           ^ +18%           |
+| vs May 5 - May 11                                 |
+|                                                  |
+|  __/\___/\____/\___/\____/\___/\__               |
++--------------------------------------------------+
+```
+
+Wireframe notes:
+
+- `[o]` represents the top-right utility/settings icon button.
+- `^ +18%` represents direction icon plus period-over-period percentage.
+- The bottom polyline is the sparkline trend for the same window used in the
+  comparison label.
+
 ## Objective
 
 Change the current **Total signals** KPI widget so it matches the reference
