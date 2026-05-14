@@ -22,10 +22,13 @@ full-frontend rewrite.
 Introduce React as an isolated page-level island for dashboard widget editing.
 
 - Add a dedicated route: `/w/{slug}/dashboard/react`.
-- Keep the production dashboard route (`/w/{slug}/dashboard`) unchanged.
+- Keep the production dashboard route (`/w/{slug}/dashboard`) unchanged,
+	but route its "Edit widgets" action into the React editor.
 - Implement the pilot surface in `static/js/dashboard_react_widgets.js`.
 - Use `react-grid-layout` for drag/resize/snap/collision behavior.
 - Persist layout per workspace in localStorage with shape `{ id, x, y, w, h }`.
+- Mirror saved React layouts into the classic dashboard's localStorage key so
+	the production dashboard reflects editor changes.
 
 This is an incremental adoption decision, not a framework migration decision.
 
@@ -82,7 +85,7 @@ risk with product behavior changes and make rollback harder.
 - [src/feedback_triage/pages/dashboard.py](../../src/feedback_triage/pages/dashboard.py) - adds the React pilot route.
 - [src/feedback_triage/templates/pages/dashboard/react_widgets.html](../../src/feedback_triage/templates/pages/dashboard/react_widgets.html) - isolated React mount page.
 - [src/feedback_triage/static/js/dashboard_react_widgets.js](../../src/feedback_triage/static/js/dashboard_react_widgets.js) - React island and widget-grid behavior.
-- [src/feedback_triage/templates/pages/dashboard/index.html](../../src/feedback_triage/templates/pages/dashboard/index.html) - entry link to pilot page.
+- [src/feedback_triage/templates/pages/dashboard/index.html](../../src/feedback_triage/templates/pages/dashboard/index.html) - "Edit widgets" flow wired to pilot editor.
 - [tests/api/auth/test_dashboard_page.py](../../tests/api/auth/test_dashboard_page.py) - route coverage for the React pilot surface.
 
 ## References

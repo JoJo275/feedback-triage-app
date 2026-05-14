@@ -82,6 +82,7 @@ def test_dashboard_renders_populated_view_when_items_exist(
     assert "Team workload" in body_text
     assert "Source breakdown" in body_text
     assert "Edit widgets" in body_text
+    assert f'data-react-editor-url="/w/{slug}/dashboard/react"' in body_text
     assert "Reset layout" in body_text
     assert "data-dashboard-canvas" in body_text
     assert 'data-widget-id="signals-over-time"' in body_text
