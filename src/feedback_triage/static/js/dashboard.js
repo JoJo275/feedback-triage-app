@@ -354,102 +354,6 @@ if (!layout || !canvas) {
         return normalized;
     }
 
-    function collectOccupiedWidgets(layoutMap, excludedWidgetId) {
-        const occupied = [];
-        defaultOrder.forEach((widgetId) => {
-            if (widgetId === excludedWidgetId) {
-                return;
-            }
-
-            const widget = widgetById.get(widgetId);
-            if (!widget || widget.hidden) {
-                return;
-            }
-
-            const geometry = normalizeWidgetGeometry(
-                widgetId,
-                layoutMap?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
-            );
-            occupied.push(geometry);
-        });
-        return occupied;
-    }
-
-    function resolvePlacementWithoutOverlap(
-        widgetId,
-        preferred,
-        layoutMap,
-        fallbackGeometry = null,
-    ) {
-        const normalizedPreferred = normalizeWidgetGeometry(
-            widgetId,
-            preferred,
-        );
-        const occupied = collectOccupiedWidgets(layoutMap, widgetId);
-
-        if (isPlacementFree(occupied, normalizedPreferred)) {
-            return normalizedPreferred;
-        }
-
-        if (fallbackGeometry) {
-            return normalizeWidgetGeometry(widgetId, fallbackGeometry);
-        }
-
-        return normalizeWidgetGeometry(
-            widgetId,
-            layoutMap?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
-        );
-    }
-
-    function findNearestAvailablePlacement(widgetId, preferred, layoutMap) {
-        const normalizedPreferred = normalizeWidgetGeometry(
-            widgetId,
-            preferred,
-        );
-        const occupied = collectOccupiedWidgets(layoutMap, widgetId);
-
-        if (isPlacementFree(occupied, normalizedPreferred)) {
-            return normalizedPreferred;
-        }
-
-        const maxColStart = Math.max(
-            1,
-            GRID_COLUMNS - normalizedPreferred.cols + 1,
-        );
-        const maxRowStart = Math.max(
-            1,
-            GRID_MAX_ROWS - normalizedPreferred.rows + 1,
-        );
-
-        let bestPlacement = null;
-        let bestScore = Number.POSITIVE_INFINITY;
-
-        for (let row = 1; row <= maxRowStart; row += 1) {
-            for (let col = 1; col <= maxColStart; col += 1) {
-                const candidate = {
-                    col,
-                    row,
-                    cols: normalizedPreferred.cols,
-                    rows: normalizedPreferred.rows,
-                };
-
-                if (!isPlacementFree(occupied, candidate)) {
-                    continue;
-                }
-
-                const score =
-                    Math.abs(col - normalizedPreferred.col) +
-                    Math.abs(row - normalizedPreferred.row) * 1.75;
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestPlacement = candidate;
-                }
-            }
-        }
-
-        return bestPlacement || normalizedPreferred;
-    }
-
     function buildPackedLayout(order, spanMap) {
         const packed = {};
         let cursorCol = 1;
@@ -817,21 +721,16 @@ if (!layout || !canvas) {
 
     function applyWidgetPlacement(widgetId, nextGeometry) {
         const currentLayout = cloneWidgetLayout(layoutState.widgets);
-        const currentGeometry = normalizeWidgetGeometry(
-            widgetId,
-            currentLayout[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
-        );
         const preferred = normalizeWidgetGeometry(widgetId, nextGeometry);
-        const resolvedGeometry = resolvePlacementWithoutOverlap(
-            widgetId,
-            preferred,
-            currentLayout,
-            currentGeometry,
-        );
-        currentLayout[widgetId] = resolvedGeometry;
-        layoutState.widgets = normalizeLayoutWidgets(currentLayout);
+        const candidateLayout = {
+            ...currentLayout,
+            [widgetId]: preferred,
+        };
+        const resolvedLayout = resolveWidgetLayout(candidateLayout, widgetId);
+
+        layoutState.widgets = normalizeLayoutWidgets(resolvedLayout);
         applyWidgetLayout();
-        return resolvedGeometry;
+        return layoutState.widgets[widgetId];
     }
 
     function activateCustomLayout(lockWidgetId = null) {
@@ -844,9 +743,13 @@ if (!layout || !canvas) {
             ...layoutState.widgets,
             ...seededLayout,
         };
+        const resolvedLayout = resolveWidgetLayout(
+            candidateLayout,
+            lockWidgetId,
+        );
 
         customLayoutEnabled = true;
-        layoutState.widgets = normalizeLayoutWidgets(candidateLayout);
+        layoutState.widgets = normalizeLayoutWidgets(resolvedLayout);
         applyLayoutMode();
         applyWidgetLayout();
     }
@@ -991,6 +894,8 @@ if (!layout || !canvas) {
         const desiredTop = clientY - dragState.pointerOffsetY;
         const clampedLeft = clamp(desiredLeft, minLeft, maxLeft);
         const clampedTop = clamp(desiredTop, minTop, maxTop);
+        const visualDeltaX = clampedLeft - dragState.startRect.left;
+        const visualDeltaY = clampedTop - dragState.startRect.top;
 
         const colStep = metrics.colUnit + metrics.colGap;
         const rowStep = metrics.rowUnit + metrics.rowGap;
@@ -1020,22 +925,11 @@ if (!layout || !canvas) {
             col: nextCol,
             row: nextRow,
         };
-        const fallbackGeometry =
-            dragState.pendingGeometry || dragState.startGeometry;
-        const geometry = resolvePlacementWithoutOverlap(
-            dragState.widgetId,
-            candidate,
-            layoutState.widgets,
-            fallbackGeometry,
-        );
-        const snappedLeft =
-            canvasRect.left + (geometry.col - 1) * Math.max(colStep, 1);
-        const snappedTop =
-            canvasRect.top + (geometry.row - 1) * Math.max(rowStep, 1);
+        const geometry = normalizeWidgetGeometry(dragState.widgetId, candidate);
 
         return {
-            deltaX: snappedLeft - dragState.startRect.left,
-            deltaY: snappedTop - dragState.startRect.top,
+            deltaX: visualDeltaX,
+            deltaY: visualDeltaY,
             geometry,
         };
     }
@@ -1088,6 +982,7 @@ if (!layout || !canvas) {
 
         widget.classList.add("is-widget-dragging");
         widget.style.setProperty("z-index", String(DRAG_ELEVATION));
+        widget.style.setProperty("will-change", "transform");
         widget.dataset.pointerMode = "move";
 
         try {
@@ -1195,6 +1090,7 @@ if (!layout || !canvas) {
             widget.classList.remove("is-widget-dragging");
             widget.style.removeProperty("transform");
             widget.style.removeProperty("z-index");
+            widget.style.removeProperty("will-change");
             setWidgetPointerMode(widget, editMode ? "move" : null);
 
             try {
