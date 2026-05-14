@@ -253,3 +253,4 @@ To support this layout, extend dashboard summary payloads with:
 - [../layout.md](../layout.md)
 - [../ui.md](../ui.md)
 - [../css.md](../css.md)
+- [../implementations/total-signals-widget.md](../implementations/total-signals-widget.md)
