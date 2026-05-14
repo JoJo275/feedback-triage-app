@@ -102,3 +102,33 @@ def test_dashboard_cross_tenant_returns_404(auth_client: TestClient) -> None:
     resp = auth_client.get("/w/some-other-slug/dashboard")
     assert resp.status_code == 404
     assert "Not found." in resp.text
+
+
+def test_dashboard_react_widgets_page_renders_for_member(
+    auth_client: TestClient,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+
+    resp = auth_client.get(f"/w/{slug}/dashboard/react")
+    assert resp.status_code == 200, resp.text
+    assert "React widgets pilot" in resp.text
+    assert 'id="sn-react-widget-root"' in resp.text
+    assert "/static/js/dashboard_react_widgets.js" in resp.text
+
+
+def test_dashboard_react_widgets_page_anonymous_returns_401(
+    auth_client: TestClient,
+) -> None:
+    resp = auth_client.get("/w/whatever/dashboard/react")
+    assert resp.status_code == 401
+
+
+def test_dashboard_react_widgets_page_cross_tenant_returns_404(
+    auth_client: TestClient,
+) -> None:
+    _signup_and_login(auth_client, "owner@example.com")
+
+    resp = auth_client.get("/w/some-other-slug/dashboard/react")
+    assert resp.status_code == 404
+    assert "Not found." in resp.text

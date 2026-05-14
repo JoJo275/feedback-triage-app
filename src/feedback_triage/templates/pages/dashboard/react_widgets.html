@@ -1,0 +1,192 @@
+{% extends "_base.html" %}
+{% block title %}{{ workspace_name }} React widgets pilot · SignalNest{% endblock %}
+
+{% block head_extra %}
+<style>
+    #sn-react-widget-root {
+        min-height: 20rem;
+    }
+
+    .sn-react-widget-surface {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .sn-react-widget-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .sn-react-widget-toolbar__status {
+        margin-left: auto;
+        font-size: 0.875rem;
+        color: #5f6b7a;
+    }
+
+    .sn-react-grid {
+        min-height: 22rem;
+    }
+
+    .react-grid-layout {
+        position: relative;
+        transition: height 200ms ease;
+    }
+
+    .react-grid-item {
+        transition: transform 200ms ease;
+    }
+
+    .react-grid-item.react-grid-placeholder {
+        background: rgba(37, 99, 235, 0.15);
+        border: 1px dashed rgba(37, 99, 235, 0.6);
+        border-radius: 0.75rem;
+    }
+
+    .react-grid-item.react-draggable-dragging {
+        z-index: 20;
+    }
+
+    .react-grid-item > .react-resizable-handle {
+        position: absolute;
+        right: 0.25rem;
+        bottom: 0.25rem;
+        width: 1rem;
+        height: 1rem;
+        cursor: se-resize;
+        opacity: 0.55;
+    }
+
+    .react-grid-item > .react-resizable-handle::after {
+        content: "";
+        position: absolute;
+        right: 0.1rem;
+        bottom: 0.1rem;
+        width: 0.55rem;
+        height: 0.55rem;
+        border-right: 2px solid #64748b;
+        border-bottom: 2px solid #64748b;
+    }
+
+    .sn-react-widget-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        height: 100%;
+        border: 1px solid #d7dce3;
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    [data-edit-mode="true"] .sn-react-widget-card {
+        box-shadow: 0 0 0 2px rgba(14, 116, 144, 0.3);
+    }
+
+    .sn-react-widget-card__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .sn-react-widget-card__title {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .sn-react-widget__drag-handle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.5rem;
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        color: #475569;
+        cursor: grab;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.85rem;
+    }
+
+    .react-grid-item.react-draggable-dragging .sn-react-widget__drag-handle {
+        cursor: grabbing;
+    }
+
+    .sn-react-widget-card__body {
+        margin: 0;
+        color: #374151;
+        font-size: 0.92rem;
+        line-height: 1.45;
+    }
+
+    .sn-react-widget-json {
+        border: 1px solid #d7dce3;
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        background: #f8fafc;
+    }
+
+    .sn-react-widget-json__title {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .sn-react-widget-json pre {
+        margin: 0;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-size: 0.82rem;
+        overflow: auto;
+    }
+
+    @media (max-width: 767px) {
+        .sn-react-widget-toolbar__status {
+            width: 100%;
+            margin-left: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="sn-app-shell">
+    {% include "_partials/sidebar.html" %}
+    <main id="main" class="sn-page-shell">
+        <div class="sn-content-gutter sn-stack">
+            <header class="sn-page-header">
+                <div>
+                    <h1 class="sn-page-header__title">React widgets pilot</h1>
+                    <p class="sn-page-header__description">
+                        Drag, resize, and persist a responsive widget layout in an isolated React surface.
+                    </p>
+                </div>
+                <div class="sn-page-header__actions">
+                    <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/dashboard">Back to dashboard</a>
+                </div>
+            </header>
+
+            <section class="sn-card sn-stack" aria-labelledby="react-widgets-heading">
+                <h2 id="react-widgets-heading">Editable widget grid</h2>
+                <p class="sn-text-muted">
+                    This page is intentionally isolated from the production dashboard shell so we can adopt React incrementally.
+                </p>
+                <div
+                    id="sn-react-widget-root"
+                    data-workspace-slug="{{ workspace_slug }}"
+                    data-dashboard-url="/w/{{ workspace_slug }}/dashboard"
+                ></div>
+                <noscript>
+                    <p class="sn-text-muted">JavaScript is required to run the React widget surface.</p>
+                </noscript>
+            </section>
+        </div>
+    </main>
+</div>
+<script type="module" src="/static/js/dashboard_react_widgets.js" defer></script>
+{% endblock %}

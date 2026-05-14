@@ -2,17 +2,21 @@
 
 > Goal: build equivalent functionality without copying source code from another product.
 
-> Status in this repository: reference-only implementation path.
-> Current SignalNest v2 frontend remains static HTML + vanilla JS
-> (no React/Vite/TypeScript) per `ui.md`, `tooling.md`, and `spec-v2.md`.
+> Status in this repository: implemented as a pilot React island at
+> `/w/<slug>/dashboard/react`.
+> The primary dashboard route (`/w/<slug>/dashboard`) remains the
+> vanilla JS implementation.
 
 ## Scope and status
 
-- Use this file directly if your app is React-based.
-- If you are implementing inside this repository today, treat this as a
-	design reference and either:
-	- implement a vanilla JS equivalent, or
-	- ratify an ADR before introducing a React frontend slice.
+- Use this file as the React implementation contract.
+- For the current-stack vanilla path, see
+	[`dashboard-vanilla-js.md`](dashboard-vanilla-js.md).
+- React pilot implementation files in this repository:
+	- `src/feedback_triage/pages/dashboard.py`
+	- `src/feedback_triage/templates/pages/dashboard/react_widgets.html`
+	- `src/feedback_triage/static/js/dashboard_react_widgets.js`
+	- `tests/api/auth/test_dashboard_page.py`
 
 ## Recommendation
 
@@ -40,7 +44,8 @@ such as non-rectangular widgets or advanced algorithmic packing rules.
 For the existing SignalNest v2 stack, choose a vanilla-capable grid engine
 (for example GridStack.js) and keep the same persisted layout shape
 `{ id, x, y, w, h }`. That gives equivalent behavior without changing the
-project-wide frontend architecture.
+project-wide frontend architecture. A concrete plan is documented in
+[`dashboard-vanilla-js.md`](dashboard-vanilla-js.md).
 
 ## Requirement mapping
 

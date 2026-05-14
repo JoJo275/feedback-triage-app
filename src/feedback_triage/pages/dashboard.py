@@ -70,3 +70,27 @@ def dashboard_page(
             "summary": summary,
         },
     )
+
+
+@router.get(
+    "/w/{slug}/dashboard/react",
+    summary="Workspace dashboard (React widgets pilot)",
+)
+def dashboard_react_widgets_page(
+    request: Request,
+    ctx: WorkspaceContextDep,
+    db: DbDep,
+) -> HTMLResponse:
+    """Render the React widgets pilot page for workspace ``slug``."""
+    workspace = db.get(Workspace, ctx.id)
+    assert workspace is not None
+
+    return templates.TemplateResponse(
+        request,
+        "pages/dashboard/react_widgets.html",
+        {
+            "workspace_slug": workspace.slug,
+            "workspace_name": workspace.name,
+            "active": "dashboard",
+        },
+    )
