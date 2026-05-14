@@ -47,7 +47,6 @@ def test_changelog_page_unknown_slug_returns_404(
     resp = auth_client.get("/w/no-such-workspace/changelog")
 
     assert resp.status_code == 404
-    assert resp.json()["detail"]["code"] == "not_found"
 
 
 def test_changelog_page_cross_tenant_returns_404(

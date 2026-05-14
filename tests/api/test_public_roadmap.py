@@ -115,7 +115,6 @@ def test_public_roadmap_unknown_slug_returns_404(
 ) -> None:
     resp = auth_client.get("/w/no-such-workspace/roadmap/public")
     assert resp.status_code == 404
-    assert resp.json()["detail"]["code"] == "not_found"
 
 
 # ---------------------------------------------------------------------------

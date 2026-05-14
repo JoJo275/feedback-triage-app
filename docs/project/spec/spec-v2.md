@@ -149,7 +149,8 @@ Tier is the v1.0 Must / Should / Nice axis. Build order matches the
 Deferred (with rationale in [Future Improvements](#future-improvements-after-v20)):
 
 - **F2** — React/Vite SPA rewrite. Redundant with FT + FX; XL
-  effort, no workflow gain.
+  effort, no workflow gain. If revisited, start from
+  [`v2/implementations/react-full-migration.md`](v2/implementations/react-full-migration.md).
 - Voting / severity / impact scoring.
 - Bulk actions, side drawer, real-time updates.
 - File attachments.
