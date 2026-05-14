@@ -17,6 +17,9 @@ if (!layout || !canvas) {
     const resetLayoutButton = document.querySelector(
         "[data-dashboard-reset-layout]",
     );
+    const summarySection = canvas.querySelector(
+        "[data-dashboard-summary-section]",
+    );
     const widgets = Array.from(canvas.querySelectorAll("[data-widget-id]"));
 
     const workspaceSlug = layout.dataset.workspaceSlug || "default";
@@ -30,9 +33,9 @@ if (!layout || !canvas) {
     const GRID_MAX_ROWS = 120;
     const RESIZE_MIN_ROWS = 2;
     const RESIZE_MAX_ROWS = 40;
-    const RESIZE_HIT_SLOP = 12;
+    const RESIZE_HIT_SLOP = 8;
     const DRAG_ELEVATION = 20;
-    const DRAG_START_THRESHOLD_PX = 10;
+    const DRAG_START_THRESHOLD_PX = 6;
     const DRAG_SHADOW_CLASS = "sn-widget-drop-shadow";
     const CUSTOM_GRID_GAP_REM = 1.2;
     const CUSTOM_ROW_UNIT_REM = 1;
@@ -220,6 +223,15 @@ if (!layout || !canvas) {
         };
     }
 
+    function geometryEquals(a, b) {
+        return (
+            Number(a?.col) === Number(b?.col) &&
+            Number(a?.row) === Number(b?.row) &&
+            Number(a?.cols) === Number(b?.cols) &&
+            Number(a?.rows) === Number(b?.rows)
+        );
+    }
+
     function rectanglesOverlap(a, b) {
         return (
             a.col < b.col + b.cols &&
@@ -361,6 +373,32 @@ if (!layout || !canvas) {
             occupied.push(geometry);
         });
         return occupied;
+    }
+
+    function resolvePlacementWithoutOverlap(
+        widgetId,
+        preferred,
+        layoutMap,
+        fallbackGeometry = null,
+    ) {
+        const normalizedPreferred = normalizeWidgetGeometry(
+            widgetId,
+            preferred,
+        );
+        const occupied = collectOccupiedWidgets(layoutMap, widgetId);
+
+        if (isPlacementFree(occupied, normalizedPreferred)) {
+            return normalizedPreferred;
+        }
+
+        if (fallbackGeometry) {
+            return normalizeWidgetGeometry(widgetId, fallbackGeometry);
+        }
+
+        return normalizeWidgetGeometry(
+            widgetId,
+            layoutMap?.[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+        );
     }
 
     function findNearestAvailablePlacement(widgetId, preferred, layoutMap) {
@@ -717,6 +755,13 @@ if (!layout || !canvas) {
     function applyLayoutMode() {
         canvas.dataset.layoutMode = customLayoutEnabled ? "custom" : "default";
         layout.dataset.editMode = editMode ? "true" : "false";
+        if (summarySection) {
+            if (customLayoutEnabled) {
+                summarySection.style.setProperty("display", "contents");
+            } else {
+                summarySection.style.removeProperty("display");
+            }
+        }
         if (resetLayoutButton) {
             resetLayoutButton.hidden = !customLayoutEnabled;
         }
@@ -772,14 +817,21 @@ if (!layout || !canvas) {
 
     function applyWidgetPlacement(widgetId, nextGeometry) {
         const currentLayout = cloneWidgetLayout(layoutState.widgets);
+        const currentGeometry = normalizeWidgetGeometry(
+            widgetId,
+            currentLayout[widgetId] || DEFAULT_WIDGET_LAYOUT[widgetId],
+        );
         const preferred = normalizeWidgetGeometry(widgetId, nextGeometry);
-        currentLayout[widgetId] = findNearestAvailablePlacement(
+        const resolvedGeometry = resolvePlacementWithoutOverlap(
             widgetId,
             preferred,
             currentLayout,
+            currentGeometry,
         );
+        currentLayout[widgetId] = resolvedGeometry;
         layoutState.widgets = normalizeLayoutWidgets(currentLayout);
         applyWidgetLayout();
+        return resolvedGeometry;
     }
 
     function activateCustomLayout(lockWidgetId = null) {
@@ -968,12 +1020,13 @@ if (!layout || !canvas) {
             col: nextCol,
             row: nextRow,
         };
-        const previewLayout = cloneWidgetLayout(layoutState.widgets);
-        previewLayout[dragState.widgetId] = candidate;
-        const geometry = findNearestAvailablePlacement(
+        const fallbackGeometry =
+            dragState.pendingGeometry || dragState.startGeometry;
+        const geometry = resolvePlacementWithoutOverlap(
             dragState.widgetId,
             candidate,
-            previewLayout,
+            layoutState.widgets,
+            fallbackGeometry,
         );
         const snappedLeft =
             canvasRect.left + (geometry.col - 1) * Math.max(colStep, 1);
@@ -1278,17 +1331,20 @@ if (!layout || !canvas) {
             rows: nextRows,
         });
 
-        if (
-            nextGeometry.col === resizeState.lastGeometry.col &&
-            nextGeometry.row === resizeState.lastGeometry.row &&
-            nextGeometry.cols === resizeState.lastGeometry.cols &&
-            nextGeometry.rows === resizeState.lastGeometry.rows
-        ) {
+        const previousGeometry = resizeState.lastGeometry;
+        if (geometryEquals(nextGeometry, previousGeometry)) {
             return;
         }
 
-        resizeState.lastGeometry = nextGeometry;
-        applyWidgetPlacement(resizeState.widgetId, nextGeometry);
+        const appliedGeometry = applyWidgetPlacement(
+            resizeState.widgetId,
+            nextGeometry,
+        );
+        if (geometryEquals(appliedGeometry, previousGeometry)) {
+            return;
+        }
+
+        resizeState.lastGeometry = appliedGeometry;
         resizeState.dirty = true;
     }
 

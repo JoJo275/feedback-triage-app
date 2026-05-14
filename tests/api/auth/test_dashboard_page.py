@@ -87,6 +87,7 @@ def test_dashboard_renders_populated_view_when_items_exist(
     assert "data-dashboard-edit-toggle" in body_text
     assert "Reset layout" in body_text
     assert "data-dashboard-canvas" in body_text
+    assert "data-dashboard-summary-section" in body_text
     assert 'data-widget-id="signals-over-time"' in body_text
     assert 'data-widget-id="action-queue"' in body_text
     assert "Logging stalls in safari" in body_text
