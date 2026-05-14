@@ -136,6 +136,17 @@ class KpiMetrics:
 
 
 @dataclass(frozen=True, slots=True)
+class TotalSignalsWidget:
+    """Display contract for the Total signals KPI card."""
+
+    value: int
+    delta_pct: int
+    delta_direction: Literal["up", "down", "flat"]
+    comparison_label: str
+    sparkline_points: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ThroughputPoint:
     """Daily received/triaged/resolved counts."""
 
@@ -310,6 +321,7 @@ class DashboardSummary:
     """Bundle of every value the dashboard template needs."""
 
     kpi: KpiMetrics
+    total_signals_widget: TotalSignalsWidget
     throughput: ThroughputSummary
     status_mix: list[StatusMixSlice]
     aging_health: AgingHealth
@@ -400,6 +412,22 @@ def _source_label(source_value: str) -> str:
     if source_value in labels:
         return labels[source_value]
     return source_value.replace("_", " ").title()
+
+
+def _format_month_day(day_value: date) -> str:
+    return f"{day_value.strftime('%b')} {day_value.day}"
+
+
+def _comparison_label(*, start_day: date, end_day: date) -> str:
+    return f"vs {_format_month_day(start_day)} - {_format_month_day(end_day)}"
+
+
+def _delta_direction(delta_pct: int) -> Literal["up", "down", "flat"]:
+    if delta_pct > 0:
+        return "up"
+    if delta_pct < 0:
+        return "down"
+    return "flat"
 
 
 def _total_items(db: DbSession, workspace_id: uuid.UUID) -> int:
@@ -537,6 +565,45 @@ def _throughput(
         received_total=sum(point.received for point in points),
         triaged_total=sum(point.triaged for point in points),
         resolved_total=sum(point.resolved for point in points),
+    )
+
+
+def _total_signals_widget(
+    db: DbSession,
+    workspace_id: uuid.UUID,
+    *,
+    period_start: datetime,
+    kpi: KpiMetrics,
+    throughput: ThroughputSummary,
+) -> TotalSignalsWidget:
+    previous_start = period_start - timedelta(days=THROUGHPUT_DAYS)
+    previous_total = _to_int(
+        db.execute(
+            select(func.count())
+            .select_from(FeedbackItem)
+            .where(col(FeedbackItem.workspace_id) == workspace_id)
+            .where(col(FeedbackItem.created_at) >= previous_start)
+            .where(col(FeedbackItem.created_at) < period_start)
+        ).scalar_one()
+    )
+
+    current_total = throughput.received_total
+    if previous_total <= 0:
+        delta_pct = 0 if current_total <= 0 else 100
+    else:
+        delta_pct = round(((current_total - previous_total) / previous_total) * 100)
+
+    comparison_start = previous_start.date()
+    comparison_end = (period_start - timedelta(days=1)).date()
+    return TotalSignalsWidget(
+        value=kpi.total_signals,
+        delta_pct=delta_pct,
+        delta_direction=_delta_direction(delta_pct),
+        comparison_label=_comparison_label(
+            start_day=comparison_start,
+            end_day=comparison_end,
+        ),
+        sparkline_points=tuple(point.received for point in throughput.points),
     )
 
 
@@ -1224,6 +1291,13 @@ def get_summary(
 
     kpi = _kpi(db, workspace_id, period_start=period_start)
     throughput = _throughput(db, workspace_id, now=now)
+    total_signals_widget = _total_signals_widget(
+        db,
+        workspace_id,
+        period_start=period_start,
+        kpi=kpi,
+        throughput=throughput,
+    )
     status_mix = _status_mix(db, workspace_id, total_items=total)
     aging_health = _aging_health(
         db,
@@ -1272,6 +1346,7 @@ def get_summary(
 
     summary = DashboardSummary(
         kpi=kpi,
+        total_signals_widget=total_signals_widget,
         throughput=throughput,
         status_mix=status_mix,
         aging_health=aging_health,
@@ -1318,6 +1393,7 @@ __all__ = [
     "ThroughputPoint",
     "ThroughputSummary",
     "TopTag",
+    "TotalSignalsWidget",
     "get_summary",
     "reset_cache",
 ]

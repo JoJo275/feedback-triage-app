@@ -269,6 +269,54 @@ def test_summary_exposes_kpis_and_urgency_queue(
     ]
 
 
+def test_total_signals_widget_contract_for_populated_workspace(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+    workspace_id = _workspace_id(body["memberships"][0])
+
+    _post_feedback(auth_client, slug, "item one")
+
+    with SessionLocal() as db:
+        summary = dashboard_aggregator.get_summary(
+            db,
+            workspace_id=workspace_id,
+            role=WorkspaceRole.OWNER,
+        )
+
+    widget = summary.total_signals_widget
+    assert widget.value == summary.kpi.total_signals
+    assert widget.delta_direction == "up"
+    assert widget.delta_pct >= 0
+    assert widget.comparison_label.startswith("vs ")
+    assert len(widget.sparkline_points) == dashboard_aggregator.THROUGHPUT_DAYS
+
+
+def test_total_signals_widget_contract_for_empty_workspace(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    workspace_id = _workspace_id(body["memberships"][0])
+
+    with SessionLocal() as db:
+        summary = dashboard_aggregator.get_summary(
+            db,
+            workspace_id=workspace_id,
+            role=WorkspaceRole.OWNER,
+        )
+
+    widget = summary.total_signals_widget
+    assert widget.value == 0
+    assert widget.delta_pct == 0
+    assert widget.delta_direction == "flat"
+    assert widget.comparison_label.startswith("vs ")
+    assert len(widget.sparkline_points) == dashboard_aggregator.THROUGHPUT_DAYS
+    assert all(point == 0 for point in widget.sparkline_points)
+
+
 def test_summary_team_workload_and_queue_use_assignee(
     auth_client: TestClient,
     truncate_auth_world: None,
