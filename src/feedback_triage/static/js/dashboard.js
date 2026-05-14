@@ -39,6 +39,11 @@ if (!layout || !canvas) {
     const DRAG_SHADOW_CLASS = "sn-widget-drop-shadow";
     const CUSTOM_GRID_GAP_REM = 1.2;
     const CUSTOM_ROW_UNIT_REM = 1;
+    const REFLOW_ANIMATION_DURATION_MS = 180;
+    const REFLOW_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
+    const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+    const prefersReducedMotion =
+        window.matchMedia?.(REDUCED_MOTION_QUERY).matches ?? false;
 
     const DEFAULT_SPANS = {
         "kpi-total-signals": { cols: 2, rows: 4 },
@@ -97,6 +102,7 @@ if (!layout || !canvas) {
     let dragState = null;
     let resizeState = null;
     let dragShadow = null;
+    const reflowAnimations = new Map();
 
     function safeGetItem(key) {
         try {
@@ -671,51 +677,158 @@ if (!layout || !canvas) {
         }
     }
 
+    function cancelWidgetReflowAnimation(widget) {
+        const activeAnimation = reflowAnimations.get(widget);
+        if (!activeAnimation) {
+            return;
+        }
+
+        activeAnimation.cancel();
+        reflowAnimations.delete(widget);
+    }
+
+    function cancelAllWidgetReflowAnimations() {
+        reflowAnimations.forEach((animation, widget) => {
+            animation.cancel();
+            reflowAnimations.delete(widget);
+        });
+    }
+
+    function animateWidgetReflow(widget, fromRect) {
+        if (prefersReducedMotion || typeof widget.animate !== "function") {
+            return;
+        }
+
+        const toRect = widget.getBoundingClientRect();
+        const deltaX = fromRect.left - toRect.left;
+        const deltaY = fromRect.top - toRect.top;
+        if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) {
+            return;
+        }
+
+        cancelWidgetReflowAnimation(widget);
+
+        const animation = widget.animate(
+            [
+                { transform: `translate3d(${deltaX}px, ${deltaY}px, 0)` },
+                { transform: "translate3d(0, 0, 0)" },
+            ],
+            {
+                duration: REFLOW_ANIMATION_DURATION_MS,
+                easing: REFLOW_ANIMATION_EASING,
+                fill: "none",
+            },
+        );
+
+        reflowAnimations.set(widget, animation);
+
+        const clearAnimation = () => {
+            if (reflowAnimations.get(widget) === animation) {
+                reflowAnimations.delete(widget);
+            }
+        };
+
+        animation.addEventListener("finish", clearAnimation, { once: true });
+        animation.addEventListener("cancel", clearAnimation, { once: true });
+    }
+
+    function applyWidgetGeometryToDom(widgetId, geometry) {
+        const widget = widgetById.get(widgetId);
+        if (!widget) {
+            return normalizeWidgetGeometry(widgetId, geometry);
+        }
+
+        const normalized = normalizeWidgetGeometry(widgetId, geometry);
+        const baseSpan = getDefaultSpan(widgetId);
+        const scale = clamp(
+            Math.min(
+                normalized.cols / Math.max(baseSpan.cols, 1),
+                normalized.rows / Math.max(baseSpan.rows, 1),
+            ),
+            0.82,
+            1.15,
+        );
+
+        widget.style.setProperty("--widget-col-start", String(normalized.col));
+        widget.style.setProperty("--widget-row-start", String(normalized.row));
+        widget.style.setProperty("--widget-content-scale", scale.toFixed(3));
+        widget.style.setProperty("--widget-col-span", String(normalized.cols));
+        widget.style.setProperty("--widget-row-span", String(normalized.rows));
+        widget.dataset.gridX = String(normalized.col - 1);
+        widget.dataset.gridY = String(normalized.row - 1);
+        widget.dataset.gridW = String(normalized.cols);
+        widget.dataset.gridH = String(normalized.rows);
+
+        return normalized;
+    }
+
+    function previewWidgetReflow(widgetId, preferredGeometry) {
+        if (!customLayoutEnabled) {
+            return;
+        }
+
+        const candidateLayout = {
+            ...cloneWidgetLayout(layoutState.widgets),
+            [widgetId]: normalizeWidgetGeometry(widgetId, preferredGeometry),
+        };
+        const resolvedLayout = resolveWidgetLayout(candidateLayout, widgetId);
+        const beforeRects = new Map();
+
+        defaultOrder.forEach((candidateId) => {
+            if (candidateId === widgetId) {
+                return;
+            }
+
+            const candidateWidget = widgetById.get(candidateId);
+            if (!candidateWidget || candidateWidget.hidden) {
+                return;
+            }
+
+            beforeRects.set(
+                candidateId,
+                candidateWidget.getBoundingClientRect(),
+            );
+        });
+
+        defaultOrder.forEach((candidateId) => {
+            if (candidateId === widgetId) {
+                return;
+            }
+
+            const candidateWidget = widgetById.get(candidateId);
+            if (!candidateWidget || candidateWidget.hidden) {
+                return;
+            }
+
+            applyWidgetGeometryToDom(
+                candidateId,
+                resolvedLayout[candidateId] ||
+                    layoutState.widgets[candidateId] ||
+                    DEFAULT_WIDGET_LAYOUT[candidateId],
+            );
+        });
+
+        beforeRects.forEach((beforeRect, candidateId) => {
+            const candidateWidget = widgetById.get(candidateId);
+            if (!candidateWidget || candidateWidget.hidden) {
+                return;
+            }
+
+            animateWidgetReflow(candidateWidget, beforeRect);
+        });
+    }
+
     function applyWidgetLayout() {
         defaultOrder.forEach((widgetId) => {
-            const widget = widgetById.get(widgetId);
-            if (!widget) return;
             const geometry = normalizeWidgetGeometry(
                 widgetId,
                 layoutState.widgets[widgetId] ||
                     DEFAULT_WIDGET_LAYOUT[widgetId],
             );
-            layoutState.widgets[widgetId] = geometry;
-
-            const baseSpan = getDefaultSpan(widgetId);
-            const scale = clamp(
-                Math.min(
-                    geometry.cols / Math.max(baseSpan.cols, 1),
-                    geometry.rows / Math.max(baseSpan.rows, 1),
-                ),
-                0.82,
-                1.15,
+            layoutState.widgets[widgetId] = applyWidgetGeometryToDom(
+                widgetId,
+                geometry,
             );
-
-            widget.style.setProperty(
-                "--widget-col-start",
-                String(geometry.col),
-            );
-            widget.style.setProperty(
-                "--widget-row-start",
-                String(geometry.row),
-            );
-            widget.style.setProperty(
-                "--widget-content-scale",
-                scale.toFixed(3),
-            );
-            widget.style.setProperty(
-                "--widget-col-span",
-                String(geometry.cols),
-            );
-            widget.style.setProperty(
-                "--widget-row-span",
-                String(geometry.rows),
-            );
-            widget.dataset.gridX = String(geometry.col - 1);
-            widget.dataset.gridY = String(geometry.row - 1);
-            widget.dataset.gridW = String(geometry.cols);
-            widget.dataset.gridH = String(geometry.rows);
         });
     }
 
@@ -978,6 +1091,7 @@ if (!layout || !canvas) {
             engaged: false,
             dirty: false,
             pendingGeometry: startGeometry,
+            previewGeometry: startGeometry,
         };
 
         widget.classList.add("is-widget-dragging");
@@ -1041,6 +1155,7 @@ if (!layout || !canvas) {
                     reflowedRect.height,
                 );
                 dragState.pendingGeometry = dragState.startGeometry;
+                dragState.previewGeometry = dragState.startGeometry;
                 dragState.needsActivation = false;
             }
 
@@ -1051,6 +1166,11 @@ if (!layout || !canvas) {
         if (!placement) return;
 
         draggedWidget.style.transform = `translate3d(${placement.deltaX}px, ${placement.deltaY}px, 0)`;
+
+        if (!geometryEquals(placement.geometry, dragState.previewGeometry)) {
+            previewWidgetReflow(dragState.widgetId, placement.geometry);
+            dragState.previewGeometry = placement.geometry;
+        }
 
         dragState.pendingGeometry = placement.geometry;
         showDragShadow(dragState.widgetId, dragState.pendingGeometry);
@@ -1099,6 +1219,9 @@ if (!layout || !canvas) {
                 // Pointer capture release is best-effort only.
             }
         }
+
+        cancelAllWidgetReflowAnimations();
+        applyWidgetLayout();
 
         hideDragShadow();
 
