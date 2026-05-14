@@ -31,6 +31,10 @@ That file currently handles:
 
 This plan focuses on stabilization and maintainability rather than a rewrite.
 
+Note: the classic dashboard's primary widget-edit action now routes to the
+React editor pilot. The classic JS surface still renders and applies persisted
+layout geometry.
+
 ## Architecture
 
 ### Server-rendered shell

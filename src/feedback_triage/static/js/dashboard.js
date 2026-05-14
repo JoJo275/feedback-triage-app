@@ -17,6 +17,7 @@ if (!layout || !canvas) {
     const resetLayoutButton = document.querySelector(
         "[data-dashboard-reset-layout]",
     );
+    const reactEditorUrl = editToggle?.dataset.reactEditorUrl || "";
     const widgets = Array.from(canvas.querySelectorAll("[data-widget-id]"));
 
     const workspaceSlug = layout.dataset.workspaceSlug || "default";
@@ -653,7 +654,9 @@ if (!layout || !canvas) {
         canvas.dataset.layoutMode = customLayoutEnabled ? "custom" : "default";
         layout.dataset.editMode = editMode ? "true" : "false";
         if (resetLayoutButton) {
-            resetLayoutButton.hidden = !customLayoutEnabled;
+            resetLayoutButton.hidden = reactEditorUrl
+                ? true
+                : !customLayoutEnabled;
         }
     }
 
@@ -779,6 +782,12 @@ if (!layout || !canvas) {
 
     function refreshEditButton() {
         if (!editToggle) return;
+        if (reactEditorUrl) {
+            editToggle.setAttribute("aria-pressed", "false");
+            editToggle.textContent = "Edit widgets";
+            editToggle.title = "Opens the React widget editor";
+            return;
+        }
         editToggle.setAttribute("aria-pressed", editMode ? "true" : "false");
         editToggle.textContent = editMode ? "Finish editing" : "Edit widgets";
     }
@@ -1337,6 +1346,10 @@ if (!layout || !canvas) {
 
     if (editToggle) {
         editToggle.addEventListener("click", () => {
+            if (reactEditorUrl) {
+                window.location.assign(reactEditorUrl);
+                return;
+            }
             setEditMode(!editMode);
         });
     }

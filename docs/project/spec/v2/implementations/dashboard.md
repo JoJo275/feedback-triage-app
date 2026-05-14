@@ -5,7 +5,8 @@
 > Status in this repository: implemented as a pilot React island at
 > `/w/<slug>/dashboard/react`.
 > The primary dashboard route (`/w/<slug>/dashboard`) remains the
-> vanilla JS implementation.
+> vanilla JS implementation, and its "Edit widgets" action now opens
+> the React editor flow.
 
 ## Scope and status
 
@@ -16,6 +17,7 @@
 	- `src/feedback_triage/pages/dashboard.py`
 	- `src/feedback_triage/templates/pages/dashboard/react_widgets.html`
 	- `src/feedback_triage/static/js/dashboard_react_widgets.js`
+	- `src/feedback_triage/static/js/dashboard.js` (classic edit button routing)
 	- `tests/api/auth/test_dashboard_page.py`
 
 ## Recommendation
@@ -185,6 +187,8 @@ Persistence tiers:
 - Keep 12 columns on `lg` and `md`.
 - Reduce columns on smaller breakpoints for touch ergonomics.
 - Save each breakpoint independently so mobile edits do not break desktop layout.
+- Mirror saved layouts into the classic dashboard localStorage shape so
+	classic view reflects editor updates.
 
 ### 5) Non-overlap and compaction
 

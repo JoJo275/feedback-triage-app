@@ -8,6 +8,7 @@ if (!mount) {
         mount.dataset.dashboardUrl || `/w/${workspaceSlug}/dashboard`;
 
     const STORAGE_KEY = `sn.react.dashboard-layout.${workspaceSlug}.v1`;
+    const LEGACY_LAYOUT_KEY = `sn.dashboard.${workspaceSlug}.layout`;
     const BREAKPOINTS = {
         lg: 1200,
         md: 996,
@@ -26,79 +27,176 @@ if (!mount) {
 
     const WIDGETS = [
         {
-            id: "kpi_strip",
-            title: "KPI strip",
-            body: "Fast-scan counts for total signals, needs action, and high pain.",
+            id: "kpi-total-signals",
+            title: "Total signals",
+            body: "Workspace-wide intake volume.",
         },
         {
-            id: "throughput",
+            id: "kpi-needs-action",
+            title: "Needs action",
+            body: "New and in-flight triage workload.",
+        },
+        {
+            id: "kpi-high-pain-signals",
+            title: "High pain signals",
+            body: "Most painful feedback concentration.",
+        },
+        {
+            id: "kpi-median-triage-time",
+            title: "Median triage time",
+            body: "Created to triage update median.",
+        },
+        {
+            id: "kpi-net-backlog-change",
+            title: "Net backlog change",
+            body: "Received minus resolved over the current window.",
+        },
+        {
+            id: "signals-over-time",
             title: "Signals over time",
             body: "Received, triaged, and resolved trend view.",
         },
         {
-            id: "status_mix",
+            id: "status-mix",
             title: "Status mix",
-            body: "Workflow distribution to expose bottlenecks.",
+            body: "Workflow distribution and bottleneck visibility.",
         },
         {
-            id: "aging",
+            id: "aging-health",
             title: "Aging / SLA",
-            body: "Open-item aging buckets and high-pain SLA pressure.",
+            body: "Open-item age and SLA pressure.",
         },
         {
-            id: "workload",
+            id: "top-tags",
+            title: "Top tags",
+            body: "Most frequent themes and unresolved counts.",
+        },
+        {
+            id: "pain-distribution",
+            title: "Pain distribution",
+            body: "Low, medium, and high pain distribution.",
+        },
+        {
+            id: "segment-impact",
+            title: "Segment impact",
+            body: "Where high-pain impact is concentrated.",
+        },
+        {
+            id: "source-breakdown",
+            title: "Source breakdown",
+            body: "Channel contribution by intake source.",
+        },
+        {
+            id: "team-workload",
             title: "Team workload",
-            body: "Owner-level open/high-pain/overdue workload lens.",
+            body: "Owner-level open, high pain, and overdue work.",
         },
         {
-            id: "action_queue",
+            id: "backlog-needs-attention",
+            title: "Backlog / needs attention",
+            body: "Urgent categories needing immediate review.",
+        },
+        {
+            id: "action-queue",
             title: "Action queue",
             body: "Urgency-first list for next triage actions.",
         },
     ];
 
-    const DEFAULT_LAYOUTS = {
-        lg: [
-            { i: "kpi_strip", x: 0, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
-            { i: "throughput", x: 4, y: 0, w: 8, h: 6, minW: 4, minH: 4 },
-            { i: "status_mix", x: 0, y: 4, w: 4, h: 6, minW: 3, minH: 4 },
-            { i: "aging", x: 4, y: 6, w: 4, h: 6, minW: 3, minH: 4 },
-            { i: "workload", x: 8, y: 6, w: 4, h: 6, minW: 3, minH: 4 },
-            { i: "action_queue", x: 0, y: 12, w: 12, h: 8, minW: 8, minH: 5 },
-        ],
-        md: [
-            { i: "kpi_strip", x: 0, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
-            { i: "throughput", x: 4, y: 0, w: 8, h: 6, minW: 4, minH: 4 },
-            { i: "status_mix", x: 0, y: 4, w: 4, h: 6, minW: 3, minH: 4 },
-            { i: "aging", x: 4, y: 6, w: 4, h: 6, minW: 3, minH: 4 },
-            { i: "workload", x: 8, y: 6, w: 4, h: 6, minW: 3, minH: 4 },
-            { i: "action_queue", x: 0, y: 12, w: 12, h: 8, minW: 8, minH: 5 },
-        ],
-        sm: [
-            { i: "kpi_strip", x: 0, y: 0, w: 3, h: 4, minW: 2, minH: 3 },
-            { i: "throughput", x: 0, y: 4, w: 6, h: 6, minW: 3, minH: 4 },
-            { i: "status_mix", x: 0, y: 10, w: 3, h: 6, minW: 2, minH: 4 },
-            { i: "aging", x: 3, y: 10, w: 3, h: 6, minW: 2, minH: 4 },
-            { i: "workload", x: 0, y: 16, w: 6, h: 6, minW: 3, minH: 4 },
-            { i: "action_queue", x: 0, y: 22, w: 6, h: 8, minW: 4, minH: 5 },
-        ],
-        xs: [
-            { i: "kpi_strip", x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 3 },
-            { i: "throughput", x: 0, y: 4, w: 4, h: 6, minW: 2, minH: 4 },
-            { i: "status_mix", x: 0, y: 10, w: 2, h: 6, minW: 2, minH: 4 },
-            { i: "aging", x: 2, y: 10, w: 2, h: 6, minW: 2, minH: 4 },
-            { i: "workload", x: 0, y: 16, w: 4, h: 6, minW: 2, minH: 4 },
-            { i: "action_queue", x: 0, y: 22, w: 4, h: 8, minW: 2, minH: 5 },
-        ],
-        xxs: [
-            { i: "kpi_strip", x: 0, y: 0, w: 2, h: 4, minW: 1, minH: 3 },
-            { i: "throughput", x: 0, y: 4, w: 2, h: 6, minW: 1, minH: 4 },
-            { i: "status_mix", x: 0, y: 10, w: 2, h: 6, minW: 1, minH: 4 },
-            { i: "aging", x: 0, y: 16, w: 2, h: 6, minW: 1, minH: 4 },
-            { i: "workload", x: 0, y: 22, w: 2, h: 6, minW: 1, minH: 4 },
-            { i: "action_queue", x: 0, y: 28, w: 2, h: 8, minW: 1, minH: 5 },
-        ],
+    const DEFAULT_SPANS = {
+        "kpi-total-signals": { cols: 2, rows: 4 },
+        "kpi-needs-action": { cols: 2, rows: 4 },
+        "kpi-high-pain-signals": { cols: 2, rows: 4 },
+        "kpi-median-triage-time": { cols: 2, rows: 4 },
+        "kpi-net-backlog-change": { cols: 2, rows: 4 },
+        "signals-over-time": { cols: 6, rows: 9 },
+        "status-mix": { cols: 3, rows: 9 },
+        "aging-health": { cols: 3, rows: 9 },
+        "top-tags": { cols: 3, rows: 8 },
+        "pain-distribution": { cols: 3, rows: 8 },
+        "segment-impact": { cols: 3, rows: 8 },
+        "source-breakdown": { cols: 3, rows: 8 },
+        "team-workload": { cols: 8, rows: 9 },
+        "backlog-needs-attention": { cols: 4, rows: 9 },
+        "action-queue": { cols: 12, rows: 11 },
     };
+
+    const MIN_SPANS = {
+        "kpi-total-signals": { cols: 1, rows: 2 },
+        "kpi-needs-action": { cols: 1, rows: 2 },
+        "kpi-high-pain-signals": { cols: 1, rows: 2 },
+        "kpi-median-triage-time": { cols: 1, rows: 2 },
+        "kpi-net-backlog-change": { cols: 1, rows: 2 },
+        "signals-over-time": { cols: 4, rows: 7 },
+        "status-mix": { cols: 3, rows: 7 },
+        "aging-health": { cols: 3, rows: 7 },
+        "top-tags": { cols: 3, rows: 6 },
+        "pain-distribution": { cols: 3, rows: 6 },
+        "segment-impact": { cols: 3, rows: 6 },
+        "source-breakdown": { cols: 3, rows: 6 },
+        "team-workload": { cols: 5, rows: 8 },
+        "backlog-needs-attention": { cols: 3, rows: 8 },
+        "action-queue": { cols: 8, rows: 9 },
+    };
+
+    function scaleCols(cols, breakpointCols) {
+        return clamp(
+            Math.round((cols / 12) * breakpointCols),
+            1,
+            breakpointCols,
+        );
+    }
+
+    function buildDefaultLayoutForBreakpoint(breakpoint) {
+        const breakpointCols = COLS[breakpoint] || 12;
+        let cursorX = 0;
+        let cursorY = 0;
+        let rowHeight = 0;
+
+        return WIDGETS.map((widget) => {
+            const baseSpan = DEFAULT_SPANS[widget.id] || { cols: 3, rows: 8 };
+            const minSpan = MIN_SPANS[widget.id] || { cols: 1, rows: 2 };
+
+            const minW = scaleCols(minSpan.cols, breakpointCols);
+            const w = clamp(
+                scaleCols(baseSpan.cols, breakpointCols),
+                minW,
+                breakpointCols,
+            );
+            const minH = clamp(minSpan.rows, 1, 30);
+            const h = clamp(baseSpan.rows, minH, 30);
+
+            if (cursorX + w > breakpointCols) {
+                cursorX = 0;
+                cursorY += rowHeight;
+                rowHeight = 0;
+            }
+
+            const item = {
+                i: widget.id,
+                x: cursorX,
+                y: cursorY,
+                w,
+                h,
+                minW,
+                minH,
+            };
+
+            cursorX += w;
+            rowHeight = Math.max(rowHeight, h);
+            return item;
+        });
+    }
+
+    function buildDefaultLayouts() {
+        const layouts = {};
+        BREAKPOINT_ORDER.forEach((breakpoint) => {
+            layouts[breakpoint] = buildDefaultLayoutForBreakpoint(breakpoint);
+        });
+        return layouts;
+    }
+
+    const DEFAULT_LAYOUTS = buildDefaultLayouts();
 
     const REACT_URL = "https://esm.sh/react@18.2.0";
     const REACT_DOM_CLIENT_URL =
@@ -226,35 +324,154 @@ if (!mount) {
         return fromPersistedLayouts(toPersistedLayouts(layouts));
     }
 
-    function loadLayouts() {
-        const raw = safeLocalStorageGet(STORAGE_KEY);
-        if (!raw) {
-            return cloneLayouts(DEFAULT_LAYOUTS);
+    function firstAvailableBreakpoint(layouts, preferredBreakpoint = "lg") {
+        if (
+            Array.isArray(layouts?.[preferredBreakpoint]) &&
+            layouts[preferredBreakpoint].length > 0
+        ) {
+            return preferredBreakpoint;
         }
 
-        try {
-            const parsed = JSON.parse(raw);
-            if (!parsed || typeof parsed !== "object") {
-                return cloneLayouts(DEFAULT_LAYOUTS);
-            }
+        const fallback = BREAKPOINT_ORDER.find(
+            (breakpoint) =>
+                Array.isArray(layouts?.[breakpoint]) &&
+                layouts[breakpoint].length > 0,
+        );
 
-            if (parsed.version !== 1) {
-                return cloneLayouts(DEFAULT_LAYOUTS);
-            }
-
-            return fromPersistedLayouts(parsed.layouts);
-        } catch {
-            return cloneLayouts(DEFAULT_LAYOUTS);
-        }
+        return fallback || "lg";
     }
 
-    function saveLayouts(layouts) {
+    function toLegacyLayoutState(layouts, preferredBreakpoint = "lg") {
+        const sourceBreakpoint = firstAvailableBreakpoint(
+            layouts,
+            preferredBreakpoint,
+        );
+        const sourceRows = Array.isArray(layouts?.[sourceBreakpoint])
+            ? layouts[sourceBreakpoint]
+            : [];
+        const byId = new Map(sourceRows.map((row) => [String(row.i), row]));
+        const widgets = {};
+
+        WIDGETS.forEach((widget) => {
+            const fallback = defaultLayoutFor("lg", widget.id);
+            const source = byId.get(widget.id) || fallback;
+            const normalized = normalizeLayoutItem(
+                "lg",
+                {
+                    i: widget.id,
+                    x: source.x,
+                    y: source.y,
+                    w: source.w,
+                    h: source.h,
+                    minW: fallback.minW,
+                    minH: fallback.minH,
+                },
+                fallback,
+            );
+
+            widgets[widget.id] = {
+                col: normalized.x + 1,
+                row: normalized.y + 1,
+                cols: normalized.w,
+                rows: normalized.h,
+            };
+        });
+
+        return { widgets };
+    }
+
+    function fromLegacyLayoutState(layoutState) {
+        if (!layoutState || typeof layoutState !== "object") {
+            return null;
+        }
+
+        if (!layoutState.widgets || typeof layoutState.widgets !== "object") {
+            return null;
+        }
+
+        const lgRows = WIDGETS.map((widget) => {
+            const fallback = defaultLayoutFor("lg", widget.id);
+            const source = layoutState.widgets?.[widget.id];
+
+            if (!source || typeof source !== "object") {
+                return normalizeLayoutItem("lg", fallback, fallback);
+            }
+
+            return normalizeLayoutItem(
+                "lg",
+                {
+                    i: widget.id,
+                    x: asInt(source.col, fallback.x + 1) - 1,
+                    y: asInt(source.row, fallback.y + 1) - 1,
+                    w: source.cols,
+                    h: source.rows,
+                    minW: fallback.minW,
+                    minH: fallback.minH,
+                },
+                fallback,
+            );
+        });
+
+        return fromPersistedLayouts({
+            lg: lgRows.map((row) => ({
+                id: row.i,
+                x: row.x,
+                y: row.y,
+                w: row.w,
+                h: row.h,
+            })),
+        });
+    }
+
+    function loadLayouts() {
+        const raw = safeLocalStorageGet(STORAGE_KEY);
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw);
+                if (
+                    parsed &&
+                    typeof parsed === "object" &&
+                    parsed.version === 1
+                ) {
+                    return fromPersistedLayouts(parsed.layouts);
+                }
+            } catch {
+                // Ignore malformed payload and continue to legacy fallback.
+            }
+        }
+
+        const legacyRaw = safeLocalStorageGet(LEGACY_LAYOUT_KEY);
+        if (legacyRaw) {
+            try {
+                const legacyParsed = JSON.parse(legacyRaw);
+                const fromLegacy = fromLegacyLayoutState(legacyParsed);
+                if (fromLegacy) {
+                    return fromLegacy;
+                }
+            } catch {
+                // Ignore malformed legacy payload.
+            }
+        }
+
+        return cloneLayouts(DEFAULT_LAYOUTS);
+    }
+
+    function saveLayouts(layouts, preferredBreakpoint = "lg") {
         const payload = {
             version: 1,
             layouts: toPersistedLayouts(layouts),
             savedAt: new Date().toISOString(),
         };
         safeLocalStorageSet(STORAGE_KEY, JSON.stringify(payload));
+
+        const legacyLayoutState = toLegacyLayoutState(
+            layouts,
+            preferredBreakpoint,
+        );
+        safeLocalStorageSet(
+            LEGACY_LAYOUT_KEY,
+            JSON.stringify(legacyLayoutState),
+        );
     }
 
     function formatTime(date) {
@@ -324,19 +541,23 @@ if (!mount) {
                 return JSON.stringify(persisted[breakpoint] || [], null, 2);
             }, [layouts, breakpoint]);
 
-            function persistNow(nextLayouts, messagePrefix) {
-                saveLayouts(nextLayouts);
+            function persistNow(
+                nextLayouts,
+                messagePrefix,
+                targetBreakpoint = breakpoint,
+            ) {
+                saveLayouts(nextLayouts, targetBreakpoint);
                 setSaveStatus(`${messagePrefix} ${formatTime(new Date())}`);
             }
 
-            function queuePersist(nextLayouts) {
+            function queuePersist(nextLayouts, targetBreakpoint = breakpoint) {
                 if (saveTimerRef.current !== null) {
                     window.clearTimeout(saveTimerRef.current);
                 }
 
                 setSaveStatus("Saving...");
                 saveTimerRef.current = window.setTimeout(() => {
-                    persistNow(nextLayouts, "Saved at");
+                    persistNow(nextLayouts, "Saved at", targetBreakpoint);
                     saveTimerRef.current = null;
                 }, 320);
             }
@@ -344,13 +565,13 @@ if (!mount) {
             function handleLayoutChange(_currentLayout, allLayouts) {
                 const normalized = normalizeLayouts(allLayouts);
                 setLayouts(normalized);
-                queuePersist(normalized);
+                queuePersist(normalized, breakpoint);
             }
 
             function handleReset() {
                 const defaults = cloneLayouts(DEFAULT_LAYOUTS);
                 setLayouts(defaults);
-                persistNow(defaults, "Reset and saved at");
+                persistNow(defaults, "Reset and saved at", "lg");
             }
 
             useEffect(
@@ -457,6 +678,19 @@ if (!mount) {
                                     key: "save",
                                 },
                                 "Save now",
+                            ),
+                            h(
+                                "button",
+                                {
+                                    type: "button",
+                                    className: "sn-button sn-button-primary",
+                                    onClick: () => {
+                                        persistNow(layouts, "Saved at");
+                                        window.location.assign(dashboardUrl);
+                                    },
+                                    key: "save-return",
+                                },
+                                "Save and return",
                             ),
                             h(
                                 "a",
