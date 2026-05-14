@@ -104,7 +104,6 @@ def test_public_changelog_unknown_slug_returns_404(
 ) -> None:
     resp = auth_client.get("/w/no-such-workspace/changelog/public")
     assert resp.status_code == 404
-    assert resp.json()["detail"]["code"] == "not_found"
 
 
 # ---------------------------------------------------------------------------

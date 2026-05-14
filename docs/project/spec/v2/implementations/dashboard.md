@@ -13,6 +13,8 @@
 - Use this file as the React implementation contract.
 - For the current-stack vanilla path, see
 	[`dashboard-vanilla-js.md`](dashboard-vanilla-js.md).
+- For a project-wide React migration proposal, see
+	[`react-full-migration.md`](react-full-migration.md).
 - React pilot implementation files in this repository:
 	- `src/feedback_triage/pages/dashboard.py`
 	- `src/feedback_triage/templates/pages/dashboard/react_widgets.html`
