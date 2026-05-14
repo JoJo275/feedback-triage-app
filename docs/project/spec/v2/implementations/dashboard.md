@@ -1,6 +1,18 @@
-# Dashboard widget system implementation (React + Tailwind)
+# Dashboard widget system implementation (React option)
 
 > Goal: build equivalent functionality without copying source code from another product.
+
+> Status in this repository: reference-only implementation path.
+> Current SignalNest v2 frontend remains static HTML + vanilla JS
+> (no React/Vite/TypeScript) per `ui.md`, `tooling.md`, and `spec-v2.md`.
+
+## Scope and status
+
+- Use this file directly if your app is React-based.
+- If you are implementing inside this repository today, treat this as a
+	design reference and either:
+	- implement a vanilla JS equivalent, or
+	- ratify an ADR before introducing a React frontend slice.
 
 ## Recommendation
 
@@ -23,11 +35,12 @@ but it is usually high-risk and time-heavy for little product advantage.
 Choose custom only if you need engine behavior that libraries cannot support,
 such as non-rectangular widgets or advanced algorithmic packing rules.
 
-### Stack fit note
+### Current-stack equivalent (no React)
 
-If this is implemented inside the current SignalNest codebase, treat React as
-an isolated page-level island or add an ADR before introducing a broader
-React frontend architecture.
+For the existing SignalNest v2 stack, choose a vanilla-capable grid engine
+(for example GridStack.js) and keep the same persisted layout shape
+`{ id, x, y, w, h }`. That gives equivalent behavior without changing the
+project-wide frontend architecture.
 
 ## Requirement mapping
 
@@ -99,69 +112,56 @@ npm install react-grid-layout react-resizable lodash.debounce
 
 ### 2) Build the responsive grid shell
 
-```tsx
-import { useMemo, useState } from "react";
-import { Responsive, WidthProvider, type Layout, type Layouts } from "react-grid-layout";
+Use a config-first pattern for readability, then wire those options into your
+`ResponsiveGridLayout` component.
+
+```ts
+import { Responsive, WidthProvider, type Layouts } from "react-grid-layout";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const breakpoints = { lg: 1280, md: 1024, sm: 768, xs: 480, xxs: 0 };
-const cols = { lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 };
+export const GRID_BREAKPOINTS = {
+	lg: 1280,
+	md: 1024,
+	sm: 768,
+	xs: 480,
+	xxs: 0
+} as const;
 
-export function WidgetGrid({
-	widgets,
-	initialLayouts,
-	onLayoutsChange
-}: {
-	widgets: { id: string; node: React.ReactNode }[];
-	initialLayouts: Layouts;
-	onLayoutsChange: (next: Layouts) => void;
-}) {
-	const [editMode, setEditMode] = useState(false);
-	const [layouts, setLayouts] = useState<Layouts>(initialLayouts);
+export const GRID_COLS = {
+	lg: 12,
+	md: 12,
+	sm: 6,
+	xs: 4,
+	xxs: 2
+} as const;
 
-	const items = useMemo(() => widgets.map((w) => (
-		<section key={w.id} className="h-full rounded-xl border bg-white p-4 shadow-sm">
-			{w.node}
-		</section>
-	)), [widgets]);
+export const GRID_PROPS = {
+	breakpoints: GRID_BREAKPOINTS,
+	cols: GRID_COLS,
+	rowHeight: 24,
+	margin: [12, 12] as [number, number],
+	allowOverlap: false,
+	preventCollision: true,
+	compactType: "vertical" as const,
+	draggableHandle: "[data-drag-handle]"
+};
 
-	return (
-		<div className="space-y-4">
-			<div className="flex items-center gap-3">
-				<button
-					type="button"
-					onClick={() => setEditMode((v) => !v)}
-					className="rounded-md border px-3 py-2 text-sm font-medium"
-				>
-					{editMode ? "Done" : "Edit layout"}
-				</button>
-			</div>
-
-			<ResponsiveGridLayout
-				className="layout"
-				layouts={layouts}
-				breakpoints={breakpoints}
-				cols={cols}
-				rowHeight={24}
-				margin={[12, 12]}
-				isDraggable={editMode}
-				isResizable={editMode}
-				allowOverlap={false}
-				preventCollision={true}
-				compactType="vertical"
-				draggableHandle="[data-drag-handle]"
-				onLayoutChange={(_current: Layout[], all: Layouts) => {
-					setLayouts(all);
-					onLayoutsChange(all);
-				}}
-			>
-				{items}
-			</ResponsiveGridLayout>
-		</div>
-	);
+export function applyLayoutChange(
+	allLayouts: Layouts,
+	setLayouts: (next: Layouts) => void,
+	onLayoutsChange: (next: Layouts) => void
+): void {
+	setLayouts(allLayouts);
+	onLayoutsChange(allLayouts);
 }
 ```
+
+In render:
+
+- bind `isDraggable` and `isResizable` to edit mode
+- pass `layouts`, `breakpoints`, and `cols`
+- call `applyLayoutChange` from `onLayoutChange`
 
 ### 3) Save and restore layout
 
