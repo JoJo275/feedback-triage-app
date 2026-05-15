@@ -144,6 +144,7 @@ class TotalSignalsWidget:
     delta_direction: Literal["up", "down", "flat"]
     comparison_label: str
     sparkline_points: tuple[int, ...]
+    sparkline_date_labels: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -577,15 +578,25 @@ def _total_signals_widget(
     throughput: ThroughputSummary,
 ) -> TotalSignalsWidget:
     previous_start = period_start - timedelta(days=THROUGHPUT_DAYS)
-    previous_total = _to_int(
-        db.execute(
-            select(func.count())
-            .select_from(FeedbackItem)
-            .where(col(FeedbackItem.workspace_id) == workspace_id)
-            .where(col(FeedbackItem.created_at) >= previous_start)
-            .where(col(FeedbackItem.created_at) < period_start)
-        ).scalar_one()
-    )
+    comparison_start = previous_start.date()
+    comparison_end = (period_start - timedelta(days=1)).date()
+
+    created_bucket = func.date_trunc("day", col(FeedbackItem.created_at))
+    previous_rows = db.execute(
+        sa_select(created_bucket, func.count(col(FeedbackItem.id)))
+        .where(col(FeedbackItem.workspace_id) == workspace_id)
+        .where(col(FeedbackItem.created_at) >= previous_start)
+        .where(col(FeedbackItem.created_at) < period_start)
+        .group_by(created_bucket)
+        .order_by(created_bucket)
+    ).all()
+    previous_by_day = {_to_date(day): int(count) for day, count in previous_rows}
+
+    sparkline_days = [
+        comparison_start + timedelta(days=offset) for offset in range(THROUGHPUT_DAYS)
+    ]
+    sparkline_points = tuple(previous_by_day.get(day, 0) for day in sparkline_days)
+    previous_total = sum(sparkline_points)
 
     current_total = throughput.received_total
     if previous_total <= 0:
@@ -593,8 +604,6 @@ def _total_signals_widget(
     else:
         delta_pct = round(((current_total - previous_total) / previous_total) * 100)
 
-    comparison_start = previous_start.date()
-    comparison_end = (period_start - timedelta(days=1)).date()
     return TotalSignalsWidget(
         value=kpi.total_signals,
         delta_pct=delta_pct,
@@ -603,7 +612,8 @@ def _total_signals_widget(
             start_day=comparison_start,
             end_day=comparison_end,
         ),
-        sparkline_points=tuple(point.received for point in throughput.points),
+        sparkline_points=sparkline_points,
+        sparkline_date_labels=tuple(_format_month_day(day) for day in sparkline_days),
     )
 
 

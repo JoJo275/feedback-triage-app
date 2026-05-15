@@ -1468,6 +1468,9 @@ if (!layout || !canvas) {
             const hits = Array.from(
                 wrapper.querySelectorAll("[data-sparkline-hit]"),
             );
+            const sparklinePoints = Array.from(
+                wrapper.querySelectorAll("[data-sparkline-point-index]"),
+            );
 
             if (
                 !svg ||
@@ -1482,10 +1485,49 @@ if (!layout || !canvas) {
 
             const viewWidth = 320;
             const viewHeight = 100;
+            const pointByIndex = new Map();
+            sparklinePoints.forEach((pointNode) => {
+                const index = Number.parseInt(
+                    pointNode.dataset.sparklinePointIndex || "",
+                    10,
+                );
+                if (Number.isFinite(index)) {
+                    pointByIndex.set(index, pointNode);
+                }
+            });
+
+            let activePoint = null;
+
+            const clearActivePoint = () => {
+                if (!activePoint) {
+                    return;
+                }
+                const baseRadius =
+                    activePoint.dataset.sparklinePointBaseR || "3.2";
+                activePoint.setAttribute("r", baseRadius);
+                activePoint.classList.remove("is-active");
+                activePoint = null;
+            };
+
+            const setActivePoint = (index) => {
+                clearActivePoint();
+                const pointNode = pointByIndex.get(index);
+                if (!pointNode) {
+                    return;
+                }
+                const activeRadius =
+                    pointNode.dataset.sparklinePointActiveR ||
+                    pointNode.dataset.sparklinePointBaseR ||
+                    "4.4";
+                pointNode.setAttribute("r", activeRadius);
+                pointNode.classList.add("is-active");
+                activePoint = pointNode;
+            };
 
             const hideHoverState = () => {
                 guide.setAttribute("hidden", "");
                 tooltip.setAttribute("hidden", "");
+                clearActivePoint();
             };
 
             const showHoverState = (hit) => {
@@ -1501,10 +1543,19 @@ if (!layout || !canvas) {
                     10,
                 );
                 const label = hit.dataset.sparklineDate || "";
+                const index = Number.parseInt(
+                    hit.dataset.sparklineIndex || "",
+                    10,
+                );
                 const pluralized = value === 1 ? "signal" : "signals";
 
                 tooltipDate.textContent = label;
                 tooltipValue.textContent = `${value} ${pluralized}`;
+                if (Number.isFinite(index)) {
+                    setActivePoint(index);
+                } else {
+                    clearActivePoint();
+                }
 
                 guide.removeAttribute("hidden");
                 guide.setAttribute("x1", x.toFixed(2));
@@ -1522,9 +1573,7 @@ if (!layout || !canvas) {
                     svgRect.width - tooltipRect.width / 2,
                 );
                 const clampedLeft = clamp(xPx, minLeft, maxLeft);
-                const preferredTop = yPx - tooltipRect.height - 8;
-                const fallbackTop = yPx + 10;
-                const topPx = preferredTop >= 0 ? preferredTop : fallbackTop;
+                const topPx = -tooltipRect.height - 10;
 
                 tooltip.style.left = `${clampedLeft}px`;
                 tooltip.style.top = `${topPx}px`;
