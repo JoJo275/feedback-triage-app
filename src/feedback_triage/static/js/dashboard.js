@@ -1537,10 +1537,17 @@ if (!layout || !canvas) {
                 hit.addEventListener("pointermove", () => {
                     showHoverState(hit);
                 });
+                hit.addEventListener("mouseenter", () => {
+                    showHoverState(hit);
+                });
+                hit.addEventListener("mousemove", () => {
+                    showHoverState(hit);
+                });
             });
 
             wrapper.addEventListener("pointerleave", hideHoverState);
             wrapper.addEventListener("pointercancel", hideHoverState);
+            wrapper.addEventListener("mouseleave", hideHoverState);
 
             hideHoverState();
         });
