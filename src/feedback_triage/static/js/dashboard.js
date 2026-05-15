@@ -1465,6 +1465,9 @@ if (!layout || !canvas) {
             const tooltipValue = wrapper.querySelector(
                 "[data-sparkline-tooltip-value]",
             );
+            const tooltipMarker = wrapper.querySelector(
+                "[data-sparkline-tooltip-marker]",
+            );
             const hits = Array.from(
                 wrapper.querySelectorAll("[data-sparkline-hit]"),
             );
@@ -1547,10 +1550,22 @@ if (!layout || !canvas) {
                     hit.dataset.sparklineIndex || "",
                     10,
                 );
+                const markerLabel = (
+                    hit.dataset.sparklineMarkerLabel || ""
+                ).trim();
                 const pluralized = value === 1 ? "signal" : "signals";
 
                 tooltipDate.textContent = label;
                 tooltipValue.textContent = `${value} ${pluralized}`;
+                if (tooltipMarker) {
+                    if (markerLabel.length > 0) {
+                        tooltipMarker.textContent = markerLabel;
+                        tooltipMarker.removeAttribute("hidden");
+                    } else {
+                        tooltipMarker.textContent = "";
+                        tooltipMarker.setAttribute("hidden", "");
+                    }
+                }
                 if (Number.isFinite(index)) {
                     setActivePoint(index);
                 } else {
