@@ -156,11 +156,19 @@
               <p class="sn-summary-card__delta sn-summary-card__delta--{{ summary.total_signals_widget.delta_direction }}">
                 <span class="sn-summary-card__delta-icon" aria-hidden="true">
                   {% if summary.total_signals_widget.delta_direction == 'up' %}
-                    <svg viewBox="0 0 10 10" focusable="false" aria-hidden="true"><path d="M5 1 9 7H1Z" /></svg>
+                    <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
+                      <path d="M2 10 10 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                      <path d="M6.75 2H10v3.25" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
                   {% elif summary.total_signals_widget.delta_direction == 'down' %}
-                    <svg viewBox="0 0 10 10" focusable="false" aria-hidden="true"><path d="M1 3h8L5 9Z" /></svg>
+                    <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
+                      <path d="M2 2 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                      <path d="M6.75 10H10V6.75" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
                   {% else %}
-                    <svg viewBox="0 0 10 10" focusable="false" aria-hidden="true"><rect x="1" y="4" width="8" height="2" /></svg>
+                    <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
+                      <path d="M2 6h8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
                   {% endif %}
                 </span>
                 {% if summary.total_signals_widget.delta_direction == 'up' %}+{% endif %}{{ summary.total_signals_widget.delta_pct | abs }}%
