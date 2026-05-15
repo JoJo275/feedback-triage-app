@@ -1095,8 +1095,8 @@ tr[data-stale="true"] {
     max-width: 9rem;
     padding: 0.35rem 0.5rem;
     border-radius: 0.55rem;
-    border: 1px solid color-mix(in srgb, #2563eb 24%, var(--color-border));
-    background: color-mix(in srgb, var(--color-surface) 95%, #ffffff);
+    border: 1px solid #9eb7eb;
+    background: rgb(248 250 252 / 0.97);
     box-shadow: 0 8px 16px rgb(15 23 42 / 0.12);
     color: var(--color-text);
     font-size: 0.6875rem;
@@ -1116,6 +1116,11 @@ tr[data-stale="true"] {
 
 .sn-summary-card__sparkline-tooltip-value {
     color: var(--color-text);
+    font-weight: 600;
+}
+
+.sn-summary-card__sparkline-tooltip-marker {
+    color: #1d4ed8;
     font-weight: 600;
 }
 

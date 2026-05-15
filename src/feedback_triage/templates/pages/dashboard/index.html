@@ -46,25 +46,16 @@
 {% set total_signals_y_span = total_signals_y_bottom - total_signals_y_top %}
 {% set total_signals_curve_gamma = 0.56 %}
 {% set total_signals_hit_band = (total_signals_x_span / total_signals_denominator) if total_signals_points > 1 else total_signals_x_span %}
-{% set total_signals_inflection = namespace(max_slope_delta=0, threshold=1, min_gap=3, marker_stride=5) %}
+{% set total_signals_jump_candidates = namespace(items=[]) %}
 {% if total_signals_points > 1 %}
   {% for idx in range(1, total_signals_points) %}
-    {% set slope_delta = (total_signals_raw_points[idx] - total_signals_raw_points[idx - 1]) | abs %}
-    {% if slope_delta > total_signals_inflection.max_slope_delta %}
-      {% set total_signals_inflection.max_slope_delta = slope_delta %}
-    {% endif %}
+    {% set jump_size = (total_signals_raw_points[idx] - total_signals_raw_points[idx - 1]) | abs %}
+    {% set total_signals_jump_candidates.items = total_signals_jump_candidates.items + [{"index": idx, "size": jump_size}] %}
   {% endfor %}
-  {% set threshold_candidate = ((total_signals_inflection.max_slope_delta * 0.7) | round(0, 'ceil')) %}
-  {% if threshold_candidate > total_signals_inflection.threshold %}
-    {% set total_signals_inflection.threshold = threshold_candidate %}
-  {% endif %}
-  {% if total_signals_points <= 18 %}
-    {% set total_signals_inflection.min_gap = 2 %}
-    {% set total_signals_inflection.marker_stride = 3 %}
-  {% elif total_signals_points <= 30 %}
-    {% set total_signals_inflection.marker_stride = 4 %}
-  {% endif %}
 {% endif %}
+{% set total_signals_jump_ranked = total_signals_jump_candidates.items|sort(attribute='size', reverse=true) %}
+{% set total_signals_largest_jump_index = total_signals_jump_ranked[0].index if total_signals_jump_ranked else -1 %}
+{% set total_signals_second_largest_jump_index = total_signals_jump_ranked[1].index if total_signals_jump_ranked|length > 1 else -1 %}
 {% set total_signals_coords = namespace(points=[]) %}
 {% for idx in range(total_signals_points) %}
   {% set raw_value = total_signals_raw_points[idx] %}
@@ -250,20 +241,38 @@
                 {% if total_signals_path.d %}
                   <path class="sn-summary-card__sparkline-line" fill="none" d="{{ total_signals_path.d }}"></path>
                 {% endif %}
-                {% set total_signals_marker_state = namespace(last_index=-(total_signals_inflection.min_gap + 1)) %}
                 {% for coord in total_signals_coords.points %}
-                  {% set current_slope = total_signals_raw_points[coord.index] %}
-                  {% set next_slope = total_signals_raw_points[coord.index + 1] if coord.index < total_signals_points - 1 else current_slope %}
-                  {% set slope_shift = (next_slope - current_slope) | abs %}
-                  {% set is_major_inflection = slope_shift >= total_signals_inflection.threshold %}
-                  {% set is_anchor = (coord.index % total_signals_inflection.marker_stride) == 0 %}
-                  {% set is_spaced = (coord.index - total_signals_marker_state.last_index) >= total_signals_inflection.min_gap %}
-                  {% if loop.first or loop.last or ((is_major_inflection or is_anchor) and is_spaced) %}
-                    <circle class="sn-summary-card__sparkline-point" data-sparkline-point-index="{{ coord.index }}" data-sparkline-point-base-r="4.2" data-sparkline-point-active-r="5.8" cx="{{ coord.x }}" cy="{{ coord.y }}" r="4.2"></circle>
-                    {% set total_signals_marker_state.last_index = coord.index %}
+                  {% set marker_roles = namespace(items=[]) %}
+                  {% if coord.index == 0 %}
+                    {% set marker_roles.items = marker_roles.items + ["Start endpoint"] %}
+                  {% endif %}
+                  {% if coord.index == total_signals_points - 1 %}
+                    {% set marker_roles.items = marker_roles.items + ["End endpoint"] %}
+                  {% endif %}
+                  {% if coord.index == total_signals_largest_jump_index %}
+                    {% set marker_roles.items = marker_roles.items + ["Largest jump"] %}
+                  {% endif %}
+                  {% if coord.index == total_signals_second_largest_jump_index %}
+                    {% set marker_roles.items = marker_roles.items + ["Second-largest jump"] %}
+                  {% endif %}
+                  {% if marker_roles.items %}
+                    <circle class="sn-summary-card__sparkline-point" data-sparkline-point-index="{{ coord.index }}" data-sparkline-point-base-r="4.2" data-sparkline-point-active-r="5.8" data-sparkline-point-marker="{{ marker_roles.items|join(' · ') }}" cx="{{ coord.x }}" cy="{{ coord.y }}" r="4.2"></circle>
                   {% endif %}
                 {% endfor %}
                 {% for coord in total_signals_coords.points %}
+                  {% set marker_roles = namespace(items=[]) %}
+                  {% if coord.index == 0 %}
+                    {% set marker_roles.items = marker_roles.items + ["Start endpoint"] %}
+                  {% endif %}
+                  {% if coord.index == total_signals_points - 1 %}
+                    {% set marker_roles.items = marker_roles.items + ["End endpoint"] %}
+                  {% endif %}
+                  {% if coord.index == total_signals_largest_jump_index %}
+                    {% set marker_roles.items = marker_roles.items + ["Largest jump"] %}
+                  {% endif %}
+                  {% if coord.index == total_signals_second_largest_jump_index %}
+                    {% set marker_roles.items = marker_roles.items + ["Second-largest jump"] %}
+                  {% endif %}
                   {% set hit_left = coord.x - (total_signals_hit_band / 2) %}
                   {% set hit_right = coord.x + (total_signals_hit_band / 2) %}
                   {% if loop.first %}
@@ -284,12 +293,14 @@
                     data-sparkline-value="{{ coord.value }}"
                     data-sparkline-x="{{ coord.x }}"
                     data-sparkline-y="{{ coord.y }}"
+                    data-sparkline-marker-label="{{ marker_roles.items|join(' · ') }}"
                   ></rect>
                 {% endfor %}
               </svg>
               <div class="sn-summary-card__sparkline-tooltip" data-sparkline-tooltip role="status" aria-live="polite" hidden>
                 <span class="sn-summary-card__sparkline-tooltip-date" data-sparkline-tooltip-date></span>
                 <span class="sn-summary-card__sparkline-tooltip-value" data-sparkline-tooltip-value></span>
+                <span class="sn-summary-card__sparkline-tooltip-marker" data-sparkline-tooltip-marker hidden></span>
               </div>
             </div>
           </article>
