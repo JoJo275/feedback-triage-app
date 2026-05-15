@@ -584,6 +584,8 @@ tr[data-stale="true"] {
     }
 }
 
+/* Toolbar stack: keep filter chips and control actions readable while
+   allowing wrap at narrower widths. */
 .sn-dashboard-toolbar {
     display: flex;
     flex-direction: column;
@@ -669,6 +671,8 @@ tr[data-stale="true"] {
     }
 }
 
+/* Edit mode overlays: pointer modes and drag/resize affordances for
+   widgets while layout editing is active. */
 .sn-dashboard-layout[data-edit-mode="true"] [data-widget-id] {
     position: relative;
     outline: 1px dashed
@@ -727,6 +731,8 @@ tr[data-stale="true"] {
     cursor: var(--widget-resize-cursor, nwse-resize);
 }
 
+/* Desktop custom layout mode: when cards are resized, inner content
+   scrolls instead of overflowing outside tile boundaries. */
 @media (min-width: 1024px) {
     .sn-dashboard-canvas[data-layout-mode="custom"] .sn-widget-drop-shadow {
         display: none;
@@ -926,7 +932,7 @@ tr[data-stale="true"] {
     .sn-dashboard-canvas[data-layout-mode="default"]
         .sn-summary-card--total-signals {
         inline-size: min(100%, 11rem);
-        aspect-ratio: 1 / 1.14;
+        aspect-ratio: 1 / 1.32;
         justify-self: start;
     }
 }
@@ -949,8 +955,8 @@ tr[data-stale="true"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2.3rem;
+    height: 2.3rem;
     border: 0;
     border-radius: 9999px;
     padding: 0;
@@ -970,8 +976,8 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__utility svg {
-    width: 1.26rem;
-    height: 1.26rem;
+    width: 1.6rem;
+    height: 1.6rem;
     display: block;
     fill: currentColor;
 }
@@ -1076,6 +1082,8 @@ tr[data-stale="true"] {
     margin-top: 0.75rem;
 }
 
+/* Density presets: trim chrome and spacing while keeping content order
+   and hierarchy unchanged. */
 .sn-dashboard-layout .sn-card,
 .sn-dashboard-layout .sn-summary-card,
 .sn-dashboard-layout .sn-attention-panel {
@@ -1180,6 +1188,8 @@ tr[data-stale="true"] {
     padding: 0.42rem 0.6rem;
 }
 
+/* Queue quick views mirror urgency shortcuts and stay compact in dense
+   mode above the action table. */
 .sn-dashboard-queue__quick-views {
     display: flex;
     flex-wrap: wrap;
@@ -1197,6 +1207,8 @@ tr[data-stale="true"] {
     text-decoration: underline;
 }
 
+/* Throughput chart primitives: line tones map to received, triaged,
+   and resolved series shown in the legend. */
 .sn-throughput-chart {
     width: 100%;
     height: 8.5rem;
@@ -1221,6 +1233,7 @@ tr[data-stale="true"] {
     stroke: color-mix(in srgb, var(--tone-ok-fg) 82%, #ffffff);
 }
 
+/* Compact key-value lists reused across health/aging cards. */
 .sn-metric-list {
     list-style: none;
     margin: 0;
@@ -1244,6 +1257,7 @@ tr[data-stale="true"] {
     font-weight: 600;
 }
 
+/* Status mix rows combine text metadata with a proportional bar. */
 .sn-status-mix {
     list-style: none;
     margin: 0;
@@ -1277,6 +1291,7 @@ tr[data-stale="true"] {
     background: color-mix(in srgb, var(--color-primary) 82%, #ffffff);
 }
 
+/* Aging buckets render as compact label/value rows. */
 .sn-bucket-list {
     list-style: none;
     margin: 0;
@@ -1298,6 +1313,7 @@ tr[data-stale="true"] {
     font-weight: 600;
 }
 
+/* Pain distribution meter stacks low→medium→high segments. */
 .sn-pain-meter {
     height: 0.5rem;
     border-radius: 9999px;
@@ -1323,6 +1339,7 @@ tr[data-stale="true"] {
     background: color-mix(in srgb, var(--color-danger) 80%, #ffffff);
 }
 
+/* Simple sparkline helper styles used by lightweight trend widgets. */
 .sn-sparkline {
     width: 100%;
     height: 10rem;
@@ -1334,6 +1351,7 @@ tr[data-stale="true"] {
     font-size: 0.8125rem;
 }
 
+/* Top tags list: badge label, progress meter, and right-side counts. */
 .sn-tag-list {
     list-style: none;
     margin: 0;
@@ -1372,6 +1390,7 @@ tr[data-stale="true"] {
     font-size: 0.75rem;
 }
 
+/* Generic breakdown rows for source/impact style summaries. */
 .sn-breakdown-list {
     list-style: none;
     margin: 0;
@@ -1401,6 +1420,7 @@ tr[data-stale="true"] {
     font-size: 0.8125rem;
 }
 
+/* Activity list rows pair a primary link with compact metadata. */
 .sn-activity-list {
     list-style: none;
     margin: 0;
@@ -1424,6 +1444,8 @@ tr[data-stale="true"] {
     text-decoration: underline;
 }
 
+/* Tag chip palette variants map semantic tag colors to accessible
+   foreground/background pairs. */
 .sn-tag-chip {
     @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
     background: var(--tone-muted-bg);
@@ -1585,6 +1607,7 @@ tr[data-stale="true"] {
     font-size: 0.9rem;
 }
 
+/* Footer nav pills stay lightweight but visibly interactive. */
 .sn-public-footer__nav ul {
     margin: 0;
     padding: 0;
@@ -1774,6 +1797,7 @@ tr[data-stale="true"] {
     border-color: var(--color-focus);
 }
 
+/* Table primitives shared by dashboard queue and management surfaces. */
 .sn-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--color-border);
@@ -1806,6 +1830,7 @@ tr[data-stale="true"] {
     background: var(--color-surface-alt);
 }
 
+/* Landing demo + feature list helpers for the public marketing page. */
 .sn-demo-card {
     max-width: 56rem;
     margin: 0 auto;
@@ -1840,6 +1865,7 @@ tr[data-stale="true"] {
     );
 }
 
+/* Workflow strip visualizes the intake → triage → ship loop. */
 .sn-workflow-strip {
     list-style: none;
     margin: 0;
@@ -1864,6 +1890,7 @@ tr[data-stale="true"] {
     );
 }
 
+/* Subtle hover elevation for value cards in marketing sections. */
 .sn-value-card {
     transition:
         transform var(--motion-base) var(--easing-standard),
@@ -1886,6 +1913,7 @@ tr[data-stale="true"] {
     font-size: 0.875rem;
 }
 
+/* Mobile tightening for public footer/hero spacing and metric stacking. */
 @media (max-width: 767px) {
     .sn-public-footer {
         margin-top: 2rem;
