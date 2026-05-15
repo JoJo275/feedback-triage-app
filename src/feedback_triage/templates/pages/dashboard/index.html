@@ -46,7 +46,7 @@
 {% set total_signals_y_span = total_signals_y_bottom - total_signals_y_top %}
 {% set total_signals_curve_gamma = 0.56 %}
 {% set total_signals_hit_band = (total_signals_x_span / total_signals_denominator) if total_signals_points > 1 else total_signals_x_span %}
-{% set total_signals_inflection = namespace(max_slope_delta=0, threshold=2, min_gap=3) %}
+{% set total_signals_inflection = namespace(max_slope_delta=0, threshold=1, min_gap=3, marker_stride=5) %}
 {% if total_signals_points > 1 %}
   {% for idx in range(1, total_signals_points) %}
     {% set slope_delta = (total_signals_raw_points[idx] - total_signals_raw_points[idx - 1]) | abs %}
@@ -54,12 +54,15 @@
       {% set total_signals_inflection.max_slope_delta = slope_delta %}
     {% endif %}
   {% endfor %}
-  {% set threshold_candidate = ((total_signals_inflection.max_slope_delta * 0.8) | round(0, 'ceil')) %}
+  {% set threshold_candidate = ((total_signals_inflection.max_slope_delta * 0.7) | round(0, 'ceil')) %}
   {% if threshold_candidate > total_signals_inflection.threshold %}
     {% set total_signals_inflection.threshold = threshold_candidate %}
   {% endif %}
-  {% if total_signals_points <= 14 %}
+  {% if total_signals_points <= 18 %}
     {% set total_signals_inflection.min_gap = 2 %}
+    {% set total_signals_inflection.marker_stride = 3 %}
+  {% elif total_signals_points <= 30 %}
+    {% set total_signals_inflection.marker_stride = 4 %}
   {% endif %}
 {% endif %}
 {% set total_signals_coords = namespace(points=[]) %}
@@ -253,8 +256,9 @@
                   {% set next_slope = total_signals_raw_points[coord.index + 1] if coord.index < total_signals_points - 1 else current_slope %}
                   {% set slope_shift = (next_slope - current_slope) | abs %}
                   {% set is_major_inflection = slope_shift >= total_signals_inflection.threshold %}
+                  {% set is_anchor = (coord.index % total_signals_inflection.marker_stride) == 0 %}
                   {% set is_spaced = (coord.index - total_signals_marker_state.last_index) >= total_signals_inflection.min_gap %}
-                  {% if loop.first or loop.last or (is_major_inflection and is_spaced) %}
+                  {% if loop.first or loop.last or ((is_major_inflection or is_anchor) and is_spaced) %}
                     <circle class="sn-summary-card__sparkline-point" data-sparkline-point-index="{{ coord.index }}" data-sparkline-point-base-r="4.2" data-sparkline-point-active-r="5.8" cx="{{ coord.x }}" cy="{{ coord.y }}" r="4.2"></circle>
                     {% set total_signals_marker_state.last_index = coord.index %}
                   {% endif %}
