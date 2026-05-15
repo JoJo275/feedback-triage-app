@@ -1046,7 +1046,7 @@ tr[data-stale="true"] {
 
 .sn-summary-card--total-signals .sn-summary-card__sparkline-wrap {
     position: relative;
-    margin-top: 1.86rem;
+    margin-top: 2.16rem;
     overflow: visible;
 }
 
@@ -1057,7 +1057,7 @@ tr[data-stale="true"] {
 
 .sn-summary-card__sparkline-line {
     stroke: #2563eb;
-    stroke-width: 2.6;
+    stroke-width: 1.3;
     stroke-linecap: round;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
