@@ -49,14 +49,17 @@
 {% for coord in total_signals_coords.points %}
   {% if loop.first %}
     {% set total_signals_path.d = 'M ' ~ coord.x ~ ',' ~ coord.y %}
-  {% elif loop.last %}
-    {% set prev = total_signals_coords.points[loop.index0 - 1] %}
-    {% set total_signals_path.d = total_signals_path.d ~ ' Q ' ~ prev.x ~ ',' ~ prev.y ~ ' ' ~ coord.x ~ ',' ~ coord.y %}
+  {% elif total_signals_points == 2 %}
+    {% set total_signals_path.d = total_signals_path.d ~ ' L ' ~ coord.x ~ ',' ~ coord.y %}
   {% else %}
-    {% set next_coord = total_signals_coords.points[loop.index0 + 1] %}
-    {% set mid_x = ((coord.x + next_coord.x) / 2)|round(2) %}
-    {% set mid_y = ((coord.y + next_coord.y) / 2)|round(2) %}
-    {% set total_signals_path.d = total_signals_path.d ~ ' Q ' ~ coord.x ~ ',' ~ coord.y ~ ' ' ~ mid_x ~ ',' ~ mid_y %}
+    {% set previous_coord = total_signals_coords.points[loop.index0 - 1] %}
+    {% set pre_previous_coord = total_signals_coords.points[loop.index0 - 2] if loop.index0 > 1 else previous_coord %}
+    {% set next_coord = total_signals_coords.points[loop.index0 + 1] if not loop.last else coord %}
+    {% set cp1_x = (previous_coord.x + ((coord.x - pre_previous_coord.x) / 6))|round(2) %}
+    {% set cp1_y = (previous_coord.y + ((coord.y - pre_previous_coord.y) / 6))|round(2) %}
+    {% set cp2_x = (coord.x - ((next_coord.x - previous_coord.x) / 6))|round(2) %}
+    {% set cp2_y = (coord.y - ((next_coord.y - previous_coord.y) / 6))|round(2) %}
+    {% set total_signals_path.d = total_signals_path.d ~ ' C ' ~ cp1_x ~ ',' ~ cp1_y ~ ' ' ~ cp2_x ~ ',' ~ cp2_y ~ ' ' ~ coord.x ~ ',' ~ coord.y %}
   {% endif %}
 {% endfor %}
 <div class="sn-app-shell">
@@ -210,7 +213,12 @@
                 <path class="sn-summary-card__sparkline-line" fill="none" d="{{ total_signals_path.d }}"></path>
               {% endif %}
               {% for coord in total_signals_coords.points %}
-                <circle class="sn-summary-card__sparkline-point" cx="{{ coord.x }}" cy="{{ coord.y }}" r="3.4"></circle>
+                {% set raw_value = total_signals_raw_points[loop.index0] %}
+                {% set previous_raw_value = total_signals_raw_points[loop.index0 - 1] if not loop.first else raw_value %}
+                {% set next_raw_value = total_signals_raw_points[loop.index0 + 1] if not loop.last else raw_value %}
+                {% if raw_value != previous_raw_value or raw_value != next_raw_value %}
+                  <circle class="sn-summary-card__sparkline-point" cx="{{ coord.x }}" cy="{{ coord.y }}" r="3.2"></circle>
+                {% endif %}
               {% endfor %}
             </svg>
           </article>
