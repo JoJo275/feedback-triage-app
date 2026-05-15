@@ -29,24 +29,35 @@
 {% endfor %}
 {% set total_signals_raw_points = summary.total_signals_widget.sparkline_points %}
 {% set total_signals_day_count = total_signals_raw_points|length %}
-{% set total_signals_bucket_size = 3 %}
-{% set total_signals_plot = namespace(points=[]) %}
-{% for offset in range(0, total_signals_day_count, total_signals_bucket_size) %}
-  {% set bucket_points = total_signals_raw_points[offset:offset + total_signals_bucket_size] %}
-  {% if bucket_points %}
-    {% set total_signals_plot.points = total_signals_plot.points + [bucket_points|max] %}
-  {% endif %}
-{% endfor %}
-{% set total_signals_points = total_signals_plot.points|length %}
+{% set total_signals_points = total_signals_raw_points|length %}
 {% set total_signals_denominator = (total_signals_points - 1) if total_signals_points > 1 else 1 %}
-{% set total_signals_peak_raw = (total_signals_plot.points|max) if total_signals_plot.points else 0 %}
-{% set total_signals_floor_raw = (total_signals_plot.points|min) if total_signals_plot.points else 0 %}
+{% set total_signals_peak_raw = (total_signals_raw_points|max) if total_signals_raw_points else 0 %}
+{% set total_signals_floor_raw = (total_signals_raw_points|min) if total_signals_raw_points else 0 %}
 {% set total_signals_range = (total_signals_peak_raw - total_signals_floor_raw) if total_signals_peak_raw > total_signals_floor_raw else 1 %}
-{% set total_signals_line = namespace(points='') %}
-{% for point in total_signals_plot.points %}
-  {% set x = (loop.index0 / total_signals_denominator * 320) %}
-  {% set y = 94 - (((point - total_signals_floor_raw) / total_signals_range) * 84) %}
-  {% set total_signals_line.points = total_signals_line.points ~ (x|round(2)) ~ ',' ~ (y|round(2)) ~ ' ' %}
+{% set total_signals_x_padding = 8 %}
+{% set total_signals_y_top = 10 %}
+{% set total_signals_y_bottom = 92 %}
+{% set total_signals_x_span = 320 - (total_signals_x_padding * 2) %}
+{% set total_signals_y_span = total_signals_y_bottom - total_signals_y_top %}
+{% set total_signals_coords = namespace(points=[]) %}
+{% for point in total_signals_raw_points %}
+  {% set x = total_signals_x_padding + (loop.index0 / total_signals_denominator * total_signals_x_span) %}
+  {% set y = total_signals_y_bottom - (((point - total_signals_floor_raw) / total_signals_range) * total_signals_y_span) %}
+  {% set total_signals_coords.points = total_signals_coords.points + [{"x": (x|round(2)), "y": (y|round(2))}] %}
+{% endfor %}
+{% set total_signals_path = namespace(d='') %}
+{% for coord in total_signals_coords.points %}
+  {% if loop.first %}
+    {% set total_signals_path.d = 'M ' ~ coord.x ~ ',' ~ coord.y %}
+  {% elif loop.last %}
+    {% set prev = total_signals_coords.points[loop.index0 - 1] %}
+    {% set total_signals_path.d = total_signals_path.d ~ ' Q ' ~ prev.x ~ ',' ~ prev.y ~ ' ' ~ coord.x ~ ',' ~ coord.y %}
+  {% else %}
+    {% set next_coord = total_signals_coords.points[loop.index0 + 1] %}
+    {% set mid_x = ((coord.x + next_coord.x) / 2)|round(2) %}
+    {% set mid_y = ((coord.y + next_coord.y) / 2)|round(2) %}
+    {% set total_signals_path.d = total_signals_path.d ~ ' Q ' ~ coord.x ~ ',' ~ coord.y ~ ' ' ~ mid_x ~ ',' ~ mid_y %}
+  {% endif %}
 {% endfor %}
 <div class="sn-app-shell">
   {% include "_partials/sidebar.html" %}
@@ -195,15 +206,11 @@
               aria-label="Total signals trend over the last {{ total_signals_day_count }} days"
               preserveAspectRatio="none"
             >
-              {% set sparkline_pairs = (total_signals_line.points | trim).split(" ") %}
-              <polyline class="sn-summary-card__sparkline-line" fill="none" points="{{ total_signals_line.points | trim }}"></polyline>
-              {% for pair in sparkline_pairs if pair %}
-                {% if loop.first or loop.last or loop.index0 % 2 == 0 %}
-                  {% set coords = pair.split(",") %}
-                  {% if coords | length == 2 %}
-                    <circle class="sn-summary-card__sparkline-point" cx="{{ coords[0] | trim }}" cy="{{ coords[1] | trim }}" r="2.6"></circle>
-                  {% endif %}
-                {% endif %}
+              {% if total_signals_path.d %}
+                <path class="sn-summary-card__sparkline-line" fill="none" d="{{ total_signals_path.d }}"></path>
+              {% endif %}
+              {% for coord in total_signals_coords.points %}
+                <circle class="sn-summary-card__sparkline-point" cx="{{ coord.x }}" cy="{{ coord.y }}" r="3.4"></circle>
               {% endfor %}
             </svg>
           </article>
