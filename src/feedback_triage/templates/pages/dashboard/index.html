@@ -40,11 +40,13 @@
 {% set total_signals_floor_raw = (total_signals_plot_points.items|min) if total_signals_plot_points.items else 0 %}
 {% set total_signals_range = (total_signals_peak_raw - total_signals_floor_raw) if total_signals_peak_raw > total_signals_floor_raw else 1 %}
 {% set total_signals_x_padding = 8 %}
-{% set total_signals_y_top = 60 %}
-{% set total_signals_y_bottom = 96 %}
+{% set total_signals_y_top = 44 %}
+{% set total_signals_y_bottom = 97 %}
 {% set total_signals_x_span = 320 - (total_signals_x_padding * 2) %}
 {% set total_signals_y_span = total_signals_y_bottom - total_signals_y_top %}
+{% set total_signals_curve_gamma = 0.72 %}
 {% set total_signals_hit_band = (total_signals_x_span / total_signals_denominator) if total_signals_points > 1 else total_signals_x_span %}
+{% set total_signals_point_stride = (total_signals_points // 6) if total_signals_points > 6 else 1 %}
 {% set total_signals_coords = namespace(points=[]) %}
 {% for idx in range(total_signals_points) %}
   {% set raw_value = total_signals_raw_points[idx] %}
@@ -54,7 +56,9 @@
   {% else %}
     {% set x = total_signals_x_padding + (idx / total_signals_denominator * total_signals_x_span) %}
   {% endif %}
-  {% set y = total_signals_y_bottom - (((plot_value - total_signals_floor_raw) / total_signals_range) * total_signals_y_span) %}
+  {% set normalized_plot = ((plot_value - total_signals_floor_raw) / total_signals_range) %}
+  {% set normalized_eased = normalized_plot ** total_signals_curve_gamma %}
+  {% set y = total_signals_y_bottom - (normalized_eased * total_signals_y_span) %}
   {% set date_label = summary.total_signals_widget.sparkline_date_labels[idx] if summary.total_signals_widget.sparkline_date_labels|length > idx else '' %}
   {% set total_signals_coords.points = total_signals_coords.points + [{"index": idx, "x": (x|round(2)), "y": (y|round(2)), "value": raw_value, "date_label": date_label}] %}
 {% endfor %}
@@ -229,7 +233,9 @@
                   <path class="sn-summary-card__sparkline-line" fill="none" d="{{ total_signals_path.d }}"></path>
                 {% endif %}
                 {% for coord in total_signals_coords.points %}
-                  <circle class="sn-summary-card__sparkline-point" data-sparkline-point-index="{{ coord.index }}" data-sparkline-point-base-r="3.2" data-sparkline-point-active-r="4.6" cx="{{ coord.x }}" cy="{{ coord.y }}" r="3.2"></circle>
+                  {% if loop.first or loop.last or (total_signals_point_stride > 1 and (coord.index % total_signals_point_stride) == 0) %}
+                    <circle class="sn-summary-card__sparkline-point" data-sparkline-point-index="{{ coord.index }}" data-sparkline-point-base-r="3.2" data-sparkline-point-active-r="4.6" cx="{{ coord.x }}" cy="{{ coord.y }}" r="3.2"></circle>
+                  {% endif %}
                 {% endfor %}
                 {% for coord in total_signals_coords.points %}
                   {% set hit_left = coord.x - (total_signals_hit_band / 2) %}
