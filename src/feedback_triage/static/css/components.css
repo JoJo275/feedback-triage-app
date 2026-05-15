@@ -951,6 +951,21 @@ tr[data-stale="true"] {
     line-height: 1.2;
 }
 
+/* Keep the metric stack closer to the title by taking the oversized
+   utility button out of flow for this card only. */
+.sn-summary-card--total-signals .sn-summary-card__top {
+    position: relative;
+    align-items: flex-start;
+    padding-right: 2.6rem;
+    margin-bottom: -0.45rem;
+}
+
+.sn-summary-card--total-signals .sn-summary-card__utility {
+    position: absolute;
+    top: -0.15rem;
+    right: 0;
+}
+
 .sn-summary-card__utility {
     display: inline-flex;
     align-items: center;
