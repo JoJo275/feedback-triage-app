@@ -1050,6 +1050,12 @@ tr[data-stale="true"] {
     stroke-linejoin: round;
 }
 
+.sn-summary-card__sparkline-point {
+    fill: color-mix(in srgb, var(--color-primary) 86%, #ffffff);
+    stroke: var(--color-surface);
+    stroke-width: 1;
+}
+
 /* ---- Attention panel (PR 4.5) ----
    Right-of-queue card. Each row is a clickable filter shortcut
    into the triage queue; the CTA at the bottom is the primary
