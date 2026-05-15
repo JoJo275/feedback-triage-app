@@ -1044,8 +1044,13 @@ tr[data-stale="true"] {
     overflow: visible;
 }
 
+.sn-summary-card--total-signals .sn-summary-card__sparkline-wrap {
+    position: relative;
+    margin-top: 0.72rem;
+}
+
 .sn-summary-card--total-signals .sn-summary-card__sparkline {
-    margin-top: 0.55rem;
+    margin-top: 0;
     padding-top: 0;
 }
 
@@ -1056,10 +1061,58 @@ tr[data-stale="true"] {
     stroke-linejoin: round;
 }
 
+.sn-summary-card__sparkline-guide {
+    stroke: #2563eb;
+    stroke-width: 1.2;
+    stroke-opacity: 0.32;
+    pointer-events: none;
+}
+
 .sn-summary-card__sparkline-point {
     fill: #2563eb;
     stroke: var(--color-surface);
     stroke-width: 1.25;
+}
+
+.sn-summary-card__sparkline-hit {
+    fill: transparent;
+    cursor: crosshair;
+}
+
+.sn-summary-card__sparkline-tooltip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, 0);
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.08rem;
+    min-width: 6rem;
+    max-width: 9rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.55rem;
+    border: 1px solid color-mix(in srgb, #2563eb 24%, var(--color-border));
+    background: color-mix(in srgb, var(--color-surface) 95%, #ffffff);
+    box-shadow: 0 8px 16px rgb(15 23 42 / 0.12);
+    color: var(--color-text);
+    font-size: 0.6875rem;
+    line-height: 1.25;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.sn-summary-card__sparkline-tooltip[hidden] {
+    display: none;
+}
+
+.sn-summary-card__sparkline-tooltip-date {
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+.sn-summary-card__sparkline-tooltip-value {
+    color: var(--color-text);
+    font-weight: 600;
 }
 
 /* ---- Attention panel (PR 4.5) ----

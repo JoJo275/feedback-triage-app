@@ -1445,6 +1445,107 @@ if (!layout || !canvas) {
         refreshEditButton();
     }
 
+    function bindTotalSignalsSparklineHover() {
+        const sparklineWrappers = Array.from(
+            document.querySelectorAll("[data-total-signals-sparkline]"),
+        );
+
+        sparklineWrappers.forEach((wrapper) => {
+            if (wrapper.dataset.sparklineHoverBound === "true") {
+                return;
+            }
+            wrapper.dataset.sparklineHoverBound = "true";
+
+            const svg = wrapper.querySelector("[data-sparkline-svg]");
+            const guide = wrapper.querySelector("[data-sparkline-guide]");
+            const tooltip = wrapper.querySelector("[data-sparkline-tooltip]");
+            const tooltipDate = wrapper.querySelector(
+                "[data-sparkline-tooltip-date]",
+            );
+            const tooltipValue = wrapper.querySelector(
+                "[data-sparkline-tooltip-value]",
+            );
+            const hits = Array.from(
+                wrapper.querySelectorAll("[data-sparkline-hit]"),
+            );
+
+            if (
+                !svg ||
+                !guide ||
+                !tooltip ||
+                !tooltipDate ||
+                !tooltipValue ||
+                hits.length === 0
+            ) {
+                return;
+            }
+
+            const viewWidth = 320;
+            const viewHeight = 100;
+
+            const hideHoverState = () => {
+                guide.setAttribute("hidden", "");
+                tooltip.setAttribute("hidden", "");
+            };
+
+            const showHoverState = (hit) => {
+                const x = Number.parseFloat(hit.dataset.sparklineX || "0");
+                const y = Number.parseFloat(hit.dataset.sparklineY || "0");
+                if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                    hideHoverState();
+                    return;
+                }
+
+                const value = Number.parseInt(
+                    hit.dataset.sparklineValue || "0",
+                    10,
+                );
+                const label = hit.dataset.sparklineDate || "";
+                const pluralized = value === 1 ? "signal" : "signals";
+
+                tooltipDate.textContent = label;
+                tooltipValue.textContent = `${value} ${pluralized}`;
+
+                guide.removeAttribute("hidden");
+                guide.setAttribute("x1", x.toFixed(2));
+                guide.setAttribute("x2", x.toFixed(2));
+
+                tooltip.removeAttribute("hidden");
+
+                const svgRect = svg.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const xPx = (x / viewWidth) * svgRect.width;
+                const yPx = (y / viewHeight) * svgRect.height;
+                const minLeft = tooltipRect.width / 2;
+                const maxLeft = Math.max(
+                    minLeft,
+                    svgRect.width - tooltipRect.width / 2,
+                );
+                const clampedLeft = clamp(xPx, minLeft, maxLeft);
+                const preferredTop = yPx - tooltipRect.height - 8;
+                const fallbackTop = yPx + 10;
+                const topPx = preferredTop >= 0 ? preferredTop : fallbackTop;
+
+                tooltip.style.left = `${clampedLeft}px`;
+                tooltip.style.top = `${topPx}px`;
+            };
+
+            hits.forEach((hit) => {
+                hit.addEventListener("pointerenter", () => {
+                    showHoverState(hit);
+                });
+                hit.addEventListener("pointermove", () => {
+                    showHoverState(hit);
+                });
+            });
+
+            wrapper.addEventListener("pointerleave", hideHoverState);
+            wrapper.addEventListener("pointercancel", hideHoverState);
+
+            hideHoverState();
+        });
+    }
+
     const storedWidgets = readWidgetState();
     widgetInputs.forEach((input) => {
         const widgetId = input.dataset.widget;
@@ -1495,6 +1596,7 @@ if (!layout || !canvas) {
     }
 
     bindWidgetInteractions();
+    bindTotalSignalsSparklineHover();
     applyWidgetLayout();
     applyDensity(initialDensity);
     applyLayoutMode();
