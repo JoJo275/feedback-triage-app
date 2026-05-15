@@ -904,11 +904,15 @@ tr[data-stale="true"] {
     color: var(--tone-danger-fg);
 }
 
+/* Total signals card gets its own spacing because it has the utility icon,
+   comparison line, and sparkline in a tighter tile. */
 .sn-summary-card--total-signals {
     gap: 0.5rem;
 }
 
 @media (min-width: 1024px) {
+    /* Keep sibling KPI cards at natural height so only Total signals uses
+       its custom tile geometry. */
     .sn-dashboard-canvas[data-layout-mode="default"] .sn-summary-row {
         align-items: start;
     }
@@ -922,7 +926,7 @@ tr[data-stale="true"] {
     .sn-dashboard-canvas[data-layout-mode="default"]
         .sn-summary-card--total-signals {
         inline-size: min(100%, 11rem);
-        aspect-ratio: 1 / 1.08;
+        aspect-ratio: 1 / 1.14;
         justify-self: start;
     }
 }
@@ -945,8 +949,8 @@ tr[data-stale="true"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 1.9rem;
+    height: 1.9rem;
     border: 0;
     border-radius: 9999px;
     padding: 0;
@@ -966,8 +970,8 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__utility svg {
-    width: 1.12rem;
-    height: 1.12rem;
+    width: 1.26rem;
+    height: 1.26rem;
     display: block;
     fill: currentColor;
 }
