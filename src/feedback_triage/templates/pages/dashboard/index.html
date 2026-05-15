@@ -163,7 +163,7 @@
                     <svg viewBox="0 0 10 10" focusable="false" aria-hidden="true"><rect x="1" y="4" width="8" height="2" /></svg>
                   {% endif %}
                 </span>
-                {% if summary.total_signals_widget.delta_pct > 0 %}+{% endif %}{{ summary.total_signals_widget.delta_pct }}%
+                {% if summary.total_signals_widget.delta_direction == 'up' %}+{% endif %}{{ summary.total_signals_widget.delta_pct | abs }}%
               </p>
             </div>
             <p class="sn-summary-card__comparison">{{ summary.total_signals_widget.comparison_label }}</p>

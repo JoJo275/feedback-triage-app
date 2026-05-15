@@ -957,7 +957,7 @@ tr[data-stale="true"] {
     position: relative;
     align-items: flex-start;
     padding-right: 2.6rem;
-    margin-bottom: -0.45rem;
+    margin-bottom: 0.22rem;
 }
 
 .sn-summary-card--total-signals .sn-summary-card__utility {
