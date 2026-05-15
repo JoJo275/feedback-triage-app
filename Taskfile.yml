@@ -126,10 +126,22 @@ tasks:
     desc: "Seed a v2 workspace with rich demo data: task seed:workspace -- --slug demo-owner --reset"
     cmds:
       - uv run python scripts/seed_workspace.py {{.CLI_ARGS}}
+
   seed:demo:
-    desc: "Reset demo-owner workspace (creates user demo-owner@signalnest.app / ChangeMe-Demo!23 if missing)"
+    desc: "Reset demo-owner workspace with small demo volume (25 signals)"
     cmds:
-      - uv run python scripts/seed_workspace.py --slug demo-owner --create-if-missing --owner-email demo-owner@signalnest.app --owner-password ChangeMe-Demo!23 --reset --count 150
+      - uv run python scripts/seed_workspace.py --slug demo-owner --create-if-missing --owner-email demo-owner@signalnest.app --owner-password ChangeMe-Demo!23 --reset --count 25
+
+  seed:demo:small:
+    desc: "Reset demo-owner workspace with small demo volume (25 signals)"
+    cmds:
+      - uv run python scripts/seed_workspace.py --slug demo-owner --create-if-missing --owner-email demo-owner@signalnest.app --owner-password ChangeMe-Demo!23 --reset --count 25
+
+  seed:demo:large:
+    desc: "Reset demo-owner workspace with large demo volume (1248 signals)"
+    cmds:
+      - uv run python scripts/seed_workspace.py --slug demo-owner --create-if-missing --owner-email demo-owner@signalnest.app --owner-password ChangeMe-Demo!23 --reset --count 1248
+
   # ── Email replay ───────────────────────────────────────────
   # Re-send a failed/retrying email_log row once Resend is back.
   # Spec: docs/project/spec/v2/implementation.md — PR 3.1.

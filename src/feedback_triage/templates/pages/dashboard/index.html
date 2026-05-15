@@ -27,14 +27,25 @@
   {% set throughput_line.triaged = throughput_line.triaged ~ (x|round(2)) ~ ',' ~ (triaged_y|round(2)) ~ ' ' %}
   {% set throughput_line.resolved = throughput_line.resolved ~ (x|round(2)) ~ ',' ~ (resolved_y|round(2)) ~ ' ' %}
 {% endfor %}
-{% set total_signals_points = summary.total_signals_widget.sparkline_points|length %}
+{% set total_signals_raw_points = summary.total_signals_widget.sparkline_points %}
+{% set total_signals_day_count = total_signals_raw_points|length %}
+{% set total_signals_bucket_size = 3 %}
+{% set total_signals_plot = namespace(points=[]) %}
+{% for offset in range(0, total_signals_day_count, total_signals_bucket_size) %}
+  {% set bucket_points = total_signals_raw_points[offset:offset + total_signals_bucket_size] %}
+  {% if bucket_points %}
+    {% set total_signals_plot.points = total_signals_plot.points + [bucket_points|max] %}
+  {% endif %}
+{% endfor %}
+{% set total_signals_points = total_signals_plot.points|length %}
 {% set total_signals_denominator = (total_signals_points - 1) if total_signals_points > 1 else 1 %}
-{% set total_signals_peak_raw = (summary.total_signals_widget.sparkline_points|max) if summary.total_signals_widget.sparkline_points else 0 %}
-{% set total_signals_peak = total_signals_peak_raw if total_signals_peak_raw > 0 else 1 %}
+{% set total_signals_peak_raw = (total_signals_plot.points|max) if total_signals_plot.points else 0 %}
+{% set total_signals_floor_raw = (total_signals_plot.points|min) if total_signals_plot.points else 0 %}
+{% set total_signals_range = (total_signals_peak_raw - total_signals_floor_raw) if total_signals_peak_raw > total_signals_floor_raw else 1 %}
 {% set total_signals_line = namespace(points='') %}
-{% for point in summary.total_signals_widget.sparkline_points %}
+{% for point in total_signals_plot.points %}
   {% set x = (loop.index0 / total_signals_denominator * 320) %}
-  {% set y = 96 - (point / total_signals_peak * 78) %}
+  {% set y = 94 - (((point - total_signals_floor_raw) / total_signals_range) * 84) %}
   {% set total_signals_line.points = total_signals_line.points ~ (x|round(2)) ~ ',' ~ (y|round(2)) ~ ' ' %}
 {% endfor %}
 <div class="sn-app-shell">
@@ -181,15 +192,17 @@
               class="sn-summary-card__sparkline"
               viewBox="0 0 320 100"
               role="img"
-              aria-label="Total signals trend over the last {{ total_signals_points }} days"
+              aria-label="Total signals trend over the last {{ total_signals_day_count }} days"
               preserveAspectRatio="none"
             >
               {% set sparkline_pairs = (total_signals_line.points | trim).split(" ") %}
               <polyline class="sn-summary-card__sparkline-line" fill="none" points="{{ total_signals_line.points | trim }}"></polyline>
               {% for pair in sparkline_pairs if pair %}
-                {% set coords = pair.split(",") %}
-                {% if coords | length == 2 %}
-                  <circle class="sn-summary-card__sparkline-point" cx="{{ coords[0] | trim }}" cy="{{ coords[1] | trim }}" r="2.2"></circle>
+                {% if loop.first or loop.last or loop.index0 % 2 == 0 %}
+                  {% set coords = pair.split(",") %}
+                  {% if coords | length == 2 %}
+                    <circle class="sn-summary-card__sparkline-point" cx="{{ coords[0] | trim }}" cy="{{ coords[1] | trim }}" r="2.6"></circle>
+                  {% endif %}
                 {% endif %}
               {% endfor %}
             </svg>

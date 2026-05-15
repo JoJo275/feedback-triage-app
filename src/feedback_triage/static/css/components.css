@@ -1044,16 +1044,16 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__sparkline-line {
-    stroke: color-mix(in srgb, var(--color-primary) 82%, #ffffff);
-    stroke-width: 2;
+    stroke: #2563eb;
+    stroke-width: 2.8;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
 
 .sn-summary-card__sparkline-point {
-    fill: color-mix(in srgb, var(--color-primary) 86%, #ffffff);
+    fill: #2563eb;
     stroke: var(--color-surface);
-    stroke-width: 1;
+    stroke-width: 1.1;
 }
 
 /* ---- Attention panel (PR 4.5) ----
