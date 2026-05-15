@@ -184,7 +184,14 @@
               aria-label="Total signals trend over the last {{ total_signals_points }} days"
               preserveAspectRatio="none"
             >
+              {% set sparkline_pairs = (total_signals_line.points | trim).split(" ") %}
               <polyline class="sn-summary-card__sparkline-line" fill="none" points="{{ total_signals_line.points | trim }}"></polyline>
+              {% for pair in sparkline_pairs if pair %}
+                {% set coords = pair.split(",") %}
+                {% if coords | length == 2 %}
+                  <circle class="sn-summary-card__sparkline-point" cx="{{ coords[0] | trim }}" cy="{{ coords[1] | trim }}" r="2.2"></circle>
+                {% endif %}
+              {% endfor %}
             </svg>
           </article>
           <article class="sn-summary-card" data-widget-id="kpi-needs-action">
