@@ -1070,7 +1070,7 @@ tr[data-stale="true"] {
 .sn-summary-card__sparkline-reflection-line {
     stroke: #2563eb;
     stroke-width: 1.1;
-    stroke-opacity: 0.14;
+    stroke-opacity: 0.1;
     stroke-linecap: round;
     stroke-linejoin: round;
     pointer-events: none;
