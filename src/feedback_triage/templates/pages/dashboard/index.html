@@ -75,8 +75,11 @@
 {% endfor %}
 {% set total_signals_corner_radius = 7 %}
 {% set total_signals_path = namespace(d='') %}
+{% set total_signals_area_path = namespace(d='') %}
+{% set total_signals_fill_bottom = 182 %}
 {% if total_signals_coords.points %}
   {% set first_coord = total_signals_coords.points[0] %}
+  {% set last_coord = total_signals_coords.points[total_signals_points - 1] %}
   {% set total_signals_path.d = 'M ' ~ first_coord.x ~ ',' ~ first_coord.y %}
   {% if total_signals_points == 2 %}
     {% set second_coord = total_signals_coords.points[1] %}
@@ -106,8 +109,10 @@
         {% set total_signals_path.d = total_signals_path.d ~ ' Q ' ~ current_coord.x ~ ',' ~ current_coord.y ~ ' ' ~ (corner_end_x|round(2)) ~ ',' ~ (corner_end_y|round(2)) %}
       {% endif %}
     {% endfor %}
-    {% set last_coord = total_signals_coords.points[total_signals_points - 1] %}
     {% set total_signals_path.d = total_signals_path.d ~ ' L ' ~ last_coord.x ~ ',' ~ last_coord.y %}
+  {% endif %}
+  {% if total_signals_points > 1 %}
+    {% set total_signals_area_path.d = total_signals_path.d ~ ' L ' ~ last_coord.x ~ ',' ~ total_signals_fill_bottom ~ ' L ' ~ first_coord.x ~ ',' ~ total_signals_fill_bottom ~ ' Z' %}
   {% endif %}
 {% endif %}
 <div class="sn-app-shell">
@@ -269,7 +274,9 @@
                   hidden
                 ></line>
                 {% if total_signals_path.d %}
-                  <path class="sn-summary-card__sparkline-glow" fill="none" d="{{ total_signals_path.d }}" transform="translate(0 33)"></path>
+                  {% if total_signals_area_path.d %}
+                    <path class="sn-summary-card__sparkline-underfill" d="{{ total_signals_area_path.d }}"></path>
+                  {% endif %}
                   <path class="sn-summary-card__sparkline-line" fill="none" d="{{ total_signals_path.d }}"></path>
                 {% endif %}
                 <circle class="sn-summary-card__sparkline-hover-point" data-sparkline-hover-point cx="0" cy="0" r="4.8" hidden></circle>

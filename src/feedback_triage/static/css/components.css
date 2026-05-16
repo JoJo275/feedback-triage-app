@@ -1063,13 +1063,8 @@ tr[data-stale="true"] {
     vector-effect: non-scaling-stroke;
 }
 
-.sn-summary-card__sparkline-glow {
-    stroke: #2563eb;
-    stroke-width: 30;
-    opacity: 0.14;
-    filter: blur(11px);
-    stroke-linecap: round;
-    stroke-linejoin: round;
+.sn-summary-card__sparkline-underfill {
+    fill: rgb(37 99 235 / 0.14);
     pointer-events: none;
 }
 
