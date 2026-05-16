@@ -76,7 +76,7 @@
 {% set total_signals_corner_radius = 7 %}
 {% set total_signals_path = namespace(d='') %}
 {% set total_signals_area_path = namespace(d='') %}
-{% set total_signals_fill_bottom = 182 %}
+{% set total_signals_fill_depth = 98 %}
 {% if total_signals_coords.points %}
   {% set first_coord = total_signals_coords.points[0] %}
   {% set last_coord = total_signals_coords.points[total_signals_points - 1] %}
@@ -112,7 +112,13 @@
     {% set total_signals_path.d = total_signals_path.d ~ ' L ' ~ last_coord.x ~ ',' ~ last_coord.y %}
   {% endif %}
   {% if total_signals_points > 1 %}
-    {% set total_signals_area_path.d = total_signals_path.d ~ ' L ' ~ last_coord.x ~ ',' ~ total_signals_fill_bottom ~ ' L ' ~ first_coord.x ~ ',' ~ total_signals_fill_bottom ~ ' Z' %}
+    {% set total_signals_area_path.d = total_signals_path.d %}
+    {% set total_signals_area_path.d = total_signals_area_path.d ~ ' L ' ~ last_coord.x ~ ',' ~ ((last_coord.y + total_signals_fill_depth) | round(2)) %}
+    {% for idx in range(total_signals_points - 2, -1, -1) %}
+      {% set reverse_coord = total_signals_coords.points[idx] %}
+      {% set total_signals_area_path.d = total_signals_area_path.d ~ ' L ' ~ reverse_coord.x ~ ',' ~ ((reverse_coord.y + total_signals_fill_depth) | round(2)) %}
+    {% endfor %}
+    {% set total_signals_area_path.d = total_signals_area_path.d ~ ' Z' %}
   {% endif %}
 {% endif %}
 <div class="sn-app-shell">
