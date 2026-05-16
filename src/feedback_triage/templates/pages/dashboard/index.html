@@ -269,8 +269,9 @@
                   hidden
                 ></line>
                 {% if total_signals_path.d %}
-                  <path class="sn-summary-card__sparkline-glow sn-summary-card__sparkline-glow--near" fill="none" d="{{ total_signals_path.d }}" transform="translate(0 5)"></path>
-                  <path class="sn-summary-card__sparkline-glow sn-summary-card__sparkline-glow--far" fill="none" d="{{ total_signals_path.d }}" transform="translate(0 11)"></path>
+                  <path class="sn-summary-card__sparkline-glow sn-summary-card__sparkline-glow--near" fill="none" d="{{ total_signals_path.d }}" transform="translate(0 7)"></path>
+                  <path class="sn-summary-card__sparkline-glow sn-summary-card__sparkline-glow--far" fill="none" d="{{ total_signals_path.d }}" transform="translate(0 20)"></path>
+                  <path class="sn-summary-card__sparkline-glow sn-summary-card__sparkline-glow--deep" fill="none" d="{{ total_signals_path.d }}" transform="translate(0 34)"></path>
                   <path class="sn-summary-card__sparkline-line" fill="none" d="{{ total_signals_path.d }}"></path>
                 {% endif %}
                 <circle class="sn-summary-card__sparkline-hover-point" data-sparkline-hover-point cx="0" cy="0" r="4.8" hidden></circle>
