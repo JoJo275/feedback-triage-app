@@ -1065,27 +1065,12 @@ tr[data-stale="true"] {
 
 .sn-summary-card__sparkline-glow {
     stroke: #2563eb;
+    stroke-width: 30;
+    opacity: 0.14;
+    filter: blur(11px);
     stroke-linecap: round;
     stroke-linejoin: round;
     pointer-events: none;
-}
-
-.sn-summary-card__sparkline-glow--near {
-    stroke-width: 10;
-    opacity: 0.22;
-    filter: blur(2px);
-}
-
-.sn-summary-card__sparkline-glow--far {
-    stroke-width: 20;
-    opacity: 0.11;
-    filter: blur(6px);
-}
-
-.sn-summary-card__sparkline-glow--deep {
-    stroke-width: 30;
-    opacity: 0.05;
-    filter: blur(11px);
 }
 
 .sn-summary-card__sparkline-guide {
