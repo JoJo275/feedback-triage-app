@@ -1071,21 +1071,21 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__sparkline-glow--near {
-    stroke-width: 9;
-    opacity: 0.1;
-    filter: blur(3px);
+    stroke-width: 10;
+    opacity: 0.22;
+    filter: blur(2px);
 }
 
 .sn-summary-card__sparkline-glow--far {
-    stroke-width: 18;
-    opacity: 0.035;
-    filter: blur(9px);
+    stroke-width: 20;
+    opacity: 0.11;
+    filter: blur(6px);
 }
 
 .sn-summary-card__sparkline-glow--deep {
-    stroke-width: 26;
-    opacity: 0.012;
-    filter: blur(15px);
+    stroke-width: 30;
+    opacity: 0.05;
+    filter: blur(11px);
 }
 
 .sn-summary-card__sparkline-guide {
