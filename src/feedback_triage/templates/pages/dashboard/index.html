@@ -396,19 +396,19 @@
                   {% set hit_left = coord.x - (total_signals_hit_band / 2) %}
                   {% set hit_right = coord.x + (total_signals_hit_band / 2) %}
                   {% if loop.first %}
-                    {% set hit_left = total_signals_x_padding %}
+                    {% set hit_left = 0 %}
                   {% endif %}
                   {% if loop.last %}
-                    {% set hit_right = 320 - total_signals_x_padding %}
+                    {% set hit_right = 320 %}
                   {% endif %}
                   <rect
                     class="sn-summary-card__sparkline-hit"
                     data-sparkline-hit
                     data-sparkline-index="{{ coord.index }}"
                     x="{{ hit_left | round(2) }}"
-                    y="-100"
+                    y="-80"
                     width="{{ (hit_right - hit_left) | round(2) }}"
-                    height="300"
+                    height="260"
                     data-sparkline-date="{{ coord.date_label }}"
                     data-sparkline-value="{{ coord.value }}"
                     data-sparkline-x="{{ coord.x }}"
