@@ -76,6 +76,7 @@
 {% set total_signals_corner_radius = 7 %}
 {% set total_signals_path = namespace(d='') %}
 {% set total_signals_area_path = namespace(d='') %}
+{% set total_signals_reflection_path = namespace(d='') %}
 {% set total_signals_fill_depth = 98 %}
 {% if total_signals_coords.points %}
   {% set first_coord = total_signals_coords.points[0] %}
@@ -112,6 +113,12 @@
     {% set total_signals_path.d = total_signals_path.d ~ ' L ' ~ last_coord.x ~ ',' ~ last_coord.y %}
   {% endif %}
   {% if total_signals_points > 1 %}
+    {% set total_signals_reflection_path.d = 'M ' ~ first_coord.x ~ ',' ~ ((first_coord.y + total_signals_fill_depth) | round(2)) %}
+    {% for idx in range(1, total_signals_points) %}
+      {% set reflection_coord = total_signals_coords.points[idx] %}
+      {% set total_signals_reflection_path.d = total_signals_reflection_path.d ~ ' L ' ~ reflection_coord.x ~ ',' ~ ((reflection_coord.y + total_signals_fill_depth) | round(2)) %}
+    {% endfor %}
+
     {% set total_signals_area_path.d = total_signals_path.d %}
     {% set total_signals_area_path.d = total_signals_area_path.d ~ ' L ' ~ last_coord.x ~ ',' ~ ((last_coord.y + total_signals_fill_depth) | round(2)) %}
     {% for idx in range(total_signals_points - 2, -1, -1) %}
@@ -270,6 +277,13 @@
                 aria-label="Total signals trend over the last {{ total_signals_day_count }} days"
                 preserveAspectRatio="none"
               >
+                <defs>
+                  <linearGradient id="total-signals-underfill-gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"></stop>
+                    <stop offset="52%" stop-color="#2563eb" stop-opacity="0.1"></stop>
+                    <stop offset="100%" stop-color="#2563eb" stop-opacity="0.03"></stop>
+                  </linearGradient>
+                </defs>
                 <line
                   class="sn-summary-card__sparkline-guide"
                   data-sparkline-guide
@@ -281,7 +295,10 @@
                 ></line>
                 {% if total_signals_path.d %}
                   {% if total_signals_area_path.d %}
-                    <path class="sn-summary-card__sparkline-underfill" d="{{ total_signals_area_path.d }}"></path>
+                    <path class="sn-summary-card__sparkline-underfill" fill="url(#total-signals-underfill-gradient)" d="{{ total_signals_area_path.d }}"></path>
+                  {% endif %}
+                  {% if total_signals_reflection_path.d %}
+                    <path class="sn-summary-card__sparkline-reflection-line" fill="none" d="{{ total_signals_reflection_path.d }}"></path>
                   {% endif %}
                   <path class="sn-summary-card__sparkline-line" fill="none" d="{{ total_signals_path.d }}"></path>
                 {% endif %}

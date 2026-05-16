@@ -1064,7 +1064,15 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__sparkline-underfill {
-    fill: rgb(37 99 235 / 0.14);
+    pointer-events: none;
+}
+
+.sn-summary-card__sparkline-reflection-line {
+    stroke: #2563eb;
+    stroke-width: 1.1;
+    stroke-opacity: 0.14;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     pointer-events: none;
 }
 
