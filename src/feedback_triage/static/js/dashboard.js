@@ -1491,6 +1491,9 @@ if (!layout || !canvas) {
 
             const viewWidth = 320;
             const viewHeight = 100;
+            const reflectionDepth = Number.parseFloat(
+                svg.dataset.sparklineReflectionDepth || "0",
+            );
             const pointByIndex = new Map();
             sparklinePoints.forEach((pointNode) => {
                 const index = Number.parseInt(
@@ -1593,6 +1596,12 @@ if (!layout || !canvas) {
                 guide.removeAttribute("hidden");
                 guide.setAttribute("x1", x.toFixed(2));
                 guide.setAttribute("x2", x.toFixed(2));
+                guide.setAttribute("y1", y.toFixed(2));
+                if (Number.isFinite(reflectionDepth)) {
+                    guide.setAttribute("y2", (y + reflectionDepth).toFixed(2));
+                } else {
+                    guide.setAttribute("y2", y.toFixed(2));
+                }
 
                 tooltip.removeAttribute("hidden");
 
