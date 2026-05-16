@@ -1596,7 +1596,7 @@ if (!layout || !canvas) {
                 guide.removeAttribute("hidden");
                 guide.setAttribute("x1", x.toFixed(2));
                 guide.setAttribute("x2", x.toFixed(2));
-                guide.setAttribute("y1", y.toFixed(2));
+                guide.setAttribute("y1", "0");
                 if (Number.isFinite(reflectionDepth)) {
                     guide.setAttribute("y2", (y + reflectionDepth).toFixed(2));
                 } else {
