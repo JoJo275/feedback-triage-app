@@ -40,16 +40,16 @@
 {% set total_signals_floor_raw = (total_signals_plot_points.items|min) if total_signals_plot_points.items else 0 %}
 {% set total_signals_range = (total_signals_peak_raw - total_signals_floor_raw) if total_signals_peak_raw > total_signals_floor_raw else 1 %}
 {% set total_signals_x_padding = 12 %}
-{% set total_signals_y_top = 28 %}
+{% set total_signals_y_top = 18 %}
 {% set total_signals_y_bottom = 98 %}
 {% set total_signals_x_span = 320 - (total_signals_x_padding * 2) %}
 {% set total_signals_y_span = total_signals_y_bottom - total_signals_y_top %}
-{% set total_signals_curve_gamma = 0.42 %}
+{% set total_signals_curve_gamma = 1 %}
 {% set total_signals_hit_band = (total_signals_x_span / total_signals_denominator) if total_signals_points > 1 else total_signals_x_span %}
 {% set total_signals_jump_candidates = namespace(items=[]) %}
 {% if total_signals_points > 1 %}
   {% for idx in range(1, total_signals_points) %}
-    {% set jump_size = (total_signals_raw_points[idx] - total_signals_raw_points[idx - 1]) | abs %}
+    {% set jump_size = total_signals_raw_points[idx] %}
     {% if jump_size > 0 %}
       {% set total_signals_jump_candidates.items = total_signals_jump_candidates.items + [{"index": idx, "size": jump_size}] %}
     {% endif %}
@@ -73,7 +73,7 @@
   {% set date_label = summary.total_signals_widget.sparkline_date_labels[idx] if summary.total_signals_widget.sparkline_date_labels|length > idx else '' %}
   {% set total_signals_coords.points = total_signals_coords.points + [{"index": idx, "x": (x|round(2)), "y": (y|round(2)), "value": raw_value, "date_label": date_label}] %}
 {% endfor %}
-{% set total_signals_corner_radius = 9 %}
+{% set total_signals_corner_radius = 7 %}
 {% set total_signals_path = namespace(d='') %}
 {% if total_signals_coords.points %}
   {% set first_coord = total_signals_coords.points[0] %}
