@@ -40,17 +40,19 @@
 {% set total_signals_floor_raw = (total_signals_plot_points.items|min) if total_signals_plot_points.items else 0 %}
 {% set total_signals_range = (total_signals_peak_raw - total_signals_floor_raw) if total_signals_peak_raw > total_signals_floor_raw else 1 %}
 {% set total_signals_x_padding = 12 %}
-{% set total_signals_y_top = 34 %}
+{% set total_signals_y_top = 28 %}
 {% set total_signals_y_bottom = 98 %}
 {% set total_signals_x_span = 320 - (total_signals_x_padding * 2) %}
 {% set total_signals_y_span = total_signals_y_bottom - total_signals_y_top %}
-{% set total_signals_curve_gamma = 0.56 %}
+{% set total_signals_curve_gamma = 0.42 %}
 {% set total_signals_hit_band = (total_signals_x_span / total_signals_denominator) if total_signals_points > 1 else total_signals_x_span %}
 {% set total_signals_jump_candidates = namespace(items=[]) %}
 {% if total_signals_points > 1 %}
   {% for idx in range(1, total_signals_points) %}
     {% set jump_size = (total_signals_raw_points[idx] - total_signals_raw_points[idx - 1]) | abs %}
-    {% set total_signals_jump_candidates.items = total_signals_jump_candidates.items + [{"index": idx, "size": jump_size}] %}
+    {% if jump_size > 0 %}
+      {% set total_signals_jump_candidates.items = total_signals_jump_candidates.items + [{"index": idx, "size": jump_size}] %}
+    {% endif %}
   {% endfor %}
 {% endif %}
 {% set total_signals_jump_ranked = total_signals_jump_candidates.items|sort(attribute='size', reverse=true) %}
