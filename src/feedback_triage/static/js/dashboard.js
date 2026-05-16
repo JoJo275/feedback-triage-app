@@ -1468,6 +1468,9 @@ if (!layout || !canvas) {
             const tooltipMarker = wrapper.querySelector(
                 "[data-sparkline-tooltip-marker]",
             );
+            const hoverPoint = wrapper.querySelector(
+                "[data-sparkline-hover-point]",
+            );
             const hits = Array.from(
                 wrapper.querySelectorAll("[data-sparkline-hit]"),
             );
@@ -1531,6 +1534,9 @@ if (!layout || !canvas) {
                 guide.setAttribute("hidden", "");
                 tooltip.setAttribute("hidden", "");
                 clearActivePoint();
+                if (hoverPoint) {
+                    hoverPoint.setAttribute("hidden", "");
+                }
             };
 
             const showHoverState = (hit) => {
@@ -1570,6 +1576,18 @@ if (!layout || !canvas) {
                     setActivePoint(index);
                 } else {
                     clearActivePoint();
+                }
+
+                const hasMarkerPoint =
+                    Number.isFinite(index) && pointByIndex.has(index);
+                if (hoverPoint) {
+                    if (hasMarkerPoint) {
+                        hoverPoint.setAttribute("hidden", "");
+                    } else {
+                        hoverPoint.setAttribute("cx", x.toFixed(2));
+                        hoverPoint.setAttribute("cy", y.toFixed(2));
+                        hoverPoint.removeAttribute("hidden");
+                    }
                 }
 
                 guide.removeAttribute("hidden");
