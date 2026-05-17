@@ -396,10 +396,10 @@
                   {% set hit_left = coord.x - (total_signals_hit_band / 2) %}
                   {% set hit_right = coord.x + (total_signals_hit_band / 2) %}
                   {% if loop.first %}
-                    {% set hit_left = -18 %}
+                    {% set hit_left = -24 %}
                   {% endif %}
                   {% if loop.last %}
-                    {% set hit_right = 338 %}
+                    {% set hit_right = 344 %}
                   {% endif %}
                   <rect
                     class="sn-summary-card__sparkline-hit"
