@@ -265,6 +265,9 @@ Authenticated users hitting `/` are redirected to
 
 ### Color tokens — light (default)
 
+Canonical values and change governance live in [`colors.md`](colors.md).
+Tables here are a convenience summary.
+
 Tokens are CSS custom properties defined in `static/css/tokens.css`
 and consumed by Tailwind utility classes through the
 `tailwind.config.cjs` theme map (see
@@ -307,7 +310,7 @@ and consumed by Tailwind utility classes through the
 > [ADR 058](../../../adr/058-tailwind-via-standalone-cli.md).
 > Token-shorthand entries above (e.g. `--color-bg: slate-50`) are
 > shorthand for the actual hex Tailwind generates from those palette
-> entries; the source-of-truth hex values live in [`css.md`](css.md).
+> entries; the source-of-truth token values live in [`colors.md`](colors.md).
 
 The four named theme presets from
 [ADR 056](../../../adr/056-style-guide-page.md) (`production`,

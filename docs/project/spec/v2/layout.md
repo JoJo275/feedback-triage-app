@@ -57,9 +57,8 @@ donut chart that doesn't drive a decision sits on
 
 ## Visual identity (locked)
 
-These come from [`core-idea.md`](core-idea.md) — repeated here so a
-layout reviewer doesn't have to chase. If a value here drifts from
-`core-idea.md`, `core-idea.md` wins.
+Visual direction comes from [`core-idea.md`](core-idea.md). Canonical
+color values come from [`colors.md`](colors.md) and win on conflict.
 
 ### Mood
 
