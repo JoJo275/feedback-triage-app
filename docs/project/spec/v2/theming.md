@@ -60,10 +60,11 @@ task build:css      # one-shot build (CI parity)
 
 ### Existing color
 
-1. Open [`static/css/tokens.css`](../../../../src/feedback_triage/static/css/tokens.css).
-2. Find the `--color-*` token. Comments cite the Tailwind shade so
+1. Open [`colors.md`](colors.md) and update the canonical value there first.
+2. Open [`static/css/tokens.css`](../../../../src/feedback_triage/static/css/tokens.css).
+3. Find the `--color-*` token. Comments cite the Tailwind shade so
    you can pick its neighbour without guessing hex.
-3. Update the value in the `:root` block (light) **and** the
+4. Update the value in the `:root` block (light) **and** the
    `:root[data-theme="dark"]` block (dark) — the dark theme is not
    automatic, it's an explicit override.
 

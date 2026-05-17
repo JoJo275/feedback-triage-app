@@ -121,6 +121,9 @@ and **not committed**. Missing locally → run `task build:css`.
 
 #### `tokens.css`
 
+Canonical color token values are defined in [`colors.md`](colors.md).
+Keep this snippet aligned with that file.
+
 ```css
 /* tokens.css — charter: only :root + [data-theme] custom-property
    declarations and @custom-media. No selectors, no @apply. */
