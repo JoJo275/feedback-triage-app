@@ -1094,7 +1094,7 @@ tr[data-stale="true"] {
 .sn-summary-card__sparkline-hit {
     fill: rgb(37 99 235 / 0.001);
     pointer-events: all;
-    cursor: crosshair;
+    cursor: pointer;
 }
 
 .sn-summary-card__sparkline-tooltip {
