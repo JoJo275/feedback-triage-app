@@ -1,6 +1,6 @@
 # Full React Migration Plan (Project-Wide)
 
-> Status: proposed implementation plan.
+> Status: execution-ready plan, pending ADR approval gate.
 > Owner: v2 frontend track.
 > Scope: migrate all user-facing pages from server-rendered HTML + vanilla JS to a React frontend, while keeping FastAPI + Postgres as the backend.
 
@@ -34,6 +34,38 @@ Required ADR outcomes:
 
 Without this decision gate, this plan is reference-only.
 
+## Should this project switch fully to React?
+
+This section answers the switch question directly and sets an actionable
+recommendation.
+
+### Pros of switching to React
+
+- Better long-term maintainability for complex UI state and composition.
+- Stronger component reuse across dashboard, inbox, roadmap, changelog, and settings.
+- More predictable testing at the component/unit boundary.
+- Cleaner client-side routing and data orchestration for multi-page workflows.
+- Easier onboarding for frontend contributors used to TypeScript + component patterns.
+
+### Cons of switching to React
+
+- Introduces a permanent Node toolchain and lockfile governance burden.
+- Higher operational complexity (bundle pipeline, manifest serving, CSP hardening).
+- Short-term migration risk from parity regressions while two stacks coexist.
+- Potential performance regressions if bundle budgets and code splitting are not enforced.
+- Longer release cadence during migration because each route needs parity sign-off.
+
+### Recommendation
+
+Recommend switching this project to React if all three conditions are true:
+
+1. The team accepts long-term ownership of Node dependency governance.
+2. Route-level parity testing capacity is available for every migrated page.
+3. The roadmap expects continued UI complexity growth beyond vanilla JS comfort.
+
+If any condition is false, keep the current architecture and continue with scoped
+React islands only.
+
 ## Goals
 
 - Migrate authenticated app pages to React with parity on behavior and access control.
@@ -49,19 +81,60 @@ Without this decision gate, this plan is reference-only.
 - No auth model replacement.
 - No new workflow scope unrelated to migration parity.
 
-## Known gaps still missing from this plan
+## Recommended additions incorporated (execution baselines)
 
-These items should be specified before implementation starts.
+The plan now includes the previously recommended additions as locked execution
+decisions.
 
-| Gap | Why it matters | Recommended addition |
+| Area | Locked decision for implementation | Verification gate |
 | --- | --- | --- |
-| Frontend package governance | The repo currently avoids a Node app toolchain by default. A React migration adds new supply-chain and lockfile risk. | Define package manager, lockfile policy, update cadence, and vulnerability gate (`npm audit`/equivalent) in CI. |
-| CSP and asset-hosting policy | React/Vite introduces new script/style loading paths. Misconfiguration can break pages or weaken security headers. | Add explicit CSP/header rules for bundled assets and define whether third-party CDN runtime imports are allowed in production. |
-| Manifest + cache-bust integration | Vite-hashed assets must be served deterministically by FastAPI, including rollback to previous bundles. | Define manifest lookup strategy, startup validation, and fallback behavior when manifest entries are missing. |
-| Frontend observability contract | Migration failures are often client-side and invisible to API-only logging. | Define client error capture, release identifiers, and request correlation to backend `request_id`. |
-| Page-level parity checklists | "Parity" is too broad without route-specific acceptance criteria. | Add per-route parity checklists (Dashboard, Inbox, etc.) and make them release gates. |
-| Keyboard/a11y parity details | Existing pages already have behavior expectations (focus order, visible labels, skip links). | Add route-level a11y acceptance criteria, not just "axe passes". |
-| Feature-flag ownership model | Flags without ownership/expiry create permanent dual-stack debt. | Add owner, expiry date, and removal criteria for each `react_*` rollout flag. |
+| Frontend package governance | Use npm in `web/` with committed `package-lock.json`, Node LTS 22, Dependabot weekly updates, and CI gate on `npm audit --audit-level=high`. | CI fails on lock drift or high/critical advisories. |
+| CSP and asset-hosting policy | Serve React assets only from same-origin `/static/app/`; no runtime CDN scripts/styles in production. CSP baseline: `script-src 'self'`, `style-src 'self'`, `img-src 'self' data:`, `connect-src 'self'`. | Security tests confirm headers on migrated routes. |
+| Manifest + cache-bust integration | Vite emits `manifest.json`; FastAPI loads and validates required entries at startup. Missing/invalid manifest triggers legacy-route fallback and startup error log. | Startup validation test plus rollback canary. |
+| Frontend observability contract | Every React request includes `x-client-release`; client error boundary and `window` error handlers emit structured telemetry with backend `x-request-id` correlation when present. | End-to-end telemetry smoke test in canary workspace. |
+| Page-level parity checklists | Every route gets a checklist in this file before migration starts; each checklist is a release gate for that route's flag. | Route cannot flip default-on without signed checklist. |
+| Keyboard/a11y parity details | Route-level requirements include skip-link continuity, heading order, label coverage, focus visibility, keyboard-only workflow completion, and axe clean run. | Playwright + axe + manual keyboard pass required. |
+| Feature-flag ownership model | Every `react_*` flag must define owner role, creation date, expiry date, and removal criteria; expired flags block release. | Release checklist fails if any expired flag remains. |
+
+## Route parity checklists (release gates)
+
+Use this table as a required sign-off sheet before enabling each React route by
+default.
+
+| Route group | Behavior parity | Data/API parity | A11y parity | Performance parity |
+| --- | --- | --- | --- | --- |
+| Dashboard | widget ordering, inline actions, card links, visual states | same summary values and filters | keyboard card navigation and focus ring | no worse than +15 percent LCP vs legacy |
+| Inbox | filters, sorting, pagination, stale-row treatment | same query params and envelope handling | full keyboard triage flow | no worse than +15 percent LCP vs legacy |
+| Roadmap | status columns and publish toggles | same publish semantics and enum handling | keyboard movement across columns | no worse than +15 percent LCP vs legacy |
+| Changelog | shipped list behavior and empty states | same published item selection rules | keyboard navigation for list actions | no worse than +15 percent LCP vs legacy |
+| Submitters | row actions, detail drill-down, search | same submitter matching semantics | table navigation and visible labels | no worse than +15 percent LCP vs legacy |
+| Insights | chart interactions and labels | same aggregation windows and filters | non-pointer path for all actions | no worse than +15 percent LCP vs legacy |
+| Settings | member/tag/public-submit controls | same mutation outcomes and error codes | form labels, errors, and focus return | no worse than +15 percent LCP vs legacy |
+
+## Feature flag register (initial)
+
+| Flag | Owner role | Expiry | Removal criteria |
+| --- | --- | --- | --- |
+| `react_dashboard` | Frontend lead | 2026-09-15 | 14-day stable default-on with no sev-1 parity incidents |
+| `react_inbox` | Frontend lead | 2026-10-01 | parity checklist complete and 14-day stable default-on |
+| `react_roadmap` | Frontend lead | 2026-10-15 | parity checklist complete and 14-day stable default-on |
+| `react_changelog` | Frontend lead | 2026-10-15 | parity checklist complete and 14-day stable default-on |
+| `react_submitters` | Frontend lead | 2026-11-01 | parity checklist complete and 14-day stable default-on |
+| `react_insights` | Frontend lead | 2026-11-01 | parity checklist complete and 14-day stable default-on |
+| `react_settings` | Frontend lead | 2026-11-15 | parity checklist complete and 14-day stable default-on |
+
+## Implementation start checklist
+
+This checklist must be complete before any Phase 1 route migration begins.
+
+1. ADR for full migration is accepted and linked from this file.
+2. Node 22 and npm are pinned in CI and local setup docs.
+3. `web/package-lock.json` is committed and `npm audit --audit-level=high` is wired into CI.
+4. FastAPI manifest startup validation and legacy-fallback behavior are merged.
+5. CSP policy for `/static/app/` bundles is deployed in non-production and verified.
+6. Client telemetry with release id + `x-request-id` correlation is validated in canary.
+7. Feature flags from the register are created with owners and expiry metadata.
+8. Baseline legacy metrics are recorded for LCP, JS payload size, and route error rate.
 
 ## Impact summary (if full migration proceeds)
 
@@ -145,7 +218,7 @@ The common breakpoints are route swaps and asset/runtime assumptions:
 ## Target architecture
 
 - Backend: FastAPI remains system of record for APIs, auth/session cookies, and DB access.
-- Frontend: React + TypeScript + Vite built assets served by FastAPI static mounts.
+- Frontend: React + TypeScript + Vite app source in `web/`; hashed build artifacts emitted to `src/feedback_triage/static/app/` and served by FastAPI static mounts.
 - Routing:
   - React Router for in-app navigation.
   - Existing URL contract retained (`/w/<slug>/...`) to avoid deep-link breakage.
@@ -162,18 +235,23 @@ The common breakpoints are route swaps and asset/runtime assumptions:
 Deliverables:
 
 - ADR accepted for full React migration.
-- React app scaffold under `src/feedback_triage/static/app/` (or agreed frontend root).
-- Build integration: Vite output served by FastAPI.
-- CI jobs for React lint, typecheck, unit tests, and build.
+- React app scaffold under `web/` with TypeScript + Vite.
+- Build integration: Vite output served from `src/feedback_triage/static/app/` with manifest lookup.
+- CI jobs for React lint, typecheck, unit tests, build, and audit.
+- CSP/header updates merged for bundled assets.
+- Feature-flag metadata register created and tracked.
 
 Verification:
 
 - `task check` remains green.
-- bundle builds in CI and local dev.
+- `task web:install`, `task web:build`, and `task web:typecheck` pass in CI and local dev.
+- startup validation fails closed when manifest keys are missing.
+- CSP checks pass on at least one migrated canary route.
 
 Exit criteria:
 
 - foundation merged without replacing any existing production page.
+- implementation start checklist is fully complete.
 
 ## Phase 1 - Shared app shell and primitives
 
@@ -296,10 +374,12 @@ task test
 task test:e2e
 task lint
 task typecheck
+task web:install
 task web:test
 task web:lint
 task web:typecheck
 task web:build
+task web:audit
 ```
 
 Targeted no-regression commands for the shipped Total signals card:
@@ -316,11 +396,13 @@ Rollout:
 - feature flag by page group (`react_dashboard`, `react_inbox`, etc.)
 - canary workspace allowlist first
 - observe error rate and page load metrics before widening
+- keep previous stable asset bundle available until each page-group stability window closes
 
 Rollback:
 
 - flip feature flags to restore legacy page handlers
 - retain legacy scripts/templates until full-production stability window passes
+- on manifest/asset integrity failure, force legacy handler path and block React route rendering
 
 ## Risks and mitigations
 
