@@ -127,11 +127,6 @@ tasks:
     cmds:
       - uv run python scripts/seed_workspace.py {{.CLI_ARGS}}
 
-  seed:demo:
-    desc: "Alias for seed:demo:small"
-    cmds:
-      - task: seed:demo:small
-
   seed:demo:small:
     desc: "Reset demo-owner workspace with small demo volume (25 signals)"
     cmds:
