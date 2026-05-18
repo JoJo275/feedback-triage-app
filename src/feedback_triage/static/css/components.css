@@ -963,6 +963,9 @@ tr[data-stale="true"] {
     gap: 0.5rem;
     color: inherit;
     text-decoration: none;
+    margin: -0.35rem -0.65rem 0;
+    padding: 0.35rem 0.65rem 0;
+    border-radius: var(--radius-md);
 }
 
 .sn-summary-card__kpi-link:hover .sn-summary-card__label,
