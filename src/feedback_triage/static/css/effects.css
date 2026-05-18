@@ -58,4 +58,11 @@
     .sn-summary-card:hover {
         box-shadow: var(--shadow-md);
     }
+    .sn-summary-card--total-signals:hover,
+    .sn-summary-card--total-signals:focus-within {
+        box-shadow:
+            0 14px 26px
+                color-mix(in srgb, var(--color-primary) 22%, transparent),
+            0 0 0 1px color-mix(in srgb, var(--color-primary) 34%, transparent);
+    }
 }
