@@ -910,7 +910,7 @@ tr[data-stale="true"] {
     color: var(--tone-danger-fg);
 }
 
-/* Total signals card gets its own spacing because it has the utility icon,
+/* Total signals card gets its own spacing because it has the title icon,
    comparison line, and sparkline in a tighter tile. */
 .sn-summary-card--total-signals {
     gap: 0.5rem;
@@ -944,6 +944,19 @@ tr[data-stale="true"] {
     gap: 0.5rem;
 }
 
+.sn-summary-card__title-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.sn-summary-card__title-icon {
+    width: 1.05rem;
+    height: auto;
+    display: block;
+    flex-shrink: 0;
+}
+
 .sn-summary-card--total-signals .sn-summary-card__label {
     text-transform: none;
     letter-spacing: 0;
@@ -951,50 +964,9 @@ tr[data-stale="true"] {
     line-height: 1.2;
 }
 
-/* Keep the metric stack closer to the title by taking the oversized
-   utility button out of flow for this card only. */
+/* Keep the metric stack closer to the title on this custom tile. */
 .sn-summary-card--total-signals .sn-summary-card__top {
-    position: relative;
-    align-items: flex-start;
-    padding-right: 2.6rem;
     margin-bottom: 0.22rem;
-}
-
-.sn-summary-card--total-signals .sn-summary-card__utility {
-    position: absolute;
-    top: -0.15rem;
-    right: 0;
-}
-
-.sn-summary-card__utility {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.3rem;
-    height: 2.3rem;
-    border: 0;
-    border-radius: 9999px;
-    padding: 0;
-    cursor: pointer;
-    color: var(--color-text-muted);
-    background: transparent;
-}
-
-.sn-summary-card__utility:hover {
-    color: var(--color-text);
-    background: color-mix(in srgb, var(--color-surface-alt) 82%, #ffffff);
-}
-
-.sn-summary-card__utility:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--color-primary) 76%, #ffffff);
-    outline-offset: 2px;
-}
-
-.sn-summary-card__utility svg {
-    width: 1.6rem;
-    height: 1.6rem;
-    display: block;
-    fill: currentColor;
 }
 
 .sn-summary-card__value-row {

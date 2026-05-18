@@ -288,16 +288,15 @@
         <div class="sn-summary-row">
           <article class="sn-summary-card sn-summary-card--total-signals" data-widget-id="kpi-total-signals">
             <div class="sn-summary-card__top">
-              <p class="sn-summary-card__label">Total signals</p>
-              <button
-                type="button"
-                class="sn-summary-card__utility"
-                aria-label="Open total signals widget options"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M14.59 2.59 15 4.18a7.62 7.62 0 0 1 1.89.79l1.4-.81 1.42 1.42-.81 1.4c.34.6.61 1.23.79 1.89L21.41 9v2l-1.59.41a7.62 7.62 0 0 1-.79 1.89l.81 1.4-1.42 1.42-1.4-.81a7.62 7.62 0 0 1-1.89.79L14.59 18h-2l-.41-1.59a7.62 7.62 0 0 1-1.89-.79l-1.4.81-1.42-1.42.81-1.4a7.62 7.62 0 0 1-.79-1.89L4.59 11V9l1.59-.41c.18-.66.45-1.29.79-1.89l-.81-1.4 1.42-1.42 1.4.81c.6-.34 1.23-.61 1.89-.79L10.59 2.59h2Zm-1.59 6.16a3.25 3.25 0 1 0 0 6.5 3.25 3.25 0 0 0 0-6.5Z" />
-                </svg>
-              </button>
+              <div class="sn-summary-card__title-wrap">
+                <img
+                  src="/static/img/inbox-badge.svg"
+                  alt=""
+                  class="sn-summary-card__title-icon"
+                  aria-hidden="true"
+                />
+                <p class="sn-summary-card__label">Total signals</p>
+              </div>
             </div>
             <div class="sn-summary-card__value-row">
               <p class="sn-summary-card__value">{{ "{:,}".format(summary.total_signals_widget.value) }}</p>
