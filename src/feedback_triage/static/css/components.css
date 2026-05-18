@@ -951,7 +951,7 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__title-icon {
-    width: 1.05rem;
+    width: 1.35rem;
     height: auto;
     display: block;
     flex-shrink: 0;
