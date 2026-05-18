@@ -12,6 +12,14 @@ including sequencing, risk controls, and rollback gates.
 
 This is intentionally staged so we avoid a big-bang rewrite.
 
+## Where this fits in current architecture
+
+- This file is the project-wide React migration plan.
+- ADR 076 is still authoritative for the current React-island pilot only
+   (`/w/{slug}/dashboard/react`).
+- The default dashboard route (`/w/{slug}/dashboard`) remains the shipped
+   production surface until a new ADR explicitly approves full-route replacement.
+
 ## Decision gate first
 
 Before coding starts, file and accept a new ADR to supersede the v2 deferment
@@ -40,6 +48,53 @@ Without this decision gate, this plan is reference-only.
 - No database engine change.
 - No auth model replacement.
 - No new workflow scope unrelated to migration parity.
+
+## Impact summary (if full migration proceeds)
+
+| Area | Expected impact | Risk level | Notes |
+| --- | --- | --- | --- |
+| FastAPI API routes | Low | Low | Keep `/api/v1/` contract stable; frontend consumer changes only |
+| Page rendering layer | High | High | Route handlers/templates transition to React-mounted pages |
+| Static asset/build pipeline | High | Medium | Adds Vite/React build outputs and CI checks |
+| Frontend test matrix | Medium | Medium | Adds React unit/type/lint + broader e2e parity checks |
+| Auth/session behavior | Low | Medium | Cookie/session model stays; client auth flow must preserve semantics |
+| Multi-tenant scoping | Medium | High | Client-side fetching must preserve workspace-scoped URL/params |
+| Existing widgets (including Total signals) | High | High | Breakage risk is mostly parity loss, not backend schema risk |
+
+## Total signals no-break contract during migration
+
+Do not switch the default dashboard route to React until all items below are
+true on the React implementation:
+
+1. Visual parity with
+   `docs/project/spec/v2/implementations/total-signals-widget.md`.
+2. Top-left icon remains `/static/img/inbox-badge.svg`.
+3. Card remains a single clickable target routing to `/w/{slug}/feedback`.
+4. Hover cursor over sparkline remains `pointer` (not crosshair).
+5. Marker wording remains `Largest increase` and
+   `Second-largest increase`.
+6. Delta formatting and direction semantics remain unchanged.
+7. The sparkline `aria-label` remains present and meaningful.
+
+Required validation gates before flipping any React dashboard flag:
+
+1. `tests/api/auth/test_dashboard_page.py` stays green.
+2. `tests/api/test_dashboard_summary.py` stays green.
+3. Playwright parity check for the Total signals card passes
+   (visual + click target + keyboard focus).
+4. Manual canary on a seeded workspace confirms icon, delta row,
+   comparison label, and sparkline behaviors match the shipped card.
+
+## What breaks first when switching dependencies
+
+Changing dependencies alone usually does not break production behavior.
+The common breakpoints are route swaps and asset/runtime assumptions:
+
+1. Replacing `/w/{slug}/dashboard` before parity is complete.
+2. Removing legacy dashboard script/template paths before React route is default-safe.
+3. Changing CSS/token pipeline without preserving summary-card classes.
+4. Moving/removing static icon assets referenced by the shipped template.
+5. Losing localStorage key compatibility for dashboard layout state.
 
 ## Target architecture
 
@@ -201,6 +256,13 @@ task web:typecheck
 task web:build
 ```
 
+Targeted no-regression commands for the shipped Total signals card:
+
+```bash
+uv run pytest tests/api/auth/test_dashboard_page.py
+uv run pytest tests/api/test_dashboard_summary.py
+```
+
 ## Rollout and rollback
 
 Rollout:
@@ -238,4 +300,5 @@ Rollback:
 - `docs/project/spec/spec-v2.md`
 - `docs/project/spec/v2/implementation.md`
 - `docs/project/spec/v2/implementations/dashboard.md`
+- `docs/project/spec/v2/implementations/total-signals-widget.md`
 - `docs/adr/076-use-react-island-for-dashboard-widgets.md`
