@@ -49,6 +49,20 @@ Without this decision gate, this plan is reference-only.
 - No auth model replacement.
 - No new workflow scope unrelated to migration parity.
 
+## Known gaps still missing from this plan
+
+These items should be specified before implementation starts.
+
+| Gap | Why it matters | Recommended addition |
+| --- | --- | --- |
+| Frontend package governance | The repo currently avoids a Node app toolchain by default. A React migration adds new supply-chain and lockfile risk. | Define package manager, lockfile policy, update cadence, and vulnerability gate (`npm audit`/equivalent) in CI. |
+| CSP and asset-hosting policy | React/Vite introduces new script/style loading paths. Misconfiguration can break pages or weaken security headers. | Add explicit CSP/header rules for bundled assets and define whether third-party CDN runtime imports are allowed in production. |
+| Manifest + cache-bust integration | Vite-hashed assets must be served deterministically by FastAPI, including rollback to previous bundles. | Define manifest lookup strategy, startup validation, and fallback behavior when manifest entries are missing. |
+| Frontend observability contract | Migration failures are often client-side and invisible to API-only logging. | Define client error capture, release identifiers, and request correlation to backend `request_id`. |
+| Page-level parity checklists | "Parity" is too broad without route-specific acceptance criteria. | Add per-route parity checklists (Dashboard, Inbox, etc.) and make them release gates. |
+| Keyboard/a11y parity details | Existing pages already have behavior expectations (focus order, visible labels, skip links). | Add route-level a11y acceptance criteria, not just "axe passes". |
+| Feature-flag ownership model | Flags without ownership/expiry create permanent dual-stack debt. | Add owner, expiry date, and removal criteria for each `react_*` rollout flag. |
+
 ## Impact summary (if full migration proceeds)
 
 | Area | Expected impact | Risk level | Notes |
@@ -60,6 +74,38 @@ Without this decision gate, this plan is reference-only.
 | Auth/session behavior | Low | Medium | Cookie/session model stays; client auth flow must preserve semantics |
 | Multi-tenant scoping | Medium | High | Client-side fetching must preserve workspace-scoped URL/params |
 | Existing widgets (including Total signals) | High | High | Breakage risk is mostly parity loss, not backend schema risk |
+
+## Project areas React should not be used for
+
+Even with a full UI migration, these surfaces should remain non-React.
+
+| Area | Example paths/routes | Why React is not the right tool here |
+| --- | --- | --- |
+| API contract and request handling | `/api/v1/**`, `src/feedback_triage/api/**` | Server responsibilities (authz, tenancy, validation, persistence) stay in FastAPI. |
+| Health/readiness probes | `/health`, `/ready` | Operational endpoints must stay lightweight, backend-native, and JS-independent. |
+| Database schema and migrations | `alembic/**`, `src/feedback_triage/models/**` | React has no role in schema lifecycle or transactional integrity. |
+| Auth/session enforcement | `src/feedback_triage/auth/**`, backend deps | Session/cookie trust boundary must remain server-side. |
+| Email delivery logic | `src/feedback_triage/email/**` | Transactional email generation/sending remains backend infrastructure. |
+| Repository docs site | `docs/**`, `mkdocs.yml` | Documentation publishing uses MkDocs and should remain decoupled from app runtime. |
+| Dev/CI automation | `scripts/**`, `tools/**`, `.github/workflows/**` | Build/test/release automation remains scripting + CI concern, not frontend runtime code. |
+
+## Pros and cons of keeping those areas non-React
+
+### Pros
+
+- Smaller migration blast radius; backend and operational surfaces remain stable.
+- Lower risk of regressions in auth, tenancy, and database invariants.
+- Faster rollback: UI route flags can revert without touching API/migration code.
+- Clear separation of concerns between rendering layer and system-of-record logic.
+- Better resilience for probes/ops endpoints because they do not depend on frontend build artifacts.
+
+### Cons
+
+- Mixed-stack complexity (React frontend + Python backend + docs/tooling systems).
+- More integration seams (manifest lookup, error correlation, shared contracts).
+- Team context switching cost across different stacks and toolchains.
+- Higher chance of duplicated presentation logic if boundaries are not documented.
+- Requires stronger architecture discipline to prevent UI concerns leaking into backend domains (and vice versa).
 
 ## Total signals no-break contract during migration
 
