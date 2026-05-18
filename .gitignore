@@ -33,6 +33,10 @@ lib64/
 parts/
 share/python-wheels/
 
+# Keep frontend source modules under web/src/lib tracked.
+!/web/src/lib/
+!/web/src/lib/**
+
 # Metadata generated when packaging/installing
 *.egg-info/
 .installed.cfg

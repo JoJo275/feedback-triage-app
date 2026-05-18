@@ -1,0 +1,253 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AppShell > matches the authenticated shell snapshot 1`] = `
+<div
+  class="sn-app-shell"
+>
+  <aside
+    aria-label="Workspace navigation"
+    class="sn-sidebar"
+  >
+    <a
+      aria-label="SignalNest dashboard home"
+      class="sn-sidebar__brand"
+      href="/w/demo-owner/dashboard"
+    >
+      <span
+        aria-hidden="true"
+        class="sn-sidebar__brand-mark"
+      />
+      <span
+        class="sn-sidebar__brand-label"
+      >
+        SignalNest
+      </span>
+    </a>
+    <a
+      class="sn-sidebar__create"
+      href="/w/demo-owner/feedback/new"
+      title="New feedback"
+    >
+      <span
+        aria-hidden="true"
+      >
+        +
+      </span>
+      <span>
+        New feedback
+      </span>
+    </a>
+    <nav
+      aria-label="Sections"
+      class="sn-sidebar-nav"
+    >
+      <ul
+        role="list"
+      >
+        <li>
+          <a
+            aria-current="page"
+            href="/w/demo-owner/dashboard"
+            title="Dashboard"
+          >
+            <span>
+              Dashboard
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/w/demo-owner/inbox"
+            title="Inbox"
+          >
+            <span>
+              Inbox
+            </span>
+            <span
+              aria-label="3 pending"
+              class="sn-sidebar-badge"
+            >
+              3
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/w/demo-owner/feedback"
+            title="Feedback"
+          >
+            <span>
+              Feedback
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/w/demo-owner/submitters"
+            title="Submitters"
+          >
+            <span>
+              Submitters
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/w/demo-owner/roadmap"
+            title="Roadmap"
+          >
+            <span>
+              Roadmap
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/w/demo-owner/changelog"
+            title="Changelog"
+          >
+            <span>
+              Changelog
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/w/demo-owner/insights"
+            title="Insights"
+          >
+            <span>
+              Insights
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/w/demo-owner/settings"
+            title="Settings"
+          >
+            <span>
+              Settings
+            </span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div
+      class="sn-sidebar-footer"
+    >
+      <button
+        aria-label="Toggle color theme"
+        aria-pressed="false"
+        class="sn-theme-switcher"
+        id="theme-switcher"
+        type="button"
+      >
+        Theme
+      </button>
+      <a
+        class="sn-button sn-button-ghost"
+        href="/"
+        title="Back to home"
+      >
+        Home
+      </a>
+      <button
+        class="sn-button sn-button-ghost"
+        id="sn-signout"
+        title="Sign out"
+        type="button"
+      >
+        Sign out
+      </button>
+    </div>
+  </aside>
+  <main
+    class="sn-page-shell"
+    id="main"
+  >
+    <header
+      aria-label="Dashboard controls"
+      class="sn-app-header"
+    >
+      <p
+        class="sn-app-header__breadcrumb"
+      >
+        <a
+          href="/w/demo-owner/dashboard"
+        >
+          Demo Owner
+        </a>
+         . Dashboard
+      </p>
+      <form
+        action="/w/demo-owner/feedback"
+        class="sn-app-header__search"
+        method="get"
+        role="search"
+      >
+        <label
+          class="sr-only"
+          for="react-dashboard-search"
+        >
+          Search feedback
+        </label>
+        <input
+          class="sn-input sn-dashboard-search"
+          id="react-dashboard-search"
+          name="q"
+          placeholder="Search signals..."
+          type="search"
+        />
+      </form>
+      <div
+        class="sn-app-header__actions"
+      >
+        <a
+          class="sn-button sn-button-secondary"
+          href="/w/demo-owner/insights"
+        >
+          Saved views
+        </a>
+        <a
+          class="sn-button sn-button-primary"
+          href="/w/demo-owner/feedback/new"
+        >
+          + New signal
+        </a>
+      </div>
+    </header>
+    <div
+      class="sn-content-gutter sn-stack"
+    >
+      <section
+        class="sn-card"
+      >
+        <div
+          class="sn-card-header"
+        >
+          <h2>
+            Snapshot body
+          </h2>
+        </div>
+        <div
+          class="sn-card-body"
+        >
+          <p>
+            Shared shell parity snapshot.
+          </p>
+        </div>
+      </section>
+    </div>
+    <footer
+      class="sn-content-gutter sn-react-shell-footer"
+    >
+      <p
+        class="sn-text-muted"
+      >
+        Phase 1 React shell canary route. APIs and auth cookies are served by FastAPI.
+      </p>
+    </footer>
+  </main>
+</div>
+`;

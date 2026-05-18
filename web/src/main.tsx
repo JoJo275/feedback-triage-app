@@ -14,6 +14,7 @@ const workspaceSlug = mountNode.dataset.workspaceSlug ?? "unknown";
 const workspaceName = mountNode.dataset.workspaceName ?? "Unknown workspace";
 const dashboardUrl =
     mountNode.dataset.dashboardUrl ?? `/w/${workspaceSlug}/dashboard`;
+const clientRelease = mountNode.dataset.clientRelease ?? "react-phase1-shell";
 
 createRoot(mountNode).render(
     <StrictMode>
@@ -21,6 +22,7 @@ createRoot(mountNode).render(
             workspaceSlug={workspaceSlug}
             workspaceName={workspaceName}
             dashboardUrl={dashboardUrl}
+            clientRelease={clientRelease}
         />
     </StrictMode>,
 );
