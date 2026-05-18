@@ -130,6 +130,7 @@ def dashboard_react_widgets_page(
             "active": "dashboard",
             "react_script_url": entry_assets.script_url,
             "react_css_urls": entry_assets.css_urls,
+            "react_client_release": entry_assets.script_url.rsplit("/", 1)[-1],
         },
     )
 
