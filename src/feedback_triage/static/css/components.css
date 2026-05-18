@@ -963,8 +963,8 @@ tr[data-stale="true"] {
     gap: 0.5rem;
     color: inherit;
     text-decoration: none;
-    margin: -0.35rem -0.65rem 0;
-    padding: 0.35rem 0.65rem 0;
+    margin: -0.5rem -0.75rem 0;
+    padding: 0.5rem 0.75rem 0;
     border-radius: var(--radius-md);
 }
 
