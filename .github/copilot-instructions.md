@@ -220,6 +220,20 @@ blame history, and wastes CI minutes.
 Direct and factual. No filler praise or diplomatic hedging. If something
 is broken, say so.
 
+### Commenting Expectations
+
+When creating or editing files, add helpful comments where possible so the
+intent is clear to both the project owner and other contributors.
+
+- Prefer comments that explain **why** something exists, key constraints,
+  edge-case behavior, business rules, or non-obvious tradeoffs.
+- Add orientation comments in each touched file where they improve
+  readability (for example: module purpose, section intent, or complex
+  control flow).
+- Avoid low-value comments that only restate obvious syntax.
+- Keep comments current; if code changes, update or remove stale comments in
+  the same edit.
+
 ---
 
 ## Review Priorities
