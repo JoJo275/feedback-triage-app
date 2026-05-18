@@ -128,9 +128,9 @@ tasks:
       - uv run python scripts/seed_workspace.py {{.CLI_ARGS}}
 
   seed:demo:
-    desc: "Reset demo-owner workspace with small demo volume (25 signals)"
+    desc: "Alias for seed:demo:small"
     cmds:
-      - uv run python scripts/seed_workspace.py --slug demo-owner --create-if-missing --owner-email demo-owner@signalnest.app --owner-password ChangeMe-Demo!23 --reset --count 25
+      - task: seed:demo:small
 
   seed:demo:small:
     desc: "Reset demo-owner workspace with small demo volume (25 signals)"

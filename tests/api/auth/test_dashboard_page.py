@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
 
+from feedback_triage.database import SessionLocal
+from feedback_triage.models import FeedbackItem
 from feedback_triage.services import dashboard_aggregator
 
 VALID_PASSWORD = "correct horse battery staple"  # pragma: allowlist secret
@@ -85,6 +88,8 @@ def test_dashboard_renders_populated_view_when_items_exist(
     assert "sn-summary-card__kpi-link" in body_text
     assert "Open all signals" in body_text
     assert "Total signals trend over the last" in body_text
+    assert "sn-summary-card__sparkline-underfill-stop--top" in body_text
+    assert "#2563eb" not in body_text
     assert "workspace total" not in body_text
     assert "vs " in body_text
     assert "Edit widgets" in body_text
@@ -97,6 +102,47 @@ def test_dashboard_renders_populated_view_when_items_exist(
     assert 'data-widget-id="signals-over-time"' in body_text
     assert 'data-widget-id="action-queue"' in body_text
     assert "Logging stalls in safari" in body_text
+
+
+def test_dashboard_renders_negative_delta_with_minus_sign_for_down_direction(
+    auth_client: TestClient,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+
+    create = auth_client.post(
+        "/api/v1/feedback",
+        json={
+            "title": "Older-period signal",
+            "description": "long body",
+            "source": "email",
+            "pain_level": 3,
+        },
+        headers={"X-Workspace-Slug": slug},
+    )
+    assert create.status_code == 201, create.text
+    item_id = int(create.json()["id"])
+
+    # Move the only item into the comparison window so current-period
+    # intake is 0 and the widget delta is negative.
+    previous_window_day = dashboard_aggregator._period_start(
+        datetime.now(UTC)
+    ) - timedelta(days=1)
+
+    with SessionLocal() as db:
+        row = db.get(FeedbackItem, item_id)
+        assert row is not None
+        row.created_at = previous_window_day
+        row.updated_at = previous_window_day
+        db.add(row)
+        db.commit()
+
+    dashboard_aggregator.reset_cache()
+    resp = auth_client.get(f"/w/{slug}/dashboard")
+    assert resp.status_code == 200, resp.text
+    assert "sn-summary-card__delta--down" in resp.text
+    assert "-100%" in resp.text
+    assert "+100%" not in resp.text
 
 
 def test_dashboard_anonymous_returns_401(auth_client: TestClient) -> None:

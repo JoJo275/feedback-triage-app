@@ -325,7 +325,7 @@
                       </svg>
                     {% endif %}
                   </span>
-                  {% if summary.total_signals_widget.delta_direction == 'up' %}+{% endif %}{{ summary.total_signals_widget.delta_pct | abs }}%
+                  {% if summary.total_signals_widget.delta_direction == 'up' %}+{% elif summary.total_signals_widget.delta_direction == 'down' %}-{% endif %}{{ summary.total_signals_widget.delta_pct | abs }}%
                 </p>
               </div>
               <p class="sn-summary-card__comparison">{{ summary.total_signals_widget.comparison_label }}</p>
@@ -341,9 +341,9 @@
               >
                 <defs>
                   <linearGradient id="total-signals-underfill-gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#2563eb" stop-opacity="0.09"></stop>
-                    <stop offset="52%" stop-color="#2563eb" stop-opacity="0.04"></stop>
-                    <stop offset="100%" stop-color="#2563eb" stop-opacity="0.01"></stop>
+                    <stop class="sn-summary-card__sparkline-underfill-stop sn-summary-card__sparkline-underfill-stop--top" offset="0%"></stop>
+                    <stop class="sn-summary-card__sparkline-underfill-stop sn-summary-card__sparkline-underfill-stop--mid" offset="52%"></stop>
+                    <stop class="sn-summary-card__sparkline-underfill-stop sn-summary-card__sparkline-underfill-stop--base" offset="100%"></stop>
                   </linearGradient>
                 </defs>
                 <line

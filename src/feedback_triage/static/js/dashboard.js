@@ -1506,6 +1506,8 @@ if (!layout || !canvas) {
             });
 
             let activePoint = null;
+            const supportsPointerEvents =
+                typeof window.PointerEvent !== "undefined";
 
             const clearActivePoint = () => {
                 if (!activePoint) {
@@ -1622,23 +1624,28 @@ if (!layout || !canvas) {
             };
 
             hits.forEach((hit) => {
-                hit.addEventListener("pointerenter", () => {
+                const onEnter = () => {
                     showHoverState(hit);
-                });
-                hit.addEventListener("pointermove", () => {
+                };
+                const onMove = () => {
                     showHoverState(hit);
-                });
-                hit.addEventListener("mouseenter", () => {
-                    showHoverState(hit);
-                });
-                hit.addEventListener("mousemove", () => {
-                    showHoverState(hit);
-                });
+                };
+
+                if (supportsPointerEvents) {
+                    hit.addEventListener("pointerenter", onEnter);
+                    hit.addEventListener("pointermove", onMove);
+                } else {
+                    hit.addEventListener("mouseenter", onEnter);
+                    hit.addEventListener("mousemove", onMove);
+                }
             });
 
-            wrapper.addEventListener("pointerleave", hideHoverState);
-            wrapper.addEventListener("pointercancel", hideHoverState);
-            wrapper.addEventListener("mouseleave", hideHoverState);
+            if (supportsPointerEvents) {
+                wrapper.addEventListener("pointerleave", hideHoverState);
+                wrapper.addEventListener("pointercancel", hideHoverState);
+            } else {
+                wrapper.addEventListener("mouseleave", hideHoverState);
+            }
 
             hideHoverState();
         });
