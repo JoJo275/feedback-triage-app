@@ -957,6 +957,25 @@ tr[data-stale="true"] {
     flex-shrink: 0;
 }
 
+.sn-summary-card__kpi-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sn-summary-card__kpi-link:hover .sn-summary-card__label,
+.sn-summary-card__kpi-link:focus-visible .sn-summary-card__label {
+    color: var(--color-text);
+}
+
+.sn-summary-card__kpi-link:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-primary) 76%, #ffffff);
+    outline-offset: 2px;
+    border-radius: var(--radius-md);
+}
+
 .sn-summary-card--total-signals .sn-summary-card__label {
     text-transform: none;
     letter-spacing: 0;

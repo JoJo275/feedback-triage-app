@@ -82,6 +82,8 @@ def test_dashboard_renders_populated_view_when_items_exist(
     assert "Team workload" in body_text
     assert "Source breakdown" in body_text
     assert "/static/img/inbox-badge.svg" in body_text
+    assert "sn-summary-card__kpi-link" in body_text
+    assert "Open all signals" in body_text
     assert "Total signals trend over the last" in body_text
     assert "workspace total" not in body_text
     assert "vs " in body_text
