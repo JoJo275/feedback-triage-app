@@ -44,6 +44,42 @@ class Settings(BaseSettings):
 
     cors_allowed_origins: str = ""
 
+    # ------------------------------------------------------------------
+    # React migration (Phase 0 scaffold).
+    # ------------------------------------------------------------------
+    feature_react_dashboard: bool = Field(default=False)
+    """Enable the Vite-built React shell route at ``/w/{slug}/dashboard/react``.
+
+    Defaults to ``false`` so the existing pilot/legacy route remains the
+    default behavior until rollout flags are explicitly enabled.
+    """
+
+    react_manifest_validate_on_startup: bool = Field(default=True)
+    """Fail closed at startup when required manifest entries are missing."""
+
+    react_dashboard_entrypoint: str = Field(default="index.html")
+    """Manifest entry key used by the dashboard React shell route."""
+
+    react_manifest_required_entries: str = Field(default="index.html")
+    """Comma-separated manifest entries that must exist when React is enabled."""
+
+    react_csp_enabled: bool = Field(default=False)
+    """Attach a strict CSP header on React shell responses when enabled."""
+
+    react_csp_policy: str = Field(
+        default=(
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self'; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "frame-ancestors 'self'"
+        )
+    )
+    """Baseline CSP policy for Vite-built React bundle routes."""
+
     page_size_default: int = Field(default=20, ge=1, le=1000)
     page_size_max: int = Field(default=100, ge=1, le=1000)
 
@@ -198,9 +234,31 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.cors_allowed_origins.split(",") if o.strip()]
 
     @property
+    def react_required_entries(self) -> tuple[str, ...]:
+        """Parsed required Vite manifest entries."""
+        parsed = [
+            entry.strip()
+            for entry in self.react_manifest_required_entries.split(",")
+            if entry.strip()
+        ]
+        if not parsed:
+            parsed = [self.react_dashboard_entrypoint]
+        # Keep order stable while removing duplicates.
+        return tuple(dict.fromkeys(parsed))
+
+    @property
     def is_production(self) -> bool:
         """Return True when running with production semantics."""
         return self.app_env == "production"
+
+    @field_validator("react_dashboard_entrypoint")
+    @classmethod
+    def _validate_react_dashboard_entrypoint(cls, value: str) -> str:
+        """Reject empty React manifest entrypoint keys."""
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("REACT_DASHBOARD_ENTRYPOINT must not be empty.")
+        return normalized
 
     @model_validator(mode="after")
     def _require_remote_db_in_production(self) -> Settings:

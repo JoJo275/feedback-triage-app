@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **37 workflow files** in `.github/workflows/`. All workflows
+This project has **38 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -18,6 +18,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Test**               | [test.yml](../.github/workflows/test.yml)                             | push, PR, manual | `Test (Python 3.11)` / `3.12` / `3.13` | Runs pytest across Python 3.11–3.13 matrix      |
 | **Lint + Format**      | [lint-format.yml](../.github/workflows/lint-format.yml)               | push, PR, manual | `Ruff (lint & format)`                 | Ruff linting and format checks                  |
 | **Type Check**         | [type-check.yml](../.github/workflows/type-check.yml)                 | push, PR, manual | `mypy (strict)`                        | mypy strict mode against `src/`                 |
+| **Web Frontend**       | [web-frontend.yml](../.github/workflows/web-frontend.yml)             | push (path-filtered), PR (path-filtered), manual | `Web (lint)` / `typecheck` / `test` / `build` / `audit` | Runs Phase 0 React frontend quality and security checks |
 | **Coverage**           | [coverage.yml](../.github/workflows/coverage.yml)                     | push, PR, manual | `Test + upload coverage`               | pytest with coverage, uploads to Codecov        |
 | **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes                   |
 | **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes      |
@@ -139,6 +140,7 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 - `repo-doctor.yml` — warn-only (always exits 0); informational only
 - `doctor-all.yml` — warn-only (all steps continue-on-error); informational only
 - `welcome.yml` — community engagement; no quality gate relevance
+- `web-frontend.yml` — only runs on React phase-0/frontend integration file changes (path-filtered)
 
 These still report status when they run and also run on push to main + schedules.
 

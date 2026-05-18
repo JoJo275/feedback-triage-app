@@ -15,22 +15,33 @@ empty-state template -- it's a richer surface than five zero-cards.
 
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session as DbSession
 from starlette.requests import Request
+from starlette.responses import Response
 
+from feedback_triage.config import Settings, get_settings
 from feedback_triage.database import get_db
+from feedback_triage.frontend_assets import resolve_react_entry
 from feedback_triage.models import Workspace
 from feedback_triage.services import dashboard_aggregator
 from feedback_triage.templating import templates
 from feedback_triage.tenancy import WorkspaceContextDep
 
 router = APIRouter(include_in_schema=False)
+logger = logging.getLogger(__name__)
 
 DbDep = Annotated[DbSession, Depends(get_db)]
+
+
+def _get_runtime_settings(request: Request) -> Settings:
+    """Return app-bound settings, falling back to cached global settings."""
+    configured = getattr(request.app.state, "settings", None)
+    return configured if isinstance(configured, Settings) else get_settings()
 
 
 @router.get("/w/{slug}/dashboard", summary="Workspace dashboard")
@@ -80,17 +91,49 @@ def dashboard_react_widgets_page(
     request: Request,
     ctx: WorkspaceContextDep,
     db: DbDep,
-) -> HTMLResponse:
-    """Render the React widgets pilot page for workspace ``slug``."""
+) -> Response:
+    """Render the React dashboard page for workspace ``slug``."""
     workspace = db.get(Workspace, ctx.id)
     assert workspace is not None
 
-    return templates.TemplateResponse(
+    settings = _get_runtime_settings(request)
+
+    if not settings.feature_react_dashboard:
+        return templates.TemplateResponse(
+            request,
+            "pages/dashboard/react_widgets.html",
+            {
+                "workspace_slug": workspace.slug,
+                "workspace_name": workspace.name,
+                "active": "dashboard",
+            },
+        )
+
+    entry_assets = resolve_react_entry(settings.react_dashboard_entrypoint)
+    if entry_assets is None:
+        logger.error(
+            "React dashboard entrypoint '%s' missing from manifest; "
+            "falling back to legacy dashboard route.",
+            settings.react_dashboard_entrypoint,
+        )
+        return RedirectResponse(
+            url=f"/w/{workspace.slug}/dashboard",
+            status_code=307,
+        )
+
+    response = templates.TemplateResponse(
         request,
-        "pages/dashboard/react_widgets.html",
+        "pages/dashboard/react_shell.html",
         {
             "workspace_slug": workspace.slug,
             "workspace_name": workspace.name,
             "active": "dashboard",
+            "react_script_url": entry_assets.script_url,
+            "react_css_urls": entry_assets.css_urls,
         },
     )
+
+    if settings.react_csp_enabled:
+        response.headers["Content-Security-Policy"] = settings.react_csp_policy
+
+    return response

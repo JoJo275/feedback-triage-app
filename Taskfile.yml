@@ -185,6 +185,42 @@ tasks:
     cmds:
       - uv run python scripts/build_css.py --watch
 
+  # ── Frontend (React/Vite scaffold) ────────────────────────
+  web:install:
+    desc: Install web dependencies with npm ci
+    cmds:
+      - npm --prefix web ci
+
+  web:lint:
+    desc: Run frontend lint checks
+    deps: [web:install]
+    cmds:
+      - npm --prefix web run lint
+
+  web:typecheck:
+    desc: Run frontend type checks
+    deps: [web:install]
+    cmds:
+      - npm --prefix web run typecheck
+
+  web:test:
+    desc: Run frontend unit tests
+    deps: [web:install]
+    cmds:
+      - npm --prefix web run test
+
+  web:build:
+    desc: Build frontend assets and Vite manifest into static/app
+    deps: [web:install]
+    cmds:
+      - npm --prefix web run build
+
+  web:audit:
+    desc: Run npm audit at high severity threshold
+    deps: [web:install]
+    cmds:
+      - npm --prefix web run audit
+
   # ── Linting & Formatting ───────────────────────────────────
   lint:
     desc: Lint (ruff check)
