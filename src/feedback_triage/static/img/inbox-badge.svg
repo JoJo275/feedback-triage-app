@@ -37,28 +37,29 @@
      inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g3" />
+     inkscape:current-layer="g5" />
   <g
      id="g3"
      transform="translate(-5.2694416,-4.871597)">
     <g
-       id="g4"
-       transform="matrix(1.0909091,0,0,1.0909091,4.1785325,2.854825)">
+       id="g5">
       <path
-         d="m 22,12 h -6 l -2,3 H 10 L 8,12 H 2"
-         id="path1" />
+         d="M 28.178533,15.945734 H 21.633078 L 19.45126,19.218461 H 15.087623 L 12.905805,15.945734 H 6.3603507"
+         id="path1"
+         style="stroke-width:2.18182" />
       <path
-         d="M 5.45,5.11 2,12 v 6 a 2,2 0 0 0 2,2 h 16 a 2,2 0 0 0 2,-2 V 12 L 18.55,5.11 A 2,2 0 0 0 16.76,4 H 7.24 A 2,2 0 0 0 5.45,5.11 Z"
-         id="path2" />
+         d="M 10.123987,8.4293705 6.3603507,15.945734 v 6.545455 a 2.1818182,2.1818182 0 0 0 2.1818182,2.181818 H 25.996714 a 2.1818182,2.1818182 0 0 0 2.181819,-2.181818 V 15.945734 L 24.414896,8.4293705 A 2.1818182,2.1818182 0 0 0 22.462169,7.2184614 H 12.076714 a 2.1818182,2.1818182 0 0 0 -1.952727,1.2109091 z"
+         id="path2"
+         style="stroke-width:2.18182" />
       <circle
-         style="fill:#0d9488;fill-opacity:1;stroke:#ffffff;stroke-width:0.165;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#0d9488;fill-opacity:1;stroke:#ffffff;stroke-width:0.474179;stroke-dasharray:none;stroke-opacity:1"
          id="path3"
-         cx="17.705753"
-         cy="-6.7530956"
-         r="1.0451249"
+         cx="25.977356"
+         cy="-4.7603354"
+         r="3.0034878"
          transform="rotate(29.913035)"
-         inkscape:transform-center-x="0.06610842"
-         inkscape:transform-center-y="0.022036136" />
+         inkscape:transform-center-x="0.17415122"
+         inkscape:transform-center-y="0.058050355" />
     </g>
   </g>
 </svg>
