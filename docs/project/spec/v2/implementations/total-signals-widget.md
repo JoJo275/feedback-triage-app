@@ -1,155 +1,97 @@
-# Total signals widget update (reference parity)
+# Total signals widget (current implementation)
 
-> Doc-only implementation note. This file defines the target information model
-> and implementation contract for a later code phase.
+Implementation status: shipped in the live dashboard.
 
-## Status
+## Reference image (original target)
 
-- Scope: implementation completed for the dashboard KPI card
-- Runtime changes: implemented in dashboard template, CSS, and aggregator
-- Target surface: dashboard KPI card `kpi-total-signals`
+![Total signals widget reference](../images/Photos_f0DnP5JH5S.png)
 
-## Reference image
+## Final product image (current)
 
-![Total signals reference widget](../images/Photos_f0DnP5JH5S.png)
+![Total signals widget final product](../images/total-signals-widget-final.png)
 
-## Widget wireframe
+## Final product wireframe (current)
 
 ```text
-+--------------------------------------------------+
-| Total signals                               [o] |
-|                                                  |
-| 1,248                           ^ +18%           |
-| vs May 5 - May 11                                 |
-|                                                  |
-|  __/\___/\____/\___/\____/\___/\__               |
-+--------------------------------------------------+
++----------------------------------+
+| [inbox-badge] Total signals      |
+|                                  |
+| 25               ↘ 50%           |
+| vs Mar 20 - Apr 18               |
+|                                  |
+|  •─•──•───•───────•────────•     |
+|  ▁▁▂▂▂▂▂▃▃▃▃▃▄▅▅▅▅▅▅▅▅           |
++----------------------------------+
 ```
 
 Wireframe notes:
 
-- `[o]` represents the top-right utility/settings icon button.
-- `^ +18%` represents direction icon plus period-over-period percentage.
-- The bottom polyline is the sparkline trend for the same window used in the
-  comparison label.
+1. The icon is at top-left beside the title (no top-right utility icon).
+2. The value/delta row appears above the comparison line.
+3. The trend sparkline occupies the lower visual area.
+4. Entire card surface is one clickable target.
 
-## Objective
+## Current visual contract
 
-Change the current **Total signals** KPI widget so it matches the reference
-widget in terms of information shown while keeping existing v2 dashboard
-structure intact.
+1. A top-left inbox badge icon appears beside the `Total signals` title.
+2. The primary value is displayed with thousands separators.
+3. The delta row shows direction icon + signed percentage.
+4. The comparison label appears under the value row.
+5. The sparkline occupies the lower half of the card.
 
-## Current gap to close
+## Current interaction contract
 
-| Element | Current dashboard card | Target card |
-| --- | --- | --- |
-| Label | `Total signals` | `Total signals` |
-| Primary value | total count | total count |
-| Delta surface | static text (`workspace total`) | directional period-over-period percent |
-| Comparison text | not present | `vs <date range>` |
-| Sparkline | not present in KPI card | received trend sparkline |
-| Utility icon | not present | top-right utility/settings icon |
+1. The full card surface is clickable and routes to `/w/{workspace_slug}/feedback`.
+2. Hover cursor is `pointer` across the card surface, including the sparkline hit area.
+3. Hover/focus uses a themed shadow based on `--color-primary`.
+4. Sparkline marker labels use:
+   - `Largest increase`
+   - `Second-largest increase`
 
-## Required information (Must)
-
-1. Title label: `Total signals`
-2. Top-right utility/settings icon
-3. Primary metric value with thousands separator (example: `1,248`)
-4. Period-over-period percentage delta with directional indicator
-   (example: `+18%`)
-5. Comparison caption line (example: `vs May 5 - May 11`)
-6. Bottom sparkline showing the period trend
-
-## Widget view model (recommended)
+## Data and formatting contract
 
 | Field | Type | Example | Notes |
 | --- | --- | --- | --- |
 | `widget_id` | string | `kpi-total-signals` | Stable dashboard widget id |
 | `label` | string | `Total signals` | Fixed title |
-| `value` | integer | `1248` | Raw count before formatting |
-| `delta_pct` | number | `18.0` | Signed percent delta |
-| `delta_direction` | enum | `up` | `up` \| `down` \| `flat` |
-| `comparison_label` | string | `vs May 5 - May 11` | Human-readable baseline period |
-| `sparkline_points` | number[] | `[4, 6, 5, 8, ...]` | Ordered counts for displayed window |
+| `value` | integer | `25` | Raw count before formatting |
+| `delta_pct` | number | `-50.0` | Signed percent delta |
+| `delta_direction` | enum | `down` | `up` \| `down` \| `flat` |
+| `comparison_label` | string | `vs Mar 20 - Apr 18` | Human-readable baseline period |
+| `sparkline_points` | number[] | `[0, 1, 1, 2, ...]` | Ordered counts for displayed window |
 
-Recommended payload shape for the card:
+Display rules:
 
-```json
-{
-  "widget_id": "kpi-total-signals",
-  "label": "Total signals",
-  "value": 1248,
-  "delta_pct": 18.0,
-  "delta_direction": "up",
-  "comparison_label": "vs May 5 - May 11",
-  "sparkline_points": [4, 6, 5, 8, 7, 9, 8]
-}
-```
-
-## Data derivation guidance
-
-- Source `value` from `summary.kpi.total_signals`.
-- Source sparkline from the received series in `summary.throughput.points`
-  (same window as `THROUGHPUT_DAYS`).
-- Build `comparison_label` from the immediate prior window of equal length.
-- Compute `delta_pct` against the prior window total and round for display to a
-  whole percent.
-- Set `delta_direction` from sign of `delta_pct`:
-  - positive -> `up`
-  - negative -> `down`
-  - zero -> `flat`
-
-## Display and formatting rules
-
-- Value format: integer with thousands separators.
-- Delta format: signed percentage (`+18%`, `-7%`, `0%`).
-- Keep the comparison caption on its own line directly below the
-  value-plus-delta row.
-- Keep sparkline in the lower area of the card and aligned to the same date
-  window implied by `comparison_label`.
-- Delta color and icon direction must match `delta_direction`.
+1. `value` renders as an integer with separators.
+2. Delta renders as signed percent (`+18%`, `-50%`, `0%`).
+3. Delta color/icon follows `delta_direction`.
+4. Sparkline uses the same date window as the comparison label.
 
 ## Edge-state behavior
 
 | Scenario | Expected behavior |
 | --- | --- |
 | No data in both windows | `value=0`, `delta_pct=0`, `delta_direction=flat`, sparkline all zeros |
-| Current window has data, previous window empty | show positive delta, keep explicit `vs <date range>` label |
-| Previous window has data, current drops | show negative delta and down direction |
-| Sparse daily data | render sparkline with zeros for missing days (no gaps) |
+| Current window has data, previous window empty | positive delta and explicit `vs <date range>` label |
+| Previous window has data, current drops | negative delta with down direction |
+| Sparse daily data | sparkline fills missing days with zeros (no gaps) |
 
 ## Accessibility contract
 
-- Keep a visible text label (`Total signals`) for the KPI.
-- If the utility icon is interactive, it must be a real `<button>` with an
-  accessible name.
-- Sparkline must expose an `aria-label` describing metric and date window.
-- Direction and percentage must not rely on color alone.
+1. The visible title label remains `Total signals`.
+2. Sparkline keeps an explicit `aria-label` with metric and window.
+3. Direction and percentage do not rely on color alone.
+4. Click target is keyboard-focusable and has an accessible link name.
 
-## Implementation touchpoints for later code phase
+## Implementation touchpoints
 
 | Area | File |
 | --- | --- |
-| KPI markup and classes | `src/feedback_triage/templates/pages/dashboard/index.html` |
-| Aggregation and period math | `src/feedback_triage/services/dashboard_aggregator.py` |
-| API/dashboard summary tests | `tests/api/test_dashboard_summary.py` |
-| Page-level rendering checks | `tests/api/auth/test_dashboard_page.py` |
-| E2E accessibility pass | `tests/e2e/test_a11y.py` |
-
-## Acceptance checklist (implementation)
-
-1. The widget definition covers all six required reference elements.
-2. Data derivation rules are deterministic and tied to existing dashboard
-   summary surfaces.
-3. Display rules define number formatting, sign handling, and sparkline scope.
-4. Accessibility requirements are explicit for icon control and sparkline text.
-5. Rendered output is covered by page tests and summary contract is covered by
-  aggregator tests.
-
-## Out of scope
-
-- No API schema migration required for this widget update.
-- No dashboard layout reorder or density preset changes.
+| KPI markup + click target | `src/feedback_triage/templates/pages/dashboard/index.html` |
+| KPI layout/styles | `src/feedback_triage/static/css/components.css` |
+| Hover/focus effects | `src/feedback_triage/static/css/effects.css` |
+| KPI aggregation math | `src/feedback_triage/services/dashboard_aggregator.py` |
+| Page rendering checks | `tests/api/auth/test_dashboard_page.py` |
 
 ## Related docs
 
