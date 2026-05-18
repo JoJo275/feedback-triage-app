@@ -329,8 +329,7 @@
                 </p>
               </div>
               <p class="sn-summary-card__comparison">{{ summary.total_signals_widget.comparison_label }}</p>
-            </a>
-            <div class="sn-summary-card__sparkline-wrap" data-total-signals-sparkline>
+              <div class="sn-summary-card__sparkline-wrap" data-total-signals-sparkline>
               <svg
                 class="sn-summary-card__sparkline"
                 data-sparkline-svg
@@ -375,10 +374,10 @@
                     {% set marker_roles.items = marker_roles.items + ["End endpoint"] %}
                   {% endif %}
                   {% if coord.index == total_signals_largest_jump_index %}
-                    {% set marker_roles.items = marker_roles.items + ["Largest jump"] %}
+                    {% set marker_roles.items = marker_roles.items + ["Largest increase"] %}
                   {% endif %}
                   {% if coord.index == total_signals_second_largest_jump_index %}
-                    {% set marker_roles.items = marker_roles.items + ["Second-largest jump"] %}
+                    {% set marker_roles.items = marker_roles.items + ["Second-largest increase"] %}
                   {% endif %}
                   {% if marker_roles.items %}
                     <circle class="sn-summary-card__sparkline-point" data-sparkline-point-index="{{ coord.index }}" data-sparkline-point-base-r="4.2" data-sparkline-point-active-r="5.8" data-sparkline-point-marker="{{ marker_roles.items|join(' · ') }}" cx="{{ coord.x }}" cy="{{ coord.y }}" r="4.2"></circle>
@@ -393,10 +392,10 @@
                     {% set marker_roles.items = marker_roles.items + ["End endpoint"] %}
                   {% endif %}
                   {% if coord.index == total_signals_largest_jump_index %}
-                    {% set marker_roles.items = marker_roles.items + ["Largest jump"] %}
+                    {% set marker_roles.items = marker_roles.items + ["Largest increase"] %}
                   {% endif %}
                   {% if coord.index == total_signals_second_largest_jump_index %}
-                    {% set marker_roles.items = marker_roles.items + ["Second-largest jump"] %}
+                    {% set marker_roles.items = marker_roles.items + ["Second-largest increase"] %}
                   {% endif %}
                   {% set hit_left = coord.x - (total_signals_hit_band / 2) %}
                   {% set hit_right = coord.x + (total_signals_hit_band / 2) %}
@@ -427,7 +426,8 @@
                 <span class="sn-summary-card__sparkline-tooltip-value" data-sparkline-tooltip-value></span>
                 <span class="sn-summary-card__sparkline-tooltip-marker" data-sparkline-tooltip-marker hidden></span>
               </div>
-            </div>
+              </div>
+            </a>
           </article>
           <article class="sn-summary-card" data-widget-id="kpi-needs-action">
             <p class="sn-summary-card__label">Needs action</p>
