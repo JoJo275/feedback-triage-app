@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Iterator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -370,6 +370,16 @@ def test_dashboard_helper_functions_cover_numeric_and_label_edges() -> None:
     assert dashboard_aggregator._format_age_label(49.0) == "2d"
     assert dashboard_aggregator._source_label("app_store") == "App Store"
     assert dashboard_aggregator._source_label("community_forum") == "Community Forum"
+    assert (
+        dashboard_aggregator._comparison_label(
+            start_day=date(2026, 3, 20),
+            end_day=date(2026, 4, 18),
+        )
+        == "vs Mar 20 - Apr 18"
+    )
+    assert dashboard_aggregator._delta_direction(10) == "up"
+    assert dashboard_aggregator._delta_direction(-10) == "down"
+    assert dashboard_aggregator._delta_direction(0) == "flat"
 
 
 def test_summary_aging_buckets_top_tags_and_queue_tag_hydration(

@@ -55,10 +55,10 @@ Wireframe notes:
 | `widget_id` | string | `kpi-total-signals` | Stable dashboard widget id |
 | `label` | string | `Total signals` | Fixed title |
 | `value` | integer | `25` | Raw count before formatting |
-| `delta_pct` | number | `-50.0` | Signed percent delta |
+| `delta_pct` | integer | `-50` | Signed percent delta |
 | `delta_direction` | enum | `down` | `up` \| `down` \| `flat` |
 | `comparison_label` | string | `vs Mar 20 - Apr 18` | Human-readable baseline period |
-| `sparkline_points` | number[] | `[0, 1, 1, 2, ...]` | Ordered counts for displayed window |
+| `sparkline_points` | integer[] | `[0, 1, 1, 2, ...]` | Ordered counts for displayed window |
 
 Display rules:
 

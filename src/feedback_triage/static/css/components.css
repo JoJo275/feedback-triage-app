@@ -914,6 +914,20 @@ tr[data-stale="true"] {
    comparison line, and sparkline in a tighter tile. */
 .sn-summary-card--total-signals {
     gap: 0.5rem;
+    --sn-total-signals-sparkline-color: var(--tone-info-fg);
+    --sn-total-signals-hit-fill: color-mix(
+        in srgb,
+        var(--sn-total-signals-sparkline-color) 1%,
+        transparent
+    );
+    --sn-total-signals-tooltip-bg: var(--color-surface);
+    --sn-total-signals-tooltip-border: color-mix(
+        in srgb,
+        var(--sn-total-signals-sparkline-color) 34%,
+        var(--color-border)
+    );
+    --sn-total-signals-tooltip-marker: var(--sn-total-signals-sparkline-color);
+    --sn-total-signals-tooltip-shadow: var(--shadow-md);
 }
 
 @media (min-width: 1024px) {
@@ -1051,11 +1065,27 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__sparkline-line {
-    stroke: #2563eb;
+    stroke: var(--sn-total-signals-sparkline-color);
     stroke-width: 1.3;
     stroke-linecap: round;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
+}
+
+.sn-summary-card__sparkline-underfill-stop {
+    stop-color: var(--sn-total-signals-sparkline-color);
+}
+
+.sn-summary-card__sparkline-underfill-stop--top {
+    stop-opacity: 0.09;
+}
+
+.sn-summary-card__sparkline-underfill-stop--mid {
+    stop-opacity: 0.04;
+}
+
+.sn-summary-card__sparkline-underfill-stop--base {
+    stop-opacity: 0.01;
 }
 
 .sn-summary-card__sparkline-underfill {
@@ -1063,7 +1093,7 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__sparkline-reflection-line {
-    stroke: #2563eb;
+    stroke: var(--sn-total-signals-sparkline-color);
     stroke-width: 1.1;
     stroke-opacity: 0.1;
     stroke-linecap: round;
@@ -1072,27 +1102,27 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__sparkline-guide {
-    stroke: #2563eb;
+    stroke: var(--sn-total-signals-sparkline-color);
     stroke-width: 1.2;
     stroke-opacity: 0.32;
     pointer-events: none;
 }
 
 .sn-summary-card__sparkline-point {
-    fill: #2563eb;
+    fill: var(--sn-total-signals-sparkline-color);
     stroke: none;
     stroke-width: 0;
     vector-effect: non-scaling-stroke;
 }
 
 .sn-summary-card__sparkline-hover-point {
-    fill: #2563eb;
+    fill: var(--sn-total-signals-sparkline-color);
     stroke: none;
     pointer-events: none;
 }
 
 .sn-summary-card__sparkline-hit {
-    fill: rgb(37 99 235 / 0.001);
+    fill: var(--sn-total-signals-hit-fill);
     pointer-events: all;
     cursor: pointer;
 }
@@ -1109,9 +1139,9 @@ tr[data-stale="true"] {
     max-width: 9rem;
     padding: 0.35rem 0.5rem;
     border-radius: 0.55rem;
-    border: 1px solid #9eb7eb;
-    background: rgb(248 250 252 / 1);
-    box-shadow: 0 8px 16px rgb(15 23 42 / 0.12);
+    border: 1px solid var(--sn-total-signals-tooltip-border);
+    background: var(--sn-total-signals-tooltip-bg);
+    box-shadow: var(--sn-total-signals-tooltip-shadow);
     color: var(--color-text);
     font-size: 0.6875rem;
     line-height: 1.25;
@@ -1134,7 +1164,7 @@ tr[data-stale="true"] {
 }
 
 .sn-summary-card__sparkline-tooltip-marker {
-    color: #1d4ed8;
+    color: var(--sn-total-signals-tooltip-marker);
     font-weight: 600;
 }
 
