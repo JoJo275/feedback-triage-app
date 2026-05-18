@@ -1,0 +1,54 @@
+:root {
+    color-scheme: light dark;
+    font-family:
+        "Segoe UI",
+        system-ui,
+        -apple-system,
+        sans-serif;
+}
+
+body {
+    margin: 0;
+    background: var(--color-bg, #f8fafc);
+    color: var(--color-text, #0f172a);
+}
+
+.sn-react-shell {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    display: grid;
+    gap: 1.25rem;
+}
+
+.sn-react-shell__header h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.sn-react-shell__header p {
+    margin: 0.5rem 0 0;
+    line-height: 1.5;
+}
+
+.sn-react-shell__card {
+    border: 1px solid
+        color-mix(in srgb, var(--color-border, #e2e8f0) 90%, #ffffff);
+    border-radius: 0.9rem;
+    background: var(--color-surface, #ffffff);
+    padding: 1rem 1.1rem;
+    box-shadow: 0 4px 12px rgb(15 23 42 / 0.06);
+}
+
+.sn-react-shell__card h2 {
+    margin-top: 0;
+}
+
+.sn-react-shell__card ul {
+    margin: 0.5rem 0 0.75rem;
+    padding-left: 1.2rem;
+}
+
+.sn-react-shell__card a {
+    color: var(--color-primary, #0d9488);
+}

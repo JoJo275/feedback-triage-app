@@ -1,0 +1,43 @@
+{% extends "_base.html" %}
+{% block title %}{{ workspace_name }} React dashboard shell · SignalNest{% endblock %}
+
+{% block head_extra %}
+  {% for css_url in react_css_urls %}
+    <link rel="stylesheet" href="{{ css_url }}" />
+  {% endfor %}
+{% endblock %}
+
+{% block body %}
+<div class="sn-app-shell">
+  {% include "_partials/sidebar.html" %}
+  <main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter sn-stack">
+      <header class="sn-page-header">
+        <div>
+          <h1 class="sn-page-header__title">React dashboard shell</h1>
+          <p class="sn-page-header__description">
+            Phase 0 canary route powered by Vite manifest assets.
+          </p>
+        </div>
+        <div class="sn-page-header__actions">
+          <a class="sn-button sn-button-secondary" href="/w/{{ workspace_slug }}/dashboard">Back to dashboard</a>
+        </div>
+      </header>
+
+      <section class="sn-card">
+        <div
+          id="sn-react-app-root"
+          data-workspace-slug="{{ workspace_slug }}"
+          data-workspace-name="{{ workspace_name }}"
+          data-dashboard-url="/w/{{ workspace_slug }}/dashboard"
+        ></div>
+      </section>
+
+      <noscript>
+        <p class="sn-text-muted">JavaScript is required to load the React dashboard shell.</p>
+      </noscript>
+    </div>
+  </main>
+</div>
+<script type="module" src="{{ react_script_url }}" defer></script>
+{% endblock %}

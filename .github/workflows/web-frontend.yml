@@ -1,0 +1,73 @@
+# Runs Phase 0 React frontend checks (lint, typecheck, unit test, build, audit).
+# Path-filtered because this surface is not yet in the ci-gate required set.
+
+name: Web Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "src/feedback_triage/frontend_assets.py"
+      - "src/feedback_triage/pages/dashboard.py"
+      - "src/feedback_triage/templates/pages/dashboard/react_shell.html"
+      - "src/feedback_triage/main.py"
+      - "src/feedback_triage/config.py"
+      - "Taskfile.yml"
+      - ".github/workflows/web-frontend.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "src/feedback_triage/frontend_assets.py"
+      - "src/feedback_triage/pages/dashboard.py"
+      - "src/feedback_triage/templates/pages/dashboard/react_shell.html"
+      - "src/feedback_triage/main.py"
+      - "src/feedback_triage/config.py"
+      - "Taskfile.yml"
+      - ".github/workflows/web-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-checks:
+    name: Web (${{ matrix.check }})
+
+    if: >-
+      ${{
+        github.repository == 'OWNER/REPO'
+        || vars.ENABLE_WORKFLOWS == 'true'
+        || vars['ENABLE_WEB_FRONTEND'] == 'true'
+      }}
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [lint, typecheck, test, build, audit]
+
+    container:
+      image: node:22-bookworm
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Run web ${{ matrix.check }}
+        run: npm run ${{ matrix.check }}

@@ -192,3 +192,12 @@ site/
 
 # Local DB dumps (task db:dump)
 backups/
+
+# =========================================
+# React/Vite frontend (Phase 0 scaffold)
+# =========================================
+/web/node_modules/
+/web/.vite/
+/web/coverage/
+/src/feedback_triage/static/app/*
+!/src/feedback_triage/static/app/.gitkeep

@@ -30,6 +30,7 @@ from feedback_triage.auth import hashing as auth_hashing
 from feedback_triage.auth.feature_flag import FeatureAuthGateMiddleware
 from feedback_triage.config import Settings, get_settings
 from feedback_triage.errors import register_exception_handlers
+from feedback_triage.frontend_assets import validate_react_manifest
 from feedback_triage.middleware import (
     RequestIDLogFilter,
     RequestIDMiddleware,
@@ -52,6 +53,8 @@ from feedback_triage.pages import submitters as submitters_pages
 from feedback_triage.pages import system as system_pages
 from feedback_triage.routes import health, pages
 from feedback_triage.routes.pages import STATIC_DIR
+
+logger = logging.getLogger(__name__)
 
 
 def _configure_logging(settings: Settings) -> None:
@@ -95,6 +98,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # - Cold-path inventory.
         if settings.feature_auth:
             auth_hashing.warmup()
+
+        if (
+            settings.feature_react_dashboard
+            and settings.react_manifest_validate_on_startup
+        ):
+            missing_entries = validate_react_manifest(settings.react_required_entries)
+            if missing_entries:
+                missing_display = ", ".join(missing_entries)
+                message = (
+                    "React manifest validation failed. Missing required "
+                    f"entrypoint(s): {missing_display}. Build web assets "
+                    "or disable FEATURE_REACT_DASHBOARD."
+                )
+                logger.error(message)
+                raise RuntimeError(message)
         yield
 
     app = FastAPI(
@@ -105,6 +123,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/api/v1/openapi.json",
         lifespan=lifespan,
     )
+    app.state.settings = settings
 
     # Starlette's ``add_middleware`` *prepends* — the LAST class added is
     # the OUTERMOST wrapper at runtime. We want the request-ID middleware
