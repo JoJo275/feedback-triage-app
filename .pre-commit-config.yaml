@@ -98,7 +98,7 @@ repos:
   # Ruff - Fast Python linter and formatter
   # ---------------------------------------------------------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.13
     hooks:
       # Linter
       - id: ruff
@@ -344,7 +344,7 @@ repos:
   # With rebase+merge, every commit message matters — this ensures
   # well-formed messages that feed into release-please's CHANGELOG.
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.15.1
+    rev: v4.16.2
     hooks:
       - id: commitizen
         stages: [commit-msg]
