@@ -6,8 +6,12 @@
 
 ## Why this exists
 
-The current v2 contract ships static HTML + vanilla JS for page rendering.
-This document defines a concrete migration plan for a full React frontend,
+Earlier v2 drafts started from static HTML + vanilla JS assumptions.
+The accepted runtime baseline is now React + Vite for migrated
+workspace/public routes (ADR 077), reinforced by an umbrella
+architecture record (ADR 079).
+
+This document defines and preserves the concrete migration plan,
 including sequencing, risk controls, and rollback gates.
 
 This is intentionally staged so we avoid a big-bang rewrite.
@@ -26,6 +30,8 @@ Decision gate is now satisfied:
    accepts React + Vite as the v2 page runtime.
 - [ADR 078](../../../../adr/078-make-web-build-and-widget-parity-required-gates.md)
    defines release/process gates for web build correctness and widget parity.
+- [ADR 079](../../../../adr/079-use-umbrella-react-baseline-for-v2-frontend.md)
+   consolidates migration posture and frontend ownership boundaries.
 
 This plan is now implementation record plus operating guidance,
 not a pre-decision proposal.

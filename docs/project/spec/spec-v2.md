@@ -240,6 +240,7 @@ Final / Polish* in [`v2/rollout.md`](v2/rollout.md) and
 | 076 | React island for dashboard widget editing pilot               | Superseded by 077 | 3 (Final) | Historical pilot |
 | 077 | React + Vite as v2 page runtime                               | ✅ Accepted | 4 (Polish)       | Frontend runtime |
 | 078 | Web build + widget parity as required gates                   | ✅ Accepted | 4 (Polish)       | Release safety   |
+| 079 | Umbrella React baseline for v2 frontend architecture          | ✅ Accepted | 4 (Polish)       | Architecture clarity |
 
 ---
 
