@@ -18,19 +18,17 @@ This is intentionally staged so we avoid a big-bang rewrite.
 - ADR 076 is retained as historical context for the initial React-island pilot.
 - Migrated authenticated and public routes now serve through the shared React shell.
 
-## Decision gate first
+## Decision gate
 
-Before coding starts, file and accept a new ADR to supersede the v2 deferment
-of a full React rewrite (F2 in spec-v2).
+Decision gate is now satisfied:
 
-Required ADR outcomes:
+- [ADR 077](../../../../adr/077-use-react-vite-as-v2-page-runtime.md)
+   accepts React + Vite as the v2 page runtime.
+- [ADR 078](../../../../adr/078-make-web-build-and-widget-parity-required-gates.md)
+   defines release/process gates for web build correctness and widget parity.
 
-- confirm React adoption scope (full SPA vs hybrid)
-- confirm build toolchain and deployment model
-- confirm whether any pages remain server-rendered for SEO/caching reasons
-- confirm data-fetching and state-management approach
-
-Without this decision gate, this plan is reference-only.
+This plan is now implementation record plus operating guidance,
+not a pre-decision proposal.
 
 ## Should this project switch fully to React?
 

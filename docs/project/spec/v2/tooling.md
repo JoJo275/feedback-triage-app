@@ -30,12 +30,16 @@
 
 | Item                                  | Notes                                                       |
 | ------------------------------------- | ----------------------------------------------------------- |
-| Tailwind CSS (Standalone CLI binary)  | [ADR 058](../../../adr/058-tailwind-via-standalone-cli.md). `task build:css`. No Node, no `package.json`. |
-| Lucide static SVGs                    | hand-exported into `static/img/icons/`                       |
-| Playwright (Python)                   | gated `@pytest.mark.e2e` smoke suite                         |
-| `axe-core` (via Playwright)           | per-page accessibility check in the e2e suite ([`ui.md`](ui.md)) |
+| React + React DOM                     | Page runtime for migrated workspace/public routes ([ADR 077](../../../adr/077-use-react-vite-as-v2-page-runtime.md)) |
+| TypeScript + Vite                     | Frontend source in `web/`; emits hashed assets + `manifest.json` into `src/feedback_triage/static/app/` |
+| Node 22 + npm 10                      | Toolchain pinned by `web/.nvmrc` and `web/package-lock.json` |
+| Tailwind CSS (Standalone CLI binary)  | Retained for server-rendered/legacy surfaces and shared style-guide paths ([ADR 058](../../../adr/058-tailwind-via-standalone-cli.md)) |
+| Lucide static SVGs                    | Hand-exported into `static/img/icons/`                       |
+| Playwright (Python)                   | Gated `@pytest.mark.e2e` smoke suite                         |
+| `axe-core` (via Playwright)           | Per-page accessibility check in the e2e suite ([`ui.md`](ui.md)) |
 
-No bundler, no React, no Vite, no TypeScript on the frontend.
+Frontend release process and parity expectations are governed by
+[ADR 078](../../../adr/078-make-web-build-and-widget-parity-required-gates.md).
 
 ---
 
@@ -86,5 +90,5 @@ indefinitely.
 
 - [`auth.md`](auth.md) — what `argon2-cffi` is doing.
 - [`email.md`](email.md) — what `resend` is doing.
-- [`ui.md`](ui.md) — what Tailwind + Lucide are doing.
+- [`ui.md`](ui.md) — page routes, frontend rendering model, and client safety contracts.
 - [`rollout.md`](rollout.md) — what runs in CI per tag.

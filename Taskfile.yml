@@ -261,8 +261,19 @@ tasks:
 
   # ── Quality Gate (CI mirror) ───────────────────────────────
   check:
-    desc: Run lint + fmt:check + typecheck + test (incl. CSS build)
-    deps: [build:css, lint, fmt:check, typecheck, test]
+    desc: Run backend + frontend quality gates (incl. CSS and web builds)
+    deps:
+      [
+        build:css,
+        web:lint,
+        web:typecheck,
+        web:test,
+        web:build,
+        lint,
+        fmt:check,
+        typecheck,
+        test,
+      ]
 
   # ── Build ──────────────────────────────────────────────────
   build:

@@ -5,6 +5,13 @@
 > [`../spec-v1.md`](../spec-v1.md) for the v2.0 codebase, this file
 > wins.
 
+> Update (2026-05-19): Frontend runtime ownership now follows
+> [ADR 077](../../../adr/077-use-react-vite-as-v2-page-runtime.md)
+> and [ADR 078](../../../adr/078-make-web-build-and-widget-parity-required-gates.md).
+> React source lives under `web/`; sections below that describe
+> static-JS-only frontend ownership are historical context and are
+> being reconciled incrementally.
+
 ---
 
 ## Top-level layout
@@ -122,6 +129,7 @@ feedback-triage-app/
 │   ├── adr/
 │   ├── notes/
 │   └── ...
+├── web/                             # React + Vite frontend source (v2 runtime)
 ├── tools/
 │   └── dev_tools/                   # env dashboard, etc. (template)
 ├── pyproject.toml                   # hatchling + hatch-vcs
@@ -147,8 +155,9 @@ Listed so a reviewer can scan the diff:
 | `src/feedback_triage/email/`          | new            | Resend client + plain-text templates                 |
 | `src/feedback_triage/routes/api/`     | new layout     | one module per resource                              |
 | `src/feedback_triage/routes/pages/`   | new layout     | HTML page routes split out                           |
+| `web/`                                | new layout     | React + Vite source-of-truth for migrated routes     |
 | `src/feedback_triage/static/css/`     | new layout     | five-file source split (`input.css` orchestrator + `tokens` / `base` / `layout` / `components` / `effects`); generated `app.css` |
-| `src/feedback_triage/static/js/`      | expanded       | per-page JS files (no bundler)                       |
+| `src/feedback_triage/static/js/`      | mixed          | legacy/auth/static route scripts retained during migration tails |
 | `tailwind.config.cjs`                 | new            | added by [ADR 058](../../../adr/058-tailwind-via-standalone-cli.md) |
 | `tests/api/test_isolation.py`         | new            | cross-tenant leak canaries — required Must test      |
 | `scripts/build_css.py`                | new            | `task build:css` entry point                         |

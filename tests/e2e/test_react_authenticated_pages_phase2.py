@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -246,3 +247,36 @@ def test_phase2_react_authenticated_routes_ignore_legacy_query_param(
     page.wait_for_load_state("networkidle")
 
     expect(page.locator("#sn-react-app-root")).to_have_count(1)
+
+
+def test_phase2_dashboard_total_signals_widget_parity(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"widget-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+
+    page.goto(f"{live_app_url}/w/{slug}/dashboard")
+    page.wait_for_load_state("networkidle")
+
+    widget = page.locator('[data-widget-id="kpi-total-signals"]')
+    expect(widget).to_have_count(1)
+    expect(
+        page.locator(
+            ".sn-react-total-signals-marker-label",
+            has_text=re.compile(r"^Largest increase$"),
+        ),
+    ).to_have_count(1)
+    expect(
+        page.locator(
+            ".sn-react-total-signals-marker-label",
+            has_text=re.compile(r"^Second-largest increase$"),
+        ),
+    ).to_have_count(1)
+
+    widget_link = page.get_by_role("link", name=re.compile("Total signals", re.I))
+    expect(widget_link).to_have_attribute("href", f"/w/{slug}/feedback")
+
+    trend = page.get_by_label(re.compile("Total signals trend", re.I))
+    expect(trend).to_have_count(1)

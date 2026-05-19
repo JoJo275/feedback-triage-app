@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 
 import {
     ApiClientError,
+    getDashboardSummary,
     getAuthMe,
     getWorkspaceBySlug,
     listFeedbackPreview,
 } from "../lib/apiClient";
 import type {
+    DashboardSummaryDto,
     FeedbackItemDto,
     MembershipDto,
     UserDto,
@@ -18,6 +20,7 @@ export interface RouteContextData {
     membership: MembershipDto;
     workspace: WorkspaceDto;
     feedbackItems: FeedbackItemDto[];
+    dashboardSummary: DashboardSummaryDto | null;
 }
 
 export type RouteContextState =
@@ -30,6 +33,7 @@ export interface RouteContextLoaderInput {
     workspaceNameHint: string;
     clientRelease: string;
     feedbackPreviewLimit?: number;
+    includeDashboardSummary?: boolean;
 }
 
 function toApiClientError(error: unknown): ApiClientError {
@@ -61,6 +65,7 @@ export function useRouteContextLoader(
         workspaceNameHint,
         clientRelease,
         feedbackPreviewLimit = 8,
+        includeDashboardSummary = false,
     } = input;
 
     useEffect(() => {
@@ -81,20 +86,30 @@ export function useRouteContextLoader(
 
         void (async () => {
             try {
-                const [me, workspace, feedback] = await Promise.all([
-                    getAuthMe(clientRelease, abortController.signal),
-                    getWorkspaceBySlug(
-                        workspaceSlug,
-                        clientRelease,
-                        abortController.signal,
-                    ),
-                    listFeedbackPreview(
-                        workspaceSlug,
-                        clientRelease,
-                        feedbackPreviewLimit,
-                        abortController.signal,
-                    ),
-                ]);
+                const dashboardSummaryPromise = includeDashboardSummary
+                    ? getDashboardSummary(
+                          workspaceSlug,
+                          clientRelease,
+                          abortController.signal,
+                      )
+                    : Promise.resolve(null);
+
+                const [me, workspace, feedback, dashboardSummary] =
+                    await Promise.all([
+                        getAuthMe(clientRelease, abortController.signal),
+                        getWorkspaceBySlug(
+                            workspaceSlug,
+                            clientRelease,
+                            abortController.signal,
+                        ),
+                        listFeedbackPreview(
+                            workspaceSlug,
+                            clientRelease,
+                            feedbackPreviewLimit,
+                            abortController.signal,
+                        ),
+                        dashboardSummaryPromise,
+                    ]);
 
                 const membership = me.memberships.find(
                     (item) => item.workspace_slug === workspaceSlug,
@@ -116,6 +131,7 @@ export function useRouteContextLoader(
                         membership,
                         workspace,
                         feedbackItems: feedback.items,
+                        dashboardSummary,
                     },
                 });
             } catch (error) {
@@ -133,7 +149,13 @@ export function useRouteContextLoader(
         return () => {
             abortController.abort();
         };
-    }, [workspaceSlug, workspaceNameHint, clientRelease, feedbackPreviewLimit]);
+    }, [
+        workspaceSlug,
+        workspaceNameHint,
+        clientRelease,
+        feedbackPreviewLimit,
+        includeDashboardSummary,
+    ]);
 
     return state;
 }

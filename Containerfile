@@ -8,11 +8,15 @@
 #                        downloads the Tailwind Standalone CLI binary
 #                        and emits the hashed app.<hash>.css plus
 #                        manifest.json into src/feedback_triage/static/css/.
-#   Stage 2 (builder)  — uses `uv build` (which calls hatchling) to produce
+#   Stage 2 (builder-web) — runs `npm ci && npm run build` in web/, which
+#                        emits deterministic Vite assets into
+#                        src/feedback_triage/static/app/.
+#   Stage 3 (builder)  — uses `uv build` (which calls hatchling) to produce
 #                        the project wheel. Source tree includes the CSS
-#                        artifacts copied in from stage 1 so the wheel
+#                        artifacts copied in from stage 1 and web app
+#                        artifacts copied in from stage 2 so the wheel
 #                        ships them.
-#   Stage 3 (runtime)  — slim Python image. Installs only the wheel via
+#   Stage 4 (runtime)  — slim Python image. Installs only the wheel via
 #                        `uv pip install --system --no-cache`, then drops
 #                        privileges. No source tree, no build tools, no
 #                        .git in the final image. The Tailwind binary is
@@ -31,6 +35,7 @@ ARG PYTHON_BASE=python:3.13-slim@sha256:a0779d7c12fc20be6ec6b4ddc901a4fd7657b8a6
 #   docker pull ghcr.io/astral-sh/uv:latest
 #   docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/astral-sh/uv:latest
 ARG UV_IMAGE=ghcr.io/astral-sh/uv@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347
+ARG NODE_BASE=node:22-bookworm-slim
 
 # ── Stage 1: Frontend (Tailwind CSS) ──────────────────────────
 FROM ${PYTHON_BASE} AS builder-frontend
@@ -71,7 +76,21 @@ COPY src/feedback_triage/routes/ src/feedback_triage/routes/
 # writes app.<hash>.css + manifest.json into the css/ source dir.
 RUN python scripts/build_css.py
 
-# ── Stage 2: Build wheel ──────────────────────────────────────
+# ── Stage 2: Frontend (React + Vite static assets) ───────────
+FROM ${NODE_BASE} AS builder-web
+
+WORKDIR /build-web/web
+
+# Install exact dependency graph first for stable layer caching.
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+
+# Vite writes to ../src/feedback_triage/static/app (see web/vite.config.ts).
+COPY web/ ./
+COPY src/feedback_triage/static/ ../src/feedback_triage/static/
+RUN npm run build
+
+# ── Stage 3: Build wheel ──────────────────────────────────────
 FROM ${PYTHON_BASE} AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -99,9 +118,14 @@ COPY --from=builder-frontend \
     /build-fe/src/feedback_triage/static/css/ \
     src/feedback_triage/static/css/
 
+# Overlay deterministic React build artifacts produced by builder-web.
+COPY --from=builder-web \
+    /build-web/src/feedback_triage/static/app/ \
+    src/feedback_triage/static/app/
+
 RUN uv build --wheel --out-dir /build/dist
 
-# ── Stage 2: Runtime ──────────────────────────────────────────
+# ── Stage 4: Runtime ──────────────────────────────────────────
 FROM ${PYTHON_BASE} AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

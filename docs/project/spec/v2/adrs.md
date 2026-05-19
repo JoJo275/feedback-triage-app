@@ -30,7 +30,9 @@ move it to the Accepted section. Don't leave stale entries.
 | 062 | v1.0 → v2.0 data migration ([file](../../../adr/062-v1-to-v2-data-migration.md)) | Beta |
 | 063 | Status enum extension + `rejected` deprecation ([file](../../../adr/063-status-enum-extension.md)) | Beta |
 | 064 | Pain vs. Priority dual-field rationale ([file](../../../adr/064-pain-vs-priority-dual-fields.md)) | Beta |
-| 076 | React island for dashboard widget editing ([file](../../../adr/076-use-react-island-for-dashboard-widgets.md)) | Final |
+| 076 | React island for dashboard widget editing ([file](../../../adr/076-use-react-island-for-dashboard-widgets.md)) | Superseded by 077 |
+| 077 | React + Vite as v2 page runtime ([file](../../../adr/077-use-react-vite-as-v2-page-runtime.md)) | Final |
+| 078 | Web build and widget parity required gates ([file](../../../adr/078-make-web-build-and-widget-parity-required-gates.md)) | Final |
 
 ---
 

@@ -3,9 +3,13 @@
 > Topical detail file. Entry point: [`../spec-v2.md`](../spec-v2.md).
 > Brand and visual direction: [`core-idea.md`](core-idea.md).
 
-Static HTML + vanilla JS, served by FastAPI's `StaticFiles` and
-`HTMLResponse` page routes. Tailwind utility classes are the style
-layer ([ADR 058](../../../adr/058-tailwind-via-standalone-cli.md)).
+React + TypeScript (Vite) now powers migrated workspace/public routes,
+mounted through FastAPI shell templates per
+[ADR 077](../../../adr/077-use-react-vite-as-v2-page-runtime.md).
+
+Server-rendered pages still exist for auth and selected legacy paths.
+Tailwind utility classes and tokens remain part of the style layer
+([ADR 058](../../../adr/058-tailwind-via-standalone-cli.md)).
 
 ---
 
@@ -36,13 +40,15 @@ layer ([ADR 058](../../../adr/058-tailwind-via-standalone-cli.md)).
 
 ## JS conventions
 
-- One small JS file per page (`static/js/<page>.js`), no bundler.
-- A shared `static/js/api.js` wraps `fetch` to inject the
-  `X-Workspace-Slug` header (read from `<meta name="workspace-slug">`)
-  and to handle 401 → redirect to `/login`.
-- A shared `static/js/toast.js` for status messaging.
-- Mini demo (`static/js/landing-demo.js`) is fully self-contained,
-  no shared imports.
+- React entrypoint is `web/src/main.tsx`, compiled by Vite into
+  `src/feedback_triage/static/app/` with a hashed manifest.
+- FastAPI templates pass route identity through data attributes
+  (`data-page-key`, `data-active-section`) and bootstrap JSON payloads
+  where needed.
+- Shared client concerns (API calls, telemetry, error normalization)
+  live in `web/src/lib/` and `web/src/hooks/`.
+- Legacy page scripts under `src/feedback_triage/static/js/` remain only
+  for intentionally server-rendered routes.
 
 ### Client-side rendering safety (XSS)
 
@@ -50,9 +56,10 @@ User-controlled content (feedback `title` / `description` / `release_note`,
 submitter `name`, note `body`, tag `name`) is rendered **client-side**
 from JSON. The escape contract:
 
-- **Always use `element.textContent = value`** — never `innerHTML`,
-  never `insertAdjacentHTML`, never template strings concatenated
-  into HTML.
+- React-rendered text content must stay in JSX text nodes (automatic
+  escaping). Avoid `dangerouslySetInnerHTML` for user data.
+- For non-React legacy scripts, keep using
+  `element.textContent = value` and never template user input into HTML.
 - For multi-line text (descriptions, notes), set `textContent` and
   use CSS `white-space: pre-wrap` to preserve newlines. **Do not**
   replace `\n` with `<br>` in JS.
@@ -186,7 +193,9 @@ CI. (Tooling addition tracked in [`tooling.md`](tooling.md).)
 
 - [`core-idea.md`](core-idea.md) — visual brief, component shorthand, color tokens.
 - [ADR 058 — Tailwind via Standalone CLI](../../../adr/058-tailwind-via-standalone-cli.md)
-- [ADR 051 — Static HTML + vanilla JS](../../../adr/051-static-html-vanilla-js.md)
+- [ADR 077 — React + Vite as v2 page runtime](../../../adr/077-use-react-vite-as-v2-page-runtime.md)
+- [ADR 078 — Web build + widget parity required gates](../../../adr/078-make-web-build-and-widget-parity-required-gates.md)
+- [ADR 051 — Static HTML + vanilla JS](../../../adr/051-static-html-vanilla-js.md) (historical v1 baseline)
 - [`api.md`](api.md) — JSON endpoints the pages call.
 - [`security.md`](security.md) — content limits, honeypot, CSP.
 - [`../../../notes/frontend-conventions.md`](../../../notes/frontend-conventions.md)
