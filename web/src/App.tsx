@@ -24,6 +24,7 @@ import {
 import { emitFrontendTelemetry } from "./lib/telemetry";
 import type {
     FeedbackItemDto,
+    FeedbackStatus,
     MemberDto,
     SubmitterDto,
     WorkspaceDto,
@@ -193,7 +194,7 @@ function defaultStatusOptions(): FilterChipOption[] {
     return [{ value: "all", label: "All statuses" }];
 }
 
-function defaultStatusPreview(): string[] {
+function defaultStatusPreview(): FeedbackStatus[] {
     return ["new", "needs_info", "reviewing", "accepted", "closed"];
 }
 
@@ -404,7 +405,7 @@ export function App({
     );
 
     const insightStatusRows = useMemo(() => {
-        const counts = new Map<string, number>();
+        const counts = new Map<FeedbackStatus, number>();
         for (const item of feedbackItems) {
             counts.set(item.status, (counts.get(item.status) ?? 0) + 1);
         }

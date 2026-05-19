@@ -6,13 +6,14 @@ import type { RouteContextData } from "../../hooks/useRouteContextLoader";
 import type {
     DashboardTotalSignalsWidgetDto,
     FeedbackItemDto,
+    FeedbackStatus,
 } from "../../types/contracts";
 import { TotalSignalsWidget } from "./TotalSignalsWidget";
 
 interface DashboardOverviewProps {
     routeData: RouteContextData;
     clientRelease: string;
-    statusPreview: string[];
+    statusPreview: FeedbackStatus[];
     feedbackColumns: DataTableColumn<FeedbackItemDto>[];
     filteredFeedback: FeedbackItemDto[];
 }

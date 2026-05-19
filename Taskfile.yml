@@ -215,6 +215,19 @@ tasks:
     cmds:
       - npm --prefix web run build
 
+  web:contracts:
+    desc: Export backend OpenAPI and generate typed frontend contracts
+    deps: [web:install]
+    cmds:
+      - uv run python tools/dev_tools/export_openapi.py --out web/openapi.v1.json
+      - npm --prefix web run contracts:generate
+
+  web:contracts:check:
+    desc: Verify generated frontend contracts are in sync with OpenAPI
+    deps: [web:contracts]
+    cmds:
+      - git diff --exit-code -- web/src/types/openapi.generated.ts
+
   web:audit:
     desc: Run npm audit at high severity threshold
     deps: [web:install]
@@ -265,6 +278,7 @@ tasks:
     deps:
       [
         build:css,
+        web:contracts:check,
         web:lint,
         web:typecheck,
         web:test,
