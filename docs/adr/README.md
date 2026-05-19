@@ -106,6 +106,7 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [076](076-use-react-island-for-dashboard-widgets.md)  | Use a React island for dashboard widget editing pilot              | Superseded by 077 |
 | [077](077-use-react-vite-as-v2-page-runtime.md)       | Use React + Vite as the v2 page runtime                            | Accepted |
 | [078](078-make-web-build-and-widget-parity-required-gates.md) | Make web build and widget parity required release gates     | Accepted |
+| [079](079-use-umbrella-react-baseline-for-v2-frontend.md) | Use an umbrella React baseline for v2 frontend architecture  | Accepted |
 
 > ADRs 011, 015, 036, 039–043 were deprecated during the fork from
 > `simple-python-boilerplate` to `feedback-triage-app` and live in

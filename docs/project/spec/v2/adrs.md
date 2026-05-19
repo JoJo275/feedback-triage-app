@@ -33,6 +33,7 @@ move it to the Accepted section. Don't leave stale entries.
 | 076 | React island for dashboard widget editing ([file](../../../adr/076-use-react-island-for-dashboard-widgets.md)) | Superseded by 077 |
 | 077 | React + Vite as v2 page runtime ([file](../../../adr/077-use-react-vite-as-v2-page-runtime.md)) | Final |
 | 078 | Web build and widget parity required gates ([file](../../../adr/078-make-web-build-and-widget-parity-required-gates.md)) | Final |
+| 079 | Umbrella React baseline for v2 frontend architecture ([file](../../../adr/079-use-umbrella-react-baseline-for-v2-frontend.md)) | Polish |
 
 ---
 
