@@ -4,6 +4,10 @@
 name: Refresh uv.lock
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
   schedule:
     # Cron is a Unix time-scheduling syntax and the only way to
     # define scheduled triggers in GitHub Actions. It uses five
