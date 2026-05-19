@@ -17,12 +17,16 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session as DbSession
 from starlette.requests import Request
+from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.models import Workspace
+from feedback_triage.pages.react_shell import (
+    get_runtime_settings,
+    maybe_render_workspace_react_shell,
+)
 from feedback_triage.templating import templates
 from feedback_triage.tenancy import WorkspaceContextDep
 
@@ -39,10 +43,24 @@ def roadmap_page(
     request: Request,
     ctx: WorkspaceContextDep,
     db: DbDep,
-) -> HTMLResponse:
+) -> Response:
     """Render the roadmap kanban shell for workspace ``slug``."""
     workspace = db.get(Workspace, ctx.id)
     assert workspace is not None
+
+    settings = get_runtime_settings(request)
+    react_response = maybe_render_workspace_react_shell(
+        request,
+        enabled=settings.feature_react_roadmap,
+        workspace_slug=workspace.slug,
+        workspace_name=workspace.name,
+        active_section="roadmap",
+        page_key="roadmap",
+        page_title="Roadmap",
+    )
+    if react_response is not None:
+        return react_response
+
     return templates.TemplateResponse(
         request,
         "pages/roadmap.html",

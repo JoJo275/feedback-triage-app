@@ -1,0 +1,36 @@
+{% extends "_base.html" %}
+{% block title %}{{ workspace_name }} {{ react_page_title }} · SignalNest{% endblock %}
+
+{% block head_extra %}
+  {% for css_url in react_css_urls %}
+    <link rel="stylesheet" href="{{ css_url }}" />
+  {% endfor %}
+{% endblock %}
+
+{% block body %}
+<div
+  id="sn-react-app-root"
+  data-workspace-slug="{{ workspace_slug }}"
+  data-workspace-name="{{ workspace_name }}"
+  data-active-section="{{ active }}"
+  data-page-key="{{ react_page_key }}"
+  data-legacy-url="{{ react_legacy_url }}"
+  data-client-release="{{ react_client_release }}"
+></div>
+
+<noscript>
+  <main id="main" class="sn-page-shell">
+    <div class="sn-content-gutter">
+      <section class="sn-card sn-stack">
+        <h1>{{ react_page_title }}</h1>
+        <p class="sn-text-muted">JavaScript is required to load this React page.</p>
+        <p>
+          <a class="sn-button sn-button-secondary" href="{{ react_legacy_url }}">Open classic page</a>
+        </p>
+      </section>
+    </div>
+  </main>
+</noscript>
+<script src="{{ static_url('js/theme.js') }}" defer></script>
+<script type="module" src="{{ react_script_url }}" defer></script>
+{% endblock %}

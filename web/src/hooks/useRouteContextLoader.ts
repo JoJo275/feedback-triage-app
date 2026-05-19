@@ -29,6 +29,7 @@ export interface RouteContextLoaderInput {
     workspaceSlug: string;
     workspaceNameHint: string;
     clientRelease: string;
+    feedbackPreviewLimit?: number;
 }
 
 function toApiClientError(error: unknown): ApiClientError {
@@ -55,7 +56,12 @@ export function useRouteContextLoader(
     input: RouteContextLoaderInput,
 ): RouteContextState {
     const [state, setState] = useState<RouteContextState>({ state: "loading" });
-    const { workspaceSlug, workspaceNameHint, clientRelease } = input;
+    const {
+        workspaceSlug,
+        workspaceNameHint,
+        clientRelease,
+        feedbackPreviewLimit = 8,
+    } = input;
 
     useEffect(() => {
         if (!workspaceSlug.trim()) {
@@ -85,6 +91,7 @@ export function useRouteContextLoader(
                     listFeedbackPreview(
                         workspaceSlug,
                         clientRelease,
+                        feedbackPreviewLimit,
                         abortController.signal,
                     ),
                 ]);
@@ -126,7 +133,7 @@ export function useRouteContextLoader(
         return () => {
             abortController.abort();
         };
-    }, [workspaceSlug, workspaceNameHint, clientRelease]);
+    }, [workspaceSlug, workspaceNameHint, clientRelease, feedbackPreviewLimit]);
 
     return state;
 }

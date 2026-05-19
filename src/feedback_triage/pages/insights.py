@@ -23,14 +23,18 @@ from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import HTMLResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DbSession
 from sqlmodel import col, select
 from starlette.requests import Request
+from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.models import FeedbackItem, FeedbackTag, Tag, Workspace
+from feedback_triage.pages.react_shell import (
+    get_runtime_settings,
+    maybe_render_workspace_react_shell,
+)
 from feedback_triage.templating import templates
 from feedback_triage.tenancy import WorkspaceContextDep
 
@@ -173,10 +177,23 @@ def insights_page(
     request: Request,
     ctx: WorkspaceContextDep,
     db: DbDep,
-) -> HTMLResponse:
+) -> Response:
     """Render the insights page for workspace ``slug``."""
     workspace = db.get(Workspace, ctx.id)
     assert workspace is not None
+
+    settings = get_runtime_settings(request)
+    react_response = maybe_render_workspace_react_shell(
+        request,
+        enabled=settings.feature_react_insights,
+        workspace_slug=workspace.slug,
+        workspace_name=workspace.name,
+        active_section="insights",
+        page_key="insights",
+        page_title="Insights",
+    )
+    if react_response is not None:
+        return react_response
 
     total_items = int(
         db.execute(

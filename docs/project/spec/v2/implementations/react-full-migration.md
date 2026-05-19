@@ -294,6 +294,21 @@ Verification:
 - Playwright parity tests for each migrated page.
 - tenant-isolation API canaries still pass.
 
+### Phase 2 implementation status (2026-05-18)
+
+- [x] Flag-gated React shells now render on the authenticated routes
+   (`/dashboard`, `/inbox`, `/feedback`, `/roadmap`, `/changelog`,
+   `/submitters`, `/insights`, `/settings`) with `?view=legacy`
+   parity fallback.
+- [x] Shared React route metadata is emitted via a common template and
+   consumed by the Vite entrypoint (`data-page-key`,
+   `data-active-section`, `data-legacy-url`).
+- [x] Frontend failure telemetry hooks are wired for API errors,
+   mutation errors, and runtime error events, with authenticated
+   ingestion at `/api/v1/frontend-events`.
+- [ ] Full Playwright parity matrix per route remains the final
+   rollout gate before default-on in production.
+
 Exit criteria:
 
 - all authenticated pages run in React by default behind a feature flag.

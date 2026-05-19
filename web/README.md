@@ -1,15 +1,22 @@
-# React Frontend Scaffold (Phase 1)
+# React Frontend App (Phase 2)
 
 This directory contains the Vite + React + TypeScript frontend used for the
 React migration track.
 
-Phase 1 delivers:
+Phase 2 extends the Phase 1 shell with authenticated page routes:
 
-- authenticated app shell parity primitives (sidebar/header/content/footer)
-- route-level auth + tenant context loading
-- typed API client with error-envelope normalization
-- shared primitives for cards, status pills, filters, tables, and modal
-- unit tests for API/error normalization plus shell snapshots
+- dashboard
+- inbox + feedback archive
+- roadmap
+- changelog
+- submitters
+- insights
+- settings
+
+Route identity is passed from FastAPI templates through mount-node
+data attributes (`data-page-key`, `data-active-section`, and
+`data-legacy-url`) so one Vite entrypoint can render multiple
+authenticated page surfaces behind feature flags.
 
 ## Toolchain
 

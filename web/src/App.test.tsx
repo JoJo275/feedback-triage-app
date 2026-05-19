@@ -51,18 +51,22 @@ describe("App", () => {
             <App
                 workspaceSlug="demo-owner"
                 workspaceName="Demo Owner"
-                dashboardUrl="/w/demo-owner/dashboard"
+                activeSection="dashboard"
+                pageKey="dashboard"
+                legacyUrl="/w/demo-owner/dashboard?view=legacy"
                 clientRelease="react-test"
             />,
         );
 
         expect(
             screen.getByRole("heading", {
-                name: "Dashboard (React shell canary)",
+                name: "Dashboard",
             }),
         ).toBeInTheDocument();
         expect(screen.getByText("Route context loaded")).toBeInTheDocument();
-        expect(screen.getByText("Recent feedback")).toBeInTheDocument();
+        expect(
+            screen.getByRole("heading", { name: "Recent feedback" }),
+        ).toBeInTheDocument();
         expect(
             screen.getByRole("link", {
                 name: "Search needs keyboard shortcuts",

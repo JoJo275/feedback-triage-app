@@ -72,8 +72,49 @@
     border-top: 1px solid var(--color-border);
 }
 
+.sn-react-column-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.sn-react-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.sn-react-item-card {
+    display: grid;
+    gap: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.6rem;
+    background: var(--color-surface-alt);
+    padding: 0.75rem;
+}
+
+.sn-react-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.sn-react-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 @media (max-width: 767px) {
     .sn-react-context-list {
         grid-template-columns: 1fr;
+    }
+
+    .sn-react-item-row {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
