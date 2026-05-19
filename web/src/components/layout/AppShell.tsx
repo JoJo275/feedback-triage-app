@@ -145,7 +145,8 @@ export function AppShell({
                     aria-label={`${activeSectionLabel} controls`}
                 >
                     <p className="sn-app-header__breadcrumb">
-                        <a href={dashboardUrl}>{workspaceName}</a> .{" "}
+                        <a href={dashboardUrl}>{workspaceName}</a>
+                        {" . "}
                         {activeSectionLabel}
                     </p>
                     <form
