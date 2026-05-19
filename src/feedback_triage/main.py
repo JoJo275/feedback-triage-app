@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from feedback_triage import __version__
 from feedback_triage.api.v1 import auth as auth_api
 from feedback_triage.api.v1 import feedback as feedback_api
+from feedback_triage.api.v1 import frontend_events as frontend_events_api
 from feedback_triage.api.v1 import invitations as invitations_api
 from feedback_triage.api.v1 import public_feedback as public_feedback_api
 from feedback_triage.api.v1 import submitters as submitters_api
@@ -100,7 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             auth_hashing.warmup()
 
         if (
-            settings.feature_react_dashboard
+            settings.react_authenticated_routes_enabled
             and settings.react_manifest_validate_on_startup
         ):
             missing_entries = validate_react_manifest(settings.react_required_entries)
@@ -109,7 +110,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 message = (
                     "React manifest validation failed. Missing required "
                     f"entrypoint(s): {missing_display}. Build web assets "
-                    "or disable FEATURE_REACT_DASHBOARD."
+                    "or disable FEATURE_REACT_* route flags."
                 )
                 logger.error(message)
                 raise RuntimeError(message)
@@ -165,6 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(invitations_api.accept_router)
     app.include_router(users_api.router)
     app.include_router(resend_webhook_api.router)
+    app.include_router(frontend_events_api.router)
     app.include_router(auth_pages.router)
     app.include_router(landing_pages.router)
     app.include_router(legal_pages.router)

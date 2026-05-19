@@ -48,11 +48,25 @@ class Settings(BaseSettings):
     # React migration (Phase 0 scaffold).
     # ------------------------------------------------------------------
     feature_react_dashboard: bool = Field(default=False)
-    """Enable the Vite-built React shell route at ``/w/{slug}/dashboard/react``.
+    """Enable React for ``/w/{slug}/dashboard``."""
 
-    Defaults to ``false`` so the existing pilot/legacy route remains the
-    default behavior until rollout flags are explicitly enabled.
-    """
+    feature_react_inbox: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/inbox`` and ``/w/{slug}/feedback``."""
+
+    feature_react_roadmap: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/roadmap``."""
+
+    feature_react_changelog: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/changelog``."""
+
+    feature_react_submitters: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/submitters``."""
+
+    feature_react_insights: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/insights``."""
+
+    feature_react_settings: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/settings``."""
 
     react_manifest_validate_on_startup: bool = Field(default=True)
     """Fail closed at startup when required manifest entries are missing."""
@@ -245,6 +259,21 @@ class Settings(BaseSettings):
             parsed = [self.react_dashboard_entrypoint]
         # Keep order stable while removing duplicates.
         return tuple(dict.fromkeys(parsed))
+
+    @property
+    def react_authenticated_routes_enabled(self) -> bool:
+        """Return ``True`` when any authenticated React route flag is enabled."""
+        return any(
+            (
+                self.feature_react_dashboard,
+                self.feature_react_inbox,
+                self.feature_react_roadmap,
+                self.feature_react_changelog,
+                self.feature_react_submitters,
+                self.feature_react_insights,
+                self.feature_react_settings,
+            )
+        )
 
     @property
     def is_production(self) -> bool:

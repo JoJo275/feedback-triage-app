@@ -178,7 +178,8 @@ exports[`AppShell > matches the authenticated shell snapshot 1`] = `
         >
           Demo Owner
         </a>
-         . Dashboard
+         .
+        Dashboard
       </p>
       <form
         action="/w/demo-owner/feedback"

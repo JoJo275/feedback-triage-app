@@ -45,6 +45,9 @@ export function AppShell({
 }: AppShellProps): JSX.Element {
     const dashboardUrl = `/w/${workspaceSlug}/dashboard`;
     const feedbackUrl = `/w/${workspaceSlug}/feedback`;
+    const activeSectionLabel =
+        NAV_LINKS.find((link) => link.key === activeSection)?.label ??
+        "Dashboard";
 
     return (
         <div className="sn-app-shell">
@@ -139,10 +142,11 @@ export function AppShell({
             <main id="main" className="sn-page-shell">
                 <header
                     className="sn-app-header"
-                    aria-label="Dashboard controls"
+                    aria-label={`${activeSectionLabel} controls`}
                 >
                     <p className="sn-app-header__breadcrumb">
-                        <a href={dashboardUrl}>{workspaceName}</a> . Dashboard
+                        <a href={dashboardUrl}>{workspaceName}</a> .{" "}
+                        {activeSectionLabel}
                     </p>
                     <form
                         className="sn-app-header__search"

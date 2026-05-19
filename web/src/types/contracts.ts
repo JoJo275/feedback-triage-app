@@ -59,11 +59,21 @@ export interface MeResponse {
 
 export interface FeedbackItemDto {
     id: number;
+    workspace_id?: string;
+    submitter_id?: string | null;
+    assignee_user_id?: string | null;
     title: string;
     description: string | null;
     source: FeedbackSource;
+    source_other?: string | null;
+    type?: string;
+    type_other?: string | null;
+    priority?: string | null;
     pain_level: number;
     status: FeedbackStatus;
+    published_to_roadmap?: boolean;
+    published_to_changelog?: boolean;
+    release_note?: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -73,4 +83,42 @@ export interface FeedbackListEnvelope {
     total: number;
     skip: number;
     limit: number;
+}
+
+export interface SubmitterDto {
+    id: string;
+    workspace_id: string;
+    email: string | null;
+    name: string | null;
+    internal_notes: string | null;
+    submission_count: number;
+    first_seen_at: string;
+    last_seen_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SubmitterListEnvelope {
+    items: SubmitterDto[];
+    total: number;
+    skip: number;
+    limit: number;
+}
+
+export interface MemberUserDto {
+    id: string;
+    email: string;
+    role: UserRole;
+    created_at: string;
+}
+
+export interface MemberDto {
+    user: MemberUserDto;
+    role: WorkspaceRole;
+    joined_at: string;
+}
+
+export interface MemberListResponse {
+    items: MemberDto[];
+    total: number;
 }
