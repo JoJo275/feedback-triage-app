@@ -35,7 +35,11 @@ ARG PYTHON_BASE=python:3.13-slim@sha256:a0779d7c12fc20be6ec6b4ddc901a4fd7657b8a6
 #   docker pull ghcr.io/astral-sh/uv:latest
 #   docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/astral-sh/uv:latest
 ARG UV_IMAGE=ghcr.io/astral-sh/uv@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347
-ARG NODE_BASE=node:22-bookworm-slim
+
+# Pinned Node base image for the React/Vite builder stage. Refresh via:
+#   docker pull node:22-bookworm-slim
+#   docker inspect --format='{{index .RepoDigests 0}}' node:22-bookworm-slim
+ARG NODE_BASE=node:22-bookworm-slim@sha256:6ed70fbf60557fb3a2faea5657d4105bace34c93449c2571919a1589fae30153
 
 # ── Stage 1: Frontend (Tailwind CSS) ──────────────────────────
 FROM ${PYTHON_BASE} AS builder-frontend

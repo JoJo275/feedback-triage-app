@@ -32,13 +32,23 @@ vi.mock("./hooks/useRouteContextLoader", () => ({
                 },
                 feedbackItems: [
                     {
+                        workspace_id: "4677f519-0b9a-4c74-9958-f6fef70ded66",
+                        submitter_id: null,
+                        assignee_user_id: null,
                         id: 101,
                         title: "Search needs keyboard shortcuts",
                         description:
                             "Power users requested slash command support.",
                         source: "interview",
+                        source_other: null,
+                        type: "feature_request",
+                        type_other: null,
+                        priority: null,
                         pain_level: 4,
                         status: "reviewing",
+                        published_to_roadmap: false,
+                        published_to_changelog: false,
+                        release_note: null,
                         created_at: "2026-05-10T00:00:00.000000Z",
                         updated_at: "2026-05-12T00:00:00.000000Z",
                     },
