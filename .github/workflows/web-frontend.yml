@@ -8,9 +8,10 @@ on:
     branches: [main]
     paths:
       - "web/**"
+      - "Containerfile"
       - "src/feedback_triage/frontend_assets.py"
-      - "src/feedback_triage/pages/dashboard.py"
-      - "src/feedback_triage/templates/pages/dashboard/react_shell.html"
+      - "src/feedback_triage/pages/*.py"
+      - "src/feedback_triage/templates/pages/react/**"
       - "src/feedback_triage/main.py"
       - "src/feedback_triage/config.py"
       - "Taskfile.yml"
@@ -19,9 +20,10 @@ on:
     branches: [main]
     paths:
       - "web/**"
+      - "Containerfile"
       - "src/feedback_triage/frontend_assets.py"
-      - "src/feedback_triage/pages/dashboard.py"
-      - "src/feedback_triage/templates/pages/dashboard/react_shell.html"
+      - "src/feedback_triage/pages/*.py"
+      - "src/feedback_triage/templates/pages/react/**"
       - "src/feedback_triage/main.py"
       - "src/feedback_triage/config.py"
       - "Taskfile.yml"

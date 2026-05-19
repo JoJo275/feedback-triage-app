@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { DashboardOverview } from "./components/dashboard/DashboardOverview";
 import { AppShell, type AppSection } from "./components/layout/AppShell";
 import { Card } from "./components/primitives/Card";
 import {
@@ -264,6 +265,7 @@ export function App({
         workspaceNameHint: workspaceName,
         clientRelease,
         feedbackPreviewLimit,
+        includeDashboardSummary: pageKey === "dashboard",
     });
 
     const readyRouteData =
@@ -610,60 +612,13 @@ export function App({
         switch (pageKey) {
             case "dashboard": {
                 return (
-                    <>
-                        <div className="sn-react-layout-grid">
-                            <Card
-                                title="Route context loaded"
-                                description="Auth cookies and tenant scoping are validated per route."
-                            >
-                                <dl className="sn-react-context-list">
-                                    <dt>User</dt>
-                                    <dd>{routeData.user.email}</dd>
-                                    <dt>Role</dt>
-                                    <dd>
-                                        {humanizeValue(
-                                            routeData.membership.role,
-                                        )}
-                                    </dd>
-                                    <dt>Workspace</dt>
-                                    <dd>{routeData.workspace.name}</dd>
-                                    <dt>Release header</dt>
-                                    <dd>
-                                        <span className="sn-react-inline-code">
-                                            {clientRelease}
-                                        </span>
-                                    </dd>
-                                </dl>
-                            </Card>
-
-                            <Card
-                                title="Workflow status mix"
-                                description="Quick preview of feedback status labels from the current payload."
-                            >
-                                <div className="sn-react-pill-row">
-                                    {statusPreview.map((status) => (
-                                        <StatusPill
-                                            key={status}
-                                            status={status}
-                                        />
-                                    ))}
-                                </div>
-                            </Card>
-                        </div>
-
-                        <Card
-                            title="Recent feedback"
-                            description="Most recent feedback rows from /api/v1/feedback."
-                        >
-                            <DataTable
-                                caption="Recent feedback"
-                                columns={feedbackColumns}
-                                rows={filteredFeedback}
-                                getRowKey={(item) => item.id}
-                                emptyMessage="No feedback is available yet."
-                            />
-                        </Card>
-                    </>
+                    <DashboardOverview
+                        routeData={routeData}
+                        clientRelease={clientRelease}
+                        statusPreview={statusPreview}
+                        feedbackColumns={feedbackColumns}
+                        filteredFeedback={filteredFeedback}
+                    />
                 );
             }
 

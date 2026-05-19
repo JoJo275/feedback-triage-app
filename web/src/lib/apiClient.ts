@@ -1,4 +1,5 @@
 import type {
+    DashboardSummaryDto,
     FeedbackListEnvelope,
     FeedbackItemDto,
     MemberListResponse,
@@ -264,6 +265,18 @@ export function listFeedbackPreview(
         },
         signal,
     );
+}
+
+export function getDashboardSummary(
+    workspaceSlug: string,
+    clientRelease: string,
+    signal?: AbortSignal,
+): Promise<DashboardSummaryDto> {
+    return apiRequest<DashboardSummaryDto>("/api/v1/dashboard/summary", {
+        workspaceSlug,
+        clientRelease,
+        signal,
+    });
 }
 
 export function listFeedback(

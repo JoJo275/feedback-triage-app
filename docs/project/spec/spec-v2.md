@@ -48,8 +48,9 @@ the loop** — wrapped in a workspace-scoped product with email auth,
 team invitations, public submission forms, public roadmaps and
 changelogs, and an insights surface. Visually it ships as a light
 SaaS dashboard (slate / white base, teal primary accent, amber
-warning), built with Tailwind utility classes via the Standalone
-CLI. Brand details and component shorthand live in
+warning), rendered through a React + Vite page runtime with the
+existing Tailwind/token visual language retained for consistency.
+Brand details and component shorthand live in
 [`v2/core-idea.md`](v2/core-idea.md).
 
 ---
@@ -71,10 +72,10 @@ Unless explicitly overridden, v2.0 inherits **everything** from v1.0:
   ISO 8601 UTC datetimes with `Z` suffix.
 - **Sync FastAPI routes** (`def`, not `async def`), per
   [ADR 050](../../adr/050-sync-db-driver-v1.md).
-- Static-HTML + vanilla-JS frontend served from the same FastAPI
-  process. Tailwind is added as the CSS layer per
-  [ADR 058](../../adr/058-tailwind-via-standalone-cli.md); this is
-  not a JS framework.
+- Frontend pages are still served from the same FastAPI process,
+  but v2 workspace/public routes now render through React + Vite
+  shells per [ADR 077](../../adr/077-use-react-vite-as-v2-page-runtime.md).
+  Auth and selected legacy routes remain server-rendered.
 - Session-per-request DB lifecycle via `get_db`
   ([ADR 048](../../adr/048-session-per-request.md)).
 - Postgres-backed pytest suite, gated Playwright smoke suite.
@@ -148,9 +149,6 @@ Tier is the v1.0 Must / Should / Nice axis. Build order matches the
 
 Deferred (with rationale in [Future Improvements](#future-improvements-after-v20)):
 
-- **F2** — React/Vite SPA rewrite. Redundant with FT + FX; XL
-  effort, no workflow gain. If revisited, start from
-  [`v2/implementations/react-full-migration.md`](v2/implementations/react-full-migration.md).
 - Voting / severity / impact scoring.
 - Bulk actions, side drawer, real-time updates.
 - File attachments.
@@ -220,11 +218,12 @@ Deferred (with rationale in [Future Improvements](#future-improvements-after-v20
 
 ## ADRs
 
-Five are accepted; four are still to write. The TBD ADRs land in
-the same PR as the code that needs them. The numbering scheme used
-throughout v2 docs is **Phase 0–4** ([`v2/implementation.md`](v2/implementation.md));
-*Alpha / Beta / Final / Polish* in [`v2/rollout.md`](v2/rollout.md)
-and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
+Core v2 ADRs plus frontend-runtime reconciliation ADRs are accepted.
+New ADRs should land in the same PR as the code that needs them.
+The numbering scheme used throughout v2 docs is **Phase 0–4**
+([`v2/implementation.md`](v2/implementation.md)); *Alpha / Beta /
+Final / Polish* in [`v2/rollout.md`](v2/rollout.md) and
+[`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
 ([`v2/glossary.md`](v2/glossary.md)).
 
 | #   | Title                                                         | Status      | Phase gate       | Drives           |
@@ -238,7 +237,9 @@ and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
 | 062 | v1.0 → v2.0 data migration (legacy workspace + status rename) | ✅ Accepted | 2 (Beta)         | cut-over         |
 | 063 | Status enum extension + `rejected` deprecation                | ✅ Accepted | 2 (Beta)         | FX               |
 | 064 | Pain vs. Priority dual-field rationale                        | ✅ Accepted | 2 (Beta)         | FX               |
-| 076 | React island for dashboard widget editing pilot               | ✅ Accepted | 3 (Final)        | FY follow-on UI  |
+| 076 | React island for dashboard widget editing pilot               | Superseded by 077 | 3 (Final) | Historical pilot |
+| 077 | React + Vite as v2 page runtime                               | ✅ Accepted | 4 (Polish)       | Frontend runtime |
+| 078 | Web build + widget parity as required gates                   | ✅ Accepted | 4 (Polish)       | Release safety   |
 
 ---
 
@@ -246,8 +247,6 @@ and [`v2/adrs.md`](v2/adrs.md) are codename aliases for Phases 1–4
 
 Items considered and explicitly punted to v3.0+:
 
-- **F2** — React/Vite/TS SPA rewrite. Redundant with FT + FX.
-  (Note: ADR 076 introduces a scoped React island only; not a full SPA rewrite.)
 - **Voting / severity / impact** scoring on feedback.
 - **Bulk actions, side drawer, keyboard navigation** on the inbox.
 - **Real-time updates** (SSE or WebSockets).

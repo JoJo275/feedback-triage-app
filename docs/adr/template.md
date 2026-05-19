@@ -1,5 +1,7 @@
 # ADR NNN: [Short descriptive title]
 
+---
+
 ## Status
 
 Proposed | Accepted | Deprecated | Superseded by [ADR XXX](XXX-name.md)

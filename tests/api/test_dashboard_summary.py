@@ -317,6 +317,52 @@ def test_total_signals_widget_contract_for_empty_workspace(
     assert all(point == 0 for point in widget.sparkline_points)
 
 
+def test_dashboard_summary_endpoint_exposes_total_signals_widget_contract(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    body = _signup_and_login(auth_client, "owner@example.com")
+    slug = body["memberships"][0]["workspace_slug"]
+
+    _post_feedback(auth_client, slug, "item one")
+
+    response = auth_client.get(
+        "/api/v1/dashboard/summary",
+        headers={"X-Workspace-Slug": slug},
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+
+    assert payload["counts"]["total_signals"] == 1
+    assert payload["counts"]["needs_action"] >= 1
+    widget = payload["total_signals_widget"]
+    assert widget["widget_id"] == "kpi-total-signals"
+    assert widget["label"] == "Total signals"
+    assert widget["value"] == 1
+    assert widget["comparison_label"].startswith("vs ")
+    assert len(widget["sparkline_points"]) == dashboard_aggregator.THROUGHPUT_DAYS
+    assert len(widget["sparkline_date_labels"]) == dashboard_aggregator.THROUGHPUT_DAYS
+    assert len(payload["intake_30d"]) == dashboard_aggregator.THROUGHPUT_DAYS
+
+
+def test_dashboard_summary_endpoint_cross_tenant_returns_404(
+    auth_client: TestClient,
+    truncate_auth_world: None,
+) -> None:
+    first = _signup_and_login(auth_client, "alice@example.com")
+    auth_client.cookies.clear()
+    _signup_and_login(auth_client, "bob@example.com")
+
+    response = auth_client.get(
+        "/api/v1/dashboard/summary",
+        headers={"X-Workspace-Slug": first["memberships"][0]["workspace_slug"]},
+    )
+
+    assert response.status_code == 404
+    assert "not_found" in response.text
+
+
 def test_summary_team_workload_and_queue_use_assignee(
     auth_client: TestClient,
     truncate_auth_world: None,

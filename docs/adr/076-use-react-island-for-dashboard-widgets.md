@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR 077](077-use-react-vite-as-v2-page-runtime.md)
 
 ## Context
 

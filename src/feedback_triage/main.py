@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 
 from feedback_triage import __version__
 from feedback_triage.api.v1 import auth as auth_api
+from feedback_triage.api.v1 import dashboard as dashboard_api
 from feedback_triage.api.v1 import feedback as feedback_api
 from feedback_triage.api.v1 import frontend_events as frontend_events_api
 from feedback_triage.api.v1 import invitations as invitations_api
@@ -153,6 +154,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(feedback_api.router)
+    app.include_router(dashboard_api.router)
     app.include_router(tags_api.router)
     app.include_router(submitters_api.router)
     app.include_router(public_feedback_api.router)

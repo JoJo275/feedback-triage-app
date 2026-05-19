@@ -85,6 +85,36 @@ export interface FeedbackListEnvelope {
     limit: number;
 }
 
+export interface DashboardCountsDto {
+    total_signals: number;
+    needs_action: number;
+    high_pain_signals: number;
+}
+
+export interface DashboardIntakePointDto {
+    day: string;
+    received: number;
+}
+
+export type DashboardDeltaDirection = ExtensibleString<"up" | "down" | "flat">;
+
+export interface DashboardTotalSignalsWidgetDto {
+    widget_id: "kpi-total-signals";
+    label: "Total signals";
+    value: number;
+    delta_pct: number;
+    delta_direction: DashboardDeltaDirection;
+    comparison_label: string;
+    sparkline_points: number[];
+    sparkline_date_labels: string[];
+}
+
+export interface DashboardSummaryDto {
+    counts: DashboardCountsDto;
+    intake_30d: DashboardIntakePointDto[];
+    total_signals_widget: DashboardTotalSignalsWidgetDto;
+}
+
 export interface SubmitterDto {
     id: string;
     workspace_id: string;

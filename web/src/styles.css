@@ -108,12 +108,38 @@
     gap: 0.5rem;
 }
 
+.sn-react-total-signals-markers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+}
+
+.sn-react-total-signals-markers li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.sn-react-total-signals-marker-label {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
 @media (max-width: 767px) {
     .sn-react-context-list {
         grid-template-columns: 1fr;
     }
 
     .sn-react-item-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .sn-react-total-signals-markers li {
         align-items: flex-start;
         flex-direction: column;
     }
