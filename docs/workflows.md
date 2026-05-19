@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **38 workflow files** in `.github/workflows/`. All workflows
+This project has **40 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -18,6 +18,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Test**               | [test.yml](../.github/workflows/test.yml)                             | push, PR, manual | `Test (Python 3.11)` / `3.12` / `3.13` | Runs pytest across Python 3.11–3.13 matrix      |
 | **Lint + Format**      | [lint-format.yml](../.github/workflows/lint-format.yml)               | push, PR, manual | `Ruff (lint & format)`                 | Ruff linting and format checks                  |
 | **Type Check**         | [type-check.yml](../.github/workflows/type-check.yml)                 | push, PR, manual | `mypy (strict)`                        | mypy strict mode against `src/`                 |
+| **UV Lock Drift**      | [uv-lock-drift.yml](../.github/workflows/uv-lock-drift.yml)           | push, PR, manual | `uv.lock drift check`                  | Fails when `uv.lock` is out of sync with `pyproject.toml` |
 | **Web Frontend**       | [web-frontend.yml](../.github/workflows/web-frontend.yml)             | push (path-filtered), PR (path-filtered), manual | `Web (lint)` / `typecheck` / `test` / `build` / `audit` | Runs Phase 0 React frontend quality and security checks |
 | **Coverage**           | [coverage.yml](../.github/workflows/coverage.yml)                     | push, PR, manual | `Test + upload coverage`               | pytest with coverage, uploads to Codecov        |
 | **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes                   |
@@ -78,6 +79,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target                                      | `Auto-approve & merge`        | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes                     |
 | **Cache Cleanup**         | [cache-cleanup.yml](../.github/workflows/cache-cleanup.yml)                 | PR closed, manual                                        | `Clean branch caches`         | Deletes GitHub Actions caches for closed/merged PR branches to prevent cache eviction of main |
 | **Regenerate Files**      | [regenerate-files.yml](../.github/workflows/regenerate-files.yml)           | weekly, manual                                           | `Regenerate derived files`    | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR      |
+| **UV Lock Refresh**       | [uv-lock-refresh.yml](../.github/workflows/uv-lock-refresh.yml)             | weekly, manual                                           | `Refresh uv.lock`             | Runs `uv lock --upgrade` and opens a PR when `uv.lock` changes                                |
 | **Known Issues Check**    | [known-issues-check.yml](../.github/workflows/known-issues-check.yml)       | weekly, tag push (v\*), manual                           | `Check stale resolved issues` | Flags stale entries in docs/known-issues.md Resolved table                                    |
 | **Repo Doctor**           | [repo-doctor.yml](../.github/workflows/repo-doctor.yml)                     | push, PR, manual                                         | `Repo health check`           | Warn-only repo structure checks (missing files, broken conventions)                           |
 | **Doctor All**            | [doctor-all.yml](../.github/workflows/doctor-all.yml)                       | push, PR, weekly, manual                                 | `Full health check`           | Runs all doctor scripts (env, repo, git, TODOs, known issues, diagnostics) — warn-only        |
@@ -116,6 +118,7 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 | --------------------------- | --------------------- |
 | `Ruff (lint & format)`      | lint-format.yml       |
 | `mypy (strict)`             | type-check.yml        |
+| `uv.lock drift check`       | uv-lock-drift.yml     |
 | `Spell check (codespell)`   | spellcheck.yml        |
 | `Test + upload coverage`    | coverage.yml          |
 | `Test (Python 3.11)`        | test.yml              |
@@ -153,6 +156,7 @@ Not a workflow, but automated dependency updates via
 
 - **GitHub Actions** — Weekly updates, grouped by minor/patch
 - **Python (pip)** — Weekly updates for dependencies
+- **Python (uv)** — Weekly updates for the pinned `uv.lock` graph
 
 ---
 

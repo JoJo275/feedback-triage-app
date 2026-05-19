@@ -107,6 +107,7 @@ jobs:
               // Core quality
               'Ruff (lint & format)',      // lint-format.yml → lint
               'mypy (strict)',             // type-check.yml → type-check
+              'uv.lock drift check',       // uv-lock-drift.yml → drift
               'Spell check (codespell)',   // spellcheck.yml → spellcheck
               'Test + upload coverage',    // coverage.yml → coverage
 
