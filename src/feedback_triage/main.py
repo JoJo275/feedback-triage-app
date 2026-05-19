@@ -101,7 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             auth_hashing.warmup()
 
         if (
-            settings.react_authenticated_routes_enabled
+            settings.react_routes_enabled
             and settings.react_manifest_validate_on_startup
         ):
             missing_entries = validate_react_manifest(settings.react_required_entries)

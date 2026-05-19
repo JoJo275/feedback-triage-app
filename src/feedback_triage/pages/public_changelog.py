@@ -17,14 +17,18 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session as DbSession
 from sqlmodel import col, select
 from starlette.requests import Request
+from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.enums import Status
 from feedback_triage.models import FeedbackItem, Workspace
+from feedback_triage.pages.react_shell import (
+    get_runtime_settings,
+    maybe_render_public_react_shell,
+)
 from feedback_triage.templating import templates
 
 router = APIRouter(include_in_schema=False)
@@ -44,7 +48,7 @@ def public_changelog_page(
     slug: str,
     request: Request,
     db: DbDep,
-) -> HTMLResponse:
+) -> Response:
     """Render the public changelog for workspace ``slug``."""
     workspace = db.execute(
         select(Workspace).where(col(Workspace.slug) == slug),
@@ -70,12 +74,27 @@ def public_changelog_page(
             "id": item.id,
             "title": item.title,
             "release_note": item.release_note,
-            "shipped_at": item.updated_at,
             "shipped_at_iso": item.updated_at.isoformat(),
             "shipped_at_label": item.updated_at.strftime("%Y-%m-%d"),
         }
         for item in items
     ]
+
+    settings = get_runtime_settings(request)
+    react_response = maybe_render_public_react_shell(
+        request,
+        enabled=settings.feature_react_public_changelog,
+        page_key="public_changelog",
+        page_title="Public changelog",
+        route_payload={
+            "workspace_slug": workspace.slug,
+            "workspace_name": workspace.name,
+            "entries": entries,
+        },
+    )
+    if react_response is not None:
+        react_response.headers["Cache-Control"] = _CACHE_CONTROL
+        return react_response
 
     response = templates.TemplateResponse(
         request,

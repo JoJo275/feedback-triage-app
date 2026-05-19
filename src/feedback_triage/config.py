@@ -68,6 +68,18 @@ class Settings(BaseSettings):
     feature_react_settings: bool = Field(default=False)
     """Enable React for ``/w/{slug}/settings``."""
 
+    feature_react_landing: bool = Field(default=False)
+    """Enable React for ``/`` (public landing page)."""
+
+    feature_react_public_submit: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/submit``."""
+
+    feature_react_public_roadmap: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/roadmap/public``."""
+
+    feature_react_public_changelog: bool = Field(default=False)
+    """Enable React for ``/w/{slug}/changelog/public``."""
+
     react_manifest_validate_on_startup: bool = Field(default=True)
     """Fail closed at startup when required manifest entries are missing."""
 
@@ -273,6 +285,25 @@ class Settings(BaseSettings):
                 self.feature_react_insights,
                 self.feature_react_settings,
             )
+        )
+
+    @property
+    def react_public_routes_enabled(self) -> bool:
+        """Return ``True`` when any public React route flag is enabled."""
+        return any(
+            (
+                self.feature_react_landing,
+                self.feature_react_public_submit,
+                self.feature_react_public_roadmap,
+                self.feature_react_public_changelog,
+            )
+        )
+
+    @property
+    def react_routes_enabled(self) -> bool:
+        """Return ``True`` when any React route group is enabled."""
+        return (
+            self.react_authenticated_routes_enabled or self.react_public_routes_enabled
         )
 
     @property
