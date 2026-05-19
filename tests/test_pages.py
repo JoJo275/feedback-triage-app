@@ -45,15 +45,14 @@ def _remove_workspace_access(email: str) -> None:
 
 
 def test_index_page_serves_landing(client: TestClient) -> None:
-    """ "/" now renders the v2 Jinja landing page (PR 3.4)."""
+    """ "/" now renders the v2 React public shell page."""
     response = client.get("/")
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     body = response.text
-    assert "SignalNest" in body
-    assert "Capture the noise. Find the signal." in body
-    assert 'id="landing-demo"' in body
-    assert "/static/js/landing_demo.js" in body
+    assert 'id="sn-react-app-root"' in body
+    assert 'data-page-key="landing"' in body
+    assert 'id="sn-react-route-payload"' in body
     assert response.headers.get("cache-control", "").startswith("public, max-age=300")
 
 
@@ -188,7 +187,6 @@ def test_static_js_modules_are_served(client: TestClient) -> None:
         "/static/js/index.js",
         "/static/js/new.js",
         "/static/js/detail.js",
-        "/static/js/landing_demo.js",
         "/static/js/styleguide.js",
     ):
         response = client.get(path)

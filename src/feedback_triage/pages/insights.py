@@ -31,11 +31,7 @@ from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.models import FeedbackItem, FeedbackTag, Tag, Workspace
-from feedback_triage.pages.react_shell import (
-    get_runtime_settings,
-    maybe_render_workspace_react_shell,
-)
-from feedback_triage.templating import templates
+from feedback_triage.pages.react_shell import maybe_render_workspace_react_shell
 from feedback_triage.tenancy import WorkspaceContextDep
 
 router = APIRouter(include_in_schema=False)
@@ -182,76 +178,13 @@ def insights_page(
     workspace = db.get(Workspace, ctx.id)
     assert workspace is not None
 
-    settings = get_runtime_settings(request)
-    react_response = maybe_render_workspace_react_shell(
+    return maybe_render_workspace_react_shell(
         request,
-        enabled=settings.feature_react_insights,
         workspace_slug=workspace.slug,
         workspace_name=workspace.name,
         active_section="insights",
         page_key="insights",
         page_title="Insights",
-    )
-    if react_response is not None:
-        return react_response
-
-    total_items = int(
-        db.execute(
-            select(func.count())
-            .select_from(FeedbackItem)
-            .where(col(FeedbackItem.workspace_id) == ctx.id),
-        ).scalar_one()
-    )
-
-    if total_items < MIN_ITEMS_FOR_INSIGHTS:
-        return templates.TemplateResponse(
-            request,
-            "pages/insights.html",
-            {
-                "workspace_slug": workspace.slug,
-                "workspace_name": workspace.name,
-                "active": "insights",
-                "insights": None,
-                "min_items": MIN_ITEMS_FOR_INSIGHTS,
-                "total_items": total_items,
-            },
-        )
-
-    top_tags = _top_tags(db, ctx.id)
-    status_mix = _status_mix(db, ctx.id)
-    pain = _pain_histogram(db, ctx.id)
-
-    insights = Insights(
-        total_items=total_items,
-        top_tags=top_tags,
-        top_tags_max=max((t.count for t in top_tags), default=0),
-        status_mix=status_mix,
-        pain_histogram=pain,
-        pain_histogram_max=max((p.count for p in pain), default=0),
-    )
-
-    # Pre-compute the donut arcs so the template stays free of
-    # trig — Jinja can express the `_arc_path` math but it would be
-    # harder to read than this lookup table.
-    cx, cy, radius = 100.0, 100.0, 80.0
-    arcs = [(slice_, _arc_path(cx, cy, radius, slice_)) for slice_ in status_mix]
-
-    return templates.TemplateResponse(
-        request,
-        "pages/insights.html",
-        {
-            "workspace_slug": workspace.slug,
-            "workspace_name": workspace.name,
-            "active": "insights",
-            "insights": insights,
-            "donut_arcs": arcs,
-            "donut_inner_r": 45,
-            "donut_cx": cx,
-            "donut_cy": cy,
-            "donut_r": radius,
-            "min_items": MIN_ITEMS_FOR_INSIGHTS,
-            "total_items": total_items,
-        },
     )
 
 

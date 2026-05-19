@@ -25,11 +25,7 @@ from starlette.responses import Response
 from feedback_triage.database import get_db
 from feedback_triage.enums import Status
 from feedback_triage.models import FeedbackItem, Workspace
-from feedback_triage.pages.react_shell import (
-    get_runtime_settings,
-    maybe_render_public_react_shell,
-)
-from feedback_triage.templating import templates
+from feedback_triage.pages.react_shell import maybe_render_public_react_shell
 
 router = APIRouter(include_in_schema=False)
 
@@ -80,10 +76,8 @@ def public_changelog_page(
         for item in items
     ]
 
-    settings = get_runtime_settings(request)
     react_response = maybe_render_public_react_shell(
         request,
-        enabled=settings.feature_react_public_changelog,
         page_key="public_changelog",
         page_title="Public changelog",
         route_payload={
@@ -92,18 +86,5 @@ def public_changelog_page(
             "entries": entries,
         },
     )
-    if react_response is not None:
-        react_response.headers["Cache-Control"] = _CACHE_CONTROL
-        return react_response
-
-    response = templates.TemplateResponse(
-        request,
-        "pages/public/changelog.html",
-        {
-            "workspace_slug": workspace.slug,
-            "workspace_name": workspace.name,
-            "entries": entries,
-        },
-    )
-    response.headers["Cache-Control"] = _CACHE_CONTROL
-    return response
+    react_response.headers["Cache-Control"] = _CACHE_CONTROL
+    return react_response

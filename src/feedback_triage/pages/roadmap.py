@@ -3,11 +3,7 @@
 Mounted at ``/w/{slug}/roadmap``. Authenticated; resolves through
 :class:`WorkspaceContextDep` so cross-tenant probes 404 (ADR 060).
 
-The shell is server-rendered and seeds the workspace slug into the
-DOM; ``static/js/roadmap.js`` boots the kanban, fetches feedback in
-the three roadmap statuses (``planned`` / ``in_progress`` /
-``shipped``), renders cards, and wires the column-move + publish
-toggle controls against ``PATCH /api/v1/feedback/{id}``.
+Phase 4 serves this route through the shared React shell.
 
 Per ``docs/project/spec/v2/information-architecture.md`` -- Roadmap (management).
 """
@@ -23,11 +19,7 @@ from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.models import Workspace
-from feedback_triage.pages.react_shell import (
-    get_runtime_settings,
-    maybe_render_workspace_react_shell,
-)
-from feedback_triage.templating import templates
+from feedback_triage.pages.react_shell import maybe_render_workspace_react_shell
 from feedback_triage.tenancy import WorkspaceContextDep
 
 router = APIRouter(include_in_schema=False)
@@ -48,25 +40,11 @@ def roadmap_page(
     workspace = db.get(Workspace, ctx.id)
     assert workspace is not None
 
-    settings = get_runtime_settings(request)
-    react_response = maybe_render_workspace_react_shell(
+    return maybe_render_workspace_react_shell(
         request,
-        enabled=settings.feature_react_roadmap,
         workspace_slug=workspace.slug,
         workspace_name=workspace.name,
         active_section="roadmap",
         page_key="roadmap",
         page_title="Roadmap",
-    )
-    if react_response is not None:
-        return react_response
-
-    return templates.TemplateResponse(
-        request,
-        "pages/roadmap.html",
-        {
-            "workspace_slug": workspace.slug,
-            "workspace_name": workspace.name,
-            "active": "roadmap",
-        },
     )

@@ -1,7 +1,7 @@
 """Phase 3 React public-page route tests.
 
-Covers per-page feature flags for public routes, legacy fallback via
-``?view=legacy``, and cache-header parity on cached public pages.
+Covers public route shell rendering and cache-header parity on cached
+public pages.
 """
 
 from __future__ import annotations
@@ -67,25 +67,16 @@ def _restore_manifest(existed: bool, previous: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("flag_name", "route_template", "page_key"),
+    ("route_template", "page_key"),
     [
-        ("feature_react_landing", "/", "landing"),
-        ("feature_react_public_submit", "/w/{slug}/submit", "public_submit"),
-        (
-            "feature_react_public_roadmap",
-            "/w/{slug}/roadmap/public",
-            "public_roadmap",
-        ),
-        (
-            "feature_react_public_changelog",
-            "/w/{slug}/changelog/public",
-            "public_changelog",
-        ),
+        ("/", "landing"),
+        ("/w/{slug}/submit", "public_submit"),
+        ("/w/{slug}/roadmap/public", "public_roadmap"),
+        ("/w/{slug}/changelog/public", "public_changelog"),
     ],
 )
-def test_public_page_route_renders_react_shell_when_flag_enabled(
+def test_public_page_route_renders_react_shell(
     truncate_auth_world: None,
-    flag_name: str,
     route_template: str,
     page_key: str,
 ) -> None:
@@ -100,7 +91,6 @@ def test_public_page_route_renders_react_shell_when_flag_enabled(
     settings = Settings(
         _env_file=None,
         react_manifest_validate_on_startup=False,
-        **{flag_name: True},
     )
     app = create_app(settings)
 
@@ -119,7 +109,6 @@ def test_public_page_route_renders_react_shell_when_flag_enabled(
         text = resp.text
         assert 'id="sn-react-app-root"' in text
         assert f'data-page-key="{page_key}"' in text
-        assert "Open classic page" in text
         assert "/static/app/assets/index-phase3.js" in text
         assert "/static/app/assets/index-phase3.css" in text
     finally:
@@ -127,31 +116,18 @@ def test_public_page_route_renders_react_shell_when_flag_enabled(
 
 
 @pytest.mark.parametrize(
-    ("flag_name", "route_template", "expected_fragment"),
+    ("route_template", "payload_fragment"),
     [
-        ("feature_react_landing", "/", 'id="landing-demo"'),
-        (
-            "feature_react_public_submit",
-            "/w/{slug}/submit",
-            'id="submit-form"',
-        ),
-        (
-            "feature_react_public_roadmap",
-            "/w/{slug}/roadmap/public",
-            "Nothing on the public roadmap yet.",
-        ),
-        (
-            "feature_react_public_changelog",
-            "/w/{slug}/changelog/public",
-            "Nothing shipped yet.",
-        ),
+        ("/", '"primary_workspace_slug":null'),
+        ("/w/{slug}/submit", '"workspace_slug":"'),
+        ("/w/{slug}/roadmap/public", '"columns":{'),
+        ("/w/{slug}/changelog/public", '"entries":['),
     ],
 )
-def test_public_page_route_honors_legacy_view_query_param(
+def test_public_page_route_ignores_legacy_view_query_param(
     truncate_auth_world: None,
-    flag_name: str,
     route_template: str,
-    expected_fragment: str,
+    payload_fragment: str,
 ) -> None:
     manifest_payload = {
         "index.html": {
@@ -164,7 +140,6 @@ def test_public_page_route_honors_legacy_view_query_param(
     settings = Settings(
         _env_file=None,
         react_manifest_validate_on_startup=False,
-        **{flag_name: True},
     )
     app = create_app(settings)
 
@@ -172,7 +147,7 @@ def test_public_page_route_honors_legacy_view_query_param(
         with TestClient(app) as client:
             route = route_template
             if "{slug}" in route_template:
-                body = _signup_and_login(client, f"legacy-{flag_name}@example.com")
+                body = _signup_and_login(client, "legacy@example.com")
                 slug = _first_slug(body)
                 route = route_template.format(slug=slug)
                 client.cookies.clear()
@@ -180,22 +155,21 @@ def test_public_page_route_honors_legacy_view_query_param(
             resp = client.get(f"{route}?view=legacy")
 
         assert resp.status_code == 200, resp.text
-        assert 'id="sn-react-app-root"' not in resp.text
-        assert expected_fragment in resp.text
+        assert 'id="sn-react-app-root"' in resp.text
+        assert payload_fragment in resp.text
     finally:
         _restore_manifest(existed, previous)
 
 
 @pytest.mark.parametrize(
-    ("flag_name", "route_template"),
+    "route_template",
     [
-        ("feature_react_public_roadmap", "/w/{slug}/roadmap/public"),
-        ("feature_react_public_changelog", "/w/{slug}/changelog/public"),
+        "/w/{slug}/roadmap/public",
+        "/w/{slug}/changelog/public",
     ],
 )
 def test_react_public_cached_routes_preserve_cache_headers(
     truncate_auth_world: None,
-    flag_name: str,
     route_template: str,
 ) -> None:
     manifest_payload = {
@@ -209,13 +183,12 @@ def test_react_public_cached_routes_preserve_cache_headers(
     settings = Settings(
         _env_file=None,
         react_manifest_validate_on_startup=False,
-        **{flag_name: True},
     )
     app = create_app(settings)
 
     try:
         with TestClient(app) as client:
-            body = _signup_and_login(client, f"cache-{flag_name}@example.com")
+            body = _signup_and_login(client, "cache-owner@example.com")
             slug = _first_slug(body)
             client.cookies.clear()
 

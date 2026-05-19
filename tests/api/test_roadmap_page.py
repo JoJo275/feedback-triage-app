@@ -1,11 +1,7 @@
-"""PR 3.3 -- management roadmap kanban page tests.
+"""PR 3.3 -- management roadmap page tests.
 
-The kanban page itself is a thin shell: it requires auth, resolves the
-workspace through ``WorkspaceContextDep`` (so unknown / cross-tenant
-slugs 404), and seeds the workspace slug into the DOM for
-``static/js/roadmap.js`` to read. The actual data flow goes through
-the v2 list + PATCH endpoints already covered by their own tests --
-here we only assert the page-level guards.
+Phase 4 serves the route through the shared React shell. These tests
+focus on auth/tenancy guards and shell metadata contract.
 """
 
 from __future__ import annotations
@@ -107,13 +103,7 @@ def test_roadmap_page_renders_kanban_shell(
 
     assert resp.status_code == 200
     body = resp.text
-    # Slug is seeded into the DOM for the JS module.
+    assert 'id="sn-react-app-root"' in body
     assert f'data-workspace-slug="{slug}"' in body
-    # All three columns render server-side.
-    assert 'data-column="planned"' in body
-    assert 'data-column="in_progress"' in body
-    assert 'data-column="shipped"' in body
-    # Inert template is present so the JS can clone cards.
-    assert 'id="kanban-card-template"' in body
-    # The roadmap.js module is wired.
-    assert "/static/js/roadmap.js" in body
+    assert 'data-page-key="roadmap"' in body
+    assert 'data-active-section="roadmap"' in body

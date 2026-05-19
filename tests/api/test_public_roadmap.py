@@ -136,7 +136,8 @@ def test_public_roadmap_renders_without_auth_and_sets_cache_header(
         resp.headers["cache-control"]
         == "public, max-age=300, stale-while-revalidate=600"
     )
-    assert "roadmap" in resp.text.lower()
+    assert 'id="sn-react-app-root"' in resp.text
+    assert 'data-page-key="public_roadmap"' in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -255,4 +256,4 @@ def test_public_roadmap_empty_state_when_nothing_published(
     auth_client.cookies.clear()
     resp = auth_client.get(f"/w/{slug}/roadmap/public")
     assert resp.status_code == 200
-    assert "Nothing on the public roadmap yet" in resp.text
+    assert '"is_empty":true' in resp.text

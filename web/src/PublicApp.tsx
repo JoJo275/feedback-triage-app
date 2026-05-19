@@ -14,7 +14,6 @@ export type PublicPageKey =
 
 export interface PublicAppProps {
     pageKey: PublicPageKey;
-    legacyUrl: string;
     clientRelease: string;
     routePayload: unknown;
 }
@@ -500,10 +499,8 @@ function buildSubmitPayload(formData: FormData): PublicFeedbackSubmitRequest {
 
 function LandingPage({
     primaryWorkspaceSlug,
-    legacyUrl,
 }: {
     primaryWorkspaceSlug: string | null;
-    legacyUrl: string;
 }): JSX.Element {
     const [query, setQuery] = useState("");
     const [items, setItems] = useState<DemoItem[]>(
@@ -570,14 +567,6 @@ function LandingPage({
                                     </a>
                                 </>
                             )}
-                        </p>
-                        <p>
-                            <a
-                                className="sn-button sn-button-secondary"
-                                href={legacyUrl}
-                            >
-                                Open classic page
-                            </a>
                         </p>
                     </div>
                 </section>
@@ -712,12 +701,10 @@ function LandingPage({
 function PublicSubmitPage({
     workspaceSlug,
     workspaceName,
-    legacyUrl,
     clientRelease,
 }: {
     workspaceSlug: string;
     workspaceName: string;
-    legacyUrl: string;
     clientRelease: string;
 }): JSX.Element {
     const formRef = useRef<HTMLFormElement | null>(null);
@@ -760,14 +747,6 @@ function PublicSubmitPage({
                         <p className="sn-text-danger">
                             Workspace context is missing for this route.
                         </p>
-                        <p>
-                            <a
-                                className="sn-button sn-button-secondary"
-                                href={legacyUrl}
-                            >
-                                Open classic page
-                            </a>
-                        </p>
                     </section>
                 </div>
             </main>
@@ -782,14 +761,6 @@ function PublicSubmitPage({
                     <p className="sn-text-muted">
                         Share an idea, bug, or pain point with the{" "}
                         {workspaceName} team.
-                    </p>
-                    <p>
-                        <a
-                            className="sn-button sn-button-secondary"
-                            href={legacyUrl}
-                        >
-                            Open classic page
-                        </a>
                     </p>
                 </header>
 
@@ -977,10 +948,8 @@ function PublicSubmitPage({
 
 function PublicRoadmapPage({
     payload,
-    legacyUrl,
 }: {
     payload: PublicRoadmapPayload;
-    legacyUrl: string;
 }): JSX.Element {
     return (
         <main
@@ -993,14 +962,6 @@ function PublicRoadmapPage({
                     <h1>{payload.workspace_name} roadmap</h1>
                     <p className="sn-text-muted">
                         What we are working on, in plain view.
-                    </p>
-                    <p>
-                        <a
-                            className="sn-button sn-button-secondary"
-                            href={legacyUrl}
-                        >
-                            Open classic page
-                        </a>
                     </p>
                 </header>
 
@@ -1099,10 +1060,8 @@ function PublicRoadmapPage({
 
 function PublicChangelogPage({
     payload,
-    legacyUrl,
 }: {
     payload: PublicChangelogPayload;
-    legacyUrl: string;
 }): JSX.Element {
     return (
         <main
@@ -1115,14 +1074,6 @@ function PublicChangelogPage({
                     <h1>{payload.workspace_name} changelog</h1>
                     <p className="sn-text-muted">
                         Recent improvements, in shipping order.
-                    </p>
-                    <p>
-                        <a
-                            className="sn-button sn-button-secondary"
-                            href={legacyUrl}
-                        >
-                            Open classic page
-                        </a>
                     </p>
                 </header>
 
@@ -1166,7 +1117,6 @@ function PublicChangelogPage({
 
 export function PublicApp({
     pageKey,
-    legacyUrl,
     clientRelease,
     routePayload,
 }: PublicAppProps): JSX.Element {
@@ -1176,7 +1126,6 @@ export function PublicApp({
             return (
                 <LandingPage
                     primaryWorkspaceSlug={payload.primary_workspace_slug}
-                    legacyUrl={legacyUrl}
                 />
             );
         }
@@ -1187,7 +1136,6 @@ export function PublicApp({
                 <PublicSubmitPage
                     workspaceSlug={payload.workspace_slug}
                     workspaceName={payload.workspace_name}
-                    legacyUrl={legacyUrl}
                     clientRelease={clientRelease}
                 />
             );
@@ -1195,16 +1143,12 @@ export function PublicApp({
 
         case "public_roadmap": {
             const payload = parseRoadmapPayload(routePayload);
-            return (
-                <PublicRoadmapPage payload={payload} legacyUrl={legacyUrl} />
-            );
+            return <PublicRoadmapPage payload={payload} />;
         }
 
         case "public_changelog": {
             const payload = parseChangelogPayload(routePayload);
-            return (
-                <PublicChangelogPage payload={payload} legacyUrl={legacyUrl} />
-            );
+            return <PublicChangelogPage payload={payload} />;
         }
 
         default:
@@ -1215,14 +1159,6 @@ export function PublicApp({
                             <h1>Unsupported page</h1>
                             <p className="sn-text-muted">
                                 This public React route is not implemented.
-                            </p>
-                            <p>
-                                <a
-                                    className="sn-button sn-button-secondary"
-                                    href={legacyUrl}
-                                >
-                                    Open classic page
-                                </a>
                             </p>
                         </section>
                     </div>

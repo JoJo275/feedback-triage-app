@@ -52,8 +52,11 @@ def test_submitters_list_renders_for_member(auth_client: TestClient) -> None:
 
     resp = auth_client.get(f"/w/{slug}/submitters")
     assert resp.status_code == 200, resp.text
-    assert "submitters" in resp.text.lower()
-    assert "submitters.js" in resp.text
+    body = resp.text
+    assert 'id="sn-react-app-root"' in body
+    assert f'data-workspace-slug="{slug}"' in body
+    assert 'data-page-key="submitters"' in body
+    assert 'data-active-section="submitters"' in body
 
 
 def test_submitters_list_anonymous_returns_401(auth_client: TestClient) -> None:

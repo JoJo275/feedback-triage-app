@@ -24,11 +24,7 @@ from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.models import Workspace
-from feedback_triage.pages.react_shell import (
-    get_runtime_settings,
-    maybe_render_public_react_shell,
-)
-from feedback_triage.templating import templates
+from feedback_triage.pages.react_shell import maybe_render_public_react_shell
 
 router = APIRouter(include_in_schema=False)
 
@@ -61,24 +57,11 @@ def public_submit_page(
             detail={"code": "not_found", "message": "Workspace not found."},
         )
 
-    settings = get_runtime_settings(request)
-    react_response = maybe_render_public_react_shell(
+    return maybe_render_public_react_shell(
         request,
-        enabled=settings.feature_react_public_submit,
         page_key="public_submit",
         page_title="Submit feedback",
         route_payload={
-            "workspace_slug": workspace.slug,
-            "workspace_name": workspace.name,
-        },
-    )
-    if react_response is not None:
-        return react_response
-
-    return templates.TemplateResponse(
-        request,
-        "pages/public_submit.html",
-        {
             "workspace_slug": workspace.slug,
             "workspace_name": workspace.name,
         },

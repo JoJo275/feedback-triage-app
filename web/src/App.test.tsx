@@ -53,7 +53,6 @@ describe("App", () => {
                 workspaceName="Demo Owner"
                 activeSection="dashboard"
                 pageKey="dashboard"
-                legacyUrl="/w/demo-owner/dashboard?view=legacy"
                 clientRelease="react-test"
             />,
         );

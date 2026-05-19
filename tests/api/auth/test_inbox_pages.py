@@ -54,10 +54,11 @@ def test_inbox_renders_for_member(auth_client: TestClient) -> None:
 
     resp = auth_client.get(f"/w/{slug}/inbox")
     assert resp.status_code == 200, resp.text
-    assert "inbox" in resp.text.lower()
-    assert slug in resp.text
-    # The inbox JS bundle must be referenced.
-    assert "inbox.js" in resp.text
+    body = resp.text
+    assert 'id="sn-react-app-root"' in body
+    assert f'data-workspace-slug="{slug}"' in body
+    assert 'data-page-key="inbox"' in body
+    assert 'data-active-section="inbox"' in body
 
 
 def test_feedback_list_renders_for_member(auth_client: TestClient) -> None:
@@ -66,9 +67,11 @@ def test_feedback_list_renders_for_member(auth_client: TestClient) -> None:
 
     resp = auth_client.get(f"/w/{slug}/feedback")
     assert resp.status_code == 200, resp.text
-    assert "feedback" in resp.text.lower()
-    # Feedback list shares the inbox shell + script.
-    assert "inbox.js" in resp.text
+    body = resp.text
+    assert 'id="sn-react-app-root"' in body
+    assert f'data-workspace-slug="{slug}"' in body
+    assert 'data-page-key="feedback"' in body
+    assert 'data-active-section="feedback"' in body
 
 
 def test_feedback_new_renders_for_member(auth_client: TestClient) -> None:

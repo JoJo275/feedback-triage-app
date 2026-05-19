@@ -1,4 +1,4 @@
-# React Frontend App (Phase 2)
+# React Frontend App
 
 This directory contains the Vite + React + TypeScript frontend used for the
 React migration track.
@@ -14,9 +14,9 @@ Phase 2 extends the Phase 1 shell with authenticated page routes:
 - settings
 
 Route identity is passed from FastAPI templates through mount-node
-data attributes (`data-page-key`, `data-active-section`, and
-`data-legacy-url`) so one Vite entrypoint can render multiple
-authenticated page surfaces behind feature flags.
+data attributes (`data-page-key` and `data-active-section`) so one
+Vite entrypoint can render both authenticated and public page
+surfaces.
 
 ## Toolchain
 

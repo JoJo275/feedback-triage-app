@@ -167,11 +167,10 @@ def test_settings_page_renders_for_owner(auth_client: TestClient) -> None:
     resp = auth_client.get(f"/w/{slug}/settings")
     assert resp.status_code == 200
     text = resp.text
-    # Owner sections are present.
-    assert 'id="workspace-form"' in text
-    assert 'id="public-submit-form"' in text
-    assert 'id="invite-form"' in text
-    assert 'id="tag-form"' in text
+    assert 'id="sn-react-app-root"' in text
+    assert f'data-workspace-slug="{slug}"' in text
+    assert 'data-page-key="settings"' in text
+    assert 'data-active-section="settings"' in text
 
 
 def test_settings_page_unknown_slug_returns_404(auth_client: TestClient) -> None:

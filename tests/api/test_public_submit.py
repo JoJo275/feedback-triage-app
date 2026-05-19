@@ -74,9 +74,10 @@ def test_public_submit_page_renders_for_known_slug(
 
     resp = auth_client.get(f"/w/{slug}/submit")
     assert resp.status_code == 200
-    assert "Submit feedback" in resp.text
-    # Honeypot field is in the markup so bots find it.
-    assert 'name="website"' in resp.text
+    body = resp.text
+    assert 'id="sn-react-app-root"' in body
+    assert 'data-page-key="public_submit"' in body
+    assert f'"workspace_slug":"{slug}"' in body
 
 
 def test_public_submit_api_unknown_slug_returns_404(

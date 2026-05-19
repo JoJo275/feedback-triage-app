@@ -1,7 +1,7 @@
-"""Phase 0 React dashboard route tests.
+"""React dashboard route tests.
 
-Covers manifest fail-closed startup validation, route fallback behavior,
-and CSP/header handling for the Vite-backed React shell route.
+Covers manifest fail-closed startup validation and CSP/header handling
+for the Vite-backed React shell route.
 """
 
 from __future__ import annotations
@@ -68,7 +68,6 @@ def test_react_route_startup_fails_closed_when_required_manifest_key_missing(
 ) -> None:
     settings = Settings(
         _env_file=None,
-        feature_react_dashboard=True,
         react_manifest_required_entries="missing-entry.html",
     )
     app = create_app(settings)
@@ -83,12 +82,11 @@ def test_react_route_startup_fails_closed_when_required_manifest_key_missing(
         pass
 
 
-def test_react_route_falls_back_to_legacy_dashboard_when_entry_missing(
+def test_react_route_returns_503_when_entry_is_missing(
     truncate_auth_world: None,
 ) -> None:
     settings = Settings(
         _env_file=None,
-        feature_react_dashboard=True,
         react_manifest_validate_on_startup=False,
         react_dashboard_entrypoint="missing-entry.html",
     )
@@ -98,13 +96,10 @@ def test_react_route_falls_back_to_legacy_dashboard_when_entry_missing(
         body = _signup_and_login(client, "owner@example.com")
         slug = body["memberships"][0]["workspace_slug"]
 
-        resp = client.get(
-            f"/w/{slug}/dashboard/react",
-            follow_redirects=False,
-        )
+        resp = client.get(f"/w/{slug}/dashboard", follow_redirects=False)
 
-    assert resp.status_code == 307
-    assert resp.headers.get("location") == f"/w/{slug}/dashboard"
+    assert resp.status_code == 503
+    assert "React frontend assets are unavailable." in resp.text
 
 
 def test_react_route_renders_vite_assets_and_csp_header_when_manifest_exists(
@@ -120,7 +115,6 @@ def test_react_route_renders_vite_assets_and_csp_header_when_manifest_exists(
 
     settings = Settings(
         _env_file=None,
-        feature_react_dashboard=True,
         react_manifest_required_entries="index.html",
         react_dashboard_entrypoint="index.html",
         react_csp_enabled=True,
@@ -132,7 +126,7 @@ def test_react_route_renders_vite_assets_and_csp_header_when_manifest_exists(
             body = _signup_and_login(client, "owner@example.com")
             slug = body["memberships"][0]["workspace_slug"]
 
-            resp = client.get(f"/w/{slug}/dashboard/react")
+            resp = client.get(f"/w/{slug}/dashboard")
 
         assert resp.status_code == 200, resp.text
         assert 'id="sn-react-app-root"' in resp.text

@@ -75,24 +75,6 @@ function parseRoutePayload(): unknown {
     }
 }
 
-function defaultLegacyUrl(
-    pageKey: RoutePageKey,
-    workspaceSlug: string,
-): string {
-    switch (pageKey) {
-        case "landing":
-            return "/";
-        case "public_submit":
-            return `/w/${workspaceSlug}/submit`;
-        case "public_roadmap":
-            return `/w/${workspaceSlug}/roadmap/public`;
-        case "public_changelog":
-            return `/w/${workspaceSlug}/changelog/public`;
-        default:
-            return `/w/${workspaceSlug}/${pageKey}`;
-    }
-}
-
 const mountNode = document.getElementById("sn-react-app-root");
 
 if (!mountNode) {
@@ -105,8 +87,6 @@ const activeSection = parseSection(
     mountNode.dataset.activeSection ?? "dashboard",
 );
 const pageKey = parsePageKey(mountNode.dataset.pageKey ?? activeSection);
-const legacyUrl =
-    mountNode.dataset.legacyUrl ?? defaultLegacyUrl(pageKey, workspaceSlug);
 const clientRelease =
     mountNode.dataset.clientRelease ?? "react-phase3-public-pages";
 const routePayload = parseRoutePayload();
@@ -119,13 +99,11 @@ createRoot(mountNode).render(
                 workspaceName={workspaceName}
                 activeSection={activeSection}
                 pageKey={pageKey}
-                legacyUrl={legacyUrl}
                 clientRelease={clientRelease}
             />
         ) : (
             <PublicApp
                 pageKey={pageKey}
-                legacyUrl={legacyUrl}
                 clientRelease={clientRelease}
                 routePayload={routePayload}
             />

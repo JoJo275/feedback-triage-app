@@ -1,7 +1,7 @@
 """Phase 2 React authenticated page route tests.
 
-Covers per-page feature flags on existing authenticated routes, legacy
-fallback via ``?view=legacy``, and frontend telemetry ingestion.
+Covers authenticated route shell rendering and frontend telemetry
+ingestion.
 """
 
 from __future__ import annotations
@@ -61,31 +61,20 @@ def _restore_manifest(existed: bool, previous: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("flag_name", "route_template", "page_key", "active_section"),
+    ("route_template", "page_key", "active_section"),
     [
-        ("feature_react_dashboard", "/w/{slug}/dashboard", "dashboard", "dashboard"),
-        ("feature_react_inbox", "/w/{slug}/inbox", "inbox", "inbox"),
-        ("feature_react_inbox", "/w/{slug}/feedback", "feedback", "feedback"),
-        ("feature_react_roadmap", "/w/{slug}/roadmap", "roadmap", "roadmap"),
-        (
-            "feature_react_changelog",
-            "/w/{slug}/changelog",
-            "changelog",
-            "changelog",
-        ),
-        (
-            "feature_react_submitters",
-            "/w/{slug}/submitters",
-            "submitters",
-            "submitters",
-        ),
-        ("feature_react_insights", "/w/{slug}/insights", "insights", "insights"),
-        ("feature_react_settings", "/w/{slug}/settings", "settings", "settings"),
+        ("/w/{slug}/dashboard", "dashboard", "dashboard"),
+        ("/w/{slug}/inbox", "inbox", "inbox"),
+        ("/w/{slug}/feedback", "feedback", "feedback"),
+        ("/w/{slug}/roadmap", "roadmap", "roadmap"),
+        ("/w/{slug}/changelog", "changelog", "changelog"),
+        ("/w/{slug}/submitters", "submitters", "submitters"),
+        ("/w/{slug}/insights", "insights", "insights"),
+        ("/w/{slug}/settings", "settings", "settings"),
     ],
 )
-def test_authenticated_page_route_renders_react_shell_when_flag_enabled(
+def test_authenticated_page_route_renders_react_shell(
     truncate_auth_world: None,
-    flag_name: str,
     route_template: str,
     page_key: str,
     active_section: str,
@@ -101,7 +90,6 @@ def test_authenticated_page_route_renders_react_shell_when_flag_enabled(
     settings = Settings(
         _env_file=None,
         react_manifest_validate_on_startup=False,
-        **{flag_name: True},
     )
     app = create_app(settings)
 
@@ -117,14 +105,13 @@ def test_authenticated_page_route_renders_react_shell_when_flag_enabled(
         assert 'id="sn-react-app-root"' in text
         assert f'data-page-key="{page_key}"' in text
         assert f'data-active-section="{active_section}"' in text
-        assert "Open classic page" in text
         assert "/static/app/assets/index-phase2.js" in text
         assert "/static/app/assets/index-phase2.css" in text
     finally:
         _restore_manifest(existed, previous)
 
 
-def test_react_authenticated_route_honors_legacy_view_query_param(
+def test_react_authenticated_route_ignores_legacy_view_query_param(
     truncate_auth_world: None,
 ) -> None:
     manifest_payload = {
@@ -138,7 +125,6 @@ def test_react_authenticated_route_honors_legacy_view_query_param(
     settings = Settings(
         _env_file=None,
         react_manifest_validate_on_startup=False,
-        feature_react_inbox=True,
     )
     app = create_app(settings)
 
@@ -150,8 +136,8 @@ def test_react_authenticated_route_honors_legacy_view_query_param(
             resp = client.get(f"/w/{slug}/inbox?view=legacy")
 
         assert resp.status_code == 200, resp.text
-        assert "inbox.js" in resp.text
-        assert 'id="sn-react-app-root"' not in resp.text
+        assert 'id="sn-react-app-root"' in resp.text
+        assert 'data-page-key="inbox"' in resp.text
     finally:
         _restore_manifest(existed, previous)
 

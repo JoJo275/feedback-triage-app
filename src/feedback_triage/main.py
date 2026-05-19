@@ -100,17 +100,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if settings.feature_auth:
             auth_hashing.warmup()
 
-        if (
-            settings.react_routes_enabled
-            and settings.react_manifest_validate_on_startup
-        ):
+        if settings.react_manifest_validate_on_startup:
             missing_entries = validate_react_manifest(settings.react_required_entries)
             if missing_entries:
                 missing_display = ", ".join(missing_entries)
                 message = (
                     "React manifest validation failed. Missing required "
-                    f"entrypoint(s): {missing_display}. Build web assets "
-                    "or disable FEATURE_REACT_* route flags."
+                    f"entrypoint(s): {missing_display}. Build web assets."
                 )
                 logger.error(message)
                 raise RuntimeError(message)

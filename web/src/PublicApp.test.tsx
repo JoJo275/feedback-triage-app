@@ -20,7 +20,6 @@ describe("PublicApp", () => {
         render(
             <PublicApp
                 pageKey="public_roadmap"
-                legacyUrl="/w/demo-owner/roadmap/public?view=legacy"
                 clientRelease="react-test"
                 routePayload={{
                     workspace_slug: "demo-owner",
@@ -47,9 +46,6 @@ describe("PublicApp", () => {
             screen.getByRole("heading", { name: "Demo Owner roadmap" }),
         ).toBeInTheDocument();
         expect(screen.getByText("Roadmap visible row")).toBeInTheDocument();
-        expect(
-            screen.getByRole("link", { name: "Open classic page" }),
-        ).toBeInTheDocument();
     });
 
     it("submits public feedback and shows thank-you state", async () => {
@@ -61,7 +57,6 @@ describe("PublicApp", () => {
         render(
             <PublicApp
                 pageKey="public_submit"
-                legacyUrl="/w/demo-owner/submit?view=legacy"
                 clientRelease="react-test"
                 routePayload={{
                     workspace_slug: "demo-owner",

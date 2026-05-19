@@ -1,6 +1,6 @@
 # Full React Migration Plan (Project-Wide)
 
-> Status: execution-ready plan, pending ADR approval gate.
+> Status: migration record; Phases 2-4 implemented.
 > Owner: v2 frontend track.
 > Scope: migrate all user-facing pages from server-rendered HTML + vanilla JS to a React frontend, while keeping FastAPI + Postgres as the backend.
 
@@ -15,10 +15,8 @@ This is intentionally staged so we avoid a big-bang rewrite.
 ## Where this fits in current architecture
 
 - This file is the project-wide React migration plan.
-- ADR 076 is still authoritative for the current React-island pilot only
-   (`/w/{slug}/dashboard/react`).
-- The default dashboard route (`/w/{slug}/dashboard`) remains the shipped
-   production surface until a new ADR explicitly approves full-route replacement.
+- ADR 076 is retained as historical context for the initial React-island pilot.
+- Migrated authenticated and public routes now serve through the shared React shell.
 
 ## Decision gate first
 
@@ -90,7 +88,7 @@ decisions.
 | --- | --- | --- |
 | Frontend package governance | Use npm in `web/` with committed `package-lock.json`, Node LTS 22, Dependabot weekly updates, and CI gate on `npm audit --audit-level=high`. | CI fails on lock drift or high/critical advisories. |
 | CSP and asset-hosting policy | Serve React assets only from same-origin `/static/app/`; no runtime CDN scripts/styles in production. CSP baseline: `script-src 'self'`, `style-src 'self'`, `img-src 'self' data:`, `connect-src 'self'`. | Security tests confirm headers on migrated routes. |
-| Manifest + cache-bust integration | Vite emits `manifest.json`; FastAPI loads and validates required entries at startup. Missing/invalid manifest triggers legacy-route fallback and startup error log. | Startup validation test plus rollback canary. |
+| Manifest + cache-bust integration | Vite emits `manifest.json`; FastAPI loads and validates required entries at startup. Missing/invalid manifest blocks shell rendering with a fail-closed response and startup error log. | Startup validation test plus availability canary. |
 | Frontend observability contract | Every React request includes `x-client-release`; client error boundary and `window` error handlers emit structured telemetry with backend `x-request-id` correlation when present. | End-to-end telemetry smoke test in canary workspace. |
 | Page-level parity checklists | Every route gets a checklist in this file before migration starts; each checklist is a release gate for that route's flag. | Route cannot flip default-on without signed checklist. |
 | Keyboard/a11y parity details | Route-level requirements include skip-link continuity, heading order, label coverage, focus visibility, keyboard-only workflow completion, and axe clean run. | Playwright + axe + manual keyboard pass required. |
@@ -130,7 +128,7 @@ This checklist must be complete before any Phase 1 route migration begins.
 1. ADR for full migration is accepted and linked from this file.
 2. Node 22 and npm are pinned in CI and local setup docs.
 3. `web/package-lock.json` is committed and `npm audit --audit-level=high` is wired into CI.
-4. FastAPI manifest startup validation and legacy-fallback behavior are merged.
+4. FastAPI manifest startup validation and fail-closed rendering behavior are merged.
 5. CSP policy for `/static/app/` bundles is deployed in non-production and verified.
 6. Client telemetry with release id + `x-request-id` correlation is validated in canary.
 7. Feature flags from the register are created with owners and expiry metadata.
@@ -296,13 +294,12 @@ Verification:
 
 ### Phase 2 implementation status (2026-05-19)
 
-- [x] Flag-gated React shells now render on the authenticated routes
+- [x] React shells now render on the authenticated routes
    (`/dashboard`, `/inbox`, `/feedback`, `/roadmap`, `/changelog`,
-   `/submitters`, `/insights`, `/settings`) with `?view=legacy`
-   parity fallback.
+   `/submitters`, `/insights`, `/settings`) as the only page surface.
 - [x] Shared React route metadata is emitted via a common template and
    consumed by the Vite entrypoint (`data-page-key`,
-   `data-active-section`, `data-legacy-url`).
+   `data-active-section`).
 - [x] Frontend failure telemetry hooks are wired for API errors,
    mutation errors, and runtime error events, with authenticated
    ingestion at `/api/v1/frontend-events`.
@@ -335,9 +332,9 @@ Verification:
 
 ### Phase 3 implementation status (2026-05-19)
 
-- [x] Flag-gated React shells now render on public routes (`/`,
+- [x] React shells now render on public routes (`/`,
    `/w/{slug}/submit`, `/w/{slug}/roadmap/public`,
-   `/w/{slug}/changelog/public`) with `?view=legacy` fallback.
+   `/w/{slug}/changelog/public`) as the only page surface.
 - [x] Public route payload bootstrap is emitted through the shared
    React public-shell template and consumed by the Vite entrypoint.
 - [x] Public submit continues to post to
@@ -368,6 +365,15 @@ Verification:
 Exit criteria:
 
 - no production path depends on legacy vanilla page scripts.
+
+### Phase 4 implementation status (2026-05-19)
+
+- [x] Legacy page templates for migrated routes were removed.
+- [x] Legacy page-level vanilla JS bundles for migrated routes were removed.
+- [x] Legacy `?view=legacy` bypass behavior and classic-link shell payloads
+   were removed from route helpers and templates.
+- [x] Migrated API and Playwright parity tests were updated to the
+   React-only route contract.
 
 ## API and contract workstream
 
@@ -431,9 +437,9 @@ Rollout:
 
 Rollback:
 
-- flip feature flags to restore legacy page handlers
-- retain legacy scripts/templates until full-production stability window passes
-- on manifest/asset integrity failure, force legacy handler path and block React route rendering
+- revert the route-change commit set if React page behavior regresses
+- keep known-good static app artifacts available for fast redeploy
+- on manifest/asset integrity failure, block shell rendering (fail closed)
 
 ## Risks and mitigations
 
