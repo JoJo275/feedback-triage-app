@@ -43,7 +43,6 @@ export type ReactShellProps = {
     workspaceName: string;
     activeSection: AppSection;
     pageKey: AppPageKey;
-    legacyUrl: string;
     clientRelease: string;
 };
 
@@ -237,7 +236,6 @@ export function App({
     workspaceName,
     activeSection,
     pageKey,
-    legacyUrl,
     clientRelease,
 }: ReactShellProps): JSX.Element {
     const [activeStatusFilter, setActiveStatusFilter] = useState(
@@ -1033,7 +1031,7 @@ export function App({
                         description="This route key is not implemented in the React shell."
                     >
                         <p className="sn-text-muted">
-                            Open the classic page instead.
+                            Open a supported workspace route.
                         </p>
                     </Card>
                 );
@@ -1057,12 +1055,6 @@ export function App({
                     </p>
                 </div>
                 <div className="sn-page-header__actions">
-                    <a
-                        className="sn-button sn-button-secondary"
-                        href={legacyUrl}
-                    >
-                        Open classic page
-                    </a>
                     <button
                         type="button"
                         className="sn-button sn-button-secondary"
@@ -1098,9 +1090,6 @@ export function App({
                     description="The typed API client could not resolve auth + tenant context."
                 >
                     {renderErrorMessage(routeContext.error)}
-                    <p>
-                        <a href={legacyUrl}>Open classic page</a>
-                    </p>
                 </Card>
             ) : null}
 

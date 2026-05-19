@@ -1,8 +1,7 @@
 """Playwright parity matrix for Phase 2 authenticated React routes.
 
-This suite boots a dedicated live app with all Phase 2 React page flags
-enabled and a deterministic Vite manifest, then verifies route-by-route
-React shell rendering and ``?view=legacy`` fallback behavior.
+This suite boots a dedicated live app with a deterministic Vite
+manifest, then verifies route-by-route React shell rendering.
 """
 
 from __future__ import annotations
@@ -47,13 +46,6 @@ _PHASE2_ROUTE_MATRIX = [
 ]
 
 _PHASE2_REACT_ENV = {
-    "FEATURE_REACT_DASHBOARD": "1",
-    "FEATURE_REACT_INBOX": "1",
-    "FEATURE_REACT_ROADMAP": "1",
-    "FEATURE_REACT_CHANGELOG": "1",
-    "FEATURE_REACT_SUBMITTERS": "1",
-    "FEATURE_REACT_INSIGHTS": "1",
-    "FEATURE_REACT_SETTINGS": "1",
     "REACT_DASHBOARD_ENTRYPOINT": "index.html",
     "REACT_MANIFEST_VALIDATE_ON_STARTUP": "1",
 }
@@ -123,7 +115,7 @@ def _seed_react_manifest() -> Iterator[None]:
 
 @pytest.fixture(scope="session")
 def live_app_url(_seed_react_manifest: None) -> Iterator[str]:
-    """Run a dedicated live app with Phase 2 React flags enabled."""
+    """Run a dedicated live app with React routes enabled."""
     port = _free_port()
     cmd = [
         sys.executable,
@@ -233,21 +225,15 @@ def test_phase2_react_authenticated_routes_render_expected_shell(
     root = page.locator("#sn-react-app-root")
     expect(root).to_have_count(1)
 
-    expected_legacy_url = f"/w/{slug}/{route_path}?view=legacy"
     expect(root).to_have_attribute("data-page-key", page_key)
     expect(root).to_have_attribute("data-active-section", active_section)
-    expect(root).to_have_attribute("data-legacy-url", expected_legacy_url)
-
-    classic_link = page.get_by_role("link", name="Open classic page").first
-    expect(classic_link).to_be_visible()
-    expect(classic_link).to_have_attribute("href", expected_legacy_url)
 
 
 @pytest.mark.parametrize(
     "route_path",
     [route[0] for route in _PHASE2_ROUTE_MATRIX],
 )
-def test_phase2_react_authenticated_routes_honor_legacy_query_param(
+def test_phase2_react_authenticated_routes_ignore_legacy_query_param(
     live_app_url: str,
     truncate_world: None,
     page: Page,
@@ -259,5 +245,4 @@ def test_phase2_react_authenticated_routes_honor_legacy_query_param(
     page.goto(f"{live_app_url}/w/{slug}/{route_path}?view=legacy")
     page.wait_for_load_state("networkidle")
 
-    # ``?view=legacy`` must bypass the shared React shell mount entirely.
-    expect(page.locator("#sn-react-app-root")).to_have_count(0)
+    expect(page.locator("#sn-react-app-root")).to_have_count(1)

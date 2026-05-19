@@ -2,11 +2,11 @@
 
 > Goal: build equivalent functionality without copying source code from another product.
 
-> Status in this repository: implemented as a pilot React island at
-> `/w/<slug>/dashboard/react`.
-> The primary dashboard route (`/w/<slug>/dashboard`) remains the
-> vanilla JS implementation with inline edit mode. "Edit widgets" stays
-> on the same page and enables drag/resize interactions in place.
+> Status in this repository: historical pilot reference.
+> The pilot route (`/w/<slug>/dashboard/react`) and dashboard-specific
+> legacy templates/scripts were removed during Phase 4.
+> The primary dashboard route (`/w/<slug>/dashboard`) now mounts the
+> shared React shell.
 
 ## Scope and status
 
@@ -17,9 +17,8 @@
 	[`react-full-migration.md`](react-full-migration.md).
 - React pilot implementation files in this repository:
 	- `src/feedback_triage/pages/dashboard.py`
-	- `src/feedback_triage/templates/pages/dashboard/react_widgets.html`
-	- `src/feedback_triage/static/js/dashboard_react_widgets.js`
-	- `src/feedback_triage/static/js/dashboard.js` (classic inline edit mode)
+	- `src/feedback_triage/pages/react_shell.py`
+	- `src/feedback_triage/templates/pages/react/workspace_shell.html`
 	- `tests/api/auth/test_dashboard_page.py`
 
 ## Recommendation

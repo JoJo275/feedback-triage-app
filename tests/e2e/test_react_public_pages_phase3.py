@@ -1,8 +1,7 @@
 """Playwright parity matrix for Phase 3 public React routes.
 
-This suite boots a dedicated app with public React route flags enabled,
-then verifies shell rendering, legacy fallback, and anonymous submit/
-public-read behavior.
+This suite boots a dedicated app with React public routes enabled, then
+verifies shell rendering and anonymous submit/public-read behavior.
 """
 
 from __future__ import annotations
@@ -48,10 +47,6 @@ _PHASE3_ROUTE_MATRIX = [
 ]
 
 _PHASE3_REACT_ENV = {
-    "FEATURE_REACT_LANDING": "1",
-    "FEATURE_REACT_PUBLIC_SUBMIT": "1",
-    "FEATURE_REACT_PUBLIC_ROADMAP": "1",
-    "FEATURE_REACT_PUBLIC_CHANGELOG": "1",
     "REACT_DASHBOARD_ENTRYPOINT": "index.html",
     "REACT_MANIFEST_VALIDATE_ON_STARTUP": "1",
 }
@@ -121,7 +116,7 @@ def _seed_react_manifest() -> Iterator[None]:
 
 @pytest.fixture(scope="session")
 def live_phase3_public_url(_seed_react_manifest: None) -> Iterator[str]:
-    """Run a dedicated live app with Phase 3 public React flags enabled."""
+    """Run a dedicated live app with React public routes enabled."""
     port = _free_port()
     cmd = [
         sys.executable,
@@ -290,9 +285,6 @@ def test_phase3_public_routes_render_react_shell(
     expect(root).to_have_count(1)
     expect(root).to_have_attribute("data-page-key", page_key)
 
-    expected_legacy = f"{route}?view=legacy"
-    expect(root).to_have_attribute("data-legacy-url", expected_legacy)
-
 
 def test_phase3_public_submit_route_keeps_anonymous_submit_flow(
     live_phase3_public_url: str,
@@ -343,7 +335,7 @@ def test_phase3_public_roadmap_and_changelog_render_seeded_items(
     expect(page.get_by_text("Shipped during phase3 public smoke.")).to_be_visible()
 
 
-def test_phase3_public_routes_honor_legacy_query_param(
+def test_phase3_public_routes_ignore_legacy_query_param(
     live_phase3_public_url: str,
     truncate_world: None,
     page: Page,
@@ -358,5 +350,4 @@ def test_phase3_public_routes_honor_legacy_query_param(
     page.goto(f"{live_phase3_public_url}/w/{slug}/roadmap/public?view=legacy")
     page.wait_for_load_state("networkidle")
 
-    expect(page.locator("#sn-react-app-root")).to_have_count(0)
-    expect(page.get_by_text("Nothing on the public roadmap yet.")).to_be_visible()
+    expect(page.locator("#sn-react-app-root")).to_have_count(1)

@@ -123,7 +123,8 @@ def test_public_changelog_renders_without_auth_and_sets_cache_header(
         resp.headers["cache-control"]
         == "public, max-age=300, stale-while-revalidate=600"
     )
-    assert "changelog" in resp.text.lower()
+    assert 'id="sn-react-app-root"' in resp.text
+    assert 'data-page-key="public_changelog"' in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -212,4 +213,4 @@ def test_public_changelog_empty_state(auth_client: TestClient) -> None:
     auth_client.cookies.clear()
     resp = auth_client.get(f"/w/{slug}/changelog/public")
     assert resp.status_code == 200
-    assert "Nothing shipped yet" in resp.text
+    assert '"entries":[]' in resp.text

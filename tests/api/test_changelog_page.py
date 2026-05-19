@@ -1,8 +1,7 @@
 """PR 3.3 -- management changelog page tests.
 
-Like the roadmap page, this is a thin shell: auth-required, tenant-
-scoped, seeds the workspace slug for ``static/js/changelog.js``. Edit
-flow is exercised through the v2 PATCH endpoint covered elsewhere.
+Phase 4 serves the route through the shared React shell. Edit flow is
+still exercised through the v2 PATCH endpoint covered elsewhere.
 """
 
 from __future__ import annotations
@@ -72,7 +71,7 @@ def test_changelog_page_renders_shell(
 
     assert resp.status_code == 200
     body = resp.text
+    assert 'id="sn-react-app-root"' in body
     assert f'data-workspace-slug="{slug}"' in body
-    assert 'id="changelog-list"' in body
-    assert 'id="release-note-template"' in body
-    assert "/static/js/changelog.js" in body
+    assert 'data-page-key="changelog"' in body
+    assert 'data-active-section="changelog"' in body

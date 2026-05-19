@@ -11,7 +11,7 @@ export default defineConfig({
     build: {
         outDir: path.resolve(ROOT_DIR, "../src/feedback_triage/static/app"),
         emptyOutDir: true,
-        manifest: true,
+        manifest: "manifest.json",
     },
     test: {
         environment: "jsdom",

@@ -1,9 +1,8 @@
 """Page route for the workspace inbox.
 
-Renders the triage queue at ``/w/{slug}/inbox``. The page is a
-server-rendered shell — the table body, summary cards, and filter
-state are populated client-side by ``static/js/inbox.js`` against
-the v2 ``GET /api/v1/feedback`` endpoint shipped in PR 2.2.
+Renders the triage queue at ``/w/{slug}/inbox``.
+Phase 4 serves the shared React shell directly for inbox and feedback
+list routes.
 
 The default filter is ``status IN ('new', 'needs_info', 'reviewing')``
 per ``docs/project/spec/v2/information-architecture.md`` — Inbox.
@@ -21,10 +20,7 @@ from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.models import Workspace
-from feedback_triage.pages.react_shell import (
-    get_runtime_settings,
-    maybe_render_workspace_react_shell,
-)
+from feedback_triage.pages.react_shell import maybe_render_workspace_react_shell
 from feedback_triage.templating import templates
 from feedback_triage.tenancy import WorkspaceContextDep
 
@@ -43,28 +39,13 @@ def inbox_page(
     workspace = db.get(Workspace, ctx.id)
     assert workspace is not None
 
-    settings = get_runtime_settings(request)
-    react_response = maybe_render_workspace_react_shell(
+    return maybe_render_workspace_react_shell(
         request,
-        enabled=settings.feature_react_inbox,
         workspace_slug=workspace.slug,
         workspace_name=workspace.name,
         active_section="inbox",
         page_key="inbox",
         page_title="Inbox",
-    )
-    if react_response is not None:
-        return react_response
-
-    return templates.TemplateResponse(
-        request,
-        "pages/inbox.html",
-        {
-            "workspace_slug": workspace.slug,
-            "workspace_name": workspace.name,
-            "active": "inbox",
-            "page_mode": "inbox",
-        },
     )
 
 
@@ -74,32 +55,17 @@ def feedback_list_page(
     ctx: WorkspaceContextDep,
     db: DbDep,
 ) -> Response:
-    """Render the feedback list shell — same template as inbox, no default status filter."""
+    """Render the feedback list route (same React surface as inbox)."""
     workspace = db.get(Workspace, ctx.id)
     assert workspace is not None
 
-    settings = get_runtime_settings(request)
-    react_response = maybe_render_workspace_react_shell(
+    return maybe_render_workspace_react_shell(
         request,
-        enabled=settings.feature_react_inbox,
         workspace_slug=workspace.slug,
         workspace_name=workspace.name,
         active_section="feedback",
         page_key="feedback",
         page_title="Feedback",
-    )
-    if react_response is not None:
-        return react_response
-
-    return templates.TemplateResponse(
-        request,
-        "pages/inbox.html",
-        {
-            "workspace_slug": workspace.slug,
-            "workspace_name": workspace.name,
-            "active": "feedback",
-            "page_mode": "feedback",
-        },
     )
 
 
