@@ -173,6 +173,15 @@ const STATUS_LABEL: Record<DemoStatus, string> = {
     shipped: "Shipped",
 };
 
+const DEMO_STATUS_TONE: Record<DemoStatus, "info" | "warn" | "ok"> = {
+    new: "info",
+    needs_info: "warn",
+    reviewing: "info",
+    planned: "ok",
+    in_progress: "ok",
+    shipped: "ok",
+};
+
 const TYPE_LABELS: Record<string, string> = {
     bug: "Bug",
     feature_request: "Feature request",
@@ -568,7 +577,129 @@ function LandingPage({
                                 </>
                             )}
                         </p>
+                        <ul className="sn-hero__metrics" role="list">
+                            <li>
+                                <strong>8 workflow views</strong>
+                                <span>
+                                    Dashboard, inbox, roadmap, changelog, and
+                                    more
+                                </span>
+                            </li>
+                            <li>
+                                <strong>Typed API contracts</strong>
+                                <span>
+                                    React UI reads the same `/api/v1` envelope
+                                    as the backend tests
+                                </span>
+                            </li>
+                            <li>
+                                <strong>Fast triage loop</strong>
+                                <span>
+                                    Capture, prioritize, route, and ship from
+                                    one workspace shell
+                                </span>
+                            </li>
+                        </ul>
                     </div>
+                </section>
+
+                <section
+                    className="sn-section sn-content-gutter sn-stack"
+                    aria-labelledby="landing-value-heading"
+                >
+                    <header className="sn-stack">
+                        <h2 id="landing-value-heading">
+                            Run feedback like an operating system
+                        </h2>
+                        <p className="sn-text-muted">
+                            SignalNest keeps intake, triage, planning, and
+                            release visibility in one focused workflow.
+                        </p>
+                    </header>
+                    <div className="sn-grid-3">
+                        <article className="sn-card sn-value-card sn-stack">
+                            <h3>Capture everything</h3>
+                            <p className="sn-text-muted">
+                                Intake from public forms, support signals, and
+                                interviews without losing source context.
+                            </p>
+                        </article>
+                        <article className="sn-card sn-value-card sn-stack">
+                            <h3>Triage with urgency</h3>
+                            <p className="sn-text-muted">
+                                Prioritize by pain and status so the next action
+                                queue stays clear every day.
+                            </p>
+                        </article>
+                        <article className="sn-card sn-value-card sn-stack">
+                            <h3>Ship with transparency</h3>
+                            <p className="sn-text-muted">
+                                Move approved work to roadmap and changelog
+                                views without copy-pasting between tools.
+                            </p>
+                        </article>
+                    </div>
+                </section>
+
+                <section
+                    className="sn-section sn-section--workflow sn-content-gutter sn-stack"
+                    aria-labelledby="landing-workflow-heading"
+                >
+                    <header className="sn-stack">
+                        <h2 id="landing-workflow-heading">
+                            From signal to shipped, visibly
+                        </h2>
+                    </header>
+                    <ul className="sn-workflow-strip" role="list">
+                        <li>
+                            <span className="sn-pill-status sn-pill-status--info">
+                                Capture
+                            </span>
+                        </li>
+                        <li aria-hidden="true">{"->"}</li>
+                        <li>
+                            <span className="sn-pill-status sn-pill-status--warn">
+                                Triage
+                            </span>
+                        </li>
+                        <li aria-hidden="true">{"->"}</li>
+                        <li>
+                            <span className="sn-pill-status sn-pill-status--ok">
+                                Plan
+                            </span>
+                        </li>
+                        <li aria-hidden="true">{"->"}</li>
+                        <li>
+                            <span className="sn-pill-status sn-pill-status--ok">
+                                Ship
+                            </span>
+                        </li>
+                    </ul>
+                </section>
+
+                <section
+                    className="sn-section sn-content-gutter sn-stack"
+                    aria-labelledby="landing-features-heading"
+                >
+                    <header className="sn-stack">
+                        <h2 id="landing-features-heading">
+                            One workspace, full feedback loop
+                        </h2>
+                    </header>
+                    <ul className="sn-feature-grid" role="list">
+                        <li>
+                            Inbox queue for new, needs info, and reviewing
+                            states
+                        </li>
+                        <li>Roadmap and changelog publishing controls</li>
+                        <li>Submitter and workspace-member visibility</li>
+                        <li>Insights on status distribution and pain trends</li>
+                        <li>Public submission form per workspace slug</li>
+                        <li>
+                            Server-side auth + tenancy with typed React
+                            contracts
+                        </li>
+                    </ul>
                 </section>
 
                 <section
@@ -627,7 +758,7 @@ function LandingPage({
                                                     <td>{item.title}</td>
                                                     <td>
                                                         <span
-                                                            className={`sn-pill-status sn-pill-status--${item.status}`}
+                                                            className={`sn-pill-status sn-pill-status--${DEMO_STATUS_TONE[item.status]}`}
                                                         >
                                                             {
                                                                 STATUS_LABEL[

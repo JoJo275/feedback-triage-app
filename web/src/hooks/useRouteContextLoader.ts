@@ -17,6 +17,7 @@ import type {
 
 export interface RouteContextData {
     user: UserDto;
+    memberships: MembershipDto[];
     membership: MembershipDto;
     workspace: WorkspaceDto;
     feedbackItems: FeedbackItemDto[];
@@ -128,6 +129,7 @@ export function useRouteContextLoader(
                     state: "ready",
                     data: {
                         user: me.user,
+                        memberships: me.memberships,
                         membership,
                         workspace,
                         feedbackItems: feedback.items,
