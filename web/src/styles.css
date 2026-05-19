@@ -24,6 +24,14 @@
     gap: 0.5rem;
 }
 
+.sn-react-workspace-switcher {
+    min-width: 13rem;
+}
+
+.sn-react-workspace-switcher .sn-input {
+    min-width: 13rem;
+}
+
 .sn-react-pill-row {
     display: flex;
     flex-wrap: wrap;
@@ -127,6 +135,10 @@
 .sn-react-total-signals-marker-label {
     color: var(--color-text);
     font-weight: 600;
+}
+
+.sn-dashboard-queue__table-wrap {
+    overflow: auto;
 }
 
 @media (max-width: 767px) {

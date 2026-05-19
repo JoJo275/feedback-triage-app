@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { MembershipDto } from "../../types/contracts";
+
 export type AppSection =
     | "dashboard"
     | "inbox"
@@ -14,6 +16,7 @@ interface AppShellProps {
     workspaceSlug: string;
     workspaceName: string;
     activeSection: AppSection;
+    workspaceMemberships?: MembershipDto[];
     inboxBadge?: number;
     children: ReactNode;
     onSignOut: () => Promise<void> | void;
@@ -39,6 +42,7 @@ export function AppShell({
     workspaceSlug,
     workspaceName,
     activeSection,
+    workspaceMemberships,
     inboxBadge,
     children,
     onSignOut,
@@ -48,6 +52,8 @@ export function AppShell({
     const activeSectionLabel =
         NAV_LINKS.find((link) => link.key === activeSection)?.label ??
         "Dashboard";
+    const workspaceOptions = workspaceMemberships ?? [];
+    const showWorkspaceSwitcher = workspaceOptions.length > 1;
 
     return (
         <div className="sn-app-shell">
@@ -170,6 +176,44 @@ export function AppShell({
                         />
                     </form>
                     <div className="sn-app-header__actions">
+                        {showWorkspaceSwitcher ? (
+                            <div className="sn-react-workspace-switcher">
+                                <label
+                                    className="sr-only"
+                                    htmlFor="sn-workspace-switcher"
+                                >
+                                    Switch workspace
+                                </label>
+                                <select
+                                    id="sn-workspace-switcher"
+                                    className="sn-input"
+                                    value={workspaceSlug}
+                                    aria-label="Switch workspace"
+                                    onChange={(event) => {
+                                        const nextWorkspaceSlug =
+                                            event.target.value;
+                                        if (
+                                            !nextWorkspaceSlug ||
+                                            nextWorkspaceSlug === workspaceSlug
+                                        ) {
+                                            return;
+                                        }
+                                        window.location.assign(
+                                            `/w/${nextWorkspaceSlug}/dashboard`,
+                                        );
+                                    }}
+                                >
+                                    {workspaceOptions.map((membership) => (
+                                        <option
+                                            key={membership.workspace_slug}
+                                            value={membership.workspace_slug}
+                                        >
+                                            {membership.workspace_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : null}
                         <a
                             className="sn-button sn-button-secondary"
                             href={`/w/${workspaceSlug}/insights`}

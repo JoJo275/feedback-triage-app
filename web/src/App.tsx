@@ -420,6 +420,16 @@ export function App({
         return Array.from(counts.entries()).sort((a, b) => b[0] - a[0]);
     }, [feedbackItems]);
 
+    const inboxBadge = useMemo(
+        () =>
+            feedbackItems.filter((item) => TRIAGE_STATUSES.has(item.status))
+                .length,
+        [feedbackItems],
+    );
+
+    const workspaceMemberships =
+        routeContext.state === "ready" ? routeContext.data.memberships : [];
+
     const activeWorkspaceSlug =
         routeContext.state === "ready"
             ? routeContext.data.workspace.slug
@@ -999,6 +1009,8 @@ export function App({
             workspaceSlug={workspaceSlug}
             workspaceName={currentWorkspaceName}
             activeSection={activeSection}
+            workspaceMemberships={workspaceMemberships}
+            inboxBadge={inboxBadge}
             onSignOut={signOut}
         >
             <header className="sn-page-header">

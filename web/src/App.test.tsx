@@ -16,6 +16,14 @@ vi.mock("./hooks/useRouteContextLoader", () => ({
                     theme_preference: "light",
                     created_at: "2026-05-01T00:00:00.000000Z",
                 },
+                memberships: [
+                    {
+                        workspace_id: "4677f519-0b9a-4c74-9958-f6fef70ded66",
+                        workspace_slug: "demo-owner",
+                        workspace_name: "Demo Owner",
+                        role: "owner",
+                    },
+                ],
                 membership: {
                     workspace_id: "4677f519-0b9a-4c74-9958-f6fef70ded66",
                     workspace_slug: "demo-owner",
@@ -105,7 +113,7 @@ describe("App", () => {
                 name: "Dashboard",
             }),
         ).toBeInTheDocument();
-        expect(screen.getByText("Total signals")).toBeInTheDocument();
+        expect(screen.getAllByText("Total signals").length).toBeGreaterThan(0);
         expect(screen.getByText("Largest increase")).toBeInTheDocument();
         expect(screen.getByText("Second-largest increase")).toBeInTheDocument();
         expect(
@@ -114,7 +122,7 @@ describe("App", () => {
             }),
         ).toHaveAttribute("href", "/w/demo-owner/feedback");
         expect(
-            screen.getByRole("heading", { name: "Recent feedback" }),
+            screen.getByRole("heading", { name: "Action queue" }),
         ).toBeInTheDocument();
         expect(
             screen.getByRole("link", {
