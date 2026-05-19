@@ -4,45 +4,50 @@ import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
 vi.mock("./hooks/useRouteContextLoader", () => ({
-    useRouteContextLoader: () => ({
-        state: "ready",
-        data: {
-            user: {
-                id: "9e9a7f73-f9f4-43d7-a4fe-8aef72fcf688",
-                email: "owner@example.com",
-                is_verified: true,
-                role: "team_member",
-                theme_preference: "light",
-                created_at: "2026-05-01T00:00:00.000000Z",
-            },
-            membership: {
-                workspace_id: "4677f519-0b9a-4c74-9958-f6fef70ded66",
-                workspace_slug: "demo-owner",
-                workspace_name: "Demo Owner",
-                role: "owner",
-            },
-            workspace: {
-                id: "4677f519-0b9a-4c74-9958-f6fef70ded66",
-                slug: "demo-owner",
-                name: "Demo Owner",
-                is_demo: false,
-                public_submit_enabled: true,
-                created_at: "2026-05-01T00:00:00.000000Z",
-            },
-            feedbackItems: [
-                {
-                    id: 101,
-                    title: "Search needs keyboard shortcuts",
-                    description: "Power users requested slash command support.",
-                    source: "interview",
-                    pain_level: 4,
-                    status: "reviewing",
-                    created_at: "2026-05-10T00:00:00.000000Z",
-                    updated_at: "2026-05-12T00:00:00.000000Z",
+    useRouteContextLoader: (() => {
+        const readyState = {
+            state: "ready" as const,
+            data: {
+                user: {
+                    id: "9e9a7f73-f9f4-43d7-a4fe-8aef72fcf688",
+                    email: "owner@example.com",
+                    is_verified: true,
+                    role: "team_member",
+                    theme_preference: "light",
+                    created_at: "2026-05-01T00:00:00.000000Z",
                 },
-            ],
-        },
-    }),
+                membership: {
+                    workspace_id: "4677f519-0b9a-4c74-9958-f6fef70ded66",
+                    workspace_slug: "demo-owner",
+                    workspace_name: "Demo Owner",
+                    role: "owner",
+                },
+                workspace: {
+                    id: "4677f519-0b9a-4c74-9958-f6fef70ded66",
+                    slug: "demo-owner",
+                    name: "Demo Owner",
+                    is_demo: false,
+                    public_submit_enabled: true,
+                    created_at: "2026-05-01T00:00:00.000000Z",
+                },
+                feedbackItems: [
+                    {
+                        id: 101,
+                        title: "Search needs keyboard shortcuts",
+                        description:
+                            "Power users requested slash command support.",
+                        source: "interview",
+                        pain_level: 4,
+                        status: "reviewing",
+                        created_at: "2026-05-10T00:00:00.000000Z",
+                        updated_at: "2026-05-12T00:00:00.000000Z",
+                    },
+                ],
+            },
+        };
+
+        return () => readyState;
+    })(),
 }));
 
 describe("App", () => {

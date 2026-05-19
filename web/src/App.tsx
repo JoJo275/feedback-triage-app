@@ -266,15 +266,15 @@ export function App({
         feedbackPreviewLimit,
     });
 
-    const readyWorkspaceId =
-        routeContext.state === "ready" ? routeContext.data.workspace.id : null;
+    const readyRouteData =
+        routeContext.state === "ready" ? routeContext.data : null;
 
     useEffect(() => {
         setActiveStatusFilter(defaultStatusFilter(pageKey));
     }, [pageKey]);
 
     useEffect(() => {
-        if (routeContext.state !== "ready") {
+        if (readyRouteData === null) {
             setFeedbackItems([]);
             setWorkspaceDraft(null);
             setWorkspaceNameInput("");
@@ -282,13 +282,13 @@ export function App({
             return;
         }
 
-        setFeedbackItems(routeContext.data.feedbackItems);
-        setWorkspaceDraft(routeContext.data.workspace);
-        setWorkspaceNameInput(routeContext.data.workspace.name);
+        setFeedbackItems(readyRouteData.feedbackItems);
+        setWorkspaceDraft(readyRouteData.workspace);
+        setWorkspaceNameInput(readyRouteData.workspace.name);
         setWorkspacePublicSubmit(
-            routeContext.data.workspace.public_submit_enabled,
+            readyRouteData.workspace.public_submit_enabled,
         );
-    }, [routeContext.state, readyWorkspaceId]);
+    }, [readyRouteData]);
 
     useEffect(() => {
         if (typeof window === "undefined") {
