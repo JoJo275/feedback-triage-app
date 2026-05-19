@@ -45,6 +45,24 @@ export interface WorkspacePatchRequest {
     public_submit_enabled?: boolean;
 }
 
+export interface PublicFeedbackSubmitRequest {
+    title: string;
+    description?: string | null;
+    source?: string;
+    source_other?: string | null;
+    pain_level: number;
+    type: string;
+    type_other?: string | null;
+    submitter_email?: string | null;
+    submitter_name?: string | null;
+    website?: string;
+}
+
+export interface PublicFeedbackSubmitResponse {
+    status: string;
+    id?: number;
+}
+
 export class ApiClientError extends Error {
     readonly status: number;
     readonly code: string;
@@ -324,6 +342,23 @@ export function patchWorkspace(
             method: "PATCH",
             clientRelease,
             body: payload,
+            signal,
+        },
+    );
+}
+
+export function submitPublicFeedback(
+    slug: string,
+    payload: PublicFeedbackSubmitRequest,
+    clientRelease: string,
+    signal?: AbortSignal,
+): Promise<PublicFeedbackSubmitResponse> {
+    return apiRequest<PublicFeedbackSubmitResponse>(
+        `/api/v1/public/feedback/${encodeURIComponent(slug)}`,
+        {
+            method: "POST",
+            body: payload,
+            clientRelease,
             signal,
         },
     );

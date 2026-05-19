@@ -333,6 +333,21 @@ Verification:
 - API tests for public submission unchanged and green.
 - response headers validated for public roadmap/changelog cache contracts.
 
+### Phase 3 implementation status (2026-05-19)
+
+- [x] Flag-gated React shells now render on public routes (`/`,
+   `/w/{slug}/submit`, `/w/{slug}/roadmap/public`,
+   `/w/{slug}/changelog/public`) with `?view=legacy` fallback.
+- [x] Public route payload bootstrap is emitted through the shared
+   React public-shell template and consumed by the Vite entrypoint.
+- [x] Public submit continues to post to
+   `/api/v1/public/feedback/{slug}` with unchanged honeypot and
+   rate-limit behavior.
+- [x] API parity checks are implemented in
+   `tests/api/test_react_public_pages_phase3.py`.
+- [x] Playwright parity checks are implemented in
+   `tests/e2e/test_react_public_pages_phase3.py`.
+
 Exit criteria:
 
 - all public pages migrated or intentionally retained server-rendered by ADR choice.

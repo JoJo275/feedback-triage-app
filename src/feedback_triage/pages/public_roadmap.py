@@ -18,15 +18,19 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse
 from sqlalchemy import or_
 from sqlalchemy.orm import Session as DbSession
 from sqlmodel import col, select
 from starlette.requests import Request
+from starlette.responses import Response
 
 from feedback_triage.database import get_db
 from feedback_triage.enums import Status
 from feedback_triage.models import FeedbackItem, FeedbackTag, Tag, Workspace
+from feedback_triage.pages.react_shell import (
+    get_runtime_settings,
+    maybe_render_public_react_shell,
+)
 from feedback_triage.templating import templates
 
 router = APIRouter(include_in_schema=False)
@@ -67,7 +71,7 @@ def public_roadmap_page(
     slug: str,
     request: Request,
     db: DbDep,
-) -> HTMLResponse:
+) -> Response:
     """Render the public roadmap shell for workspace ``slug``."""
     workspace = db.execute(
         select(Workspace).where(col(Workspace.slug) == slug),
@@ -122,6 +126,23 @@ def public_roadmap_page(
             if i.status is Status.SHIPPED
         ],
     }
+
+    settings = get_runtime_settings(request)
+    react_response = maybe_render_public_react_shell(
+        request,
+        enabled=settings.feature_react_public_roadmap,
+        page_key="public_roadmap",
+        page_title="Public roadmap",
+        route_payload={
+            "workspace_slug": workspace.slug,
+            "workspace_name": workspace.name,
+            "columns": columns,
+            "is_empty": not any(columns.values()),
+        },
+    )
+    if react_response is not None:
+        react_response.headers["Cache-Control"] = _CACHE_CONTROL
+        return react_response
 
     response = templates.TemplateResponse(
         request,

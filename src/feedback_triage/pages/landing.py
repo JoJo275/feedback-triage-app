@@ -21,6 +21,10 @@ from starlette.requests import Request
 from feedback_triage.auth.deps import CurrentUserOptionalDep
 from feedback_triage.auth.service import primary_workspace_slug
 from feedback_triage.database import get_db
+from feedback_triage.pages.react_shell import (
+    get_runtime_settings,
+    maybe_render_public_react_shell,
+)
 from feedback_triage.templating import templates
 
 router = APIRouter(include_in_schema=False)
@@ -52,6 +56,21 @@ def landing_page(
         )
         redirect_response.headers["Cache-Control"] = "private, no-store"
         return redirect_response
+
+    settings = get_runtime_settings(request)
+    react_response = maybe_render_public_react_shell(
+        request,
+        enabled=settings.feature_react_landing,
+        page_key="landing",
+        page_title="SignalNest",
+        route_payload={"primary_workspace_slug": dashboard_slug},
+    )
+    if react_response is not None:
+        if user is None:
+            react_response.headers["Cache-Control"] = _CACHE_CONTROL
+        else:
+            react_response.headers["Cache-Control"] = "private, no-store"
+        return react_response
 
     template_response = templates.TemplateResponse(
         request,
