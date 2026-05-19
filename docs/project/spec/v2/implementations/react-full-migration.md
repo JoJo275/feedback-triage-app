@@ -294,7 +294,7 @@ Verification:
 - Playwright parity tests for each migrated page.
 - tenant-isolation API canaries still pass.
 
-### Phase 2 implementation status (2026-05-18)
+### Phase 2 implementation status (2026-05-19)
 
 - [x] Flag-gated React shells now render on the authenticated routes
    (`/dashboard`, `/inbox`, `/feedback`, `/roadmap`, `/changelog`,
@@ -306,8 +306,9 @@ Verification:
 - [x] Frontend failure telemetry hooks are wired for API errors,
    mutation errors, and runtime error events, with authenticated
    ingestion at `/api/v1/frontend-events`.
-- [ ] Full Playwright parity matrix per route remains the final
-   rollout gate before default-on in production.
+- [x] Full Playwright parity matrix per route is implemented in
+   `tests/e2e/test_react_authenticated_pages_phase2.py` and remains
+   the final rollout gate before default-on in production.
 
 Exit criteria:
 
