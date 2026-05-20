@@ -19,7 +19,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Lint + Format**      | [lint-format.yml](../.github/workflows/lint-format.yml)               | push, PR, manual | `Ruff (lint & format)`                 | Ruff linting and format checks                  |
 | **Type Check**         | [type-check.yml](../.github/workflows/type-check.yml)                 | push, PR, manual | `mypy (strict)`                        | mypy strict mode against `src/`                 |
 | **UV Lock Drift**      | [uv-lock-drift.yml](../.github/workflows/uv-lock-drift.yml)           | push, PR, manual | `uv.lock drift check`                  | Fails when `uv.lock` is out of sync with `pyproject.toml` |
-| **Web Frontend**       | [web-frontend.yml](../.github/workflows/web-frontend.yml)             | push (path-filtered), PR (path-filtered), manual | `Web (lint)` / `typecheck` / `test` / `build` / `audit` | Runs Phase 0 React frontend quality and security checks |
+| **Web Frontend**       | [web-frontend.yml](../.github/workflows/web-frontend.yml)             | push, PR, manual | `Web (lint)` / `Web (typecheck)` / `Web (test)` / `Web (build)` / `Playwright smoke (e2e)` | Runs required frontend quality gates and Playwright smoke checks |
 | **Coverage**           | [coverage.yml](../.github/workflows/coverage.yml)                     | push, PR, manual | `Test + upload coverage`               | pytest with coverage, uploads to Codecov        |
 | **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes                   |
 | **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes      |
@@ -121,6 +121,11 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 | `uv.lock drift check`       | uv-lock-drift.yml     |
 | `Spell check (codespell)`   | spellcheck.yml        |
 | `Test + upload coverage`    | coverage.yml          |
+| `Web (lint)`                | web-frontend.yml      |
+| `Web (typecheck)`           | web-frontend.yml      |
+| `Web (test)`                | web-frontend.yml      |
+| `Web (build)`               | web-frontend.yml      |
+| `Playwright smoke (e2e)`    | web-frontend.yml      |
 | `Test (Python 3.11)`        | test.yml              |
 | `Test (Python 3.12)`        | test.yml              |
 | `Test (Python 3.13)`        | test.yml              |
@@ -143,7 +148,6 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 - `repo-doctor.yml` — warn-only (always exits 0); informational only
 - `doctor-all.yml` — warn-only (all steps continue-on-error); informational only
 - `welcome.yml` — community engagement; no quality gate relevance
-- `web-frontend.yml` — only runs on React phase-0/frontend integration file changes (path-filtered)
 
 These still report status when they run and also run on push to main + schedules.
 
