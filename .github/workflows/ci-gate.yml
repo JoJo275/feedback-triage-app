@@ -111,6 +111,13 @@ jobs:
               'Spell check (codespell)',   // spellcheck.yml → spellcheck
               'Test + upload coverage',    // coverage.yml → coverage
 
+              // Frontend quality gates
+              'Web (lint)',                // web-frontend.yml → web-checks
+              'Web (typecheck)',
+              'Web (test)',
+              'Web (build)',
+              'Playwright smoke (e2e)',    // web-frontend.yml → playwright-smoke
+
               // Tests — one entry per matrix leg
               'Test (Python 3.11)',        // test.yml → test
               'Test (Python 3.12)',
