@@ -1,7 +1,7 @@
 ---
 description: >-
   Use when editing React/TypeScript frontend code in web/src/. Covers
-  route bootstrap contracts, hook usage (useMemo/useCallback), data loading,
+  route bootstrap contracts, hook usage, API layering/data loading,
   testing, and security conventions for the v2 runtime.
 applyTo: "web/src/**"
 ---
@@ -27,27 +27,45 @@ applyTo: "web/src/**"
 - If adding a route, update both backend shell data emission and frontend
   page-key parsing in the same change.
 
-## Hook Guidance (`useMemo` / `useCallback`)
+## Hook Guidance (Use Hooks Intentionally)
 
-- Use `useMemo` for expensive, deterministic derived values used in render:
-  filtered/sorted collections, chart coordinate transforms, table column
-  definitions.
-- Avoid `useMemo` around trivial expressions; measure readability and actual
+- Prefer the smallest hook set that keeps code correct and readable. Do not add
+  hooks "just in case."
+- Use `useState` for local UI state; keep state minimal and derive values in
+  render when possible instead of duplicating state.
+- Use `useEffect` only for side effects and external synchronization
+  (networking, subscriptions, timers, document APIs). Do not use effects to
+  compute pure derived values.
+- Always clean up long-lived effects (subscriptions, timers, listeners) and
+  cancel in-flight async work (`AbortController`) when dependencies change.
+- Use `useRef` for mutable instance values and DOM handles that should not
+  trigger re-renders.
+- Use `useId` for stable, accessible input/label wiring.
+- Use `useReducer` when state transitions are complex or tightly coupled across
+  multiple fields.
+- Use `useMemo` for expensive, deterministic derived values used in render
+  paths (for example chart transforms, heavy filters, and column definitions).
+- Avoid `useMemo` around trivial expressions; measure readability and
   re-render impact first.
-- Use `useCallback` only when function identity stability matters:
-  - callback props consumed by memoized children,
-  - function references used in effect dependencies,
-  - subscribe/unsubscribe APIs that require the same function reference.
-- Do not wrap every event handler in `useCallback`; plain inline functions are
-  preferred when identity stability is not required.
+- Use `useCallback` only when function identity stability is required
+  (memoized children, effect dependencies, or subscribe/unsubscribe contracts).
+- Do not wrap every event handler in `useCallback`; plain inline handlers are
+  preferred when identity stability is irrelevant.
+- Extract custom hooks when logic is reused across components or when it
+  meaningfully isolates side-effect orchestration.
 - Keep dependency arrays complete and explicit.
 
-## Data Loading and API Access
+## Data Loading and API Layer
 
 - Prefer shared hooks for route-context loading (for example,
   `useRouteContextLoader`) with `AbortController` cancellation on cleanup.
-- Use `web/src/lib/apiClient.ts` for HTTP requests so headers, error
-  normalization, and telemetry remain consistent.
+- Keep raw `fetch()` calls out of page/components. Call an API layer instead.
+- Use `web/src/lib/apiClient.ts` as the default transport boundary so headers,
+  error normalization, telemetry, and auth/session semantics stay consistent.
+- Put endpoint-specific request functions in API modules and return typed DTOs
+  (not raw `Response`) to UI code.
+- Feature hooks/components should orchestrate state and UX; API modules should
+  own request construction and response normalization.
 - Keep `credentials: "same-origin"` semantics and include `x-client-release`
   and workspace scope headers where required.
 
