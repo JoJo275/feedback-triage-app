@@ -205,6 +205,28 @@ def _signup_and_login(page: Page, base_url: str, email: str) -> str:
     return str(slug)
 
 
+def _create_feedback_item(page: Page, base_url: str, slug: str, title: str) -> int:
+    """Create a workspace feedback row through the live JSON API."""
+    response = page.request.post(
+        f"{base_url}/api/v1/feedback",
+        headers={
+            "Content-Type": "application/json",
+            "X-Workspace-Slug": slug,
+        },
+        data=json.dumps(
+            {
+                "title": title,
+                "description": "Critical-path smoke seed row.",
+                "source": "email",
+                "pain_level": 3,
+                "type": "feature_request",
+            },
+        ),
+    )
+    assert response.status == 201, response.text()
+    return int(response.json()["id"])
+
+
 @pytest.mark.parametrize(
     ("route_path", "page_key", "active_section"),
     _PHASE2_ROUTE_MATRIX,
@@ -280,3 +302,168 @@ def test_phase2_dashboard_total_signals_widget_parity(
 
     trend = page.get_by_label(re.compile("Total signals trend", re.I))
     expect(trend).to_have_count(1)
+
+
+def test_phase2_dashboard_loads(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"dashboard-load-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+
+    page.goto(f"{live_app_url}/w/{slug}/dashboard")
+    page.wait_for_load_state("networkidle")
+
+    expect(page.get_by_role("heading", name="Dashboard")).to_be_visible()
+
+
+def test_phase2_dashboard_sparkline_tooltip_appears(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"dashboard-tooltip-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+
+    page.goto(f"{live_app_url}/w/{slug}/dashboard")
+    page.wait_for_load_state("networkidle")
+
+    trend = page.get_by_label(re.compile("Total signals trend", re.I))
+    expect(trend).to_be_visible()
+    trend.hover()
+
+    # Marker detail copy is the user-facing trend explanation tied to sparkline jumps.
+    marker_detail = page.locator(".sn-react-total-signals-markers .sn-text-muted").first
+    expect(marker_detail).to_be_visible()
+    expect(marker_detail).to_contain_text(
+        re.compile(r"No increase in this window|\+\d+ on .+"),
+    )
+
+
+def test_phase2_dashboard_total_signals_card_click_opens_filtered_signals_page(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"widget-click-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+
+    page.goto(f"{live_app_url}/w/{slug}/dashboard")
+    page.wait_for_load_state("networkidle")
+
+    widget = page.locator('[data-widget-id="kpi-total-signals"]')
+    expect(widget).to_have_count(1)
+    widget.click(position={"x": 20, "y": 20})
+
+    expect(page).to_have_url(
+        re.compile(rf"{re.escape(live_app_url)}/w/{slug}/feedback$")
+    )
+    expect(page.get_by_role("heading", name="Feedback")).to_be_visible()
+
+
+def test_phase2_feedback_inbox_loads(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"inbox-load-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+
+    page.goto(f"{live_app_url}/w/{slug}/inbox")
+    page.wait_for_load_state("networkidle")
+
+    expect(page.get_by_role("heading", name="Inbox")).to_be_visible()
+
+
+def test_phase2_feedback_item_detail_opens(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"feedback-detail-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+    title = f"Critical detail path {uuid.uuid4().hex[:6]}"
+    item_id = _create_feedback_item(page, live_app_url, slug, title)
+
+    page.goto(f"{live_app_url}/w/{slug}/feedback")
+    page.wait_for_load_state("networkidle")
+
+    page.get_by_role("link", name=title).click()
+    expect(page).to_have_url(
+        re.compile(rf"{re.escape(live_app_url)}/w/{slug}/feedback/{item_id}$"),
+    )
+    expect(page.get_by_role("heading", name=title)).to_be_visible()
+
+
+def test_phase2_feedback_item_status_can_be_changed(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"feedback-status-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+    item_id = _create_feedback_item(
+        page,
+        live_app_url,
+        slug,
+        f"Critical status path {uuid.uuid4().hex[:6]}",
+    )
+
+    page.goto(f"{live_app_url}/w/{slug}/feedback/{item_id}")
+    page.wait_for_load_state("networkidle")
+
+    status_select = page.get_by_label("Status")
+    status_select.select_option("reviewing")
+    expect(status_select).to_have_value("reviewing")
+
+    page.reload()
+    expect(status_select).to_have_value("reviewing")
+
+
+def test_phase2_feedback_empty_state_renders(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"feedback-empty-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+
+    page.goto(f"{live_app_url}/w/{slug}/inbox")
+    page.wait_for_load_state("networkidle")
+
+    expect(
+        page.get_by_text("No feedback matches the selected filter."),
+    ).to_be_visible()
+
+
+def test_phase2_route_context_api_error_state_renders(
+    live_app_url: str,
+    truncate_world: None,
+    page: Page,
+) -> None:
+    email = f"feedback-error-{uuid.uuid4().hex[:8]}@example.com"
+    slug = _signup_and_login(page, live_app_url, email)
+
+    page.route(
+        re.compile(r".*/api/v1/auth/me$"),
+        lambda route: route.fulfill(
+            status=500,
+            content_type="application/json",
+            body=json.dumps(
+                {
+                    "error": {
+                        "code": "internal_error",
+                        "message": "Forced API failure for smoke test.",
+                    },
+                },
+            ),
+        ),
+    )
+
+    page.goto(f"{live_app_url}/w/{slug}/inbox")
+
+    expect(
+        page.get_by_role("heading", name="Unable to load route context"),
+    ).to_be_visible()
+    expect(page.get_by_text("Forced API failure for smoke test.")).to_be_visible()

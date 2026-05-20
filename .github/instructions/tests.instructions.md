@@ -106,3 +106,27 @@ def test_git_version(monkeypatch):
     monkeypatch.setattr("shutil.which", lambda _: "/usr/bin/git")
     # ...
 ```
+
+## Critical UI Regression Paths (Must)
+
+These checks are the minimum smoke baseline for dashboard + feedback triage UX.
+Keep them green before merge and update them whenever route UX contracts change.
+
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_dashboard_loads`
+    Dashboard route renders and is interactive for an authenticated workspace member.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_dashboard_total_signals_widget_parity`
+    Total signals KPI card renders with stable label, markers, and trend container.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_dashboard_sparkline_tooltip_appears`
+    Sparkline trend detail copy is visible as the hover/inspection affordance.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_dashboard_total_signals_card_click_opens_filtered_signals_page`
+    Whole Total signals card click target routes to the feedback list surface.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_feedback_inbox_loads`
+    Inbox route renders for authenticated users.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_feedback_item_detail_opens`
+    Feedback list rows link into the detail case-file route.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_feedback_item_status_can_be_changed`
+    Detail-page status changes persist after round-trip patch + reload.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_feedback_empty_state_renders`
+    Inbox/feedback list empty-state copy is shown when there are no matching rows.
+- `tests/e2e/test_react_authenticated_pages_phase2.py::test_phase2_route_context_api_error_state_renders`
+    Route-context API failures render a visible error state instead of a blank shell.
