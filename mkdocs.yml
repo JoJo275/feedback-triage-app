@@ -141,6 +141,7 @@ nav:
       - CI/CD Design: design/ci-cd-design.md
       - Tool Decisions: design/tool-decisions.md
       - Database: design/database.md
+      - Frontend Framework Layout: design/frontend-framework-layout.md
   - ADRs:
       - Index: adr/README.md
       - 001 – src/ Layout: adr/001-src-layout.md

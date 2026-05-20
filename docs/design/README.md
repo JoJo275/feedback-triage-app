@@ -14,6 +14,7 @@ High-level design and architecture documentation.
 | [ci-cd-design.md](ci-cd-design.md)     | CI/CD pipeline design, guards, and gate pattern |
 | [tool-decisions.md](tool-decisions.md) | Tool evaluation notes and trade-offs            |
 | [database.md](database.md)             | Database design and schema                      |
+| [frontend-framework-layout.md](frontend-framework-layout.md) | React/Vite routing, structure, build, and deployment conventions |
 
 ## When to Add a Design Doc
 
