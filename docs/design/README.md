@@ -15,6 +15,7 @@ High-level design and architecture documentation.
 | [tool-decisions.md](tool-decisions.md) | Tool evaluation notes and trade-offs            |
 | [database.md](database.md)             | Database design and schema                      |
 | [frontend-framework-layout.md](frontend-framework-layout.md) | React/Vite routing, structure, build, and deployment conventions |
+| [dependency-tooling-questionnaire.md](dependency-tooling-questionnaire.md) | Questions to choose dependencies and project tooling intentionally |
 
 ## When to Add a Design Doc
 
