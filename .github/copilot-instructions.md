@@ -157,6 +157,7 @@ Serve: `uv run mkdocs serve`.
 | `tests/.instructions.md` | Test conventions |
 | `.github/instructions/python.instructions.md` | Python style, imports, type hints, security |
 | `.github/instructions/tests.instructions.md` | pytest conventions, fixtures, coverage |
+| `.github/instructions/react.instructions.md` | React/TypeScript frontend conventions (`web/src/`), including `useMemo`/`useCallback` usage |
 
 This file covers **project-wide** rules. Prefer the targeted instruction
 file for file-type-specific details.
@@ -294,8 +295,8 @@ intent is clear to both the project owner and other contributors.
 
 ### Frontend
 
-- Static HTML files served via `StaticFiles`; **no Jinja, no bundler, no SPA framework**
-- Vanilla JS + Fetch API for dynamic behavior
+- v2 migrated routes use React + Vite from `web/`, mounted through FastAPI shell templates; legacy/non-migrated pages may remain server-rendered.
+- Use `useMemo` for expensive derived render values and `useCallback` only when stable function identity is required (memoized children/effect deps).
 - **Semantic HTML.** Use the right tag for what an element *is* (`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<button>`, `<a>`, `<form>`, `<label>`, `<table>`, `<dialog>`, `<details>`). `<div>` means: generic block container with no semantic meaning — use it only when you need a wrapper for layout/styling and no better tag applies. `<span>` is the same rule inline.
 - **Tags carry meaning, classes carry style.** Never style by `id` or `data-*`. Never put `role="button"` on a `<div>` — use `<button>`. ARIA roles are only for cases where no native tag exists.
 - Every `<input>` has a paired `<label for="…">`; actions that *do* something are `<button>`, actions that *navigate* are `<a>`.
