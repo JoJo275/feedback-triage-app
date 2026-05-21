@@ -130,6 +130,18 @@ substitute the real slug must be reverted.
 MkDocs Material. See `docs/.instructions.md` and `docs/adr/.instructions.md`.
 Serve: `uv run mkdocs serve`.
 
+Tooling and conventions map:
+
+- Tool inventory (what is used, why/when/how):
+  [`docs/tooling.md`](../docs/tooling.md)
+- Conventions and tool behavior/design rationale:
+  [`docs/design/`](../docs/design/) (especially
+  [`docs/design/conventions/`](../docs/design/conventions/),
+  [`docs/design/tool-decisions.md`](../docs/design/tool-decisions.md), and
+  [`docs/design/background-processing-architecture.md`](../docs/design/background-processing-architecture.md))
+- If a change introduces, removes, or repurposes a tool, update both surfaces
+  in the same PR so inventory and conventions stay aligned.
+
 ### Key Configuration Files
 
 | File | Controls |
@@ -231,6 +243,13 @@ intent is clear to both the project owner and other contributors.
 - Add orientation comments in each touched file where they improve
   readability (for example: module purpose, section intent, or complex
   control flow).
+- In workflow-orchestration code (CI steps, background-job pipelines,
+  integration scripts, queue/worker handoffs), label tool ownership at
+  handoff boundaries so debugging and role separation stay obvious.
+  Use a consistent marker such as `Tool:` and `Role:` in a short comment.
+  Example: `# Tool: Celery | Role: async email fan-out worker`.
+- Keep tool labels at meaningful boundaries, not on every line. Avoid
+  comment spam that obscures the implementation itself.
 - Avoid low-value comments that only restate obvious syntax.
 - Keep comments current; if code changes, update or remove stale comments in
   the same edit.
