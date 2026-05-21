@@ -23,6 +23,8 @@ For commercial-readiness planning, prioritize the currently planned tools in thi
 1. API robustness: adopt [Schemathesis](https://schemathesis.readthedocs.io/) for OpenAPI-driven contract and edge-case testing.
 2. Capacity validation: adopt [k6](https://k6.io/) for repeatable load/latency regression checks.
 3. Production visibility: adopt [Sentry](https://sentry.io/) first for error triage, then [OpenTelemetry](https://opentelemetry.io/docs/languages/python/) when deeper tracing/metrics correlation is needed.
+4. Operational safety nets: add synthetic uptime checks and on-call routing before broad commercial traffic expansion.
+5. Controlled rollout and spend: introduce feature flags and cost-budget alerts before high-risk releases.
 
 ## Operating Layers
 
@@ -149,6 +151,16 @@ For commercial-readiness planning, prioritize the currently planned tools in thi
 | Jinja2 email templates | Active | Python templating layer for HTML/text transactional email templates. | Keeps backend-generated transactional email content consistent and maintainable. | Use for transactional email rendering flows. | FastAPI/Celery render HTML/TXT templates (for example password reset and verification) before sending through email provider integrations. | Main frontend application pages or interactive SPA route rendering. |
 | [MJML](https://mjml.io/) | Planned | Component-oriented markup language compiled to responsive HTML emails. | Improves maintainability and responsiveness of email layouts across clients. | Use when email layouts become complex and plain HTML templates are hard to maintain. | Plan MJML authoring and HTML compilation before provider delivery integration. | Interactive web-page rendering or frontend application route/layout concerns. |
 | Provider email templates | Deferred | Email content/templates managed directly in the delivery provider platform. | Allows late-binding copy/layout edits without app deploys when governance permits. | Defer until there is an explicit operations need for provider-managed templates with approved governance. | If adopted later, version provider template identifiers in code/docs and pass typed dynamic variables from app/workers. | Replacing source-controlled critical templates where auditability and code review are required. |
+
+## Reliability and Delivery Operations
+
+| Tool | Status | What it is | Why | When | How | Avoid using it for |
+| --- | --- | --- | --- | --- | --- | --- |
+| Synthetic uptime monitoring | Planned | External probes that continuously validate critical endpoints and user journeys. | Detects outages/regressions quickly and validates real-world availability from outside the app boundary. | Use before broad commercial traffic and after every high-impact deploy window. | Plan checks for `/health`, auth flows, and core API endpoints with alert thresholds and escalation targets. | Replacing deep debugging/trace analysis once an incident has already been detected. |
+| On-call and incident routing | Planned | Alert escalation and incident coordination tooling. | Ensures production incidents reach the right owner quickly with clear escalation paths. | Use when production SLAs/SLOs and commercial support commitments are introduced. | Plan service ownership mappings, escalation policies, and runbook links for major alert classes. | Replacing root-cause analysis or post-incident corrective engineering work. |
+| Feature flag management | Planned | Runtime-controlled feature gating for progressive rollouts and quick rollback paths. | Reduces release risk by decoupling deployment from exposure. | Use for high-risk features, staged launches, and tenant/segment-specific rollouts. | Plan typed flag keys, default-safe values, ownership metadata, and expiration cleanup policies. | Long-lived permission systems or permanent product-configuration storage. |
+| Public status page tooling | Planned | External communication surface for incident and maintenance updates. | Improves customer trust and reduces support noise during operational events. | Use when commercial customers need transparent uptime and incident communication. | Plan integration with uptime/incident tooling and define update SLAs and comms ownership. | Replacing internal observability or engineering incident response workflows. |
+| Cost monitoring and budget alerts | Planned | Spend visibility and threshold alerting for infrastructure/services. | Prevents silent cost drift as traffic and background workloads grow. | Use before scaling traffic and whenever new paid services are introduced. | Plan monthly budgets, anomaly alerts, and service-level cost ownership reviews. | Replacing performance tuning or architecture efficiency work that controls root causes. |
 
 ## Quick Command Set
 
