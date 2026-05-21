@@ -10,6 +10,7 @@ Project documentation organized by topic.
 | Directory / File                       | Description                            |
 | -------------------------------------- | -------------------------------------- |
 | [adr/](adr/)                           | Architecture Decision Records          |
+| [archive/](archive/)                   | Archived docs kept for historical context only |
 | [blueprints/](blueprints/)             | Proposed design shapes                 |
 | [design/](design/)                     | Architecture and database design       |
 | [development/](development/)           | Developer guides and setup             |
@@ -17,6 +18,7 @@ Project documentation organized by topic.
 | [guide/](guide/)                       | User-facing guides and troubleshooting |
 | [implementation-plans/](implementation-plans/) | Step-by-step execution details |
 | [notes/](notes/)                       | Personal notes and scratchpad          |
+| [project/](project/)                   | Project specs, implementation plans, and deployment notes |
 | [reference/](reference/)               | API and configuration reference        |
 | [templates/](templates/)               | Reusable file templates                |
 | [index.md](index.md)                   | MkDocs home page                       |
