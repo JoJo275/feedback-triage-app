@@ -142,6 +142,11 @@ nav:
       - Tool Decisions: design/tool-decisions.md
       - Database: design/database.md
       - Frontend Framework Layout: design/frontend-framework-layout.md
+      - Conventions:
+          - Overview: design/conventions/README.md
+          - CSS: design/conventions/css.md
+          - HTML: design/conventions/html.md
+          - React: design/conventions/react.md
   - ADRs:
       - Index: adr/README.md
       - 001 – src/ Layout: adr/001-src-layout.md
@@ -238,6 +243,8 @@ nav:
       - Tool Comparison: notes/tool-comparison.md
       - Archive: notes/archive.md
       - TODO: notes/todo.md
+  - Archive:
+      - Documentation Archive: archive/README.md
   - Reference:
       - Overview: reference/index.md
       - API: reference/api.md
