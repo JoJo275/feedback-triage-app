@@ -23,6 +23,15 @@ Project tool inventory with practical guidance for each tool:
 | [Alembic](https://alembic.sqlalchemy.org/) | Versioned schema migrations. | Any DB schema change. | `task migration m="desc"`, `task migrate`; migration files in `alembic/versions/`. |
 | PostgreSQL 16 | Production and test DB dialect baseline. | Local dev DB, integration tests, migration validation. | Local stack via `task up` / `docker-compose.yml`; `DATABASE_URL` from env. |
 
+## Background Processing and Messaging
+
+| Tool | Why | When | How |
+| --- | --- | --- | --- |
+| [Temporal](https://temporal.io/) | Durable workflow execution for long-running or multi-step business processes with retries and resumability. | Imports, AI classification, onboarding flows, weekly reports, webhook workflows with failure recovery. | Use for workflows only. Keep permanent product state in PostgreSQL. See `docs/design/background-processing-architecture.md`. |
+| [Celery](https://docs.celeryq.dev/) | Python task queue for short, independent background jobs. | Single-purpose jobs like password reset email, email verification, invite email, and lightweight cleanup tasks. | Use workers for discrete tasks, not durable multi-step orchestration. Pair with RabbitMQ as broker. |
+| [RabbitMQ](https://www.rabbitmq.com/) | Message transport and routing for Celery tasks. | Celery task message delivery and queue routing. | Use as Celery broker only; do not use it as cache, rate-limit store, or permanent state store. |
+| [Redis](https://redis.io/) | Fast temporary state store for latency-sensitive controls. | Distributed rate limits, caching, short-lived counters, and transient locks. | Keep data ephemeral. Do not use as source-of-truth or durable workflow state. |
+
 ## Frontend and Dashboard
 
 | Tool | Why | When | How |
@@ -108,4 +117,5 @@ Project tool inventory with practical guidance for each tool:
 - [development/developer-commands.md](development/developer-commands.md) - Command catalog.
 - [workflows.md](workflows.md) - CI workflow inventory.
 - [design/tool-decisions.md](design/tool-decisions.md) - Tool selection rationale.
+- [design/background-processing-architecture.md](design/background-processing-architecture.md) - Background processing ownership boundaries.
 - [adr/README.md](adr/README.md) - Architecture Decision Record index.
