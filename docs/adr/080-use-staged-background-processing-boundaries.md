@@ -55,6 +55,28 @@ Operational constraints:
 - New background infrastructure must ship with observability
   (structured logs, failure alerts, queue/workflow visibility).
 
+## Decision Boundary
+
+The system may use both Temporal and Celery/RabbitMQ, but they must
+not overlap casually.
+
+**Temporal** is used for durable business workflows that require step
+history, retries, waiting, progress tracking, or failure recovery.
+
+**Celery + RabbitMQ** is reserved for short, independent, high-volume
+tasks where workflow history is not valuable and throughput is the
+primary concern.
+
+**Redis** is used for cache, rate limits, short-lived locks, and temporary
+counters.
+
+**PostgreSQL** remains the source of truth for product data, job records,
+workflow status shown to users/admins, and audit history.
+
+If a background process could be implemented in either **Temporal** or
+**Celery**, prefer **Temporal** unless the process is proven to be high-volume,
+simple, and throughput-sensitive.
+
 ## Alternatives Considered
 
 ### Ad hoc tool selection per feature
