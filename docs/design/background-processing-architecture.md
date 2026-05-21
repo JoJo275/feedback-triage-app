@@ -1,5 +1,12 @@
 # Background Processing Architecture
 
+!!! danger "Required: Update This File with Every Tool Decision"
+    This is a living decision log, not a static proposal.
+    Every time a task is assigned (or reassigned) to Temporal, Celery,
+    RabbitMQ, or Redis, update the mapping table in this file in the same PR.
+    Example: if password reset email moves to Celery, update that row
+    immediately and include the ADR/PR reference.
+
 ---
 
 ## Recommended Ownership Split
@@ -28,23 +35,36 @@ Use this decision tree:
 - Is it Celery message delivery?
   - RabbitMQ
 
-## Concrete Examples
+## Current Project Task-to-Tool Mapping (Living Table)
 
-| Task | Recommended tool |
-| --- | --- |
-| Password reset email | Celery |
-| Email verification | Celery |
-| Workspace invite email | Celery |
-| Expired reset-token cleanup | Celery or scheduled job |
-| Public form rate limit | Redis |
-| Login attempt rate limit | Redis |
-| Dashboard summary cache | Redis |
-| CSV import pipeline | Temporal |
-| AI classification pipeline | Temporal |
-| Weekly workspace report | Temporal |
-| Webhook delivery with retries/backoff | Temporal |
-| Workspace onboarding flow | Temporal |
-| Store signals/users/workspaces/layouts | PostgreSQL |
+This table records what the project currently uses today and what is
+recommended when background infrastructure is introduced.
+
+| Task | Current implementation in this project | Assigned background tool | Status | Update trigger / notes |
+| --- | --- | --- | --- | --- |
+| Password reset email | In-process Resend send with fail-soft `email_log` writes | None yet (Celery candidate) | Shipped (no queue) | Update when first task worker is introduced. |
+| Email verification | In-process Resend send with fail-soft `email_log` writes | None yet (Celery candidate) | Shipped (no queue) | Update when first task worker is introduced. |
+| Workspace invite email | In-process Resend send with fail-soft `email_log` writes | None yet (Celery candidate) | Shipped (no queue) | Update when first task worker is introduced. |
+| Expired reset-token cleanup | Scheduled cleanup job (`scripts/sweep_expired_tokens.py`) | None yet (Celery optional later) | Shipped | Move only if cron reliability/latency becomes a problem. |
+| Login/auth rate limiting | Fixed-window counters in PostgreSQL `auth_rate_limits` | None yet (Redis deferred) | Shipped | Move to Redis token bucket when multi-replica pressure or abuse warrants it. |
+| Public form rate limiting | Service-level limiter backed by PostgreSQL counters | None yet (Redis deferred) | Shipped | Move to Redis when rate limits must be globally shared across replicas. |
+| Dashboard summary cache | In-process cache | None yet (Redis deferred) | Shipped | Move to Redis when horizontal scaling needs shared cache state. |
+| CSV import pipeline | Not implemented | Temporal (recommended) | Recommended | Decide at feature kickoff and record ADR/PR link. |
+| AI classification pipeline | Not implemented | Temporal (recommended) | Recommended | Decide at feature kickoff and record ADR/PR link. |
+| Weekly workspace report workflow | Not implemented | Temporal (recommended) | Recommended | Decide when scheduled reporting ships. |
+| Webhook delivery with retries/backoff | Not implemented | Temporal (recommended) | Recommended | Decide when outbound webhook delivery is introduced. |
+| Celery task delivery/routing | Not implemented | RabbitMQ (recommended broker) | Recommended | Add when the first Celery task ships. |
+| Store signals/users/workspaces/layouts | PostgreSQL source-of-truth tables | PostgreSQL (not a background tool) | Shipped | Keep as source of truth; never move durable records to Redis/RabbitMQ. |
+
+### Current-State Evidence
+
+- v2 baseline explicitly defers Redis and queue workers in
+  `docs/project/spec/v2/railway-optimization.md` and
+  `docs/project/spec/v2/rollout.md`.
+- Auth rate limits are Postgres-backed until Redis is justified
+  (`docs/adr/059-auth-model.md`).
+- Email delivery uses in-process fail-soft semantics; background queues
+  were rejected for v2.0 (`docs/adr/061-resend-email-fail-soft.md`).
 
 ## The Danger
 
@@ -69,6 +89,10 @@ The good version is:
 - PostgreSQL = truth
 
 ## My Implementation Recommendation
+
+Current baseline in this repo is intentionally no Redis and no separate
+queue/worker for v2.0. The sequence below is the recommended adoption
+path after explicit approval.
 
 Build it in this order:
 
