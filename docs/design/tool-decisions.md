@@ -17,6 +17,31 @@ lighter-weight reasoning that comes up when comparing specific tools.
 
 ---
 
+## Background Processing
+
+See [ADR 080](../adr/080-use-staged-background-processing-boundaries.md)
+for the architecture decision.
+
+### Chosen
+
+| Boundary | Why chosen |
+| --- | --- |
+| **Temporal = durable workflows** | Multi-step orchestration with waiting/recovery belongs to a workflow engine, not a short-task queue. |
+| **Celery = short independent tasks** | Keeps email/notification-style jobs simple and isolated from workflow state concerns. |
+| **RabbitMQ = Celery transport only** | Preserves single responsibility for brokering task messages. |
+| **Redis = temporary state only** | Correct fit for cache/rate-limit/counter/lock patterns; avoids durable state drift. |
+| **PostgreSQL = source of truth** | Durable product records stay in the primary relational store. |
+
+### Notes
+
+- Current v2 baseline still defers Redis and queue workers by default
+  (see `docs/project/spec/v2/railway-optimization.md`).
+- `docs/design/background-processing-architecture.md` is the living
+  task-to-tool assignment table and must be updated when assignments
+  change.
+
+---
+
 ## Pre-commit Hooks
 
 See [ADR 008](../adr/008-pre-commit-hooks.md) for the architectural decision

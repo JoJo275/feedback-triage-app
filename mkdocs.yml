@@ -210,6 +210,8 @@ nav:
       - 076 – React Island Widgets Pilot (Superseded): adr/076-use-react-island-for-dashboard-widgets.md
       - 077 – React + Vite Page Runtime: adr/077-use-react-vite-as-v2-page-runtime.md
       - 078 – Web Build + Widget Gates: adr/078-make-web-build-and-widget-parity-required-gates.md
+      - 079 – Umbrella React Baseline: adr/079-use-umbrella-react-baseline-for-v2-frontend.md
+      - 080 – Background Processing Boundaries: adr/080-use-staged-background-processing-boundaries.md
       - Archive:
           - Archive Index: adr/archive/README.md
           - 011 – Repository Guard: adr/archive/011-repository-guard-pattern.md
