@@ -17,6 +17,7 @@ Use this directory for conventions that are expected to be followed in daily wor
 | [css.md](css.md) | CSS, tokens, component naming, and styling workflow expectations |
 | [html.md](html.md) | Semantic HTML, accessibility structure, and form/interaction markup patterns |
 | [react.md](react.md) | React runtime, component/hook conventions, and integration contracts |
+| [scripts.md](scripts.md) | CLI script structure, shared script-module usage, and script interface conventions |
 
 ## Existing Canonical Sources
 
