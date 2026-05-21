@@ -45,7 +45,10 @@ Operational constraints:
 - Current v2.0 baseline stays as-is: no queue/worker/Redis requirement
   until explicitly justified by load/feature scope.
 - `docs/design/background-processing-architecture.md` is the living
-  mapping table for task-to-tool assignment.
+  mapping document.
+- When adding or reassigning any background task, update
+  [Current Project Task-to-Tool Mapping (Living Table)](../design/background-processing-architecture.md#current-project-task-to-tool-mapping-living-table)
+  in the same PR.
 - Any assignment/reassignment for Temporal/Celery/RabbitMQ/Redis must
   update that mapping table in the same PR, with a reference to the
   implementing ADR/PR.
@@ -61,6 +64,16 @@ boundaries.
 
 **Rejected because:** It creates inconsistent retry semantics, unclear
 ownership, and hard-to-debug production behavior.
+
+### Temporal + Redis only (no Celery/RabbitMQ)
+
+Use Temporal for all async work and Redis for temporary state,
+without introducing Celery/RabbitMQ.
+
+**Rejected because:** High-volume, low-priority background jobs become
+tedious to model and operate as durable workflows. A short-task queue
+fits that workload better, while Temporal stays focused on multi-step
+workflow orchestration.
 
 ### Celery-first for all background work
 
@@ -109,6 +122,7 @@ operational control not provided by purely in-process execution.
 ## Implementation
 
 - [docs/design/background-processing-architecture.md](../design/background-processing-architecture.md) - living tool-boundary and task-mapping document.
+- [Current Project Task-to-Tool Mapping (Living Table)](../design/background-processing-architecture.md#current-project-task-to-tool-mapping-living-table) - update this section whenever a background task is added or reassigned.
 - [docs/tooling.md](../tooling.md) - tooling inventory entries for Temporal/Celery/RabbitMQ/Redis.
 - [docs/project/spec/v2/railway-optimization.md](../project/spec/v2/railway-optimization.md) - current no-Redis/no-worker baseline.
 - [docs/project/spec/v2/rollout.md](../project/spec/v2/rollout.md) - deferred worker/cache scope in rollout.
