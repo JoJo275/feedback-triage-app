@@ -20,6 +20,8 @@ This directory contains personal notes, learnings, and references captured while
 | [custom-css-architecture.md](custom-css-architecture.md) | Long-form rationale for the v2.0 multi-file CSS architecture (now adopted): file charters, the `sn-*` vocabulary, hard-parts defenses, and decision criteria for any future architecture change |
 | [css-learning.md](css-learning.md) | Field guide to CSS, web-page design, and custom frameworks — fundamentals (cascade, selectors, layout), design tokens, methodologies (BEM/OOCSS/ITCSS/utility-first), tools, accessibility, and how it all maps to v2.0 |
 | [webapp-tooling.md](webapp-tooling.md)       | Field guide to web-app tools (React, htmx, Pico, Tailwind, Django, etc.) — when to use what and how each affects this repo |
+| [frontend-frameworks-comparison.md](frontend-frameworks-comparison.md) | Comparison table of major frontend/meta-frameworks (Next.js, Angular, Nuxt, SvelteKit, Remix, Astro, Gatsby, SolidStart) with stack, pros, cons, and best-fit guidance |
+| [state-management-boundaries.md](state-management-boundaries.md) | Distinguishes server/API data, local UI state, shared UI state, and complex global state with practical rules and examples |
 | [tool-comparison.md](tool-comparison.md)     | Quick reference for choosing between similar tools   |
 | [todo.md](todo.md)                           | Ideas, things to explore, and bookmarks              |
 | [archive.md](archive.md)                     | Completed items from todo.md                         |
