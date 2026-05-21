@@ -58,6 +58,8 @@ recommended when background infrastructure is introduced.
 
 ### Current-State Evidence
 
+- Tool-boundary policy is codified in
+  `docs/adr/080-use-staged-background-processing-boundaries.md`.
 - v2 baseline explicitly defers Redis and queue workers in
   `docs/project/spec/v2/railway-optimization.md` and
   `docs/project/spec/v2/rollout.md`.
