@@ -9,6 +9,7 @@ Guides for developers working on this project.
 
 | Document                                       | Description                                        |
 | ---------------------------------------------- | -------------------------------------------------- |
+| [development-framework.md](development-framework.md) | Project operating system: rules, workflows, and conventions |
 | [dev-setup.md](dev-setup.md)                   | Environment setup and prerequisites                |
 | [development.md](development.md)               | Daily workflows (testing, linting, building)       |
 | [pull-requests.md](pull-requests.md)           | PR guidelines and code review process              |
@@ -19,6 +20,7 @@ Guides for developers working on this project.
 ## Quick Links
 
 - **New contributor?** Start with [dev-setup.md](dev-setup.md)
+- **Need project rules first?** Read [development-framework.md](development-framework.md)
 - **Ready to code?** See [development.md](development.md)
 - **Opening a PR?** Read [pull-requests.md](pull-requests.md)
 - **Need a command?** Check [developer-commands.md](developer-commands.md)

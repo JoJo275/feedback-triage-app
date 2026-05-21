@@ -125,6 +125,7 @@ nav:
       - Deployment Notes: project/deployment-notes.md
       - Railway Setup: project/railway-setup.md
   - Development:
+      - Development Framework: development/development-framework.md
       - Overview: development/development.md
       - Dev Setup: development/dev-setup.md
       - Developer Commands: development/developer-commands.md
@@ -147,6 +148,7 @@ nav:
           - CSS: design/conventions/css.md
           - HTML: design/conventions/html.md
           - React: design/conventions/react.md
+          - Scripts: design/conventions/scripts.md
   - ADRs:
       - Index: adr/README.md
       - 001 – src/ Layout: adr/001-src-layout.md
