@@ -1,0 +1,22 @@
+# Frontend Frameworks Comparison
+
+Quick reference for major web frameworks and meta-frameworks.
+
+## Big Framework Table
+
+| Framework | Stack / Runtime | What it does well | Pros | Cons | Best fit |
+| --- | --- | --- | --- | --- | --- |
+| Next.js | React + Node runtime (or edge runtime) + file-based routing + server rendering + API routes | Full-stack React apps with SSR/SSG/ISR, hybrid rendering, and strong deployment story | Mature ecosystem, strong DX, excellent docs, flexible rendering modes, Vercel-first optimizations | Build/runtime complexity can grow, React lock-in, conventions can feel heavy for simple apps | Teams building React-heavy products that need both frontend and backend integration |
+| Angular | TypeScript-first framework with RxJS, DI, CLI tooling, routing, forms, and build pipeline | Large enterprise apps with strict structure and long-lived maintainability | Strong architecture defaults, powerful built-in tooling, consistency across large teams, first-class TypeScript | Steeper learning curve, verbose patterns, heavier bundle/runtime footprint if not optimized | Large teams needing consistency, governance, and strong architectural boundaries |
+| Nuxt | Vue + Nitro server engine + file-based routing + SSR/SSG | Vue-first full-stack apps with modern SSR and content-driven sites | Great DX, strong module ecosystem, good performance defaults, easy Vue integration | Smaller ecosystem than React in some verticals, module quality can vary, Nuxt conventions required | Teams that prefer Vue and want full-stack rendering out of the box |
+| SvelteKit | Svelte compiler-based UI + adapters for Node/serverless/edge + SSR/SSG | Fast, lightweight apps with minimal runtime overhead and clean authoring model | Very small client runtime, excellent performance, simple syntax, strong SSR story | Smaller ecosystem/talent pool than React, some libraries less mature, framework migration risk perception | Performance-sensitive apps with teams open to Svelte conventions |
+| Remix | React + web-standards-first routing/loaders/actions + nested routes | Data-heavy apps with robust server-first data loading and mutation flows | Excellent handling of data loading/mutations, good progressive enhancement story, strong routing model | Smaller ecosystem mindshare than Next.js, learning curve around loaders/actions mental model | Apps where correctness and server-data flow discipline matter more than plugin breadth |
+| Astro | Islands architecture + framework-agnostic components (React/Vue/Svelte support) + content tooling | Content-heavy sites where static output and selective hydration are key | Excellent performance defaults, minimal JS by default, flexible component interoperability | Not ideal as a pure SPA app shell, more moving parts when heavily interactive | Docs, marketing, blogs, and mixed content/product surfaces |
+| Gatsby | React + GraphQL data layer + static site generation | Content-rich static sites with plugin-driven data sourcing | Mature plugin system, static-site strengths, good image/content workflows | Build times can degrade at scale, GraphQL layer adds complexity, reduced momentum vs newer options | Existing Gatsby estates or teams deeply invested in its plugin ecosystem |
+| SolidStart | SolidJS + server routing/data primitives + SSR/streaming | Highly reactive apps with strong runtime performance and fine-grained updates | Very fast reactivity model, low overhead updates, promising SSR/streaming story | Smaller ecosystem, less mainstream hiring pool, evolving conventions | Teams prioritizing runtime speed and willing to adopt newer tooling |
+
+## Notes For This Repo Context
+
+- Current repo runtime already uses FastAPI backend and React/Vite frontend surfaces.
+- If choosing a "big framework" path later, keep backend ownership boundaries clear so state and auth logic do not fragment.
+- For internal tools, complexity budget matters more than trend alignment.
