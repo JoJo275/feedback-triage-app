@@ -82,11 +82,20 @@ risk with product behavior changes and make rollback harder.
 
 ## Implementation
 
-- [src/feedback_triage/pages/dashboard.py](../../src/feedback_triage/pages/dashboard.py) - adds the React pilot route.
-- [src/feedback_triage/templates/pages/dashboard/react_widgets.html](../../src/feedback_triage/templates/pages/dashboard/react_widgets.html) - isolated React mount page.
-- [src/feedback_triage/static/js/dashboard_react_widgets.js](../../src/feedback_triage/static/js/dashboard_react_widgets.js) - React island and widget-grid behavior.
-- [src/feedback_triage/templates/pages/dashboard/index.html](../../src/feedback_triage/templates/pages/dashboard/index.html) - "Edit widgets" flow wired to pilot editor.
-- [tests/api/auth/test_dashboard_page.py](../../tests/api/auth/test_dashboard_page.py) - route coverage for the React pilot surface.
+The original pilot files referenced by this ADR were removed during the
+broader migration captured in [ADR 077](077-use-react-vite-as-v2-page-runtime.md).
+
+- [src/feedback_triage/pages/dashboard.py](../../src/feedback_triage/pages/dashboard.py) - current dashboard route surface.
+- [src/feedback_triage/pages/react_shell.py](../../src/feedback_triage/pages/react_shell.py) - current React shell route surface.
+- [src/feedback_triage/templates/pages/react/workspace_shell.html](../../src/feedback_triage/templates/pages/react/workspace_shell.html) - current workspace React mount template.
+- [web/src/components/dashboard/DashboardOverview.tsx](../../web/src/components/dashboard/DashboardOverview.tsx) - current React dashboard implementation.
+- [tests/api/auth/test_dashboard_page.py](../../tests/api/auth/test_dashboard_page.py) - dashboard route coverage.
+
+Historical pilot files (removed):
+
+- `src/feedback_triage/templates/pages/dashboard/react_widgets.html`
+- `src/feedback_triage/static/js/dashboard_react_widgets.js`
+- `src/feedback_triage/templates/pages/dashboard/index.html`
 
 ## References
 

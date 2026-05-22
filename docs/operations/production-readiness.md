@@ -22,9 +22,9 @@ This document defines production-readiness expectations for the product. It cove
 ## Related Documents
 
 - [`../tooling.md`](../tooling.md) — complete tool inventory.
-- [`tool-decisions.md`](tool-decisions.md) — rationale for tool choices.
-- [`frontend-architecture.md`](frontend-architecture.md) — frontend architecture.
-- [`background-processing-architecture.md`](background-processing-architecture.md) — worker/workflow ownership.
+- [`../design/tool-decisions.md`](../design/tool-decisions.md) — rationale for tool choices.
+- [`../design/frontend-architecture.md`](../design/frontend-architecture.md) — frontend architecture.
+- [`../design/background-processing-architecture.md`](../design/background-processing-architecture.md) — worker/workflow ownership.
 - [`../workflows.md`](../workflows.md) — CI workflow inventory.
 - [`../development/developer-commands.md`](../development/developer-commands.md) — command catalog.
 

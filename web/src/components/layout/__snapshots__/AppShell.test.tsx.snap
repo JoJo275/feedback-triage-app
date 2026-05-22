@@ -178,7 +178,13 @@ exports[`AppShell > matches the authenticated shell snapshot 1`] = `
         >
           Demo Owner
         </a>
-         .
+
+        <span
+          aria-hidden="true"
+        >
+          .
+        </span>
+
         Dashboard
       </p>
       <form

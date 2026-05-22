@@ -56,6 +56,6 @@ jobs:
           codespell \
             --check-filenames \
             --check-hidden \
-            --skip ".git,.venv,dist,build,.mypy_cache,.ruff_cache,__pycache__,*.egg-info,site,_typos.toml,*.min.js" \
+            --skip ".git,.venv,dist,build,.mypy_cache,.ruff_cache,__pycache__,*.egg-info,site,_typos.toml,*.min.js,web/package-lock.json" \
             --ignore-words-list "implementors,FO" \
             .

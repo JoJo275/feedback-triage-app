@@ -55,8 +55,7 @@ def ingest_frontend_event(
     The endpoint is intentionally fail-soft: events are best effort and
     must never block the user-facing request path.
     """
-    logger.warning(
-        "frontend.telemetry event=%s status=%d",
-        payload.event,
-        payload.status_code if payload.status_code is not None else -1,
-    )
+    # Keep this log line constant so untrusted payload fields never flow
+    # into structured log content (CodeQL: log injection).
+    _ = payload
+    logger.warning("frontend.telemetry.ingested")
