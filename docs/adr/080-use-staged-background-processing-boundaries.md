@@ -152,7 +152,7 @@ operational control not provided by purely in-process execution.
 - [docs/adr/061-resend-email-fail-soft.md](061-resend-email-fail-soft.md) - in-process email fail-soft; queue explicitly rejected for v2.0.
 - [src/feedback_triage/services/rate_limit.py](../../src/feedback_triage/services/rate_limit.py) - current Postgres-backed fixed-window rate limiter.
 - [src/feedback_triage/email/client.py](../../src/feedback_triage/email/client.py) - current in-process email send/retry flow.
-- [scripts/sweep_expired_tokens.py](../../scripts/sweep_expired_tokens.py) - current scheduled cleanup path.
+- [src/feedback_triage/auth/tokens.py](../../src/feedback_triage/auth/tokens.py) - current token validation and expiry enforcement path.
 
 ## References
 

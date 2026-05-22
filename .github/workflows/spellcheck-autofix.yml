@@ -71,7 +71,7 @@ jobs:
             --write-changes \
             --check-filenames \
             --check-hidden \
-            --skip ".git,.venv,dist,build,__pycache__,.mypy_cache,.ruff_cache,*.egg-info,site,_typos.toml,*.min.js" \
+            --skip ".git,.venv,dist,build,__pycache__,.mypy_cache,.ruff_cache,*.egg-info,site,_typos.toml,*.min.js,web/package-lock.json" \
             .
 
       - name: Create PR if changes
