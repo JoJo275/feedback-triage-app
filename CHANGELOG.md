@@ -1,5 +1,69 @@
 # Changelog
 
+## [2.3.0](https://github.com/JoJo275/feedback-triage-app/compare/v2.2.0...v2.3.0) (2026-05-22)
+
+
+### Features
+
+* add ADR 079 for umbrella React baseline in v2 frontend architecture ([c51f7c2](https://github.com/JoJo275/feedback-triage-app/commit/c51f7c23cc2f485f73d3dc4aa0fdfe121c4946d3))
+* add commenting expectations to Copilot instructions ([5aac072](https://github.com/JoJo275/feedback-triage-app/commit/5aac0726dee6942619066e996da37d65e2313886))
+* add critical UI regression paths and test priority matrix for enhanced coverage ([8c50ce4](https://github.com/JoJo275/feedback-triage-app/commit/8c50ce47adc48112f1e23363aca23be908eb2890))
+* add dependency tooling questionnaire and update README for new document ([d3f80d7](https://github.com/JoJo275/feedback-triage-app/commit/d3f80d784f9aece6204bd755ca22d9660f879c60))
+* add UV lock drift and refresh workflows for dependency management ([283b5e0](https://github.com/JoJo275/feedback-triage-app/commit/283b5e0216e9ea4c6fc9b7b102d8b246b4b264c2))
+* **dashboard:** Implement dashboard summary API and React widget ([d7c4636](https://github.com/JoJo275/feedback-triage-app/commit/d7c46364e75cbdb9b4413c2ffa032cc025881189))
+* **docs:** add .gitkeep file to operations directory and update tooling.md with Node.js entry ([be6e781](https://github.com/JoJo275/feedback-triage-app/commit/be6e78103cfd351066af0eea2dc3046ffe2a02bb))
+* **docs:** add ADR 080 for staged background-processing boundaries and update related documentation ([4613904](https://github.com/JoJo275/feedback-triage-app/commit/4613904a279697591705f0c02f80e33714ab99bd))
+* **docs:** add background processing architecture and tooling guidance ([042b4d8](https://github.com/JoJo275/feedback-triage-app/commit/042b4d81cd9650126dfb4c4faeb8922d09c9b1c9))
+* **docs:** add email framework documentation and update development framework references ([5ffb44d](https://github.com/JoJo275/feedback-triage-app/commit/5ffb44d7386ddda38099305f2ef197dac20341b5))
+* **docs:** add k6 performance testing scenarios and feature flag governance guidelines ([be13d24](https://github.com/JoJo275/feedback-triage-app/commit/be13d2483780babb51a0fe7ec487999c69240150))
+* **docs:** add production readiness documentation and update command reference timestamp ([f8d5b90](https://github.com/JoJo275/feedback-triage-app/commit/f8d5b90a382fe27bbfcace62e4321990bd1b7646))
+* **docs:** add recommended adoption order for planned tools in tooling.md ([4bd5215](https://github.com/JoJo275/feedback-triage-app/commit/4bd521544c4cc5e0f3253e514374b7f4ac2932a7))
+* **docs:** add recommended tool matrix with usage guidelines and best practices ([fb78464](https://github.com/JoJo275/feedback-triage-app/commit/fb78464de7ecc8641cf32f8818a1c46f41ffc9c0))
+* **docs:** add tool template for documenting tools in the repository ([e31744e](https://github.com/JoJo275/feedback-triage-app/commit/e31744e501b61ea4ffdf52b72b2c9f17fc284345))
+* **docs:** add tool templates for documenting tools and general usage guidelines ([91cdc8a](https://github.com/JoJo275/feedback-triage-app/commit/91cdc8aba9a59e5d5d34a95d649c3fe33c4e0a82))
+* **docs:** add tooling and conventions mapping to Copilot instructions ([8e28f57](https://github.com/JoJo275/feedback-triage-app/commit/8e28f578c8b38b7b759384a41294bfa72fe0c37a))
+* **docs:** Added scope column to all tooling tables in tooling.md ([1f4ab47](https://github.com/JoJo275/feedback-triage-app/commit/1f4ab47265fe92e35b1d57afb0e6cf8423070ad0))
+* **docs:** added tools status, concrete references, linking, and tightened phrasing in tooling.md ([3c8a8da](https://github.com/JoJo275/feedback-triage-app/commit/3c8a8dac978cbbfd7c1be525813941a5bd256148))
+* **docs:** enhance background processing architecture and add state management boundaries documentation ([4528f9d](https://github.com/JoJo275/feedback-triage-app/commit/4528f9da94f6e342ee23ebf9850027361883b54a))
+* **docs:** enhance development framework with error telemetry and logging guidelines ([8f84f89](https://github.com/JoJo275/feedback-triage-app/commit/8f84f89939f2ef75d1d7d168bead732f93d7405f))
+* **docs:** enhance email framework documentation with implementation workflows and context conventions ([324b113](https://github.com/JoJo275/feedback-triage-app/commit/324b113614191059a5f0ba98011139e5abf744fc))
+* **docs:** enhance tool template with structured sections and placeholders for improved documentation ([a59b787](https://github.com/JoJo275/feedback-triage-app/commit/a59b787ee9105941124a1020bc17bb528dbc94c1))
+* **docs:** enhance tooling inventory with additional tools and usage guidelines ([ad301e2](https://github.com/JoJo275/feedback-triage-app/commit/ad301e294c8dbcacbfc75112ad6125e1287198c5))
+* **docs:** expand ADR 080 with decision boundaries for Temporal, Celery, and RabbitMQ usage ([705f7fb](https://github.com/JoJo275/feedback-triage-app/commit/705f7fb8af00f89de341a2daa7c359ebaf6da375))
+* **docs:** expand frontend frameworks comparison with Laravel, Django, and Ruby on Rails details ([a28c91a](https://github.com/JoJo275/feedback-triage-app/commit/a28c91a2c0331dbd061c156634e9e781990c700a))
+* **docs:** expand tooling inventory with reliability and delivery operations section ([ed7b78e](https://github.com/JoJo275/feedback-triage-app/commit/ed7b78e0e5f4acd6490e6be856647e97943bfe6c))
+* **docs:** reorganize tooling.md with separate adoption orders for core architecture and commercial readiness ([914ead8](https://github.com/JoJo275/feedback-triage-app/commit/914ead84034452c36a50725b609073b58497e2f1))
+* **docs:** update ADR 080 with task-to-tool mapping guidelines and rejections for tool selection ([f05714c](https://github.com/JoJo275/feedback-triage-app/commit/f05714ce2df6890740869cd1a0970a379f52967f))
+* **docs:** update background processing architecture with current task-to-tool mapping and guidelines ([bc3692d](https://github.com/JoJo275/feedback-triage-app/commit/bc3692dcde85809c6e2f8ad799170a9fc865ba3d))
+* **docs:** update command reference and tooling documentation ([f1a7beb](https://github.com/JoJo275/feedback-triage-app/commit/f1a7beb499e42d95ee44ce97b1e3f88d97e75ef2))
+* **docs:** update tool template with structured sections and placeholders for better documentation ([cbc243a](https://github.com/JoJo275/feedback-triage-app/commit/cbc243a703e3840a69032babfe01122253584de5))
+* **docs:** update tooling inventory with detailed tool descriptions and usage guidelines ([a12b16f](https://github.com/JoJo275/feedback-triage-app/commit/a12b16f89e9333207e7e4bf667922c998c0fee92))
+* **docs:** update tooling.md with detailed descriptions for Tailwind CSS, add hadolint and Prettier, and include markdownlint-cli2 for documentation consistency ([cb0ef53](https://github.com/JoJo275/feedback-triage-app/commit/cb0ef537474a3252c4590117296c8c7d25cff0cb))
+* enhance AppShell component accessibility and update snapshots ([0bd6051](https://github.com/JoJo275/feedback-triage-app/commit/0bd6051de0fdc349d87792671d10ccf22b5179bb))
+* enhance dashboard and app shell with workspace membership handling and UI updates ([05f3853](https://github.com/JoJo275/feedback-triage-app/commit/05f385360ee0fb2dda2adeb7d6f8c119b83b35dc))
+* enhance documentation structure with conventions and archive sections ([1c46be0](https://github.com/JoJo275/feedback-triage-app/commit/1c46be06be4350080eb6b2d6df15ea98522d9b43))
+* enhance documentation with React frontend conventions and update command reference ([3009156](https://github.com/JoJo275/feedback-triage-app/commit/300915659b6b428ca75fc6879386f62f37d67f37))
+* enhance total signals widget and dashboard interactions ([d96ea07](https://github.com/JoJo275/feedback-triage-app/commit/d96ea078045f3d4d9a10c56cb3f2b9af08d9ae75))
+* **phase-0:** initialize feedback triage web application with React and Vite detailed in react-full-migration.md ([341e545](https://github.com/JoJo275/feedback-triage-app/commit/341e545ab2c5b6337a897fdd96c64426133fac72))
+* **phase-1:** Implement AppShell component with layout and navigation ([2778e0d](https://github.com/JoJo275/feedback-triage-app/commit/2778e0d54691cec274cafdbfa738c1ecf64c3039))
+* **phase-2:** enhance AppShell with dynamic section labels and update telemetry for API errors ([bade535](https://github.com/JoJo275/feedback-triage-app/commit/bade53501ff27bfc875656b4011a30d38d4c3314))
+* **phase-2:** update implementation status and add Playwright tests for authenticated React routes ([5b02b29](https://github.com/JoJo275/feedback-triage-app/commit/5b02b298dbcd979db535db4039ce12126b869159))
+* **phase-3:** implement PublicApp component for public feedback submission and roadmap display ([46daf0b](https://github.com/JoJo275/feedback-triage-app/commit/46daf0ba61c30121063c2c47f77716d76fcca9a9))
+* **phase-4:** Refactor React frontend tests and components to remove legacy URL handling ([605d252](https://github.com/JoJo275/feedback-triage-app/commit/605d2524555c23fe2304bb77b94709c2e628892a))
+* pinned node base image digest in containerfile, Added OpenAPI-to-TypeScript generation, Add strucutre convention for React features ([2d165bb](https://github.com/JoJo275/feedback-triage-app/commit/2d165bb23b26dda90022965c87868e0ebe70e87e))
+* refactor route context handling in App component and update AppShell snapshot ([19e015b](https://github.com/JoJo275/feedback-triage-app/commit/19e015b441ea6f7051f713eeabfc97e420eabb4f))
+* **tests:** add React manifest validation tests and ensure deterministic manifest for CI ([5afbee2](https://github.com/JoJo275/feedback-triage-app/commit/5afbee2abec2454a0f3d21fcdd84c4383826d723))
+* update CI workflows to enhance frontend quality gates and remove path filtering ([7ed8550](https://github.com/JoJo275/feedback-triage-app/commit/7ed8550ba0a9a8484ce17f915f2dccef448c847f))
+* update React frontend instructions to enhance hook usage guidance and API layering ([cced75a](https://github.com/JoJo275/feedback-triage-app/commit/cced75a744cd04a400c615d225d8f74313f0553d))
+* update UV Lock Refresh workflow triggers to include push events for path-filtered changes ([d12f5eb](https://github.com/JoJo275/feedback-triage-app/commit/d12f5eb5ebf2823d5c77411103cda6097c078d4a))
+
+
+### Bug Fixes
+
+* **deps:** upgrade starlette to 1.0.1 for PYSEC-2026-161 ([24bcbc2](https://github.com/JoJo275/feedback-triage-app/commit/24bcbc214f47366e7b1ae44d72bb146f2715d840))
+* update skip patterns in spellcheck workflows and improve logging for frontend events ([0bd6051](https://github.com/JoJo275/feedback-triage-app/commit/0bd6051de0fdc349d87792671d10ccf22b5179bb))
+* update skip patterns in spellcheck workflows to include node_modules and package-lock.json ([29d4944](https://github.com/JoJo275/feedback-triage-app/commit/29d4944d39c51a21a7869648f0972a628f39c331))
+
 ## [2.2.0](https://github.com/JoJo275/feedback-triage-app/compare/v2.1.0...v2.2.0) (2026-05-18)
 
 
