@@ -486,6 +486,26 @@ Testing should match the layer being changed.
 | Security-sensitive Python change | Bandit + tests |
 | Dependency/security change | pip-audit, Trivy/Grype, CodeQL as applicable |
 
+### k6 Scope and Starter Scenarios
+
+Use k6 for performance expectations (latency, throughput, saturation), not correctness.
+
+Do not start by load-testing everything. Start with 2-3 scenarios that represent the highest operational risk.
+
+Recommended first candidates:
+
+- Dashboard summary endpoint latency.
+- Login/password reset rate-limit behavior.
+- Public feedback submission under burst traffic.
+- Filtered inbox API under realistic data sizes.
+- Import/job-status polling endpoint load.
+
+Example initial scenario set:
+
+- Dashboard load: 50 virtual users for 5 minutes.
+- Public feedback submit: short spike test.
+- Inbox filtering: realistic repeated reads with pagination/filter parameters.
+
 ### Minimum Local Checks
 
 ```bash
@@ -561,6 +581,39 @@ Production operations should be planned before broad commercial traffic.
 7. Add incident routing and runbooks when users depend on uptime.
 8. Add OpenTelemetry when tracing across API/workers/services becomes necessary.
 ```
+
+### Feature Flag Governance (LaunchDarkly)
+
+Use feature flags for release safety (progressive rollout and rollback), not as a permanent permission system.
+
+Good flags for SignalNest-style rollout control:
+
+- `enable_dashboard_editor`
+- `enable_ai_classification`
+- `enable_temporal_imports`
+- `enable_new_total_signals_widget`
+- `enable_public_roadmap`
+- `enable_workspace_invites`
+
+Bad flags (these are permissions/business rules and belong in FastAPI/PostgreSQL):
+
+- `is_admin`
+- `can_delete_signal`
+- `billing_plan`
+- `user_role`
+
+Every feature flag should define:
+
+- owner
+- purpose
+- default value
+- environments
+- created date
+- planned removal date
+- cleanup task
+
+Main risk: flag debt. Old flags that remain forever make behavior harder to reason about and increase release risk.
+Follow LaunchDarkly cleanup guidance, including clear naming strategy and regular cleanup days.
 
 ### Error Telemetry and Logging Framework
 
@@ -703,6 +756,7 @@ Avoid these patterns:
 - Treating local success as production readiness.
 - Letting provider-managed email templates bypass review for critical flows.
 - Creating background jobs for every tiny event instead of batching/caching/countering.
+- Using feature flags as permanent auth/permission/billing controls.
 
 ## Quick Command Set
 
