@@ -1,11 +1,11 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "./AppShell";
 
 describe("AppShell", () => {
-    it("matches the authenticated shell snapshot", () => {
-        const { container } = render(
+    it("renders phase one shell primitives", () => {
+        render(
             <AppShell
                 workspaceSlug="demo-owner"
                 workspaceName="Demo Owner"
@@ -24,7 +24,22 @@ describe("AppShell", () => {
             </AppShell>,
         );
 
-        expect(container.firstChild).toMatchSnapshot();
+        expect(
+            screen.getByRole("link", { name: "Demo Owner" }),
+        ).toHaveAttribute("href", "/w/demo-owner/dashboard");
+        expect(
+            screen.getByText(/dashboard/i, {
+                selector: ".sn-app-header__breadcrumb",
+            }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+        expect(
+            screen.getByRole("link", { name: "Saved views" }),
+        ).toHaveAttribute("href", "/w/demo-owner/insights");
+        expect(
+            screen.getByRole("link", { name: "+ New signal" }),
+        ).toHaveAttribute("href", "/w/demo-owner/feedback/new");
+        expect(screen.getByText("3")).toHaveClass("sn-sidebar-badge");
     });
 
     it("shows workspace switcher when multiple memberships are available", () => {
