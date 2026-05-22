@@ -101,7 +101,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if settings.feature_auth:
             auth_hashing.warmup()
 
-        if settings.react_manifest_validate_on_startup:
+        # Only enforce manifest integrity when at least one React route
+        # is enabled; non-React boots should not depend on built web assets.
+        if (
+            settings.react_manifest_validate_on_startup
+            and settings.react_routes_enabled
+        ):
             missing_entries = validate_react_manifest(settings.react_required_entries)
             if missing_entries:
                 missing_display = ", ".join(missing_entries)

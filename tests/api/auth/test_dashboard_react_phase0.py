@@ -68,6 +68,7 @@ def test_react_route_startup_fails_closed_when_required_manifest_key_missing(
 ) -> None:
     settings = Settings(
         _env_file=None,
+        feature_react_dashboard=True,
         react_manifest_required_entries="missing-entry.html",
     )
     app = create_app(settings)
@@ -79,6 +80,19 @@ def test_react_route_startup_fails_closed_when_required_manifest_key_missing(
         ),
         TestClient(app),
     ):
+        pass
+
+
+def test_react_route_startup_skips_manifest_validation_when_react_is_disabled(
+    truncate_auth_world: None,
+) -> None:
+    settings = Settings(
+        _env_file=None,
+        react_manifest_required_entries="missing-entry.html",
+    )
+    app = create_app(settings)
+
+    with TestClient(app):
         pass
 
 
