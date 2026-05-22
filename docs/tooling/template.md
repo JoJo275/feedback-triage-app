@@ -1,13 +1,13 @@
-
-# Tool Template
+# Tool Template (replace top with tool name)
 
 !!! danger
+    <Add required must-change warning text for this tool page.>
 
 !!! note
+    <Add important context or status notes for this tool page.>
 
 !!! tip
-
-name of the tool: TODO
+    <Add practical authoring or usage tips for this tool page.>
 
 ---
 
@@ -19,50 +19,85 @@ name of the tool: TODO
 - Owner: TODO
 - Last reviewed: YYYY-MM-DD
 
-## Why
+## <Tool Name>
 
-- TODO: Explain why this tool exists in this repository.
+### Role
 
-## When to Use
+<One sentence describing what this tool owns in this project.>
 
-- TODO: Define trigger conditions for using this tool.
+### What it is
 
-## How to Use Here
+<Plain-English explanation of the tool.>
 
-- Commands:
-  - TODO
-- Config files:
-  - TODO
-- Entry points:
-  - TODO
+### Status
 
-## Boundaries
+- Status: Active / Planned / Deferred
+- Layer: Frontend / Backend / Database / Workers / CI / Docs / Operations
+- Adoption gate: <What must be true before using/adopting it>
 
-- Owns:
-  - TODO
-- Avoid:
-  - TODO
+### Why this project uses it
 
-## Integration Notes
+<Specific reason this project needs it.>
 
-- Inputs:
-  - TODO
-- Outputs:
-  - TODO
-- Dependencies:
-  - TODO
+### Repo locations
 
-## Operational Checklist
+| Purpose | Path |
+| --- | --- |
+| Config | `<path>` |
+| Source files | `<path>` |
+| Generated output | `<path>` |
+| Tests | `<path>` |
 
-- TODO: Monitoring or alerting expectations (if applicable).
-- TODO: Security or compliance checks (if applicable).
-- TODO: Rollback or fallback plan.
+### Common commands
 
-## Lifecycle
+```bash
+<command>
+```
 
-- Adoption status notes:
-  - TODO
-- Planned cleanup or review date:
-  - TODO
-- Open questions:
-  - TODO
+### Inputs and outputs
+
+| Type | Examples |
+| --- | --- |
+| Inputs | <schemas, files, requests, config, events> |
+| Outputs | <generated types, rendered UI, DB records, cache entries> |
+
+### Standard workflow
+
+1. Step one.
+2. Step two.
+3. Step three.
+
+### Integration points
+
+| Integrates with | How |
+| --- | --- |
+| <Tool> | <Relationship> |
+
+### Boundaries
+
+Use this tool for:
+
+- ...
+
+Do not use this tool for:
+
+- ...
+
+### Testing expectations
+
+<test/tool/check>
+
+### Observability and failure modes
+
+| Failure | How detected | Response |
+| --- | --- | --- |
+| <failure> | <signal> | <action> |
+
+### Example
+
+<small practical example>
+
+### Related docs
+
+- <doc path>
+- <ADR path>
