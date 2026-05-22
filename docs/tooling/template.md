@@ -1,6 +1,15 @@
-# General Tool Template
 
-Use this template to document any tool when you are ready to add a dedicated page.
+# Tool Template
+
+!!! danger
+
+!!! note
+
+!!! tip
+
+name of the tool: TODO
+
+---
 
 ## Metadata
 
