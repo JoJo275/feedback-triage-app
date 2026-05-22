@@ -16,6 +16,7 @@ strategy. For Phase 3, truncate-between-tests is enough.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from collections.abc import Iterator
@@ -112,6 +113,66 @@ def _configure_test_database() -> None:
 
 
 _configure_test_database()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_test_react_manifest() -> Iterator[None]:
+    """Provide a deterministic React manifest for server-side page tests.
+
+    CI runners don't build ``web/`` before Python-only test jobs, so the
+    Vite manifest may be absent on a clean checkout. Many page-route tests
+    assert the React shell responses and should not fail purely because local
+    build artifacts are missing.
+    """
+    from feedback_triage.frontend_assets import REACT_MANIFEST, reset_manifest_cache
+
+    existed = REACT_MANIFEST.exists()
+    previous_manifest = REACT_MANIFEST.read_text(encoding="utf-8") if existed else ""
+    created_paths = []
+
+    if not existed:
+        REACT_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+        REACT_MANIFEST.write_text(
+            json.dumps(
+                {
+                    "index.html": {
+                        "file": "assets/index-test.js",
+                        "css": ["assets/index-test.css"],
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        assets_dir = REACT_MANIFEST.parent / "assets"
+        assets_dir.mkdir(parents=True, exist_ok=True)
+
+        js_path = assets_dir / "index-test.js"
+        if not js_path.exists():
+            js_path.write_text("// pytest stub react entrypoint\n", encoding="utf-8")
+            created_paths.append(js_path)
+
+        css_path = assets_dir / "index-test.css"
+        if not css_path.exists():
+            css_path.write_text(
+                "/* pytest stub react stylesheet */\n", encoding="utf-8"
+            )
+            created_paths.append(css_path)
+
+    reset_manifest_cache()
+    yield
+
+    if existed:
+        REACT_MANIFEST.write_text(previous_manifest, encoding="utf-8")
+    else:
+        REACT_MANIFEST.unlink(missing_ok=True)
+        for path in created_paths:
+            path.unlink(missing_ok=True)
+        assets_dir = REACT_MANIFEST.parent / "assets"
+        if assets_dir.exists() and not any(assets_dir.iterdir()):
+            assets_dir.rmdir()
+
+    reset_manifest_cache()
 
 
 @pytest.fixture(scope="session")
