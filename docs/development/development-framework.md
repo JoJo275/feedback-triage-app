@@ -31,6 +31,7 @@ The goal is to avoid a repo where every tool can do everything. Each tool should
 - [`../design/tool-decisions.md`](../design/tool-decisions.md) — rationale for major tool choices.
 - [`../design/frontend-architecture.md`](../design/frontend-architecture.md) — frontend runtime, state, styling, API, and test strategy.
 - [`../design/background-processing-architecture.md`](../design/background-processing-architecture.md) — Temporal, Celery, RabbitMQ, Redis, and worker boundaries.
+- [`../design/email-framework.md`](../design/email-framework.md) — MJML, Jinja2, provider-delivery boundaries, and email template workflow.
 - [`../operations/production-readiness.md`](../operations/production-readiness.md) — commercial-readiness gates and operational requirements.
 - [`developer-commands.md`](developer-commands.md) — command catalog.
 - [`../workflows.md`](../workflows.md) — CI workflow inventory.
@@ -197,11 +198,11 @@ If a background process could fit either Temporal or Celery, prefer Temporal unl
 
 | Tool | Role | Use for | Adoption timing |
 | --- | --- | --- | --- |
-| Jinja2 | Backend email templating and text/plain rendering | Password reset, verification, invite, transactional email plain text, template variable injection | Active/default |
-| MJML | Responsive email HTML layout authoring | Transactional and branded email HTML from migration start | Active at migration kickoff |
+| Jinja2 | Runtime template rendering for dynamic values and plain-text output | Inject reset links, names, workspace names, expiration times, and render `.txt` fallback emails | Active/default |
+| MJML | Responsive HTML email layout authoring | Branded HTML email structure: headers, buttons, sections, reports, onboarding, invites | Active/default |
 | Provider templates | Provider-managed email templates | Non-code editing and provider-side template governance | Deferred |
 
-Use MJML-authored HTML templates from the start of migration and keep Jinja2 for backend templating glue plus plain-text output. Use provider templates only when operational governance permits template changes outside the codebase.
+Use MJML for source-controlled responsive HTML email layouts. Use Jinja2 to inject runtime values into compiled HTML templates and to render plain-text fallback templates. Provider templates remain deferred until there is an explicit governance process for editing templates outside the codebase.
 
 ## Standard Feature Development Workflow
 
@@ -441,7 +442,7 @@ Transactional email should be reliable, testable, and source-controlled.
 2. FastAPI validates request and creates token/record in PostgreSQL.
 3. Redis applies rate limit if relevant.
 4. FastAPI enqueues Celery task or starts Temporal workflow depending on process complexity.
-5. Worker renders MJML-authored HTML plus Jinja2 text templates.
+5. Worker renders Jinja2 templates with runtime values (compiled MJML HTML when active, plus `.txt` fallback).
 6. Worker sends through email provider.
 7. Delivery attempt is logged.
 8. Failures retry or surface through monitoring.
@@ -451,16 +452,18 @@ Transactional email should be reliable, testable, and source-controlled.
 
 | Tool | Job |
 | --- | --- |
-| Jinja2 | Backend templating glue and transactional plain-text rendering |
+| Jinja2 | Runtime value injection and transactional plain-text rendering |
 | Email provider | Actual email delivery |
 | Celery | Simple one-step email jobs |
 | Temporal | Multi-step email/report/onboarding workflows |
-| MJML | Source-controlled transactional and report email HTML layout authoring from migration start |
-| Provider templates | Provider-managed template editing if governance allows |
+| MJML | Source-controlled responsive email HTML layout authoring |
+| Provider templates | Provider-managed template editing after governance allows non-code changes |
 
 ### Email Rules
 
 - Always provide HTML and plain-text email output.
+- Keep dynamic content injection in Jinja2, even when MJML owns the HTML layout.
+- Compile MJML source into HTML templates before runtime rendering.
 - Do not reveal whether an email exists in password reset responses.
 - Store reset/verification token hashes, not raw tokens.
 - Rate-limit password reset and verification flows.
@@ -615,7 +618,7 @@ Next.js/FastAPI form endpoint
 → Redis rate limit
 → PostgreSQL token record
 → Celery/RabbitMQ email task
-→ MJML-authored HTML + Jinja2 text template
+→ Jinja2-rendered HTML and text templates (HTML compiled from MJML when active)
 → email provider
 → pytest + Playwright smoke test
 ```
