@@ -19,13 +19,29 @@ Project tool inventory with practical guidance for each tool:
 
 ## Recommended Adoption Order (Planning)
 
-For commercial-readiness planning, prioritize the currently planned tools in this order:
+Use two planning tracks so architecture foundation work is not mixed with commercial hardening work.
 
-1. API robustness: adopt [Schemathesis](https://schemathesis.readthedocs.io/) for OpenAPI-driven contract and edge-case testing.
-2. Capacity validation: adopt [k6](https://k6.io/) for repeatable load/latency regression checks.
-3. Production visibility: adopt [Sentry](https://sentry.io/) first for error triage, then [OpenTelemetry](https://opentelemetry.io/docs/languages/python/) when deeper tracing/metrics correlation is needed.
-4. Operational safety nets: add synthetic uptime checks and on-call routing before broad commercial traffic expansion.
-5. Controlled rollout and spend: introduce feature flags and cost-budget alerts before high-risk releases.
+### Core Architecture Adoption Order
+
+1. Lock frontend direction: decide [Vite](https://vitejs.dev/) + [React](https://react.dev/) versus [Next.js](https://nextjs.org/docs), then capture the decision in an ADR.
+2. Stabilize frontend quality baseline: [TypeScript](https://www.typescriptlang.org/), [ESLint](https://eslint.org/), [Vitest](https://vitest.dev/), and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
+3. Keep API contract generation healthy: [OpenAPI Type Generation (openapi-typescript)](https://openapi-ts.dev/) remains green and drift-free.
+4. Add server-state management with [TanStack Query](https://tanstack.com/query).
+5. Add complex editor-state management with [Redux Toolkit](https://redux-toolkit.js.org/).
+6. Add [Redis](https://redis.io/) for rate-limits and cache/shared ephemeral state.
+7. Add [Temporal](https://temporal.io/) for the first durable multi-step workflow.
+8. Add [Celery](https://docs.celeryq.dev/) + [RabbitMQ](https://www.rabbitmq.com/) only after a proven short-task queue use case exists.
+
+### Commercial-Readiness Adoption Order
+
+1. Add [Sentry](https://sentry.io/) / error monitoring for production failure triage.
+2. Add synthetic uptime checks for external availability monitoring.
+3. Add [Schemathesis](https://schemathesis.readthedocs.io/) for API contract and edge-case testing.
+4. Add [k6](https://k6.io/) for load and capacity validation.
+5. Introduce feature flags for controlled rollout.
+6. Add cost monitoring and budget alerts.
+7. Add [OpenTelemetry](https://opentelemetry.io/docs/languages/python/) when distributed tracing and deeper telemetry correlation are needed.
+8. Add on-call routing and public status page tooling when customer uptime dependencies require explicit incident communication.
 
 ## Operating Layers
 
