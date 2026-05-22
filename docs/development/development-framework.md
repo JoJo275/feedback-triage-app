@@ -69,7 +69,7 @@ The goal is to avoid a repo where every tool can do everything. Each tool should
 | Testing | pytest, Vitest, React Testing Library, Playwright, MSW, Schemathesis, k6 | Correctness, integration, browser behavior, contracts, load validation | Runtime observability or product analytics |
 | Security and supply chain | Ruff, mypy, ESLint, Bandit, pip-audit, gitleaks, CodeQL, Syft, Trivy, Grype | Static checks, scanning, SBOMs, dependency hygiene | Runtime incident response |
 | Docs and governance | MkDocs, ADRs, tool/design docs | Documentation, rationale, operational guidance | App runtime behavior |
-| Release and operations | GitHub Actions, pre-commit, Dependabot, release-please, Sentry, OpenTelemetry, uptime checks, LaunchDarkly feature flags, cost alerts | CI/CD, release safety, production monitoring, incident response | Local-only manual validation |
+| Release and operations | GitHub Actions, pre-commit, Dependabot, release-please, Sentry, structured JSON app logs, OpenTelemetry (deferred), uptime checks, LaunchDarkly feature flags, cost alerts | CI/CD, release safety, production monitoring, incident response, cross-service error correlation | Local-only manual validation |
 
 ## Project State Ownership
 
@@ -552,14 +552,30 @@ CI is the enforcement layer for project discipline.
 Production operations should be planned before broad commercial traffic.
 
 ```text
-1. Instrument application errors with Sentry or equivalent.
-2. Add uptime checks for health and critical user journeys.
-3. Add logs and alerts for workflow/task failures.
-4. Add cost monitoring and budget alerts.
-5. Use LaunchDarkly feature flags for high-risk releases.
-6. Add incident routing and runbooks when users depend on uptime.
-7. Add OpenTelemetry when tracing across API/workers/services becomes necessary.
+1. Instrument frontend and backend exceptions in Sentry.
+2. Emit structured JSON application logs from FastAPI and workers.
+3. Add uptime checks for health and critical user journeys.
+4. Add logs and alerts for workflow/task failures.
+5. Add cost monitoring and budget alerts.
+6. Use LaunchDarkly feature flags for high-risk releases.
+7. Add incident routing and runbooks when users depend on uptime.
+8. Add OpenTelemetry when tracing across API/workers/services becomes necessary.
 ```
+
+### Error Telemetry and Logging Framework
+
+| Component | Use for | Implementation expectations |
+| --- | --- | --- |
+| Sentry | Frontend/backend exceptions, performance issues, release tracking, structured logs tied to errors/traces | Capture unhandled exceptions and key handled errors, tag by service/environment, and set release version consistently. |
+| App logs | Structured JSON logs from FastAPI/workers | Include request IDs and operation IDs by default; include workspace IDs and user IDs only where safe and policy-allowed. |
+| OpenTelemetry (later) | Traces across Next.js → FastAPI → Temporal/Celery → DB/cache/email provider | Adopt when cross-service trace correlation is required beyond Sentry + structured logs. |
+
+### Logging and Safety Rules
+
+- Do not log secrets, tokens, passwords, raw authorization headers, or full PII payloads.
+- Use correlation IDs consistently across API, worker, and provider boundaries.
+- Include async identifiers (`workflow_id`, `run_id`, `task_id`) on background processing log lines.
+- Keep log messages event-oriented and machine-parseable so alerts can be reliable.
 
 ### Operational Ownership
 
@@ -573,6 +589,9 @@ Production operations should be planned before broad commercial traffic.
 | Celery | Failed tasks, queue depth, retry loops, worker health |
 | RabbitMQ | Queue depth, dead letters, broker health |
 | Email provider | Delivery failures, bounce/spam issues |
+| Sentry | Exception trends, release regressions, performance anomalies |
+| App logs (FastAPI/workers) | Structured error and lifecycle events with correlation IDs and safe entity IDs |
+| OpenTelemetry (when adopted) | Trace continuity across web, API, workers, datastore, cache, and email hops |
 | CI/CD | Failed checks, deploy failures, release drift |
 
 ## Migration Baseline Tooling
