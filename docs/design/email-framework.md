@@ -82,6 +82,29 @@ MJML owns the HTML layout/design system elements:
 5. Jinja2 renders final HTML and plain text.
 6. Email provider sends the email.
 
+Companion MJML compile commands:
+
+```bash
+npx -y mjml emails/src/mjml/password_reset.mjml -o emails/templates/html/password_reset.html.j2
+```
+
+Compile all MJML sources (PowerShell):
+
+```powershell
+Get-ChildItem emails/src/mjml/*.mjml | ForEach-Object {
+  npx -y mjml $_.FullName -o ("emails/templates/html/{0}.html.j2" -f $_.BaseName)
+}
+```
+
+Optional Taskfile snippet:
+
+```yaml
+email:compile:
+  desc: Compile MJML sources into Jinja2 HTML templates
+  cmds:
+    - npx -y mjml emails/src/mjml/password_reset.mjml -o emails/templates/html/password_reset.html.j2
+```
+
 Recommended template layout:
 
 ```text
@@ -118,6 +141,24 @@ Runtime variable guidance:
 - Precompute URLs in backend code and pass them as final values (`reset_url`, `invite_url`).
 - Treat optional values as optional and guard with Jinja2 conditionals (for example, `workspace_name`).
 - Keep context payloads flat and explicit to reduce template drift.
+
+Context naming convention:
+
+| Key | Requirement | Type | Notes |
+| --- | --- | --- | --- |
+| `product_name` | Global required | `str` | Shared product branding in subject/footer copy. |
+| `support_email` | Global required | `str` | Support contact surfaced in footer/help text. |
+| `user_name` | Optional | `str` | Personalization; fallback copy should exist when absent. |
+| `workspace_name` | Optional | `str` | Used by invites/workspace-scoped flows only. |
+| `reset_url` | Template-specific required | `str` | Required by password-reset templates; pass fully-built URL. |
+| `invite_url` | Template-specific required | `str` | Required by invite templates; pass fully-built URL. |
+| `expires_minutes` | Template-specific required | `int` | Required by expiring-link templates; keep integer semantics. |
+
+Use `snake_case` keys in all template contexts for consistency with Jinja2 examples and Python payloads.
+
+## Implementation Strategy Notes
+
+For rollout planning guidance, see [`../notes/email-implementation-vertical-horizontal.md`](../notes/email-implementation-vertical-horizontal.md).
 
 ## Adoption Guidance
 

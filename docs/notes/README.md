@@ -22,6 +22,7 @@ This directory contains personal notes, learnings, and references captured while
 | [webapp-tooling.md](webapp-tooling.md)       | Field guide to web-app tools (React, htmx, Pico, Tailwind, Django, etc.) — when to use what and how each affects this repo |
 | [frontend-frameworks-comparison.md](frontend-frameworks-comparison.md) | Comparison table of major frontend/meta-frameworks (Next.js, Angular, Nuxt, SvelteKit, Remix, Astro, Gatsby, SolidStart) with stack, pros, cons, and best-fit guidance |
 | [state-management-boundaries.md](state-management-boundaries.md) | Distinguishes server/API data, local UI state, shared UI state, and complex global state with practical rules and examples |
+| [email-implementation-vertical-horizontal.md](email-implementation-vertical-horizontal.md) | Practical rollout guide for email work using vertical slices first, then horizontal shared capabilities |
 | [tool-comparison.md](tool-comparison.md)     | Quick reference for choosing between similar tools   |
 | [todo.md](todo.md)                           | Ideas, things to explore, and bookmarks              |
 | [archive.md](archive.md)                     | Completed items from todo.md                         |
