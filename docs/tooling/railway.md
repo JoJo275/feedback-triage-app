@@ -44,6 +44,21 @@ Provides continuous deployment, runtime hosting, and health-checked app operatio
 Railway deploy via connected GitHub repository
 ```
 
+### Verify tool exists
+
+Run:
+
+```bash
+Railway deploy via connected GitHub repository
+```
+
+Expected result:
+
+- Command exits with status code 0.
+- Command does not fail with "command not found" or "is not recognized".
+
+If this tool supports a version command, also add or use a `--version` check here.
+
 ### Inputs and outputs
 
 | Type | Examples |

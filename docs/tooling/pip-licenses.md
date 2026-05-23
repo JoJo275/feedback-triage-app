@@ -44,6 +44,21 @@ Ensures dependency licenses remain compatible with project policy.
 uv run pip-licenses --format=plain --with-urls --order=license
 ```
 
+### Verify tool exists
+
+Run:
+
+```bash
+uv run pip-licenses --format=plain --with-urls --order=license
+```
+
+Expected result:
+
+- Command exits with status code 0.
+- Command does not fail with "command not found" or "is not recognized".
+
+If this tool supports a version command, also add or use a `--version` check here.
+
 ### Inputs and outputs
 
 | Type | Examples |

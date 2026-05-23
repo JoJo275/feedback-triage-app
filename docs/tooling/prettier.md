@@ -44,6 +44,21 @@ Normalizes Markdown formatting (including tables) and reduces noisy doc diffs.
 pre-commit run prettier --hook-stage manual --all-files
 ```
 
+### Verify tool exists
+
+Run:
+
+```bash
+pre-commit run prettier --hook-stage manual --all-files
+```
+
+Expected result:
+
+- Command exits with status code 0.
+- Command does not fail with "command not found" or "is not recognized".
+
+If this tool supports a version command, also add or use a `--version` check here.
+
 ### Inputs and outputs
 
 | Type | Examples |

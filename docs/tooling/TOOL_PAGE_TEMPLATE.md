@@ -53,6 +53,32 @@ TODO: Specific reason this project needs this tool.
 <command>
 ```
 
+### Verify tool exists
+
+```bash
+# TODO: Replace with a real presence/version command for this tool
+<command> --version
+```
+
+Expected result:
+
+- Command exits with status code 0.
+- Output shows a version, help text, or another explicit installed signal.
+
+If missing:
+
+```bash
+# TODO: Add the project-specific install or sync command
+<install-or-sync-command>
+```
+
+If this tool supports checking a specific file, add one command for that flow too:
+
+```bash
+# TODO: Add a specific-file verification command when supported
+<command> <path/to/file>
+```
+
 ### Inputs and outputs
 
 | Type | Examples |

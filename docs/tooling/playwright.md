@@ -44,6 +44,21 @@ Browser-level smoke/e2e checks to prevent critical flow regressions.
 task test:e2e
 ```
 
+### Verify tool exists
+
+Run:
+
+```bash
+task test:e2e
+```
+
+Expected result:
+
+- Command exits with status code 0.
+- Command does not fail with "command not found" or "is not recognized".
+
+If this tool supports a version command, also add or use a `--version` check here.
+
 ### Inputs and outputs
 
 | Type | Examples |

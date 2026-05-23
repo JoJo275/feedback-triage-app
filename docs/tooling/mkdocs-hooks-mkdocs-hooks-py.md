@@ -44,6 +44,21 @@ Repo-specific docs transformations and generation.
 task check
 ```
 
+### Verify tool exists
+
+Run:
+
+```bash
+task check
+```
+
+Expected result:
+
+- Command exits with status code 0.
+- Command does not fail with "command not found" or "is not recognized".
+
+If this tool supports a version command, also add or use a `--version` check here.
+
 ### Inputs and outputs
 
 | Type | Examples |

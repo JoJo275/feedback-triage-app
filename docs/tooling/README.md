@@ -73,7 +73,7 @@ This directory contains tool-specific pages generated from the active inventory 
 
 ## Template
 
-- [template.md](template.md)
+- [TOOL_PAGE_TEMPLATE.md](TOOL_PAGE_TEMPLATE.md)
 
 ## Maintenance
 

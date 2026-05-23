@@ -44,6 +44,21 @@ Stronger frontend contracts plus better editor and AI assistance across the code
 npm --prefix web run typecheck
 ```
 
+### Verify tool exists
+
+Run:
+
+```bash
+npm --prefix web run typecheck
+```
+
+Expected result:
+
+- Command exits with status code 0.
+- Command does not fail with "command not found" or "is not recognized".
+
+If this tool supports a version command, also add or use a `--version` check here.
+
 ### Inputs and outputs
 
 | Type | Examples |
