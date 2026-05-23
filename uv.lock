@@ -9,6 +9,12 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "actionlint-py"
+version = "1.7.12.24"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/0b/3f29683dfbe94208fb5c3806806a6ef419972892e25c3c4f95198f68c978/actionlint_py-1.7.12.24.tar.gz", hash = "sha256:7571b0724fde79b2572b98b2b53792c470249d4db29951b57fc49b9cd3eaf11e", size = 12071, upload-time = "2026-03-31T06:21:35.015Z" }
+
+[[package]]
 name = "alembic"
 version = "1.18.4"
 source = { registry = "https://pypi.org/simple" }
@@ -800,6 +806,7 @@ dashboard = [
     { name = "fastapi", extra = ["standard"] },
 ]
 dev = [
+    { name = "actionlint-py" },
     { name = "anyio" },
     { name = "bandit" },
     { name = "commitizen" },
@@ -830,6 +837,7 @@ test = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "actionlint-py" },
     { name = "bandit" },
     { name = "commitizen" },
     { name = "deptry" },
@@ -841,6 +849,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "actionlint-py", marker = "extra == 'dev'", specifier = ">=1.7.12.24" },
     { name = "alembic", specifier = ">=1.13" },
     { name = "anyio", marker = "extra == 'dev'", specifier = ">=4.4" },
     { name = "anyio", marker = "extra == 'test'", specifier = ">=4.4" },
@@ -879,6 +888,7 @@ provides-extras = ["dashboard", "dev", "docs", "e2e", "test"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "actionlint-py", specifier = ">=1.7.12.24" },
     { name = "bandit", specifier = ">=1.9" },
     { name = "commitizen", specifier = ">=4.16.2" },
     { name = "deptry", specifier = ">=0.25" },

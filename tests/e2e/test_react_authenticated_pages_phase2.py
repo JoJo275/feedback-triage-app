@@ -414,7 +414,15 @@ def test_phase2_feedback_item_status_can_be_changed(
     page.wait_for_load_state("networkidle")
 
     status_select = page.get_by_label("Status")
-    status_select.select_option("reviewing")
+    # Ensure the async PATCH is committed before reload to avoid CI race flakes.
+    with page.expect_response(
+        lambda response: (
+            response.request.method == "PATCH"
+            and response.url.endswith(f"/api/v1/feedback/{item_id}")
+            and response.status == 200
+        ),
+    ):
+        status_select.select_option("reviewing")
     expect(status_select).to_have_value("reviewing")
 
     page.reload()
