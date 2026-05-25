@@ -1,11 +1,8 @@
 # feedback-triage-app
 
-> **App name:** **SignalNest** · **Custom domain:**
-> [`signalnest.app`](https://signalnest.app) (Cloudflare Registrar; wired
-> to Railway in Phase 8 — see
-> [`docs/notes/domain-and-cloudflare.md`](docs/notes/domain-and-cloudflare.md)).
-> The repo slug stays `feedback-triage-app` for git/CI history
-> stability; the user-facing brand is SignalNest.
+This repository contains a feedback triage web application prototype.
+The current repository name is descriptive; commercial branding is
+subject to change.
 
 [![CI](https://github.com/JoJo275/feedback-triage-app/actions/workflows/ci-gate.yml/badge.svg?branch=main)](https://github.com/JoJo275/feedback-triage-app/actions/workflows/ci-gate.yml)
 [![Container Build](https://github.com/JoJo275/feedback-triage-app/actions/workflows/container-build.yml/badge.svg?branch=main)](https://github.com/JoJo275/feedback-triage-app/actions/workflows/container-build.yml)
