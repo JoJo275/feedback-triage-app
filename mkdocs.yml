@@ -31,6 +31,7 @@ repo_name: JoJo275/feedback-triage-app
 # version-agnostic way.  See mkdocs-hooks/include_templates.py.
 exclude_docs: |
   /README.md
+  /business/business-private/**
   reference/README.md
   design/README.md
   development/README.md
