@@ -9,20 +9,22 @@ project specs and ADRs.
 
 ## Recommended reading order
 
-1. [Overview](overview.md)
-2. [Product Positioning](product-positioning.md)
-3. [Customer Segments](customer-segments.md)
-4. [Validation Plan](validation-plan.md)
-5. [Triage Operating Model](triage-operating-model.md)
-6. [Metrics and Reporting](metrics-and-reporting.md)
-7. [Commercialization Roadmap](commercialization-roadmap.md)
-8. [Legal Readiness Checklist](legal-readiness-checklist.md)
-9. [Release Readiness Checklist](release-readiness-checklist.md)
+1. [Naming Status](branding/naming.md)
+2. [Overview](overview.md)
+3. [Product Positioning](product-positioning.md)
+4. [Customer Segments](customer-segments.md)
+5. [Validation Plan](validation-plan.md)
+6. [Triage Operating Model](triage-operating-model.md)
+7. [Metrics and Reporting](metrics-and-reporting.md)
+8. [Commercialization Roadmap](commercialization-roadmap.md)
+9. [Legal Readiness Checklist](legal-readiness-checklist.md)
+10. [Release Readiness Checklist](release-readiness-checklist.md)
 
 ## Contents
 
 | File | Purpose |
 | --- | --- |
+| [branding/naming.md](branding/naming.md) | Public naming status for repo name versus placeholder product name |
 | [overview.md](overview.md) | Product posture, value proposition, and boundaries |
 | [product-positioning.md](product-positioning.md) | Category wedge, differentiators, and messaging guardrails |
 | [customer-segments.md](customer-segments.md) | ICP guardrails, personas, and interview prompts |
