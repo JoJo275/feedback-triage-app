@@ -206,3 +206,8 @@ backups/
 /web/openapi.v1.json
 /src/feedback_triage/static/app/*
 !/src/feedback_triage/static/app/.gitkeep
+
+# =========================================
+# Private business planning notes
+# =========================================
+/business-private/

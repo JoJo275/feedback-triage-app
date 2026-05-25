@@ -92,9 +92,13 @@ nav:
   - Business:
       - Index: business/README.md
       - Overview: business/overview.md
+      - Product Positioning: business/product-positioning.md
       - Customer Segments: business/customer-segments.md
+      - Validation Plan: business/validation-plan.md
       - Triage Operating Model: business/triage-operating-model.md
       - Metrics and Reporting: business/metrics-and-reporting.md
+      - Commercialization Roadmap: business/commercialization-roadmap.md
+      - Legal Readiness Checklist: business/legal-readiness-checklist.md
       - Release Readiness Checklist: business/release-readiness-checklist.md
   - Project:
       - Spec (v1.0): project/spec/spec-v1.md
