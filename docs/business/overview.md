@@ -1,13 +1,16 @@
 # Business Overview
 
-This page defines the business posture for SignalNest and keeps
-scope decisions explicit.
+This page defines the business posture for the feedback triage web app
+prototype and keeps scope decisions explicit.
+
+Branding note: the commercial product name is not finalized.
+Any use of SignalNest/Signalnest is placeholder branding.
 
 ## Product summary
 
-SignalNest helps small product teams collect customer feedback in one
-place, triage it through an opinionated workflow, and close the loop
-when work ships.
+The product helps small teams collect customer feedback in one place,
+triage it through an opinionated workflow, and close the loop when work
+ships.
 
 ## Problem statement
 

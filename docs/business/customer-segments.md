@@ -1,52 +1,59 @@
 # Customer Segments
 
-This page defines who the product is for and who it is not for.
+This page defines public customer-segmentation assumptions for the
+feedback triage web app prototype.
 
-## Ideal customer profile (ICP)
+Detailed interview notes, prospect-specific observations, and
+commercial experiments stay in private documentation.
 
-A strong-fit workspace usually matches all of the following:
+## Primary segment
 
-- Team has recurring customer feedback but no reliable triage workflow.
-- Team wants visibility from intake to shipped outcomes.
-- Team can adopt lightweight process changes quickly.
-- Team does not require enterprise controls (for example SSO/SAML) yet.
+- Team profile: solo founders and small product teams.
+- Typical size: 1 to 20 people.
+- Common pain: feedback arrives across multiple channels and is triaged
+  inconsistently.
+- Desired outcome: faster, clearer decisions about what to ship and
+  what to defer.
 
-## Segment map
+## Secondary segments
 
-| Segment | Team size | Primary pain | Adoption trigger |
-| --- | --- | --- | --- |
-| Solo founder | 1 | Feedback scattered across inbox and social channels | Wants one source of truth |
-| Early-stage startup | 2-10 | Priorities shift weekly and context is lost | Needs shared status visibility |
-| Internal product tooling team | 5-20 | Intake and delivery are disconnected | Needs clear handoff and accountability |
+- Internal product tooling teams that need lightweight intake control.
+- Early-stage startups that want process clarity without enterprise
+  overhead.
+- Small support or community teams coordinating repeated requests with
+  product ownership.
 
-## Primary personas
+## Deprioritized segments
 
-| Persona | Job to be done | Success signal |
-| --- | --- | --- |
-| Founder or PM | Triage feedback quickly and decide what matters | Backlog is current and prioritized |
-| Engineer lead | See what is planned and why | Fewer context-switching meetings |
-| Operations or support partner | Confirm customer follow-up happened | Fewer unresolved customer loops |
+- Large enterprise organizations requiring procurement-first rollout.
+- Teams requiring SSO/SAML and extensive governance controls at pilot
+  start.
+- Teams seeking a broad all-in-one project management suite rather than
+  focused feedback triage.
 
-## Disqualifiers
+## Fit checklist
 
-The following are poor fit indicators:
+A likely good-fit team usually has most of the following:
 
-- Required compliance controls exceed current scope.
-- Team requires procurement-heavy enterprise contracts.
-- Team wants broad customization before proving core workflow value.
+- Recurring customer feedback every week.
+- Feedback spread across at least three channels.
+- A visible backlog aging or prioritization problem.
+- A clear owner for triage decisions.
+- Interest in lightweight process changes.
 
-## Interview prompts
+## Interview prompt set (public-safe)
 
-Use these prompts for discovery calls and retrospectives:
+Use these prompts for recurring customer discovery:
 
 1. Where does feedback arrive today?
-2. How long does it take to move an item from intake to decision?
-3. Which statuses are most overloaded right now?
-4. How do customers learn that a request was shipped?
-5. What would make your current process feel trustworthy?
+2. What gets lost or delayed in the current flow?
+3. How are triage decisions made now?
+4. Which workflow step is currently the slowest?
+5. What would make a new workflow worth adopting?
 
-## Positioning notes
+## Related docs
 
-- Focus on speed and clarity over feature breadth.
-- Emphasize triage discipline, not roadmap theater.
-- Position as upstream to issue trackers rather than a replacement.
+- [Overview](overview.md)
+- [Product Positioning](product-positioning.md)
+- [Validation Plan](validation-plan.md)
+- [Triage Operating Model](triage-operating-model.md)

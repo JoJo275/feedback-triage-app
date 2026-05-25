@@ -7,24 +7,34 @@ Use this section for business context, not implementation details.
 Engineering behavior, schema, and API contracts still live in the
 project specs and ADRs.
 
+Public/private split:
+- Keep this directory public and high-level.
+- Keep interview transcripts, pricing experiments, and founder strategy
+	details in `business-private/`.
+
 ## Recommended reading order
 
 1. [Naming Status](branding/naming.md)
-2. [Overview](overview.md)
-3. [Product Positioning](product-positioning.md)
-4. [Customer Segments](customer-segments.md)
-5. [Validation Plan](validation-plan.md)
-6. [Triage Operating Model](triage-operating-model.md)
-7. [Metrics and Reporting](metrics-and-reporting.md)
-8. [Commercialization Roadmap](commercialization-roadmap.md)
-9. [Legal Readiness Checklist](legal-readiness-checklist.md)
-10. [Release Readiness Checklist](release-readiness-checklist.md)
+2. [High-Level Positioning](branding/high-level-positioning.md)
+3. [Overview](overview.md)
+4. [Product Positioning](product-positioning.md)
+5. [Customer Segments](customer-segments.md)
+6. [Validation Plan](validation-plan.md)
+7. [Triage Operating Model](triage-operating-model.md)
+8. [Metrics and Reporting](metrics-and-reporting.md)
+9. [Commercialization Roadmap](commercialization-roadmap.md)
+10. [Legal Readiness Checklist](legal-readiness-checklist.md)
+11. [Release Readiness Checklist](release-readiness-checklist.md)
 
 ## Contents
 
 | File | Purpose |
 | --- | --- |
 | [branding/naming.md](branding/naming.md) | Public naming status for repo name versus placeholder product name |
+| [branding/high-level-positioning.md](branding/high-level-positioning.md) | Provisional product narrative for external context |
+| [branding/logo.md](branding/logo.md) | Current logo decision status for public readers |
+| [branding/slogan.md](branding/slogan.md) | Current slogan decision status for public readers |
+| [branding/brand-colors.md](branding/brand-colors.md) | Current brand color decision status for public readers |
 | [overview.md](overview.md) | Product posture, value proposition, and boundaries |
 | [product-positioning.md](product-positioning.md) | Category wedge, differentiators, and messaging guardrails |
 | [customer-segments.md](customer-segments.md) | ICP guardrails, personas, and interview prompts |

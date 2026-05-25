@@ -3,6 +3,9 @@
 This page captures how to validate product demand and workflow value
 without adding major implementation scope.
 
+Branding note: references to SignalNest should be treated as placeholder
+brand language until naming is finalized.
+
 ## Validation goals
 
 - Confirm the target users feel the triage pain sharply.
@@ -42,7 +45,7 @@ without adding major implementation scope.
 - At least 70% of interviewees confirm current triage pain.
 - At least 50% of pilot teams continue usage after 4 weeks.
 - Stale open-item ratio trends down over pilot period.
-- At least one user recommends SignalNest to a peer.
+- At least one user recommends the product to a peer.
 
 ## Failure signals
 
