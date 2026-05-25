@@ -17,6 +17,7 @@ historical reference for the shipped v1.0 codebase.
 | [Project Spec v2.0](project/spec/spec-v2.md)         | **Authoritative** product, schema, and API spec |
 | [v2.0 Implementation Plan](project/spec/v2/implementation.md) | Phase-by-phase build plan for v2.0 |
 | [Project Spec v1.0](project/spec/spec-v1.md)         | Historical v1.0 spec (shipped)             |
+| [Business Docs](business/overview.md)                | Product positioning, triage ops, and KPIs  |
 | [Open Questions](project/questions.md)                | Tracked open questions & decisions         |
 | [Deployment Notes](project/deployment-notes.md)       | Railway operational notes                  |
 | [ADRs](adr/README.md)                                 | Architecture Decision Records              |

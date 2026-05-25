@@ -89,6 +89,13 @@ nav:
       - Tooling: tooling.md
       - Tool Comparisons: tool-comparisons.md
       - Labels: labels.md
+  - Business:
+      - Index: business/README.md
+      - Overview: business/overview.md
+      - Customer Segments: business/customer-segments.md
+      - Triage Operating Model: business/triage-operating-model.md
+      - Metrics and Reporting: business/metrics-and-reporting.md
+      - Release Readiness Checklist: business/release-readiness-checklist.md
   - Project:
       - Spec (v1.0): project/spec/spec-v1.md
       - Spec (v2.0 ratified):

@@ -11,6 +11,7 @@ Project documentation organized by topic.
 | -------------------------------------- | -------------------------------------- |
 | [adr/](adr/)                           | Architecture Decision Records          |
 | [archive/](archive/)                   | Archived docs kept for historical context only |
+| [business/](business/)                 | Product and business operating docs    |
 | [blueprints/](blueprints/)             | Proposed design shapes                 |
 | [design/](design/)                     | Architecture and database design       |
 | [development/](development/)           | Developer guides and setup             |
@@ -49,6 +50,7 @@ or implementation plan.
 ## Quick Links
 
 - [Development Setup](development/dev-setup.md)
+- [Business Docs](business/overview.md)
 - [Repository Layout](repo-layout.md)
 - [Releasing](releasing.md)
 - [Workflows](workflows.md)
