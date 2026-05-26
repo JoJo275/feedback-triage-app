@@ -17,14 +17,15 @@ Public/private split:
 1. [Naming Status](branding/naming.md)
 2. [High-Level Positioning](branding/high-level-positioning.md)
 3. [Overview](overview.md)
-4. [Product Positioning](product-positioning.md)
-5. [Customer Segments](customer-segments.md)
-6. [Validation Plan](validation-plan.md)
-7. [Triage Operating Model](triage-operating-model.md)
-8. [Metrics and Reporting](metrics-and-reporting.md)
-9. [Commercialization Roadmap](commercialization-roadmap.md)
-10. [Legal Readiness Checklist](legal-readiness-checklist.md)
-11. [Release Readiness Checklist](release-readiness-checklist.md)
+4. [Demo Data Policy](demo-data-policy.md)
+5. [Product Positioning](product-positioning.md)
+6. [Customer Segments](customer-segments.md)
+7. [Validation Plan](validation-plan.md)
+8. [Triage Operating Model](triage-operating-model.md)
+9. [Metrics and Reporting](metrics-and-reporting.md)
+10. [Commercialization Roadmap](commercialization-roadmap.md)
+11. [Legal Readiness Checklist](legal-readiness-checklist.md)
+12. [Release Readiness Checklist](release-readiness-checklist.md)
 
 ## Contents
 
@@ -36,6 +37,7 @@ Public/private split:
 | [branding/slogan.md](branding/slogan.md) | Current slogan decision status for public readers |
 | [branding/brand-colors.md](branding/brand-colors.md) | Current brand color decision status for public readers |
 | [overview.md](overview.md) | Product posture, value proposition, and boundaries |
+| [demo-data-policy.md](demo-data-policy.md) | Rules for safe synthetic/anonymized demo data in public artifacts |
 | [product-positioning.md](product-positioning.md) | Category wedge, differentiators, and messaging guardrails |
 | [customer-segments.md](customer-segments.md) | ICP guardrails, personas, and interview prompts |
 | [validation-plan.md](validation-plan.md) | Demand hypotheses, experiments, and success criteria |
