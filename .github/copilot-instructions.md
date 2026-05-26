@@ -34,6 +34,16 @@ When creating or editing documentation:
 - Put sensitive business notes in the private planning repository or a gitignored private folder.
 - If unsure whether something is public-safe, treat it as private.
 
+## App naming convention for notes
+
+The canonical name to reference this web app in notes and discussions is
+`feedback-triage-app`.
+
+- The final commercial product name is not chosen yet.
+- Do not treat placeholder branding as final naming.
+- If older notes use misspellings of `feedback-triage-app`, normalize to
+  `feedback-triage-app` in new writing.
+
 ## How This Project Works
 
 ### Overview
