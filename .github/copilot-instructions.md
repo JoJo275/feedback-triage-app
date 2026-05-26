@@ -2,6 +2,8 @@
 
 Guidelines for GitHub Copilot when working in this repository.
 
+Public files explain the product. Private files explain the advantage, uncertainty, and risk.
+
 > **Repository status (May 2026):** v2.0 is **ratified** and is now
 > the authoritative spec for all current work
 > ([`docs/project/spec/spec-v2.md`](../docs/project/spec/spec-v2.md);
@@ -18,6 +20,19 @@ Guidelines for GitHub Copilot when working in this repository.
 > green CI run.
 
 ---
+
+## Public vs private documentation
+
+Public repository files should explain the product, architecture, usage, and public-safe planning.
+
+Private files should contain business advantage, uncertainty, risk, raw research, customer details, pricing experiments, legal notes, naming research, launch tactics, and candid decision rationale.
+
+When creating or editing documentation:
+
+- Keep public docs polished, non-sensitive, and safe for portfolio viewers, employers, customers, and competitors.
+- Do not add raw customer interviews, prospect names, private pricing tests, competitor weakness analysis, legal concerns, trademark/name research, personal financial constraints, or launch strategy to public files.
+- Put sensitive business notes in the private planning repository or a gitignored private folder.
+- If unsure whether something is public-safe, treat it as private.
 
 ## How This Project Works
 
