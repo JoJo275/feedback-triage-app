@@ -41,7 +41,7 @@ classifiers = [
 dependencies = [
   "fastapi[standard]>=0.136.1", # Web framework + uvicorn
   "sqlmodel>=0.0.22",           # ORM (Pydantic + SQLAlchemy)
-  "sqlalchemy>=2.0",            # Pin floor; sqlmodel pulls a 2.x
+  "sqlalchemy>=2.0.50",            # Pin floor; sqlmodel pulls a 2.x
   "alembic>=1.13",              # Migrations
   "psycopg[binary]>=3.3.4",     # Postgres driver (sync)
   "pydantic>=2.13.4",              # Validation
@@ -99,11 +99,11 @@ test = [
 e2e = ["playwright>=1.60.0", "pytest-playwright>=0.8.0"]
 dev = [
   "feedback-triage-app[test]",
-  "ruff>=0.15.13",
+  "ruff>=0.15.15",
   "mypy>=2.1.0",
   "pre-commit>=4.0",
   "bandit>=1.9",
-  "commitizen>=4.16.2",
+  "commitizen>=4.16.3",
   "deptry>=0.25",
 ]
 docs = [
@@ -130,11 +130,11 @@ dashboard = ["fastapi[standard]>=0.136.1"]
 [dependency-groups]
 dev = [
   "feedback-triage-app[test]",
-  "ruff>=0.15.13",
+  "ruff>=0.15.15",
   "mypy>=2.1.0",
   "pre-commit>=4.0",
   "bandit>=1.9",
-  "commitizen>=4.16.2",
+  "commitizen>=4.16.3",
   "deptry>=0.25",
 ]
 
