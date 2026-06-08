@@ -83,7 +83,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # Checkout a Git repository at a particular version (v6.0.2)
         with:
           persist-credentials: false
 
@@ -123,7 +123,7 @@ jobs:
       # Security tab; promote to a hard block once we have a clean
       # baseline and a ``.trivyignore`` for accepted exceptions.
       - name: Checkout repository (for trivy.yaml / .trivyignore)
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # Checkout a Git repository at a particular version (v6.0.2)
         with:
           persist-credentials: false
 
@@ -141,7 +141,7 @@ jobs:
 
       # Upload SARIF to GitHub Security tab → Code scanning alerts
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: trivy-results.sarif
@@ -167,7 +167,7 @@ jobs:
         run: docker load -i image.tar
 
       - name: Checkout repository (for .grype.yaml)
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # Checkout a Git repository at a particular version (v6.0.2)
         with:
           persist-credentials: false
 
@@ -189,7 +189,7 @@ jobs:
           only-fixed: true
 
       - name: Upload Grype SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
@@ -213,7 +213,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # Checkout a Git repository at a particular version (v6.0.2)
         with:
           persist-credentials: false
 
