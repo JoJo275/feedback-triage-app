@@ -96,7 +96,7 @@ jobs:
           python-version: "3.12"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # Install uv with caching (v8.1.0)
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # Install uv with caching (v8.1.0)
         with:
           enable-cache: true
           cache-dependency-glob: 'uv.lock'
@@ -156,7 +156,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SBOM SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: trivy-sbom-results.sarif
@@ -188,7 +188,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SBOM SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
@@ -222,7 +222,7 @@ jobs:
           python-version: "3.12"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # Install uv with caching (v8.1.0)
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # Install uv with caching (v8.1.0)
         with:
           enable-cache: true
           cache-dependency-glob: 'uv.lock'
@@ -303,7 +303,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: trivy-results.sarif
@@ -334,7 +334,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}

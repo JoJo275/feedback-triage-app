@@ -141,7 +141,7 @@ jobs:
 
       # Upload SARIF to GitHub Security tab → Code scanning alerts
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: trivy-results.sarif
@@ -189,7 +189,7 @@ jobs:
           only-fixed: true
 
       - name: Upload Grype SARIF
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # Upload the analysis results (v4.32.6)
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # Upload the analysis results (v4.32.6)
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
