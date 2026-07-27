@@ -102,12 +102,12 @@ jobs:
       # distribution artifacts. This cryptographically links the
       # artifacts to this specific build, strengthening supply chain trust.
       - name: Attest build provenance (sdist)
-        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # Generate provenance attestations for build… (v4.1.0)
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # Generate provenance attestations for build… (v4.1.0)
         with:
           subject-path: dist/*.tar.gz
 
       - name: Attest build provenance (wheel)
-        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # Generate provenance attestations for build… (v4.1.0)
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # Generate provenance attestations for build… (v4.1.0)
         with:
           subject-path: dist/*.whl
 
@@ -141,7 +141,7 @@ jobs:
       # Publish to PyPI only when the secret exists
       - name: Publish to PyPI
         if: ${{ env.PUBLISH_TOKEN != '' }}
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # Upload Python distribution packages to PyPI (v1.13.0)
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # Upload Python distribution packages to PyPI (v1.13.0)
 
       # Fail with a helpful message when the secret is missing.
       # Using exit 0 so release workflow succeeds even without PyPI publishing.
