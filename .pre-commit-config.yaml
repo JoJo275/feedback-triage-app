@@ -98,7 +98,7 @@ repos:
   # Ruff - Fast Python linter and formatter
   # ---------------------------------------------------------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.13
+    rev: v0.16.6
     hooks:
       # Linter
       - id: ruff
@@ -154,7 +154,7 @@ repos:
   # Validate pyproject.toml against PEP 621 / packaging schemas
   # ---------------------------------------------------------------------------
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.25
+    rev: '0.26'
     hooks:
       - id: validate-pyproject
 
@@ -190,7 +190,7 @@ repos:
   # Uses SchemaStore schemas for GitHub workflows, Dependabot, etc.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.2
+    rev: 0.38.0
     hooks:
       - id: check-github-workflows
       - id: check-github-actions
@@ -344,7 +344,7 @@ repos:
   # With rebase+merge, every commit message matters — this ensures
   # well-formed messages that feed into release-please's CHANGELOG.
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.16.2
+    rev: v4.18.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -378,7 +378,7 @@ repos:
   #       pass requirements files for it to have something to audit.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/pypa/pip-audit
-    rev: v2.10.0
+    rev: v2.10.1
     hooks:
       - id: pip-audit
         # Audit the resolved graph from uv.lock. uv export produces a
@@ -450,7 +450,7 @@ repos:
   # Scoped to *.md to limit the Node dependency surface.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.22.1
+    rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
         stages: [manual]
@@ -462,7 +462,7 @@ repos:
   # Requires Docker to be installed. Also covered in CI by Trivy misconfig.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.14.0
+    rev: v2.15.1
     hooks:
       - id: hadolint-docker
         stages: [manual]
@@ -475,7 +475,7 @@ repos:
   # Or change  stages: [manual]  →  stages: [pre-commit]  to enable.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.8.3
+    rev: v3.9.6
     hooks:
       - id: prettier
         types_or: [markdown]
